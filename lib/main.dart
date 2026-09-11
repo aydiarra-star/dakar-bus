@@ -15,7 +15,7 @@ class DakarBusApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Dakar Mobilité',
+      title: 'Dakar Bus',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
@@ -94,7 +94,7 @@ class _MainMapScreenState extends State<MainMapScreen> {
   String _searchQuery = '';
   Timer? _timer;
 
-  // Crowdsourcing passif (Mode Waze pour les transports)
+  // Crowdsourcing passif
   StreamSubscription<Position>? _userLocationSubscription;
   bool _isPassengerOnboard = false;
   String? _detectedLine;
@@ -210,7 +210,6 @@ class _MainMapScreenState extends State<MainMapScreen> {
     });
   }
 
-  // --- SOLUTION 1 : MODULE CROWDSOURCING PASSIF ---
   Future<void> _initPassiveCrowdsourcing() async {
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -231,7 +230,7 @@ class _MainMapScreenState extends State<MainMapScreen> {
         _analyzePassengerMovement(position);
       });
     } catch (e) {
-      debugPrint('Gestion Geolocation non supportée ou refusée: $e');
+      debugPrint('Geolocator exception: $e');
     }
   }
 
@@ -249,12 +248,6 @@ class _MainMapScreenState extends State<MainMapScreen> {
           _isPassengerOnboard = true;
           _detectedLine = isOnBrt ? 'BRT B1 (Détecté via GPS)' : 'TER Express (Détecté via GPS)';
         });
-
-        _sendAnonymousBusPing(
-          line: _detectedLine!,
-          position: currentLatLng,
-          heading: pos.heading,
-        );
         return;
       }
     }
@@ -271,17 +264,12 @@ class _MainMapScreenState extends State<MainMapScreen> {
   bool _isNearPolyline(LatLng point, List<LatLng> polyline, double maxDistanceMeters) {
     for (var p in polyline) {
       double distance = Geolocator.distanceBetween(
-        point.latitude, point.longitude, p.latitude, p.longitude);
+          point.latitude, point.longitude, p.latitude, p.longitude);
       if (distance <= maxDistanceMeters) return true;
     }
     return false;
   }
 
-  void _sendAnonymousBusPing({required String line, required LatLng position, required double heading}) {
-    debugPrint('📡 [CROWDSOURCING PASSIV] Ping envoyé : $line à ${position.latitude}, ${position.longitude}');
-  }
-
-  // --- SOLUTION 2 : FLUX UNIFIÉ (SCRAPING WEBSOCKET + CROWDSOURCE) ---
   Stream<List<LiveVehicle>> _getUnifiedLiveStream() async* {
     int step = 0;
     while (true) {
@@ -290,6 +278,7 @@ class _MainMapScreenState extends State<MainMapScreen> {
 
       final brtPos = _brtRoute[step % _brtRoute.length];
       final terPos = _terRoute[step % _terRoute.length];
+      final dddPos = _dddRoute[step % _dddRoute.length];
       final aftuPos = _aftuRoute[step % _aftuRoute.length];
 
       yield [
@@ -310,6 +299,15 @@ class _MainMapScreenState extends State<MainMapScreen> {
           color: const Color(0xFFE53935),
           icon: Icons.directions_railway_filled,
           source: DataSource.crowdsourcing,
+        ),
+        LiveVehicle(
+          id: 'ddd_12',
+          lineName: 'DDD Ligne 12',
+          currentPosition: dddPos,
+          heading: 60.0,
+          color: const Color(0xFF2E7D32),
+          icon: Icons.directions_bus_filled,
+          source: DataSource.scrapedApi,
         ),
         LiveVehicle(
           id: 'aftu_24',
@@ -363,7 +361,7 @@ class _MainMapScreenState extends State<MainMapScreen> {
             children: [
               TileLayer(
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.dakarmobilite.app',
+                userAgentPackageName: 'com.dakarbus.app',
               ),
               PolylineLayer(
                 polylines: [
@@ -397,13 +395,10 @@ class _MainMapScreenState extends State<MainMapScreen> {
                     height: 50,
                     child: GestureDetector(
                       onTap: () {
-                        String sourceText = vehicle.source == DataSource.crowdsourcing
-                            ? 'Détecté par les voyageurs à bord (Crowdsource)'
-                            : 'Flux API direct (Scraping Réseau)';
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('${vehicle.lineName} • $sourceText'),
-                            duration: const Duration(seconds: 3),
+                            content: Text('${vehicle.lineName} en déplacement (Live GPS)'),
+                            duration: const Duration(seconds: 2),
                           ),
                         );
                       },
@@ -515,7 +510,7 @@ class _MainMapScreenState extends State<MainMapScreen> {
                         const Icon(Icons.directions_bus, color: Color(0xFF2E7D32), size: 28),
                         const SizedBox(width: 8),
                         const Text(
-                          'Dakar Mobilité',
+                          'Dakar Bus',
                           style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                         ),
                         const Spacer(),
