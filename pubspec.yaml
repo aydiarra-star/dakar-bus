@@ -1,35 +1,20 @@
-name: Deploy to GitHub Pages
+name: dakar_bus
+description: Application de suivi des transports à Dakar.
+publish_to: 'none'
+version: 1.0.0+1
 
-on:
-  push:
-    branches: [ main, principal ]
+environment:
+  sdk: '>=3.0.0 <4.0.0'
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_map: ^6.1.0
+  latlong2: ^0.9.1
 
-      - name: Setup Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'zulu'
-          java-version: '17'
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.19.x'
-          channel: 'stable'
-
-      - name: Install Dependencies
-        run: flutter pub get
-
-      - name: Build Web
-        run: flutter build web --release --base-href "/dakar-bus/"
-
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build/web
+flutter:
+  uses-material-design: true
