@@ -48,13 +48,9 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  // Centre de la carte à Dakar (Place de l'Indépendance)
   final LatLng dakarCenter = const LatLng(14.6698, -17.4381);
-
-  // Position de référence de l'utilisateur (Ex: Plateau)
   final LatLng userLocation = const LatLng(14.6650, -17.4350);
 
-  // Exemple de points d'arrêt clés à Dakar
   final List<BusStop> busStops = [
     BusStop(
       id: '1',
@@ -82,7 +78,6 @@ class _MapScreenState extends State<MapScreen> {
     ),
   ];
 
-  // Calcul de la distance entre deux coordonnées avec latlong2
   String getStopEstimatedDistance(LatLng userPos, LatLng stopPos) {
     const Distance distance = Distance();
     final double meters = distance.as(LengthUnit.Meter, userPos, stopPos);
@@ -178,7 +173,6 @@ class _MapScreenState extends State<MapScreen> {
           ),
           MarkerLayer(
             markers: [
-              // Marqueur de la position utilisateur
               Marker(
                 point: userLocation,
                 width: 40,
@@ -189,7 +183,6 @@ class _MapScreenState extends State<MapScreen> {
                   size: 30,
                 ),
               ),
-              // Marqueurs des arrêts de bus
               ...busStops.map((stop) {
                 return Marker(
                   point: stop.location,
