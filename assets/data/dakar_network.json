@@ -1,0 +1,44 @@
+{
+  "operators": [
+    { "id": "aftu", "name": "AFTU (Tata)", "color": "#00875A" },
+    { "id": "brt", "name": "SunuBRT", "color": "#FFAB00" },
+    { "id": "ter", "name": "TER Dakar", "color": "#0052CC" },
+    { "id": "ddd", "name": "Dakar Dem Dikk", "color": "#DE350B" }
+  ],
+  "stops": [
+    {
+      "id": "stop_petersen",
+      "name": "Gare Petersen",
+      "latitude": 14.6738,
+      "longitude": -17.4381,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_parcelles_u26",
+      "name": "Parcelles Assainies U26",
+      "latitude": 14.7562,
+      "longitude": -17.4331,
+      "data_trust": "FIELD_OBSERVATION"
+    }
+  ],
+  "routes": [
+    {
+      "id": "line_tata_219",
+      "operator_id": "aftu",
+      "short_name": "Ligne 219",
+      "long_name": "Parcelles Assainies ⇄ Petersen",
+      "type": "BUS",
+      "data_trust": "FIELD_OBSERVATION",
+      "stops": ["stop_parcelles_u26", "stop_petersen"]
+    },
+    {
+      "id": "line_brt_b1",
+      "operator_id": "brt",
+      "short_name": "BRT B1",
+      "long_name": "Gare des Guéréos (Petersen) ⇄ Guédiawaye",
+      "type": "BRT",
+      "data_trust": "OFFICIAL",
+      "stops": ["stop_petersen"]
+    }
+  ]
+}
