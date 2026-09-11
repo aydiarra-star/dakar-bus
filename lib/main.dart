@@ -1,57 +1,11 @@
 import 'package:flutter/material.dart';
 
-enum DataTrust { verified, crowdsourced, estimated }
-
-class Operator {
-  final String id;
-  final String name;
-  final Color color;
-
-  const Operator({
-    required this.id,
-    required this.name,
-    required this.color,
-  });
-}
-
-class BusStop {
-  final String id;
-  final String name;
-  final String locality;
-
-  const BusStop({
-    required this.id,
-    required this.name,
-    required this.locality,
-  });
-}
-
-class TransportRoute {
-  final String id;
-  final String lineNumber;
-  final Operator operator;
-  final String origin;
-  final String destination;
-  final List<BusStop> stops;
-  final DataTrust trustLevel;
-
-  const TransportRoute({
-    required this.id,
-    required this.lineNumber,
-    required this.operator,
-    required this.origin,
-    required this.destination,
-    required this.stops,
-    required this.trustLevel,
-  });
-}
-
 void main() {
-  runApp(const DakarBusApp());
+  runApp(const DakarMobeliteApp());
 }
 
-class DakarBusApp extends StatelessWidget {
-  const DakarBusApp({super.key});
+class DakarMobeliteApp extends StatelessWidget {
+  const DakarMobeliteApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -59,156 +13,273 @@ class DakarBusApp extends StatelessWidget {
       title: 'Dakar Bus',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF1B5E20),
-          primary: const Color(0xFF1B5E20),
-        ),
         useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF2E7D32),
+          primary: const Color(0xFF2E7D32),
+        ),
       ),
-      home: const HomeScreen(),
+      home: const MapExplorerScreen(),
     );
   }
 }
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class DepartureInfo {
+  final String stationName;
+  final String lineInfo;
+  final String timeRemaining;
+  final String fare;
+  final Color iconBgColor;
+  final IconData icon;
 
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  const DepartureInfo({
+    required this.stationName,
+    required this.lineInfo,
+    required this.timeRemaining,
+    required this.fare,
+    required this.iconBgColor,
+    required this.icon,
+  });
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class MapExplorerScreen extends StatefulWidget {
+  const MapExplorerScreen({super.key});
+
+  @override
+  State<MapExplorerScreen> createState() => _MapExplorerScreenState();
+}
+
+class _MapExplorerScreenState extends State<MapExplorerScreen> {
+  int _selectedBottomNav = 0;
+  String _selectedFilter = 'ALL';
   String _searchQuery = '';
-  String _selectedOperatorId = 'ALL';
 
-  static const opDDD = Operator(id: 'DDD', name: 'Dakar Dem Dikk', color: Color(0xFF1B5E20));
-  static const opAFTU = Operator(id: 'AFTU', name: 'AFTU (Tata)', color: Color(0xFFE65100));
-  static const opBRT = Operator(id: 'BRT', name: 'SunuBRT', color: Color(0xFF0D47A1));
-
-  final List<TransportRoute> _routes = const [
-    TransportRoute(
-      id: 'r1',
-      lineNumber: 'Ligne 1',
-      operator: opBRT,
-      origin: 'Gare Petersen',
-      destination: 'Parcelles Assainies',
-      trustLevel: DataTrust.verified,
-      stops: [
-        BusStop(id: 's1', name: 'Gare Petersen', locality: 'Dakar Plateau'),
-        BusStop(id: 's2', name: 'Grand Médina', locality: 'Médina'),
-        BusStop(id: 's3', name: 'Parcelles Assainies Unit 10', locality: 'Parcelles Assainies'),
-      ],
+  final List<DepartureInfo> _departures = const [
+    DepartureInfo(
+      stationName: 'Gare TER Colobane',
+      lineInfo: 'TER Ligne Express • Dir. Diamniadio / Thiaroye',
+      timeRemaining: '6 min',
+      fare: '500 FCFA',
+      iconBgColor: Color(0xFFE53935),
+      icon: Icons.directions_railway_filled,
     ),
-    TransportRoute(
-      id: 'r2',
-      lineNumber: 'Ligne 12',
-      operator: opAFTU,
-      origin: 'Guédiawaye',
-      destination: 'Palais de Justice',
-      trustLevel: DataTrust.crowdsourced,
-      stops: [
-        BusStop(id: 's4', name: 'Terminus Guédiawaye', locality: 'Guédiawaye'),
-        BusStop(id: 's5', name: ' HLM 5', locality: 'HLM'),
-        BusStop(id: 's6', name: 'Palais de Justice', locality: 'Rebeuss'),
-      ],
+    DepartureInfo(
+      stationName: 'Station BRT Colobane (B1)',
+      lineInfo: 'BRT Ligne B1 • Dir. Guédiawaye',
+      timeRemaining: '4 min',
+      fare: '400 FCFA',
+      iconBgColor: Color(0xFF1E88E5),
+      icon: Icons.directions_bus_filled,
     ),
-    TransportRoute(
-      id: 'r3',
-      lineNumber: 'Ligne 8',
-      operator: opDDD,
-      origin: 'Aéroport Yoff',
-      destination: 'Sandaga',
-      trustLevel: DataTrust.verified,
-      stops: [
-        BusStop(id: 's7', name: 'Aéroport Yoff', locality: 'Yoff'),
-        BusStop(id: 's8', name: 'UCAD', locality: 'Fann'),
-        BusStop(id: 's9', name: 'Marché Sandaga', locality: 'Dakar Plateau'),
-      ],
+    DepartureInfo(
+      stationName: 'Arrêt AFTU Tata Ligne 12',
+      lineInfo: 'AFTU Tata • Dir. Palais de Justice / Sandaga',
+      timeRemaining: '2 min',
+      fare: '200 FCFA',
+      iconBgColor: Color(0xFFFB8C00),
+      icon: Icons.directions_bus,
     ),
   ];
 
   @override
   Widget build(BuildContext context) {
-    final filteredRoutes = _routes.where((route) {
-      final matchesSearch = route.lineNumber.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          route.origin.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          route.destination.toLowerCase().contains(_searchQuery.toLowerCase());
-      final matchesOp = _selectedOperatorId == 'ALL' || route.operator.id == _selectedOperatorId;
-      return matchesSearch && matchesOp;
+    final filteredList = _departures.where((dep) {
+      final matchesSearch = dep.stationName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          dep.lineInfo.toLowerCase().contains(_searchQuery.toLowerCase());
+      if (_selectedFilter == 'TER_BRT') {
+        return matchesSearch && (dep.lineInfo.contains('TER') || dep.lineInfo.contains('BRT'));
+      } else if (_selectedFilter == 'AFTU') {
+        return matchesSearch && dep.lineInfo.contains('AFTU');
+      }
+      return matchesSearch;
     }).toList();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dakar Bus', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-      ),
-      body: Column(
+      backgroundColor: const Color(0xFFEFEFEF),
+      body: Stack(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: TextField(
-              onChanged: (val) => setState(() => _searchQuery = val),
-              decoration: InputDecoration(
-                hintText: 'Rechercher une ligne, un arrêt...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                filled: true,
-                fillColor: Colors.grey.shade100,
+          // Simulated Custom Map Background
+          Positioned.fill(
+            child: CustomPaint(
+              painter: MapBackgroundPainter(),
+            ),
+          ),
+
+          // Top Floating Controls: Target Icon & Assistant IA Button
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.12),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.my_location, color: Color(0xFF2E7D32)),
+                      onPressed: () {},
+                    ),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Assistant IA : Où désirez-vous aller ?')),
+                      );
+                    },
+                    icon: const Icon(Icons.auto_awesome, size: 18, color: Colors.white),
+                    label: const Text(
+                      'Assistant IA',
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF4CAF50),
+                      elevation: 4,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
-              children: [
-                _buildFilterChip('Tous', 'ALL'),
-                _buildFilterChip('SunuBRT', 'BRT'),
-                _buildFilterChip('AFTU', 'AFTU'),
-                _buildFilterChip('Dakar Dem Dikk', 'DDD'),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: filteredRoutes.length,
-              itemBuilder: (context, index) {
-                final route = filteredRoutes[index];
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  elevation: 2,
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.all(12),
-                    leading: CircleAvatar(
-                      backgroundColor: route.operator.color,
-                      child: const Icon(Icons.directions_bus, color: Colors.white),
+
+          // Bottom Draggable Sheet UI Component
+          DraggableScrollableSheet(
+            initialChildSize: 0.58,
+            minChildSize: 0.25,
+            maxChildSize: 0.92,
+            builder: (context, scrollController) {
+              return Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 12,
+                      spreadRadius: 2,
+                    )
+                  ],
+                ),
+                child: ListView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  children: [
+                    // Drag Handle
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 5,
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
                     ),
-                    title: Row(
+
+                    // Header Row: App Name & Live Tag
+                    Row(
                       children: [
-                        Text(route.lineNumber, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        const Icon(Icons.directions_bus, color: Color(0xFF2E7D32), size: 28),
                         const SizedBox(width: 8),
-                        _buildTrustBadge(route.trustLevel),
+                        const Text(
+                          'Dakar Bus',
+                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                        ),
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF4CAF50),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Text(
+                            'Temps réel Live',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
-                    subtitle: Padding(
-                      padding: const EdgeInsets.only(top: 4.0),
-                      child: Text('${route.origin} ➔ ${route.destination}'),
+
+                    const SizedBox(height: 16),
+
+                    // Search Bar
+                    TextField(
+                      onChanged: (val) => setState(() => _searchQuery = val),
+                      decoration: InputDecoration(
+                        hintText: 'Où voulez-vous aller ? (ex: Thiaroye, Al...',
+                        prefixIcon: const Icon(Icons.search, color: Color(0xFF2E7D32)),
+                        filled: true,
+                        fillColor: const Color(0xFFF5F5F5),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
                     ),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => RouteDetailScreen(route: route)),
-                      );
-                    },
-                  ),
-                );
-              },
-            ),
+
+                    const SizedBox(height: 12),
+
+                    // Category Chips
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _buildFilterChip('Tous les réseaux', 'ALL'),
+                          _buildFilterChip('TER & BRT', 'TER_BRT'),
+                          _buildFilterChip('AFTU Tata', 'AFTU'),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    const Text(
+                      'Prochains départs autour de vous',
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    // Departure Cards List
+                    ...filteredList.map((dep) => _buildDepartureCard(dep)),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedBottomNav,
+        onTap: (index) => setState(() => _selectedBottomNav = index),
+        selectedItemColor: const Color(0xFF2E7D32),
+        unselectedItemColor: Colors.grey,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.explore_outlined),
+            activeIcon: Icon(Icons.explore),
+            label: 'Explorer',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.alt_route_outlined),
+            activeIcon: Icon(Icons.alt_route),
+            label: 'Trajets',
           ),
         ],
       ),
@@ -216,73 +287,140 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildFilterChip(String label, String id) {
-    final isSelected = _selectedOperatorId == id;
+    final isSelected = _selectedFilter == id;
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
-      child: FilterChip(
-        label: Text(label),
+      child: ChoiceChip(
+        label: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? const Color(0xFF1B5E20) : Colors.black87,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
         selected: isSelected,
-        onSelected: (_) => setState(() => _selectedOperatorId = id),
+        selectedColor: const Color(0xFFC8E6C9),
+        backgroundColor: const Color(0xFFF0F0F0),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(
+            color: isSelected ? const Color(0xFF81C784) : Colors.grey.shade300,
+          ),
+        ),
+        onSelected: (_) => setState(() => _selectedFilter = id),
       ),
     );
   }
 
-  Widget _buildTrustBadge(DataTrust trust) {
-    String text;
-    Color color;
-    switch (trust) {
-      case DataTrust.verified:
-        text = 'Vérifié';
-        color = Colors.green;
-        break;
-      case DataTrust.crowdsourced:
-        text = 'Communautaire';
-        color = Colors.orange;
-        break;
-      case DataTrust.estimated:
-        text = 'Estimé';
-        color = Colors.grey;
-        break;
-    }
+  Widget _buildDepartureCard(DepartureInfo dep) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(4)),
-      child: Text(text, style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.bold)),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFAFAFA),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 20,
+            backgroundColor: dep.iconBgColor,
+            child: Icon(dep.icon, color: Colors.white, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  dep.stationName,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  dep.lineInfo,
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 11),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                dep.timeRemaining,
+                style: const TextStyle(
+                  color: Color(0xFF2E7D32),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                dep.fare,
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 10),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
 
-class RouteDetailScreen extends StatelessWidget {
-  final TransportRoute route;
-  const RouteDetailScreen({super.key, required this.route});
+// Custom Painter to render stylish map geometry (routes & water body)
+class MapBackgroundPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final bgPaint = Paint()..color = const Color(0xFFE8ECEF);
+    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), bgPaint);
+
+    // Water curve
+    final waterPaint = Paint()..color = const Color(0xFFB3E5FC);
+    final waterPath = Path()
+      ..moveTo(0, size.height * 0.2)
+      ..quadraticBezierTo(size.width * 0.4, size.height * 0.35, 0, size.height * 0.5)
+      ..close();
+    canvas.drawPath(waterPath, waterPaint);
+
+    // Red Line (TER / BRT Route)
+    final redLinePaint = Paint()
+      ..color = const Color(0xFFE53935)
+      ..strokeWidth = 6
+      ..style = PaintingStyle.stroke;
+    final redPath = Path()
+      ..moveTo(size.width * 0.9, size.height * 0.1)
+      ..lineTo(size.width * 0.4, size.height * 0.45);
+    canvas.drawPath(redPath, redLinePaint);
+
+    // Blue Line
+    final blueLinePaint = Paint()
+      ..color = const Color(0xFF1E88E5)
+      ..strokeWidth = 6
+      ..style = PaintingStyle.stroke;
+    final bluePath = Path()
+      ..moveTo(size.width * 0.85, size.height * 0.3)
+      ..quadraticBezierTo(size.width * 0.6, size.height * 0.4, size.width * 0.3, size.height * 0.42);
+    canvas.drawPath(bluePath, blueLinePaint);
+
+    // Station Nodes
+    final nodePaint = Paint()..color = Colors.white;
+    final nodeBorderPaint = Paint()
+      ..color = const Color(0xFFE53935)
+      ..strokeWidth = 3
+      ..style = PaintingStyle.stroke;
+
+    final Offset node1 = Offset(size.width * 0.84, size.height * 0.14);
+    final Offset node2 = Offset(size.width * 0.75, size.height * 0.20);
+    final Offset node3 = Offset(size.width * 0.51, size.height * 0.37);
+
+    for (var node in [node1, node2, node3]) {
+      canvas.drawCircle(node, 6, nodePaint);
+      canvas.drawCircle(node, 6, nodeBorderPaint);
+    }
+  }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('${route.lineNumber} - ${route.operator.name}'),
-        backgroundColor: route.operator.color,
-        foregroundColor: Colors.white,
-      ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: route.stops.length,
-        itemBuilder: (context, index) {
-          final stop = route.stops[index];
-          return ListTile(
-            leading: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.location_on, color: route.operator.color),
-                if (index < route.stops.length - 1)
-                  Expanded(child: Container(width: 2, color: Colors.grey.shade300)),
-              ],
-            ),
-            title: Text(stop.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: Text(stop.locality),
-          );
-        },
-      ),
-    );
-  }
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
