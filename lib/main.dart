@@ -120,7 +120,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
   bool _hasSeenWelcome = false;
 
-  // Itinéraire visualisé à travers l'onglet Trajets vers la Carte
   List<LatLng> _highlightedItineraryPoints = [];
   String? _highlightedItineraryName;
   Color _highlightedItineraryColor = Colors.transparent;
@@ -130,7 +129,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   @override
   void initState() {
     super.initState();
-    // Affichage de l'accueil de bienvenue Onboarding au premier lancement
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_hasSeenWelcome) {
         _showWelcomeOnboardingDialog();
@@ -188,10 +186,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       _highlightedItineraryPoints = points;
       _highlightedItineraryName = name;
       _highlightedItineraryColor = color;
-      _currentIndex = 0; // Retourner sur l'onglet Carte
+      _currentIndex = 0;
     });
 
-    // Centrer la carte sur le début du trajet après un petit délai
     Future.delayed(const Duration(milliseconds: 300), () {
       if (_mapHomeKey.currentState != null && points.isNotEmpty) {
         _mapHomeKey.currentState!._centerOnRoute(points.first, points);
@@ -209,7 +206,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   void _navigateToAndSearch(TransitStop stop) {
     setState(() {
-      _currentIndex = 0; // Aller sur la carte
+      _currentIndex = 0;
     });
     Future.delayed(const Duration(milliseconds: 300), () {
       if (_mapHomeKey.currentState != null) {
@@ -270,7 +267,7 @@ final List<TransitStop> globalStopsList = [
     point: const LatLng(14.6785, -17.4398),
     minutesRemaining: 2,
     color: const Color(0xFF1E88E5),
-    icon: Icons.directions_bus_filled,
+    icon: Icons.directions_bus,
   ),
   TransitStop(
     id: 'brt_grand_yoff',
@@ -280,7 +277,7 @@ final List<TransitStop> globalStopsList = [
     point: const LatLng(14.7212, -17.4618),
     minutesRemaining: 6,
     color: const Color(0xFF1E88E5),
-    icon: Icons.directions_bus_filled,
+    icon: Icons.directions_bus,
   ),
   // TER
   TransitStop(
@@ -291,7 +288,7 @@ final List<TransitStop> globalStopsList = [
     point: const LatLng(14.6678, -17.4332),
     minutesRemaining: 4,
     color: const Color(0xFFE53935),
-    icon: Icons.directions_railway_filled,
+    icon: Icons.train,
   ),
   TransitStop(
     id: 'ter_pikine',
@@ -301,7 +298,7 @@ final List<TransitStop> globalStopsList = [
     point: const LatLng(14.7525, -17.4012),
     minutesRemaining: 8,
     color: const Color(0xFFE53935),
-    icon: Icons.directions_railway_filled,
+    icon: Icons.train,
   ),
   // DAKAR DEM DIKK
   TransitStop(
@@ -312,7 +309,7 @@ final List<TransitStop> globalStopsList = [
     point: const LatLng(14.7833, -16.9333),
     minutesRemaining: 14,
     color: const Color(0xFF2E7D32),
-    icon: Icons.directions_bus_filled,
+    icon: Icons.directions_bus,
   ),
   TransitStop(
     id: 'ddd_parcelles',
@@ -322,7 +319,7 @@ final List<TransitStop> globalStopsList = [
     point: const LatLng(14.7560, -17.4420),
     minutesRemaining: 8,
     color: const Color(0xFF2E7D32),
-    icon: Icons.directions_bus_filled,
+    icon: Icons.directions_bus,
   ),
   // BUS TATA AFTU
   TransitStop(
@@ -333,7 +330,7 @@ final List<TransitStop> globalStopsList = [
     point: const LatLng(14.7780, -17.3110),
     minutesRemaining: 3,
     color: const Color(0xFFFB8C00),
-    icon: Icons.directions_bus,
+    icon: Icons.directions_transit,
   ),
   TransitStop(
     id: 'aftu_pikine_croisement',
@@ -343,7 +340,7 @@ final List<TransitStop> globalStopsList = [
     point: const LatLng(14.7435, -17.3910),
     minutesRemaining: 5,
     color: const Color(0xFFFB8C00),
-    icon: Icons.directions_bus,
+    icon: Icons.directions_transit,
   ),
   TransitStop(
     id: 'aftu_guediawaye',
@@ -353,7 +350,7 @@ final List<TransitStop> globalStopsList = [
     point: const LatLng(14.7738, -17.3975),
     minutesRemaining: 7,
     color: const Color(0xFFFB8C00),
-    icon: Icons.directions_bus,
+    icon: Icons.directions_transit,
   ),
   TransitStop(
     id: 'aftu_mermoz',
@@ -363,11 +360,11 @@ final List<TransitStop> globalStopsList = [
     point: const LatLng(14.7080, -17.4720),
     minutesRemaining: 9,
     color: const Color(0xFFFB8C00),
-    icon: Icons.directions_bus,
+    icon: Icons.directions_transit,
   ),
 ];
 
-// --- CALCULATEUR DE DISTANCE (À PIED ESTIMÉ) ---
+// --- CALCULATEUR DE DISTANCE ---
 
 String getStopEstimatedDistance(LatLng userPos, LatLng stopPos) {
   final double meters = Geolocator.distanceBetween(
@@ -454,7 +451,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
         currentPosition: LatLng(14.6850 + (now % 10) * 0.005, -17.4450 + (now % 10) * 0.002),
         heading: 45.0,
         color: const Color(0xFF1E88E5),
-        icon: Icons.directions_bus_filled,
+        icon: Icons.directions_bus,
       ),
       LiveVehicle(
         id: 'ter_01',
@@ -462,7 +459,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
         currentPosition: LatLng(14.7000 + (now % 8) * 0.006, -17.4100 + (now % 8) * 0.004),
         heading: 90.0,
         color: const Color(0xFFE53935),
-        icon: Icons.directions_railway_filled,
+        icon: Icons.train,
       ),
       LiveVehicle(
         id: 'tata_24',
@@ -470,7 +467,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
         currentPosition: LatLng(14.7500 + (now % 5) * 0.003, -17.3800 + (now % 5) * 0.003),
         heading: 120.0,
         color: const Color(0xFFFB8C00),
-        icon: Icons.directions_bus,
+        icon: Icons.directions_transit,
       ),
       LiveVehicle(
         id: 'ddd_12',
@@ -478,7 +475,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
         currentPosition: LatLng(14.7200 + (now % 6) * 0.004, -17.4600 + (now % 6) * 0.001),
         heading: 30.0,
         color: const Color(0xFF2E7D32),
-        icon: Icons.directions_bus_filled,
+        icon: Icons.directions_bus,
       ),
     ];
   }
