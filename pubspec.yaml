@@ -1,5 +1,5 @@
 name: dakar_bus
-description: Application de suivi des transports à Dakar.
+description: Application de suivi des transports à Dakar (TER, BRT, DDD, AFTU).
 publish_to: 'none'
 version: 1.0.0+1
 
