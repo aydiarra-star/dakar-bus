@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'models/transport_network.dart';
-import 'services/data_service.dart';
 
 void main() {
   runApp(const DakarBusApp());
@@ -13,101 +11,53 @@ class DakarBusApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Dakar Bus',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF00875A)),
+        primarySwatch: Colors.green,
         useMaterial3: true,
       ),
-      home: const HomePage(),
+      home: const HomeScreen(),
     );
   }
 }
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
-
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  final DataService _dataService = DataService();
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
-  }
-
-  Future<void> _loadData() async {
-    await _dataService.loadNetworkData();
-    setState(() {
-      _isLoading = false;
-    });
-  }
-
-  Color _getTrustColor(DataTrust trust) {
-    switch (trust) {
-      case DataTrust.official:
-        return Colors.green;
-      case DataTrust.fieldObservation:
-        return Colors.blue;
-      case DataTrust.estimated:
-        return Colors.orange;
-    }
-  }
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final List<Map<String, String>> routes = [
+      {'name': 'BRT Ligne 1', 'desc': 'Gare Petersen <-> Parcelles Assainies', 'type': 'SunuBRT'},
+      {'name': 'AFTU Ligne 12', 'desc': 'Guédiawaye <-> Palais de Justice', 'type': 'AFTU'},
+      {'name': 'DDD Ligne 8', 'desc': 'Aéroport Yoff <-> Sandaga', 'type': 'Dakar Dem Dikk'},
+    ];
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dakar Bus'),
-        backgroundColor: const Color(0xFF00875A),
+        backgroundColor: const Color(0xFF2E7D32),
         foregroundColor: Colors.white,
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                const Text(
-                  'Réseau de Transport',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
-                ..._dataService.routes.map((route) {
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: const Color(0xFF00875A),
-                        child: Text(
-                          route.shortName.split(' ').last,
-                          style: const TextStyle(color: Colors.white, fontSize: 12),
-                        ),
-                      ),
-                      title: Text(route.shortName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Text(route.longName),
-                      trailing: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: _getTrustColor(route.dataTrust).withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          route.dataTrust.toLabel(),
-                          style: TextStyle(
-                            color: _getTrustColor(route.dataTrust),
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                }),
-              ],
+      body: ListView.builder(
+        padding: const EdgeInsets.all(12),
+        itemCount: routes.length,
+        itemBuilder: (context, index) {
+          final item = routes[index];
+          return Card(
+            elevation: 2,
+            margin: const EdgeInsets.only(bottom: 12),
+            child: ListTile(
+              leading: const Icon(Icons.directions_bus, color: Color(0xFF2E7D32), size: 36),
+              title: Text(item['name']!, style: const TextStyle(fontWeight: FontWeight.bold)),
+              subtitle: Text(item['desc']!),
+              trailing: Chip(
+                label: Text(item['type']!, style: const TextStyle(fontSize: 10, color: Colors.white)),
+                backgroundColor: const Color(0xFF2E7D32),
+              ),
             ),
+          );
+        },
+      ),
     );
   }
 }
