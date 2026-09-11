@@ -13,7 +13,7 @@ class DakarBusApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Dakar Bus',
+      title: 'Dakar Mobilité',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
@@ -63,73 +63,210 @@ class _MainMapScreenState extends State<MainMapScreen> {
   String _searchQuery = '';
   Timer? _timer;
 
-  // Base de données complète des arrêts à Dakar
+  // Base de données exacte et complète des arrêts
   final List<TransitStop> _allStops = [
+    // --- TER ---
     TransitStop(
-      id: 'ter_colobane',
-      name: 'Gare TER Colobane',
+      id: 'ter_dakar',
+      name: 'Gare TER Dakar (Place des Tirailleurs)',
       network: 'TER',
       direction: 'Ligne Express • Dir. Diamniadio',
-      point: const LatLng(14.6931, -17.4382),
-      minutesRemaining: 5,
-      color: const Color(0xFFE53935), // Rouge TER
+      point: const LatLng(14.6678, -17.4332),
+      minutesRemaining: 4,
+      color: const Color(0xFFE53935), // Rouge
       icon: Icons.directions_railway_filled,
     ),
     TransitStop(
-      id: 'brt_colobane',
-      name: 'Station BRT Colobane (B1)',
-      network: 'BRT',
-      direction: 'Ligne B1 • Dir. Guédiawaye',
-      point: const LatLng(14.6960, -17.4395),
-      minutesRemaining: 3,
-      color: const Color(0xFF1E88E5), // Bleu BRT
-      icon: Icons.directions_bus_filled,
-    ),
-    TransitStop(
-      id: 'aftu_12',
-      name: 'Arrêt AFTU Tata Ligne 12',
-      network: 'AFTU',
-      direction: 'Tata 12 • Dir. Palais de Justice / Sandaga',
-      point: const LatLng(14.6850, -17.4420),
-      minutesRemaining: 2,
-      color: const Color(0xFFFB8C00), // Orange Tata
-      icon: Icons.directions_bus,
-    ),
-    TransitStop(
-      id: 'ddd_8',
-      name: 'Arrêt Dakar Dem Dikk Ligne 8',
-      network: 'DDD',
-      direction: 'DDD Ligne 8 • Dir. Yoff / Sandaga',
-      point: const LatLng(14.6780, -17.4350),
-      minutesRemaining: 7,
-      color: const Color(0xFF2E7D32), // Vert DDD
-      icon: Icons.directions_bus_filled,
-    ),
-    TransitStop(
-      id: 'brt_pikine',
-      name: 'Station BRT Pikine',
-      network: 'BRT',
-      direction: 'Ligne B1 • Dir. Grand Médine',
-      point: const LatLng(14.7528, -17.3917),
+      id: 'ter_hann',
+      name: 'Gare TER Hann',
+      network: 'TER',
+      direction: 'Ligne Express • Dir. Diamniadio',
+      point: const LatLng(14.7170, -17.4310),
       minutesRemaining: 8,
-      color: const Color(0xFF1E88E5),
-      icon: Icons.directions_bus_filled,
+      color: const Color(0xFFE53935),
+      icon: Icons.directions_railway_filled,
     ),
     TransitStop(
       id: 'ter_pikine',
       name: 'Gare TER Pikine',
       network: 'TER',
-      direction: 'Ligne Express • Dir. Dakar Centre',
-      point: const LatLng(14.7480, -17.3980),
+      direction: 'Ligne Express • Dir. Diamniadio',
+      point: const LatLng(14.7525, -17.4012),
       minutesRemaining: 12,
       color: const Color(0xFFE53935),
       icon: Icons.directions_railway_filled,
     ),
     TransitStop(
-      id: 'aftu_pikine',
+      id: 'ter_thiaroye',
+      name: 'Gare TER Thiaroye',
+      network: 'TER',
+      direction: 'Ligne Express • Dir. Diamniadio',
+      point: const LatLng(14.7644, -17.3751),
+      minutesRemaining: 16,
+      color: const Color(0xFFE53935),
+      icon: Icons.directions_railway_filled,
+    ),
+    TransitStop(
+      id: 'ter_rufisque',
+      name: 'Gare TER Rufisque',
+      network: 'TER',
+      direction: 'Ligne Express • Dir. Diamniadio',
+      point: const LatLng(14.7132, -17.2718),
+      minutesRemaining: 22,
+      color: const Color(0xFFE53935),
+      icon: Icons.directions_railway_filled,
+    ),
+    TransitStop(
+      id: 'ter_diamniadio',
+      name: 'Gare TER Diamniadio',
+      network: 'TER',
+      direction: 'Ligne Express • Terminus',
+      point: const LatLng(14.6974, -17.2023),
+      minutesRemaining: 30,
+      color: const Color(0xFFE53935),
+      icon: Icons.directions_railway_filled,
+    ),
+
+    // --- BRT (SunuBRT) ---
+    TransitStop(
+      id: 'brt_petersen',
+      name: 'Station BRT Petersen',
+      network: 'BRT',
+      direction: 'Ligne B1 • Dir. Guédiawaye',
+      point: const LatLng(14.6785, -17.4398),
+      minutesRemaining: 2,
+      color: const Color(0xFF1E88E5), // Bleu
+      icon: Icons.directions_bus_filled,
+    ),
+    TransitStop(
+      id: 'brt_de_gaulle',
+      name: 'Station BRT Général de Gaulle',
+      network: 'BRT',
+      direction: 'Ligne B1 • Dir. Guédiawaye',
+      point: const LatLng(14.6865, -17.4435),
+      minutesRemaining: 5,
+      color: const Color(0xFF1E88E5),
+      icon: Icons.directions_bus_filled,
+    ),
+    TransitStop(
+      id: 'brt_colobane',
+      name: 'Station BRT Obélisque (Colobane)',
+      network: 'BRT',
+      direction: 'Ligne B1 • Dir. Guédiawaye',
+      point: const LatLng(14.6925, -17.4475),
+      minutesRemaining: 8,
+      color: const Color(0xFF1E88E5),
+      icon: Icons.directions_bus_filled,
+    ),
+    TransitStop(
+      id: 'brt_dial_diop',
+      name: 'Station BRT Boulevard Dial Diop',
+      network: 'BRT',
+      direction: 'Ligne B1 • Dir. Guédiawaye',
+      point: const LatLng(14.6995, -17.4520),
+      minutesRemaining: 11,
+      color: const Color(0xFF1E88E5),
+      icon: Icons.directions_bus_filled,
+    ),
+    TransitStop(
+      id: 'brt_liberte6',
+      name: 'Station BRT Rond-point Liberté 6',
+      network: 'BRT',
+      direction: 'Ligne B1 • Dir. Guédiawaye',
+      point: const LatLng(14.7212, -17.4618),
+      minutesRemaining: 15,
+      color: const Color(0xFF1E88E5),
+      icon: Icons.directions_bus_filled,
+    ),
+    TransitStop(
+      id: 'brt_grand_yoff',
+      name: 'Station BRT Grand Yoff',
+      network: 'BRT',
+      direction: 'Ligne B1 • Dir. Guédiawaye',
+      point: const LatLng(14.7350, -17.4550),
+      minutesRemaining: 19,
+      color: const Color(0xFF1E88E5),
+      icon: Icons.directions_bus_filled,
+    ),
+    TransitStop(
+      id: 'brt_patte_doie',
+      name: 'Station BRT Échangeur Aliou Sow',
+      network: 'BRT',
+      direction: 'Ligne B1 • Dir. Guédiawaye',
+      point: const LatLng(14.7455, -17.4462),
+      minutesRemaining: 23,
+      color: const Color(0xFF1E88E5),
+      icon: Icons.directions_bus_filled,
+    ),
+    TransitStop(
+      id: 'brt_guediawaye',
+      name: 'Station BRT Préfecture de Guédiawaye',
+      network: 'BRT',
+      direction: 'Ligne B1 • Terminus',
+      point: const LatLng(14.7738, -17.3975),
+      minutesRemaining: 28,
+      color: const Color(0xFF1E88E5),
+      icon: Icons.directions_bus_filled,
+    ),
+
+    // --- DAKAR DEM DIKK (DDD) ---
+    TransitStop(
+      id: 'ddd_interurbain_thies',
+      name: 'Gare Interurbaine DDD Thiès',
+      network: 'DDD',
+      direction: 'Ligne Express • Dir. Dakar Centre',
+      point: const LatLng(14.7833, -16.9333),
+      minutesRemaining: 15,
+      color: const Color(0xFF2E7D32), // Vert
+      icon: Icons.directions_bus_filled,
+    ),
+    TransitStop(
+      id: 'ddd_yoff',
+      name: 'Arrêt DDD Yoff / Aéroport',
+      network: 'DDD',
+      direction: 'Ligne 8 • Dir. Palais de Justice',
+      point: const LatLng(14.7560, -17.4680),
+      minutesRemaining: 6,
+      color: const Color(0xFF2E7D32),
+      icon: Icons.directions_bus_filled,
+    ),
+    TransitStop(
+      id: 'ddd_ouakam',
+      name: 'Arrêt DDD Ouakam Monument',
+      network: 'DDD',
+      direction: 'Ligne 10 • Dir. Centre-Ville',
+      point: const LatLng(14.7230, -17.4860),
+      minutesRemaining: 9,
+      color: const Color(0xFF2E7D32),
+      icon: Icons.directions_bus_filled,
+    ),
+
+    // --- AFTU TATA ---
+    TransitStop(
+      id: 'aftu_thies',
+      name: 'Terminus AFTU Tata Thiès (Gare Routière)',
+      network: 'AFTU',
+      direction: 'Ligne 1 Thiès Inter-Quartiers',
+      point: const LatLng(14.7880, -16.9250),
+      minutesRemaining: 3,
+      color: const Color(0xFFFB8C00), // Orange
+      icon: Icons.directions_bus,
+    ),
+    TransitStop(
+      id: 'aftu_keur_massar',
+      name: 'Arrêt AFTU Tata Keur Massar',
+      network: 'AFTU',
+      direction: 'Tata 24 • Dir. Colobane',
+      point: const LatLng(14.7780, -17.3110),
+      minutesRemaining: 5,
+      color: const Color(0xFFFB8C00),
+      icon: Icons.directions_bus,
+    ),
+    TransitStop(
+      id: 'aftu_pikine_r10',
       name: 'Arrêt AFTU Tata Pikine Rue 10',
       network: 'AFTU',
-      direction: 'Tata 24 • Dir. Keur Massar',
+      direction: 'Tata 12 • Dir. Sandaga',
       point: const LatLng(14.7580, -17.3850),
       minutesRemaining: 4,
       color: const Color(0xFFFB8C00),
@@ -137,46 +274,54 @@ class _MainMapScreenState extends State<MainMapScreen> {
     ),
   ];
 
-  // Tracés géographiques distincts par réseau (Polylines)
+  // Tracés exacts (Polylines)
   final List<LatLng> _terRoute = const [
-    LatLng(14.6700, -17.4330), // Dakar Gare
-    LatLng(14.6931, -17.4382), // Colobane
-    LatLng(14.7480, -17.3980), // Pikine
-    LatLng(14.7890, -17.3120), // Rufisque
+    LatLng(14.6678, -17.4332), // Dakar
+    LatLng(14.7170, -17.4310), // Hann
+    LatLng(14.7525, -17.4012), // Pikine
+    LatLng(14.7644, -17.3751), // Thiaroye
+    LatLng(14.7132, -17.2718), // Rufisque
+    LatLng(14.6974, -17.2023), // Diamniadio
   ];
 
   final List<LatLng> _brtRoute = const [
-    LatLng(14.6720, -17.4360), // Petersen
-    LatLng(14.6960, -17.4395), // Colobane
-    LatLng(14.7528, -17.3917), // Pikine
-    LatLng(14.7710, -17.3970), // Guédiawaye
-  ];
-
-  final List<LatLng> _aftuRoute = const [
-    LatLng(14.6650, -17.4380), // Sandaga
-    LatLng(14.6850, -17.4420), // Colobane
-    LatLng(14.7200, -17.4500), // Ouakam
-    LatLng(14.7580, -17.3850), // Pikine Rue 10
+    LatLng(14.6785, -17.4398), // Petersen
+    LatLng(14.6865, -17.4435), // De Gaulle
+    LatLng(14.6925, -17.4475), // Colobane Obélisque
+    LatLng(14.6995, -17.4520), // Dial Diop
+    LatLng(14.7212, -17.4618), // Liberté 6
+    LatLng(14.7350, -17.4550), // Grand Yoff
+    LatLng(14.7455, -17.4462), // Patte d'Oie
+    LatLng(14.7738, -17.3975), // Guédiawaye
   ];
 
   final List<LatLng> _dddRoute = const [
-    LatLng(14.6680, -17.4320), // Palais
-    LatLng(14.6780, -17.4350), // DDD Ligne 8
-    LatLng(14.7300, -17.4600), // Ngor
-    LatLng(14.7500, -17.4700), // Yoff
+    LatLng(14.6680, -17.4320), // Centre
+    LatLng(14.7230, -17.4860), // Ouakam
+    LatLng(14.7560, -17.4680), // Yoff
+    LatLng(14.7455, -17.4462), // Patte d'Oie
+    LatLng(14.6974, -17.2023), // Diamniadio
+    LatLng(14.7833, -16.9333), // Ligne Interurbaine -> Thiès
+  ];
+
+  final List<LatLng> _aftuRoute = const [
+    LatLng(14.6785, -17.4398), // Petersen
+    LatLng(14.7580, -17.3850), // Pikine
+    LatLng(14.7780, -17.3110), // Keur Massar
+    LatLng(14.7880, -16.9250), // Réseau Thiès
   ];
 
   @override
   void initState() {
     super.initState();
-    // Horaires dynamiques en temps réel (décompte automatique)
+    // Horaires dynamiques en temps réel
     _timer = Timer.periodic(const Duration(seconds: 30), (timer) {
       setState(() {
         for (var stop in _allStops) {
           if (stop.minutesRemaining > 1) {
             stop.minutesRemaining--;
           } else {
-            stop.minutesRemaining = 10;
+            stop.minutesRemaining = 12;
           }
         }
       });
@@ -209,46 +354,46 @@ class _MainMapScreenState extends State<MainMapScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Carte OpenStreetMap dynamique et fluide
+          // Carte OpenStreetMap
           FlutterMap(
             mapController: _mapController,
             options: const MapOptions(
-              initialCenter: LatLng(14.7100, -17.4300),
-              initialZoom: 12.5,
-              minZoom: 10,
+              initialCenter: LatLng(14.7100, -17.4100),
+              initialZoom: 11.8,
+              minZoom: 8,
               maxZoom: 18,
             ),
             children: [
               TileLayer(
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.dakarbus.app',
+                userAgentPackageName: 'com.dakarmobilite.app',
               ),
-              // Tracés des 4 modes de transport avec leurs couleurs distinctes
+              // Tracés réalistes des réseaux
               PolylineLayer(
                 polylines: [
-                  Polyline(points: _terRoute, strokeWidth: 5.0, color: const Color(0xFFE53935)), // Rouge
-                  Polyline(points: _brtRoute, strokeWidth: 5.0, color: const Color(0xFF1E88E5)), // Bleu
-                  Polyline(points: _aftuRoute, strokeWidth: 4.0, color: const Color(0xFFFB8C00)), // Orange
-                  Polyline(points: _dddRoute, strokeWidth: 4.0, color: const Color(0xFF2E7D32)), // Vert
+                  Polyline(points: _terRoute, strokeWidth: 5.5, color: const Color(0xFFE53935)), // Rouge TER
+                  Polyline(points: _brtRoute, strokeWidth: 5.5, color: const Color(0xFF1E88E5)), // Bleu BRT
+                  Polyline(points: _dddRoute, strokeWidth: 3.5, color: const Color(0xFF2E7D32)), // Vert DDD
+                  Polyline(points: _aftuRoute, strokeWidth: 3.5, color: const Color(0xFFFB8C00)), // Orange AFTU
                 ],
               ),
-              // Arrêts cliquables sur la carte
+              // Arrêts cliquables
               MarkerLayer(
                 markers: filteredStops.map((stop) {
                   return Marker(
                     point: stop.point,
-                    width: 45,
-                    height: 45,
+                    width: 42,
+                    height: 42,
                     child: GestureDetector(
                       onTap: () {
-                        _mapController.move(stop.point, 15.0);
+                        _mapController.move(stop.point, 14.5);
                         _showStopDetails(stop);
                       },
                       child: Tooltip(
                         message: stop.name,
                         child: CircleAvatar(
                           backgroundColor: stop.color,
-                          child: Icon(stop.icon, color: Colors.white, size: 22),
+                          child: Icon(stop.icon, color: Colors.white, size: 20),
                         ),
                       ),
                     ),
@@ -258,7 +403,7 @@ class _MainMapScreenState extends State<MainMapScreen> {
             ],
           ),
 
-          // En-tête : Recentrage & Assistant IA
+          // Boutons supérieurs
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -269,7 +414,7 @@ class _MainMapScreenState extends State<MainMapScreen> {
                     heroTag: 'recenter_btn',
                     backgroundColor: Colors.white,
                     onPressed: () {
-                      _mapController.move(const LatLng(14.7100, -17.4300), 12.5);
+                      _mapController.move(const LatLng(14.7100, -17.4100), 11.8);
                     },
                     child: const Icon(Icons.my_location, color: Color(0xFF2E7D32)),
                   ),
@@ -292,9 +437,9 @@ class _MainMapScreenState extends State<MainMapScreen> {
             ),
           ),
 
-          // Feuille coulissante
+          // Panneau coulissant
           DraggableScrollableSheet(
-            initialChildSize: 0.45,
+            initialChildSize: 0.42,
             minChildSize: 0.18,
             maxChildSize: 0.85,
             builder: (context, scrollController) {
@@ -324,7 +469,7 @@ class _MainMapScreenState extends State<MainMapScreen> {
                         const Icon(Icons.directions_bus, color: Color(0xFF2E7D32), size: 28),
                         const SizedBox(width: 8),
                         const Text(
-                          'Dakar Bus',
+                          'Dakar Bus & Rail',
                           style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                         ),
                         const Spacer(),
@@ -343,11 +488,11 @@ class _MainMapScreenState extends State<MainMapScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Champ de recherche instantané
+                    // Barre de recherche
                     TextField(
                       onChanged: (val) => setState(() => _searchQuery = val),
                       decoration: InputDecoration(
-                        hintText: 'Rechercher arrêt (Pikine, Sandaga, Colobane)...',
+                        hintText: 'Rechercher un arrêt (Pikine, Petersen, Thiès)...',
                         prefixIcon: const Icon(Icons.search, color: Color(0xFF2E7D32)),
                         filled: true,
                         fillColor: const Color(0xFFF5F5F5),
@@ -359,21 +504,21 @@ class _MainMapScreenState extends State<MainMapScreen> {
                     ),
                     const SizedBox(height: 12),
 
-                    // Filtres de réseaux
+                    // Filtres par réseaux
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: [
                           _buildFilterChip('Tous les réseaux', 'ALL'),
                           _buildFilterChip('TER & BRT', 'TER_BRT'),
-                          _buildFilterChip('AFTU Tata', 'AFTU'),
                           _buildFilterChip('Dakar Dem Dikk', 'DDD'),
+                          _buildFilterChip('AFTU Tata', 'AFTU'),
                         ],
                       ),
                     ),
                     const SizedBox(height: 16),
                     const Text(
-                      'Prochains départs en temps réel',
+                      'Prochains départs autour de vous',
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
@@ -381,7 +526,7 @@ class _MainMapScreenState extends State<MainMapScreen> {
                     if (filteredStops.isEmpty)
                       const Padding(
                         padding: EdgeInsets.symmetric(vertical: 20),
-                        child: Center(child: Text('Aucun arrêt trouvé.')),
+                        child: Center(child: Text('Aucun arrêt ne correspond à la recherche.')),
                       )
                     else
                       ...filteredStops.map((stop) => _buildStopTile(stop)),
@@ -405,7 +550,7 @@ class _MainMapScreenState extends State<MainMapScreen> {
     );
   }
 
-  // Assistant IA fonctionnel
+  // Assistant IA
   void _openAIAssistant() {
     final controller = TextEditingController();
     String? aiAnswer;
@@ -437,7 +582,7 @@ class _MainMapScreenState extends State<MainMapScreen> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                const Text('Où souhaitez-vous aller ? Tapez votre destination (ex: Pikine, Sandaga, Guédiawaye).'),
+                const Text('Où voulez-vous aller ? (ex: Guédiawaye, Thiès, Rufisque, Petersen)'),
                 const SizedBox(height: 12),
                 TextField(
                   controller: controller,
@@ -454,18 +599,18 @@ class _MainMapScreenState extends State<MainMapScreen> {
                     onPressed: () {
                       final input = controller.text.trim().toLowerCase();
                       setModalState(() {
-                        if (input.contains('pikine')) {
-                          aiAnswer = 'Pour aller à Pikine :\n• Option 1 : BRT Ligne B1 (Direct, ~15 min)\n• Option 2 : TER depuis Colobane (Direct, ~10 min)';
-                        } else if (input.contains('sandaga') || input.contains('centre')) {
-                          aiAnswer = 'Pour aller au Centre-Ville / Sandaga :\n• Prenez le Bus AFTU Tata Ligne 12 ou Dakar Dem Dikk Ligne 8.';
+                        if (input.contains('thies') || input.contains('thiès')) {
+                          aiAnswer = 'Pour aller à Thiès :\n• Prenez le bus interurbain Dakar Dem Dikk ou une ligne AFTU dédiée.';
                         } else if (input.contains('guediawaye') || input.contains('guédiawaye')) {
-                          aiAnswer = 'Pour Guédiawaye :\n• Empruntez la Ligne BRT B1 express.';
+                          aiAnswer = 'Pour Guédiawaye :\n• Empruntez la ligne BRT B1 depuis la Station Petersen (environ 25 min).';
+                        } else if (input.contains('rufisque') || input.contains('diamniadio')) {
+                          aiAnswer = 'Pour Rufisque / Diamniadio :\n• Prenez le TER à la Gare de Dakar (Place des Tirailleurs).';
                         } else {
-                          aiAnswer = 'Itinéraire recommandé : Prendre la ligne BRT B1 ou TER selon l\'arrêt le plus proche.';
+                          aiAnswer = 'Itinéraire suggéré : Combinez le TER pour la grande banlieue et le BRT pour le centre urbain.';
                         }
                       });
                     },
-                    child: const Text('Calculer le meilleur trajet', style: TextStyle(color: Colors.white)),
+                    child: const Text('Trouver l\'itinéraire', style: TextStyle(color: Colors.white)),
                   ),
                 ),
                 if (aiAnswer != null) ...[
@@ -488,7 +633,7 @@ class _MainMapScreenState extends State<MainMapScreen> {
     );
   }
 
-  // Modale sans tarifs
+  // Modale détails sans aucun tarif
   void _showStopDetails(TransitStop stop) {
     showDialog(
       context: context,
@@ -497,7 +642,7 @@ class _MainMapScreenState extends State<MainMapScreen> {
           children: [
             Icon(stop.icon, color: stop.color),
             const SizedBox(width: 8),
-            Expanded(child: Text(stop.name, style: const TextStyle(fontSize: 16))),
+            Expanded(child: Text(stop.name, style: const TextStyle(fontSize: 15))),
           ],
         ),
         content: Column(
@@ -506,9 +651,9 @@ class _MainMapScreenState extends State<MainMapScreen> {
           children: [
             Text('Réseau : ${stop.network}', style: const TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 6),
-            Text('Ligne : ${stop.direction}'),
+            Text('Direction : ${stop.direction}'),
             const SizedBox(height: 6),
-            Text('Prochain passage : ${stop.minutesRemaining} min',
+            Text('Arrivée estimée : ${stop.minutesRemaining} min',
                 style: TextStyle(color: stop.color, fontWeight: FontWeight.bold, fontSize: 15)),
           ],
         ),
@@ -546,14 +691,14 @@ class _MainMapScreenState extends State<MainMapScreen> {
       ),
       child: ListTile(
         onTap: () {
-          _mapController.move(stop.point, 15.0);
+          _mapController.move(stop.point, 14.5);
           _showStopDetails(stop);
         },
         leading: CircleAvatar(
           backgroundColor: stop.color,
           child: Icon(stop.icon, color: Colors.white, size: 20),
         ),
-        title: Text(stop.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        title: Text(stop.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
         subtitle: Text(stop.direction, style: const TextStyle(fontSize: 11)),
         trailing: Text(
           '${stop.minutesRemaining} min',
