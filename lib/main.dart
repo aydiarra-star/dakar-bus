@@ -98,14 +98,14 @@ class _MapExplorerScreenState extends State<MapExplorerScreen> {
       backgroundColor: const Color(0xFFEFEFEF),
       body: Stack(
         children: [
-          // Simulated Custom Map Background
+          // Background Vector Map Rendering
           Positioned.fill(
             child: CustomPaint(
               painter: MapBackgroundPainter(),
             ),
           ),
 
-          // Top Floating Controls: Target Icon & Assistant IA Button
+          // Top Action Buttons
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -152,7 +152,7 @@ class _MapExplorerScreenState extends State<MapExplorerScreen> {
             ),
           ),
 
-          // Bottom Draggable Sheet UI Component
+          // Bottom Sheet UI
           DraggableScrollableSheet(
             initialChildSize: 0.58,
             minChildSize: 0.25,
@@ -174,7 +174,6 @@ class _MapExplorerScreenState extends State<MapExplorerScreen> {
                   controller: scrollController,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   children: [
-                    // Drag Handle
                     Center(
                       child: Container(
                         width: 40,
@@ -186,8 +185,6 @@ class _MapExplorerScreenState extends State<MapExplorerScreen> {
                         ),
                       ),
                     ),
-
-                    // Header Row: App Name & Live Tag
                     Row(
                       children: [
                         const Icon(Icons.directions_bus, color: Color(0xFF2E7D32), size: 28),
@@ -214,10 +211,7 @@ class _MapExplorerScreenState extends State<MapExplorerScreen> {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 16),
-
-                    // Search Bar
                     TextField(
                       onChanged: (val) => setState(() => _searchQuery = val),
                       decoration: InputDecoration(
@@ -232,10 +226,7 @@ class _MapExplorerScreenState extends State<MapExplorerScreen> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 12),
-
-                    // Category Chips
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
@@ -246,17 +237,12 @@ class _MapExplorerScreenState extends State<MapExplorerScreen> {
                         ],
                       ),
                     ),
-
                     const SizedBox(height: 16),
-
                     const Text(
                       'Prochains départs autour de vous',
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                     ),
-
                     const SizedBox(height: 10),
-
-                    // Departure Cards List
                     ...filteredList.map((dep) => _buildDepartureCard(dep)),
                   ],
                 ),
@@ -369,14 +355,12 @@ class _MapExplorerScreenState extends State<MapExplorerScreen> {
   }
 }
 
-// Custom Painter to render stylish map geometry (routes & water body)
 class MapBackgroundPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final bgPaint = Paint()..color = const Color(0xFFE8ECEF);
     canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), bgPaint);
 
-    // Water curve
     final waterPaint = Paint()..color = const Color(0xFFB3E5FC);
     final waterPath = Path()
       ..moveTo(0, size.height * 0.2)
@@ -384,7 +368,6 @@ class MapBackgroundPainter extends CustomPainter {
       ..close();
     canvas.drawPath(waterPath, waterPaint);
 
-    // Red Line (TER / BRT Route)
     final redLinePaint = Paint()
       ..color = const Color(0xFFE53935)
       ..strokeWidth = 6
@@ -394,7 +377,6 @@ class MapBackgroundPainter extends CustomPainter {
       ..lineTo(size.width * 0.4, size.height * 0.45);
     canvas.drawPath(redPath, redLinePaint);
 
-    // Blue Line
     final blueLinePaint = Paint()
       ..color = const Color(0xFF1E88E5)
       ..strokeWidth = 6
@@ -404,7 +386,6 @@ class MapBackgroundPainter extends CustomPainter {
       ..quadraticBezierTo(size.width * 0.6, size.height * 0.4, size.width * 0.3, size.height * 0.42);
     canvas.drawPath(bluePath, blueLinePaint);
 
-    // Station Nodes
     final nodePaint = Paint()..color = Colors.white;
     final nodeBorderPaint = Paint()
       ..color = const Color(0xFFE53935)
