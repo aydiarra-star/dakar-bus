@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const DakarMobeliteApp());
+  runApp(const DakarBusApp());
 }
 
-class DakarMobeliteApp extends StatelessWidget {
-  const DakarMobeliteApp({super.key});
+class DakarBusApp extends StatelessWidget {
+  const DakarBusApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -19,122 +19,188 @@ class DakarMobeliteApp extends StatelessWidget {
           primary: const Color(0xFF2E7D32),
         ),
       ),
-      home: const MapExplorerScreen(),
+      home: const MainMapScreen(),
     );
   }
 }
 
-class DepartureInfo {
-  final String stationName;
-  final String lineInfo;
-  final String timeRemaining;
+// Modèle de données enrichi
+class TransitStop {
+  final String id;
+  final String name;
+  final String network; // TER, BRT, AFTU, DDD
+  final String direction;
   final String fare;
-  final Color iconBgColor;
+  final String timeRemaining;
+  final Color color;
   final IconData icon;
 
-  const DepartureInfo({
-    required this.stationName,
-    required this.lineInfo,
-    required this.timeRemaining,
+  const TransitStop({
+    required this.id,
+    required this.name,
+    required this.network,
+    required this.direction,
     required this.fare,
-    required this.iconBgColor,
+    required this.timeRemaining,
+    required this.color,
     required this.icon,
   });
 }
 
-class MapExplorerScreen extends StatefulWidget {
-  const MapExplorerScreen({super.key});
+class MainMapScreen extends StatefulWidget {
+  const MainMapScreen({super.key});
 
   @override
-  State<MapExplorerScreen> createState() => _MapExplorerScreenState();
+  State<MainMapScreen> createState() => _MainMapScreenState();
 }
 
-class _MapExplorerScreenState extends State<MapExplorerScreen> {
+class _MainMapScreenState extends State<MainMapScreen> {
   int _selectedBottomNav = 0;
   String _selectedFilter = 'ALL';
   String _searchQuery = '';
+  TransitStop? _selectedStopOnMap;
 
-  final List<DepartureInfo> _departures = const [
-    DepartureInfo(
-      stationName: 'Gare TER Colobane',
-      lineInfo: 'TER Ligne Express • Dir. Diamniadio / Thiaroye',
-      timeRemaining: '6 min',
+  // Base de données complète des réseaux : TER, BRT, AFTU, Dakar Dem Dikk
+  final List<TransitStop> _allStops = const [
+    TransitStop(
+      id: 'ter_1',
+      name: 'Gare TER Colobane',
+      network: 'TER',
+      direction: 'Ligne Express • Dir. Diamniadio',
       fare: '500 FCFA',
-      iconBgColor: Color(0xFFE53935),
+      timeRemaining: '6 min',
+      color: Color(0xFFE53935),
       icon: Icons.directions_railway_filled,
     ),
-    DepartureInfo(
-      stationName: 'Station BRT Colobane (B1)',
-      lineInfo: 'BRT Ligne B1 • Dir. Guédiawaye',
-      timeRemaining: '4 min',
+    TransitStop(
+      id: 'brt_1',
+      name: 'Station BRT Colobane (B1)',
+      network: 'BRT',
+      direction: 'Ligne B1 • Dir. Guédiawaye',
       fare: '400 FCFA',
-      iconBgColor: Color(0xFF1E88E5),
+      timeRemaining: '4 min',
+      color: Color(0xFF1E88E5),
       icon: Icons.directions_bus_filled,
     ),
-    DepartureInfo(
-      stationName: 'Arrêt AFTU Tata Ligne 12',
-      lineInfo: 'AFTU Tata • Dir. Palais de Justice / Sandaga',
-      timeRemaining: '2 min',
+    TransitStop(
+      id: 'aftu_12',
+      name: 'Arrêt AFTU Tata Ligne 12',
+      network: 'AFTU',
+      direction: 'Tata Ligne 12 • Dir. Palais de Justice',
       fare: '200 FCFA',
-      iconBgColor: Color(0xFFFB8C00),
+      timeRemaining: '2 min',
+      color: Color(0xFFFB8C00),
       icon: Icons.directions_bus,
+    ),
+    TransitStop(
+      id: 'ddd_8',
+      name: 'Arrêt Dakar Dem Dikk Ligne 8',
+      network: 'DDD',
+      direction: 'DDD Ligne 8 • Dir. Aéroport Yoff / Sandaga',
+      fare: '175 FCFA',
+      timeRemaining: '8 min',
+      color: Color(0xFF2E7D32),
+      icon: Icons.directions_bus_filled,
     ),
   ];
 
   @override
   Widget build(BuildContext context) {
-    final filteredList = _departures.where((dep) {
-      final matchesSearch = dep.stationName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          dep.lineInfo.toLowerCase().contains(_searchQuery.toLowerCase());
+    final filteredStops = _allStops.where((stop) {
+      final matchesSearch = stop.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          stop.direction.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          stop.network.toLowerCase().contains(_searchQuery.toLowerCase());
+      
       if (_selectedFilter == 'TER_BRT') {
-        return matchesSearch && (dep.lineInfo.contains('TER') || dep.lineInfo.contains('BRT'));
+        return matchesSearch && (stop.network == 'TER' || stop.network == 'BRT');
       } else if (_selectedFilter == 'AFTU') {
-        return matchesSearch && dep.lineInfo.contains('AFTU');
+        return matchesSearch && stop.network == 'AFTU';
+      } else if (_selectedFilter == 'DDD') {
+        return matchesSearch && stop.network == 'DDD';
       }
       return matchesSearch;
     }).toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFEFEFEF),
       body: Stack(
         children: [
-          // Background Vector Map Rendering
+          // Carte interactive avec sélection directe des arrêts
           Positioned.fill(
-            child: CustomPaint(
-              painter: MapBackgroundPainter(),
+            child: InteractiveViewer(
+              minScale: 0.8,
+              maxScale: 3.0,
+              child: Stack(
+                children: [
+                  Container(color: const Color(0xFFE8ECEF)),
+                  // Tracés interactifs sur la carte
+                  CustomPaint(
+                    size: Size.infinite,
+                    painter: InteractiveMapPainter(),
+                  ),
+                  // Marqueurs d'arrêts cliquables sur la carte
+                  ...filteredStops.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final stop = entry.value;
+                    final topPos = 120.0 + (index * 80.0);
+                    final leftPos = 80.0 + (index * 60.0);
+
+                    return Positioned(
+                      top: topPos,
+                      left: leftPos,
+                      child: GestureDetector(
+                        onTap: () => _showStopDetails(stop),
+                        child: Column(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: stop.color,
+                                shape: BoxShape.circle,
+                                boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+                              ),
+                              child: Icon(stop.icon, color: Colors.white, size: 20),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(4),
+                                boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 2)],
+                              ),
+                              child: Text(
+                                stop.name,
+                                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
+                ],
+              ),
             ),
           ),
 
-          // Top Action Buttons
+          // Boutons du haut (Géolocalisation & Assistant IA)
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.12),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: IconButton(
-                      icon: const Icon(Icons.my_location, color: Color(0xFF2E7D32)),
-                      onPressed: () {},
-                    ),
-                  ),
-                  ElevatedButton.icon(
+                  FloatingActionButton.small(
+                    heroTag: 'location_btn',
+                    backgroundColor: Colors.white,
                     onPressed: () {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Assistant IA : Où désirez-vous aller ?')),
+                        const SnackBar(content: Text('Géolocalisation en cours...')),
                       );
                     },
+                    child: const Icon(Icons.my_location, color: Color(0xFF2E7D32)),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: _openAIAssistant,
                     icon: const Icon(Icons.auto_awesome, size: 18, color: Colors.white),
                     label: const Text(
                       'Assistant IA',
@@ -152,23 +218,17 @@ class _MapExplorerScreenState extends State<MapExplorerScreen> {
             ),
           ),
 
-          // Bottom Sheet UI
+          // Panneau coulissant interactif
           DraggableScrollableSheet(
-            initialChildSize: 0.58,
-            minChildSize: 0.25,
-            maxChildSize: 0.92,
+            initialChildSize: 0.50,
+            minChildSize: 0.20,
+            maxChildSize: 0.88,
             builder: (context, scrollController) {
               return Container(
                 decoration: const BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 12,
-                      spreadRadius: 2,
-                    )
-                  ],
+                  boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
                 ),
                 child: ListView(
                   controller: scrollController,
@@ -202,24 +262,21 @@ class _MapExplorerScreenState extends State<MapExplorerScreen> {
                           ),
                           child: const Text(
                             'Temps réel Live',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 16),
+
+                    // Champ de recherche dynamique
                     TextField(
                       onChanged: (val) => setState(() => _searchQuery = val),
                       decoration: InputDecoration(
-                        hintText: 'Où voulez-vous aller ? (ex: Thiaroye, Al...',
+                        hintText: 'Rechercher arrêt, lieu, TER, BRT, Tata...',
                         prefixIcon: const Icon(Icons.search, color: Color(0xFF2E7D32)),
                         filled: true,
                         fillColor: const Color(0xFFF5F5F5),
-                        contentPadding: const EdgeInsets.symmetric(vertical: 0),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
                           borderSide: BorderSide.none,
@@ -227,6 +284,8 @@ class _MapExplorerScreenState extends State<MapExplorerScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
+
+                    // Filtres par réseau
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
@@ -234,6 +293,7 @@ class _MapExplorerScreenState extends State<MapExplorerScreen> {
                           _buildFilterChip('Tous les réseaux', 'ALL'),
                           _buildFilterChip('TER & BRT', 'TER_BRT'),
                           _buildFilterChip('AFTU Tata', 'AFTU'),
+                          _buildFilterChip('Dakar Dem Dikk', 'DDD'),
                         ],
                       ),
                     ),
@@ -243,7 +303,9 @@ class _MapExplorerScreenState extends State<MapExplorerScreen> {
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
-                    ...filteredList.map((dep) => _buildDepartureCard(dep)),
+
+                    // Liste interactive
+                    ...filteredStops.map((stop) => _buildStopTile(stop)),
                   ],
                 ),
               );
@@ -258,14 +320,107 @@ class _MapExplorerScreenState extends State<MapExplorerScreen> {
         unselectedItemColor: Colors.grey,
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.explore_outlined),
-            activeIcon: Icon(Icons.explore),
+            icon: Icon(Icons.explore),
             label: 'Explorer',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.alt_route_outlined),
-            activeIcon: Icon(Icons.alt_route),
+            icon: Icon(Icons.alt_route),
             label: 'Trajets',
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Modale Assistant IA interactive
+  void _openAIAssistant() {
+    final controller = TextEditingController();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
+          left: 16,
+          right: 16,
+          top: 16,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.auto_awesome, color: Color(0xFF4CAF50)),
+                const SizedBox(width: 8),
+                const Text('Assistant IA Transport', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const Spacer(),
+                IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(ctx)),
+              ],
+            ),
+            const SizedBox(height: 8),
+            const Text('Où souhaitez-vous aller ? Posez votre question en langage naturel (ex: "Comment aller de Pikine à Sandaga ?")'),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              decoration: InputDecoration(
+                hintText: 'Posez votre question...',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E7D32)),
+                onPressed: () {
+                  final text = controller.text;
+                  Navigator.pop(ctx);
+                  if (text.isNotEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('IA : Calcul de l\'itinéraire pour "$text"...')),
+                    );
+                  }
+                },
+                child: const Text('Calculer l\'itinéraire', style: TextStyle(color: Colors.white)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Modale de détails lorsqu'on clique sur un arrêt
+  void _showStopDetails(TransitStop stop) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(stop.icon, color: stop.color),
+            const SizedBox(width: 8),
+            Expanded(child: Text(stop.name, style: const TextStyle(fontSize: 16))),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Réseau : ${stop.network}', style: const TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
+            Text('Ligne : ${stop.direction}'),
+            const SizedBox(height: 4),
+            Text('Tarif : ${stop.fare}'),
+            const SizedBox(height: 4),
+            Text('Arrivée estimée : ${stop.timeRemaining}', style: TextStyle(color: stop.color, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Fermer'),
           ),
         ],
       ),
@@ -277,129 +432,58 @@ class _MapExplorerScreenState extends State<MapExplorerScreen> {
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
       child: ChoiceChip(
-        label: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? const Color(0xFF1B5E20) : Colors.black87,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
+        label: Text(label, style: TextStyle(color: isSelected ? const Color(0xFF1B5E20) : Colors.black87)),
         selected: isSelected,
         selectedColor: const Color(0xFFC8E6C9),
-        backgroundColor: const Color(0xFFF0F0F0),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(
-            color: isSelected ? const Color(0xFF81C784) : Colors.grey.shade300,
-          ),
-        ),
         onSelected: (_) => setState(() => _selectedFilter = id),
       ),
     );
   }
 
-  Widget _buildDepartureCard(DepartureInfo dep) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFAFAFA),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+  Widget _buildStopTile(TransitStop stop) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      elevation: 0,
+      color: const Color(0xFFFAFAFA),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey.shade200),
       ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: dep.iconBgColor,
-            child: Icon(dep.icon, color: Colors.white, size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  dep.stationName,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  dep.lineInfo,
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 11),
-                ),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                dep.timeRemaining,
-                style: const TextStyle(
-                  color: Color(0xFF2E7D32),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                dep.fare,
-                style: TextStyle(color: Colors.grey.shade600, fontSize: 10),
-              ),
-            ],
-          ),
-        ],
+      child: ListTile(
+        onTap: () => _showStopDetails(stop),
+        leading: CircleAvatar(
+          backgroundColor: stop.color,
+          child: Icon(stop.icon, color: Colors.white, size: 20),
+        ),
+        title: Text(stop.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        subtitle: Text(stop.direction, style: const TextStyle(fontSize: 11)),
+        trailing: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(stop.timeRemaining, style: TextStyle(color: stop.color, fontWeight: FontWeight.bold)),
+            Text(stop.fare, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+          ],
+        ),
       ),
     );
   }
 }
 
-class MapBackgroundPainter extends CustomPainter {
+// Dessin interactif de la carte
+class InteractiveMapPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final bgPaint = Paint()..color = const Color(0xFFE8ECEF);
-    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), bgPaint);
+    final redLine = Paint()..color = const Color(0xFFE53935)..strokeWidth = 6..style = PaintingStyle.stroke;
+    final blueLine = Paint()..color = const Color(0xFF1E88E5)..strokeWidth = 6..style = PaintingStyle.stroke;
+    final greenLine = Paint()..color = const Color(0xFF2E7D32)..strokeWidth = 6..style = PaintingStyle.stroke;
 
-    final waterPaint = Paint()..color = const Color(0xFFB3E5FC);
-    final waterPath = Path()
-      ..moveTo(0, size.height * 0.2)
-      ..quadraticBezierTo(size.width * 0.4, size.height * 0.35, 0, size.height * 0.5)
-      ..close();
-    canvas.drawPath(waterPath, waterPaint);
+    final path1 = Path()..moveTo(50, 100)..lineTo(300, 400);
+    final path2 = Path()..moveTo(80, 200)..quadraticBezierTo(200, 250, 350, 300);
 
-    final redLinePaint = Paint()
-      ..color = const Color(0xFFE53935)
-      ..strokeWidth = 6
-      ..style = PaintingStyle.stroke;
-    final redPath = Path()
-      ..moveTo(size.width * 0.9, size.height * 0.1)
-      ..lineTo(size.width * 0.4, size.height * 0.45);
-    canvas.drawPath(redPath, redLinePaint);
-
-    final blueLinePaint = Paint()
-      ..color = const Color(0xFF1E88E5)
-      ..strokeWidth = 6
-      ..style = PaintingStyle.stroke;
-    final bluePath = Path()
-      ..moveTo(size.width * 0.85, size.height * 0.3)
-      ..quadraticBezierTo(size.width * 0.6, size.height * 0.4, size.width * 0.3, size.height * 0.42);
-    canvas.drawPath(bluePath, blueLinePaint);
-
-    final nodePaint = Paint()..color = Colors.white;
-    final nodeBorderPaint = Paint()
-      ..color = const Color(0xFFE53935)
-      ..strokeWidth = 3
-      ..style = PaintingStyle.stroke;
-
-    final Offset node1 = Offset(size.width * 0.84, size.height * 0.14);
-    final Offset node2 = Offset(size.width * 0.75, size.height * 0.20);
-    final Offset node3 = Offset(size.width * 0.51, size.height * 0.37);
-
-    for (var node in [node1, node2, node3]) {
-      canvas.drawCircle(node, 6, nodePaint);
-      canvas.drawCircle(node, 6, nodeBorderPaint);
-    }
+    canvas.drawPath(path1, redLine);
+    canvas.drawPath(path2, blueLine);
+    canvas.drawPath(path1, greenLine);
   }
 
   @override
