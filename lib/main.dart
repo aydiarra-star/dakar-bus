@@ -48,32 +48,32 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  final LatLng dakarCenter = const LatLng(14.6698, -17.4381);
-  final LatLng userLocation = const LatLng(14.6650, -17.4350);
+  final LatLng dakarCenter = LatLng(14.6698, -17.4381);
+  final LatLng userLocation = LatLng(14.6650, -17.4350);
 
   final List<BusStop> busStops = [
     BusStop(
       id: '1',
       name: 'Place de l\'Indépendance',
-      location: const LatLng(14.6698, -17.4381),
+      location: LatLng(14.6698, -17.4381),
       lines: ['Ligne 1', 'Ligne 10', 'BRT'],
     ),
     BusStop(
       id: '2',
       name: 'Gare Routière Petersen',
-      location: const LatLng(14.6780, -17.4410),
+      location: LatLng(14.6780, -17.4410),
       lines: ['Ligne 2', 'Ligne 6', 'Dem Dikk'],
     ),
     BusStop(
       id: '3',
       name: 'UCAD - Université',
-      location: const LatLng(14.6885, -17.4660),
+      location: LatLng(14.6885, -17.4660),
       lines: ['Ligne 1', 'Ligne 7', 'Ligne 14'],
     ),
     BusStop(
       id: '4',
       name: 'Grand Yoff - Marché',
-      location: const LatLng(14.7300, -17.4500),
+      location: LatLng(14.7300, -17.4500),
       lines: ['Ligne 8', 'Ligne 12'],
     ),
   ];
@@ -163,8 +163,8 @@ class _MapScreenState extends State<MapScreen> {
       ),
       body: FlutterMap(
         options: MapOptions(
-          initialCenter: dakarCenter,
-          initialZoom: 13.0,
+          center: dakarCenter,
+          zoom: 13.0,
         ),
         children: [
           TileLayer(
@@ -177,7 +177,7 @@ class _MapScreenState extends State<MapScreen> {
                 point: userLocation,
                 width: 40,
                 height: 40,
-                child: const Icon(
+                builder: (ctx) => const Icon(
                   Icons.my_location,
                   color: Colors.blue,
                   size: 30,
@@ -188,7 +188,7 @@ class _MapScreenState extends State<MapScreen> {
                   point: stop.location,
                   width: 40,
                   height: 40,
-                  child: GestureDetector(
+                  builder: (ctx) => GestureDetector(
                     onTap: () => _showStopDetails(stop),
                     child: const Icon(
                       Icons.location_on,
