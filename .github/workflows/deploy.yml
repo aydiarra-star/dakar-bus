@@ -27,6 +27,11 @@ jobs:
         with:
           channel: 'stable'
 
+      - name: Enable Web & Configure Project
+        run: |
+          flutter config --enable-web
+          flutter create . --platforms web
+
       - name: Install dependencies
         run: flutter pub get
 
