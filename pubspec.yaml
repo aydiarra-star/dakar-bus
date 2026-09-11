@@ -1,6 +1,7 @@
 name: dakar_bus
-description: Application de transport pour Dakar
+description: "Application de suivi des transports en commun à Dakar (BRT, TER, DDD, AFTU Tata)."
 publish_to: 'none'
+
 version: 1.0.0+1
 
 environment:
@@ -9,12 +10,19 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_map: ^6.1.0
+
+  # Cartographie et géolocalisation
+  flutter_map: ^6.0.0
   latlong2: ^0.9.0
+  geolocator: ^10.1.0
+
+  # Icones
+  cupertino_icons: ^1.0.6
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_lints: ^3.0.0
 
 flutter:
   uses-material-design: true
