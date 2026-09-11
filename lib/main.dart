@@ -63,7 +63,7 @@ enum DataSource { crowdsourcing, scrapedApi, hybrid }
 class TransitStop {
   final String id;
   final String name;
-  final String network;
+  final String network; // BRT, TER, DDD, AFTU (Tata)
   final String direction;
   final LatLng point;
   int minutesRemaining;
@@ -100,7 +100,7 @@ class LiveVehicle {
   });
 }
 
-// --- ÉCRAN PRINCIPAL AVEC NAVIGATION ---
+// --- ONGLET & STRUCTURE PRINCIPALE ---
 
 class MainNavigationScreen extends StatefulWidget {
   final Function(bool) onThemeChanged;
@@ -118,13 +118,118 @@ class MainNavigationScreen extends StatefulWidget {
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
+  bool _hasSeenWelcome = false;
+
+  // Itinéraire visualisé à travers l'onglet Trajets vers la Carte
+  List<LatLng> _highlightedItineraryPoints = [];
+  String? _highlightedItineraryName;
+  Color _highlightedItineraryColor = Colors.transparent;
+
+  final GlobalKey<_MapHomeScreenState> _mapHomeKey = GlobalKey<_MapHomeScreenState>();
+
+  @override
+  void initState() {
+    super.initState();
+    // Affichage de l'accueil de bienvenue Onboarding au premier lancement
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_hasSeenWelcome) {
+        _showWelcomeOnboardingDialog();
+      }
+    });
+  }
+
+  void _showWelcomeOnboardingDialog() {
+    setState(() => _hasSeenWelcome = true);
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Row(
+          children: [
+            Icon(Icons.directions_bus, color: Color(0xFF2E7D32), size: 30),
+            SizedBox(width: 8),
+            Text('Bienvenue sur Dakar Bus', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          ],
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Découvrez l’application de suivi temps réel pour tous vos déplacements à Dakar ! 🇸🇳',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 12),
+            Text('• 🚄 Suivi complet : TER, BRT, Dakar Dem Dikk et bus Tata.\n• 🗺️ Carte interactive avec passages et distances estimées.\n• ⏱️ Calculateur de trajets intelligent.\n• 🤖 Assistant de voyage IA.'),
+            SizedBox(height: 8),
+            Text(
+              'Prêt à voyager intelligemment ?',
+              style: TextStyle(fontStyle: FontStyle.italic, color: Color(0xFF2E7D32)),
+            ),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2E7D32),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Commencer', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showRouteOnMap(List<LatLng> points, String name, Color color) {
+    setState(() {
+      _highlightedItineraryPoints = points;
+      _highlightedItineraryName = name;
+      _highlightedItineraryColor = color;
+      _currentIndex = 0; // Retourner sur l'onglet Carte
+    });
+
+    // Centrer la carte sur le début du trajet après un petit délai
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (_mapHomeKey.currentState != null && points.isNotEmpty) {
+        _mapHomeKey.currentState!._centerOnRoute(points.first, points);
+      }
+    });
+  }
+
+  void _clearHighlightedRoute() {
+    setState(() {
+      _highlightedItineraryPoints = [];
+      _highlightedItineraryName = null;
+      _highlightedItineraryColor = Colors.transparent;
+    });
+  }
+
+  void _navigateToAndSearch(TransitStop stop) {
+    setState(() {
+      _currentIndex = 0; // Aller sur la carte
+    });
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (_mapHomeKey.currentState != null) {
+        _mapHomeKey.currentState!._focusOnStop(stop);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final List<Widget> pages = [
-      const MapHomeScreen(),
-      const RoutePlannerScreen(),
-      const AllStopsScreen(),
+      MapHomeScreen(
+        key: _mapHomeKey,
+        activeItineraryPoints: _highlightedItineraryPoints,
+        activeItineraryName: _highlightedItineraryName,
+        activeItineraryColor: _highlightedItineraryColor,
+        onClearItinerary: _clearHighlightedRoute,
+      ),
+      RoutePlannerScreen(onShowOnMap: _showRouteOnMap),
+      AllStopsScreen(onSelectStop: _navigateToAndSearch),
       SettingsScreen(
         onThemeChanged: widget.onThemeChanged,
         isDarkMode: widget.isDarkMode,
@@ -156,7 +261,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 // --- DONNÉES GLOBALES ET RÉSEAU ---
 
 final List<TransitStop> globalStopsList = [
-  // BRT & TER
+  // BRT
   TransitStop(
     id: 'brt_petersen',
     name: 'Station BRT Petersen',
@@ -168,6 +273,17 @@ final List<TransitStop> globalStopsList = [
     icon: Icons.directions_bus_filled,
   ),
   TransitStop(
+    id: 'brt_grand_yoff',
+    name: 'Station BRT Grand Yoff / Liberté 6',
+    network: 'BRT',
+    direction: 'Ligne B1 • Dir. Petersen',
+    point: const LatLng(14.7212, -17.4618),
+    minutesRemaining: 6,
+    color: const Color(0xFF1E88E5),
+    icon: Icons.directions_bus_filled,
+  ),
+  // TER
+  TransitStop(
     id: 'ter_dakar',
     name: 'Gare TER Dakar (Place des Tirailleurs)',
     network: 'TER',
@@ -178,14 +294,14 @@ final List<TransitStop> globalStopsList = [
     icon: Icons.directions_railway_filled,
   ),
   TransitStop(
-    id: 'brt_grand_yoff',
-    name: 'Station BRT Grand Yoff / Liberté 6',
-    network: 'BRT',
-    direction: 'Ligne B1 • Dir. Petersen',
-    point: const LatLng(14.7212, -17.4618),
-    minutesRemaining: 6,
-    color: const Color(0xFF1E88E5),
-    icon: Icons.directions_bus_filled,
+    id: 'ter_pikine',
+    name: 'Gare TER Pikine',
+    network: 'TER',
+    direction: 'Ligne Omnis • Dir. Dakar',
+    point: const LatLng(14.7525, -17.4012),
+    minutesRemaining: 8,
+    color: const Color(0xFFE53935),
+    icon: Icons.directions_railway_filled,
   ),
   // DAKAR DEM DIKK
   TransitStop(
@@ -220,11 +336,11 @@ final List<TransitStop> globalStopsList = [
     icon: Icons.directions_bus,
   ),
   TransitStop(
-    id: 'aftu_pikine',
+    id: 'aftu_pikine_croisement',
     name: 'Arrêt AFTU Tata Pikine Croisement',
     network: 'AFTU',
     direction: 'Tata 38 • Dir. Marché HLM',
-    point: const LatLng(14.7525, -17.3980),
+    point: const LatLng(14.7435, -17.3910),
     minutesRemaining: 5,
     color: const Color(0xFFFB8C00),
     icon: Icons.directions_bus,
@@ -239,12 +355,49 @@ final List<TransitStop> globalStopsList = [
     color: const Color(0xFFFB8C00),
     icon: Icons.directions_bus,
   ),
+  TransitStop(
+    id: 'aftu_mermoz',
+    name: 'Arrêt AFTU Tata Mermoz / VDN',
+    network: 'AFTU',
+    direction: 'Tata 44 • Dir. Ouakam',
+    point: const LatLng(14.7080, -17.4720),
+    minutesRemaining: 9,
+    color: const Color(0xFFFB8C00),
+    icon: Icons.directions_bus,
+  ),
 ];
+
+// --- CALCULATEUR DE DISTANCE (À PIED ESTIMÉ) ---
+
+String getStopEstimatedDistance(LatLng userPos, LatLng stopPos) {
+  final double meters = Geolocator.distanceBetween(
+    userPos.latitude,
+    userPos.longitude,
+    stopPos.latitude,
+    stopPos.longitude,
+  );
+  if (meters < 1000) {
+    return '${meters.toStringAsFixed(0)} m';
+  } else {
+    return '${(meters / 1000).toStringAsFixed(1)} km';
+  }
+}
 
 // --- ONGLET 1 : CARTE DE L'ACCUEIL ---
 
 class MapHomeScreen extends StatefulWidget {
-  const MapHomeScreen({super.key});
+  final List<LatLng> activeItineraryPoints;
+  final String? activeItineraryName;
+  final Color activeItineraryColor;
+  final VoidCallback onClearItinerary;
+
+  const MapHomeScreen({
+    super.key,
+    required this.activeItineraryPoints,
+    this.activeItineraryName,
+    required this.activeItineraryColor,
+    required this.onClearItinerary,
+  });
 
   @override
   State<MapHomeScreen> createState() => _MapHomeScreenState();
@@ -252,6 +405,7 @@ class MapHomeScreen extends StatefulWidget {
 
 class _MapHomeScreenState extends State<MapHomeScreen> {
   final MapController _mapController = MapController();
+  final LatLng _defaultCenter = const LatLng(14.7100, -17.4100);
   String _selectedFilter = 'ALL';
   String _searchQuery = '';
   Timer? _timer;
@@ -278,6 +432,17 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
       });
     });
     _updateLivePositions();
+  }
+
+  void _centerOnRoute(LatLng start, List<LatLng> routePoints) {
+    _mapController.move(start, 13.5);
+  }
+
+  void _focusOnStop(TransitStop stop) {
+    _mapController.move(stop.point, 15.0);
+    setState(() {
+      _searchQuery = stop.name;
+    });
   }
 
   void _updateLivePositions() {
@@ -342,8 +507,8 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
         children: [
           FlutterMap(
             mapController: _mapController,
-            options: const MapOptions(
-              initialCenter: LatLng(14.7100, -17.4100),
+            options: MapOptions(
+              initialCenter: _defaultCenter,
               initialZoom: 11.8,
             ),
             children: [
@@ -355,6 +520,14 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                 polylines: [
                   Polyline(points: _terRoute, strokeWidth: 5, color: const Color(0xFFE53935)),
                   Polyline(points: _brtRoute, strokeWidth: 5, color: const Color(0xFF1E88E5)),
+                  if (widget.activeItineraryPoints.isNotEmpty)
+                    Polyline(
+                      points: widget.activeItineraryPoints,
+                      strokeWidth: 7,
+                      color: widget.activeItineraryColor,
+                      borderStrokeWidth: 3,
+                      borderColor: Colors.white,
+                    ),
                 ],
               ),
               MarkerLayer(
@@ -364,7 +537,10 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                     width: 36,
                     height: 36,
                     child: GestureDetector(
-                      onTap: () => _mapController.move(stop.point, 14.5),
+                      onTap: () {
+                        _mapController.move(stop.point, 14.5);
+                        _showStopDetailBottomSheet(stop);
+                      },
                       child: CircleAvatar(
                         backgroundColor: stop.color,
                         child: Icon(stop.icon, color: Colors.white, size: 18),
@@ -379,20 +555,51 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                     point: vehicle.currentPosition,
                     width: 44,
                     height: 44,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: vehicle.color, width: 3),
-                        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+                    child: GestureDetector(
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('${vehicle.lineName} • En déplacement direct'),
+                            backgroundColor: vehicle.color,
+                          ),
+                        );
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: vehicle.color, width: 3),
+                          boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+                        ),
+                        child: Icon(vehicle.icon, color: vehicle.color, size: 22),
                       ),
-                      child: Icon(vehicle.icon, color: vehicle.color, size: 22),
                     ),
                   );
                 }).toList(),
               ),
             ],
           ),
+
+          if (widget.activeItineraryPoints.isNotEmpty)
+            Positioned(
+              top: 70,
+              left: 12,
+              right: 12,
+              child: Card(
+                color: const Color(0xFFE8F5E9),
+                elevation: 4,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                child: ListTile(
+                  leading: const Icon(Icons.navigation, color: Color(0xFF2E7D32)),
+                  title: Text(widget.activeItineraryName ?? 'Itinéraire', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  subtitle: const Text('Tracé affiché à l\'écran', style: TextStyle(fontSize: 11)),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.close, color: Colors.red),
+                    onPressed: widget.onClearItinerary,
+                  ),
+                ),
+              ),
+            ),
 
           SafeArea(
             child: Padding(
@@ -403,14 +610,27 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                   FloatingActionButton.small(
                     heroTag: 'recenter',
                     backgroundColor: Colors.white,
-                    onPressed: () => _mapController.move(const LatLng(14.7100, -17.4100), 11.8),
+                    onPressed: () => _mapController.move(_defaultCenter, 11.8),
                     child: const Icon(Icons.my_location, color: Color(0xFF2E7D32)),
                   ),
-                  ElevatedButton.icon(
-                    onPressed: _openAIAssistant,
-                    icon: const Icon(Icons.auto_awesome, color: Colors.white, size: 18),
-                    label: const Text('Assistant IA', style: TextStyle(color: Colors.white)),
-                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E7D32)),
+                  Row(
+                    children: [
+                      ElevatedButton.icon(
+                        heroTag: 'report_incident_btn',
+                        onPressed: _showReportIncidentDialog,
+                        icon: const Icon(Icons.warning_amber_rounded, color: Colors.amber, size: 18),
+                        label: const Text('Signaler', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.white),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton.icon(
+                        heroTag: 'ai_assistant_btn',
+                        onPressed: _openAIAssistant,
+                        icon: const Icon(Icons.auto_awesome, color: Colors.white, size: 18),
+                        label: const Text('Assistant IA', style: TextStyle(color: Colors.white)),
+                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E7D32)),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -503,15 +723,135 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
   }
 
   Widget _buildStopTile(TransitStop stop) {
+    final distStr = getStopEstimatedDistance(_defaultCenter, stop.point);
+
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: Colors.grey.shade300)),
       child: ListTile(
+        onTap: () {
+          _mapController.move(stop.point, 15.0);
+          _showStopDetailBottomSheet(stop);
+        },
         leading: CircleAvatar(backgroundColor: stop.color, child: Icon(stop.icon, color: Colors.white, size: 20)),
-        title: Text(stop.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
-        subtitle: Text(stop.direction, style: const TextStyle(fontSize: 11)),
+        title: Row(
+          children: [
+            Expanded(child: Text(stop.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5))),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(6)),
+              child: Text(stop.network, style: TextStyle(color: stop.color, fontSize: 9, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+        subtitle: Text('${stop.direction} • 🚶 $distStr', style: const TextStyle(fontSize: 11)),
         trailing: Text('${stop.minutesRemaining} min', style: TextStyle(color: stop.color, fontWeight: FontWeight.bold, fontSize: 13)),
+      ),
+    );
+  }
+
+  void _showStopDetailBottomSheet(TransitStop stop) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(backgroundColor: stop.color, radius: 24, child: Icon(stop.icon, color: Colors.white, size: 24)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(stop.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      Text('${stop.network} • ${stop.direction}', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const Divider(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Statut de passage :', style: TextStyle(fontWeight: FontWeight.bold)),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(color: stop.color.withAlpha(25), borderRadius: BorderRadius.circular(8)),
+                  child: Text('${stop.minutesRemaining} min estimé', style: TextStyle(color: stop.color, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            const Text('💡 Correspondances disponibles ou lignes fréquentes pour cet arrêt.', style: TextStyle(fontSize: 12, color: Colors.grey)),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E7D32)),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _mapController.move(stop.point, 15.5);
+                    },
+                    icon: const Icon(Icons.map, color: Colors.white),
+                    label: const Text('Voir de plus près', style: TextStyle(color: Colors.white)),
+                  ),
+                ),
+              ],
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showReportIncidentDialog() {
+    String selectType = 'Embouteillage 🚗';
+    final List<String> types = ['Embouteillage 🚗', 'Bus en retard ⏱️', 'Panne de Transport 🔧', 'Perturbation de Route 🚧'];
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Signaler un Incident'),
+        content: StatefulBuilder(
+          builder: (context, setDialogState) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Aidez la communauté en signalant un problème en direct sur les lignes d\'aujourd\'hui.'),
+              const SizedBox(height: 12),
+              DropdownButton<String>(
+                value: selectType,
+                isExpanded: true,
+                items: types.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+                onChanged: (val) {
+                  if (val != null) setDialogState(() => selectType = val);
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Merci ! Incident "$selectType" partagé avec les voyageurs.'),
+                  backgroundColor: const Color(0xFF2E7D32),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E7D32)),
+            child: const Text('Soumettre', style: TextStyle(color: Colors.white)),
+          )
+        ],
       ),
     );
   }
@@ -545,7 +885,12 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
 // --- ONGLET 2 : CALCULATEUR DE TRAJETS ---
 
 class RoutePlannerScreen extends StatefulWidget {
-  const RoutePlannerScreen({super.key});
+  final Function(List<LatLng>, String, Color) onShowOnMap;
+
+  const RoutePlannerScreen({
+    super.key,
+    required this.onShowOnMap,
+  });
 
   @override
   State<RoutePlannerScreen> createState() => _RoutePlannerScreenState();
@@ -613,6 +958,12 @@ class _RoutePlannerScreenState extends State<RoutePlannerScreen> {
                       price: '300 FCFA',
                       steps: 'Prendre le BRT B1 à Petersen, puis Tata 24',
                       color: const Color(0xFF1E88E5),
+                      points: const [
+                        LatLng(14.6785, -17.4398),
+                        LatLng(14.6995, -17.4520),
+                        LatLng(14.7212, -17.4618),
+                        LatLng(14.7780, -17.3110),
+                      ],
                     ),
                     _buildRouteResultCard(
                       title: 'Option Express TER',
@@ -620,6 +971,12 @@ class _RoutePlannerScreenState extends State<RoutePlannerScreen> {
                       price: '500 FCFA',
                       steps: 'Prendre le TER à la Gare de Dakar vers Diamniadio',
                       color: const Color(0xFFE53935),
+                      points: const [
+                        LatLng(14.6678, -17.4332),
+                        LatLng(14.7170, -17.4310),
+                        LatLng(14.7525, -17.4012),
+                        LatLng(14.7132, -17.2718),
+                      ],
                     ),
                     _buildRouteResultCard(
                       title: 'Ligne Directe Dakar Dem Dikk',
@@ -627,6 +984,11 @@ class _RoutePlannerScreenState extends State<RoutePlannerScreen> {
                       price: '200 FCFA',
                       steps: 'Ligne DDD 12 direct jusqu\'au terminus',
                       color: const Color(0xFF2E7D32),
+                      points: const [
+                        LatLng(14.6680, -17.4320),
+                        LatLng(14.7230, -17.4860),
+                        LatLng(14.7560, -17.4680),
+                      ],
                     ),
                   ],
                 ),
@@ -643,14 +1005,28 @@ class _RoutePlannerScreenState extends State<RoutePlannerScreen> {
     required String price,
     required String steps,
     required Color color,
+    required List<LatLng> points,
   }) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
+      child: ExpansionTile(
         leading: CircleAvatar(backgroundColor: color, child: const Icon(Icons.directions_transit, color: Colors.white)),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text('$steps\nTarif estimé : $price'),
         trailing: Text(duration, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 16)),
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(backgroundColor: color),
+              onPressed: () {
+                widget.onShowOnMap(points, title, color);
+              },
+              icon: const Icon(Icons.map, color: Colors.white),
+              label: const Text('Voir l\'itinéraire sur la carte', style: TextStyle(color: Colors.white)),
+            ),
+          )
+        ],
       ),
     );
   }
@@ -659,7 +1035,12 @@ class _RoutePlannerScreenState extends State<RoutePlannerScreen> {
 // --- ONGLET 3 : LISTE TOUS LES ARRÊTS ---
 
 class AllStopsScreen extends StatefulWidget {
-  const AllStopsScreen({super.key});
+  final Function(TransitStop) onSelectStop;
+
+  const AllStopsScreen({
+    super.key,
+    required this.onSelectStop,
+  });
 
   @override
   State<AllStopsScreen> createState() => _AllStopsScreenState();
@@ -701,9 +1082,23 @@ class _AllStopsScreenState extends State<AllStopsScreen> {
               itemBuilder: (context, index) {
                 final stop = filtered[index];
                 return ListTile(
-                  leading: CircleAvatar(backgroundColor: stop.color, child: Icon(stop.icon, color: Colors.white)),
-                  title: Text(stop.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text('${stop.network} • ${stop.direction}'),
+                  onTap: () {
+                    widget.onSelectStop(stop);
+                  },
+                  leading: CircleAvatar(
+                    backgroundColor: stop.color,
+                    child: Icon(stop.icon, color: Colors.white),
+                  ),
+                  title: Row(
+                    children: [
+                      Expanded(child: Text(stop.name, style: const TextStyle(fontWeight: FontWeight.bold))),
+                      Badge(
+                        label: Text(stop.network),
+                        backgroundColor: stop.color,
+                      ),
+                    ],
+                  ),
+                  subtitle: Text('${stop.direction}'),
                   trailing: const Icon(Icons.chevron_right),
                 );
               },
@@ -770,6 +1165,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const Divider(),
           ListTile(
+            leading: const Icon(Icons.feedback_outlined),
+            title: const Text('Signaler un bug / Retour utilisateur'),
+            subtitle: const Text('Un problème sur l\'application ? Envoyez vos suggestions'),
+            onTap: _showFeedbackDialog,
+          ),
+          const Divider(),
+          ListTile(
             leading: const Icon(Icons.info),
             title: const Text('À propos de Dakar Bus'),
             subtitle: const Text('Version 1.0.0 • Réseaux BRT, TER, DDD, AFTU Tata'),
@@ -782,6 +1184,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
               );
             },
           ),
+        ],
+      ),
+    );
+  }
+
+  void _showFeedbackDialog() {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Envoyer vos retours'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Un avis, un arrêt non listé ou un bug ? Dites-le nous.'),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              maxLines: 4,
+              decoration: const InputDecoration(
+                hintText: 'Votre message ici...',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Merci pour votre retour précieux ! Notre équipe va l’examiner.'),
+                  backgroundColor: Color(0xFF2E7D32),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E7D32)),
+            child: const Text('Envoyer', style: TextStyle(color: Colors.white)),
+          )
         ],
       ),
     );
