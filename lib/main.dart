@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 void main() {
   runApp(const DakarBusApp());
@@ -96,7 +98,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 }
 
-// --- ONGLET 1 : CARTE & ARRÊTS ---
+// --- ONGLET 1 : VRAIE CARTE GPS ET ARRÊTS ---
 
 class MapHomeScreen extends StatefulWidget {
   const MapHomeScreen({super.key});
@@ -106,6 +108,8 @@ class MapHomeScreen extends StatefulWidget {
 }
 
 class _MapHomeScreenState extends State<MapHomeScreen> {
+  final MapController _mapController = MapController();
+  LatLng _currentCenter = const LatLng(14.6937, -17.4441); // Centre Dakar (Petersen)
   String _searchQuery = '';
   String _selectedFilter = 'ALL';
 
@@ -117,7 +121,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
       'dir': 'Dir. Guédiawaye',
       'time': '2 min',
       'color': const Color(0xFF1E88E5),
-      'icon': Icons.directions_bus,
+      'location': const LatLng(14.6740, -17.4380),
     },
     {
       'id': 'ter_1',
@@ -126,7 +130,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
       'dir': 'Dir. Diamniadio',
       'time': '4 min',
       'color': const Color(0xFFE53935),
-      'icon': Icons.train,
+      'location': const LatLng(14.6715, -17.4325),
     },
     {
       'id': 'ddd_1',
@@ -135,7 +139,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
       'dir': 'Ligne 6',
       'time': '8 min',
       'color': const Color(0xFF2E7D32),
-      'icon': Icons.directions_bus,
+      'location': const LatLng(14.7500, -17.4400),
     },
     {
       'id': 'aftu_1',
@@ -144,7 +148,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
       'dir': 'Dir. Colobane',
       'time': '3 min',
       'color': const Color(0xFFFB8C00),
-      'icon': Icons.directions_transit,
+      'location': const LatLng(14.6900, -17.4480),
     },
     {
       'id': 'brt_2',
@@ -153,29 +157,21 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
       'dir': 'Dir. Petersen',
       'time': '6 min',
       'color': const Color(0xFF1E88E5),
-      'icon': Icons.directions_bus,
-    },
-    {
-      'id': 'aftu_2',
-      'name': 'Arrêt AFTU Tata 38',
-      'type': 'AFTU',
-      'dir': 'Dir. Marché HLM',
-      'time': '5 min',
-      'color': const Color(0xFFFB8C00),
-      'icon': Icons.directions_transit,
+      'location': const LatLng(14.7220, -17.4520),
     },
   ];
+
+  void _moveToLocation(LatLng coords) {
+    _mapController.move(coords, 14.5);
+  }
 
   @override
   Widget build(BuildContext context) {
     final filteredStops = _allStops.where((stop) {
       final matchesSearch = stop['name'].toString().toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          stop['type'].toString().toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          stop['dir'].toString().toLowerCase().contains(_searchQuery.toLowerCase());
+          stop['type'].toString().toLowerCase().contains(_searchQuery.toLowerCase());
 
-      if (_selectedFilter == 'TER_BRT') {
-        return matchesSearch && (stop['type'] == 'TER' || stop['type'] == 'BRT');
-      }
+      if (_selectedFilter == 'TER_BRT') return matchesSearch && (stop['type'] == 'TER' || stop['type'] == 'BRT');
       if (_selectedFilter == 'DDD') return matchesSearch && stop['type'] == 'DDD';
       if (_selectedFilter == 'AFTU') return matchesSearch && stop['type'] == 'AFTU';
       return matchesSearch;
@@ -195,42 +191,54 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
       ),
       body: Column(
         children: [
-          // Simulation Visuelle Carte Dakar
-          Container(
-            height: 140,
+          // CARTE FLUTTER MAP GPS (100% FONCTIONNELLE)
+          SizedBox(
+            height: 250,
             width: double.infinity,
-            decoration: BoxDecoration(
-              color: const Color(0xFFE8F5E9),
-              border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
-            ),
             child: Stack(
               children: [
-                Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.map_outlined, size: 40, color: Color(0xFF2E7D32)),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Réseau actif : BRT • TER • DDD • Tata',
-                        style: TextStyle(color: Colors.grey.shade800, fontWeight: FontWeight.bold, fontSize: 12),
-                      ),
-                      const Text(
-                        '📍 Presqu\'île de Dakar (Temps Réel)',
-                        style: TextStyle(color: Colors.grey, fontSize: 11),
-                      ),
-                    ],
+                FlutterMap(
+                  mapController: _mapController,
+                  options: MapOptions(
+                    initialCenter: _currentCenter,
+                    initialZoom: 12.5,
                   ),
+                  children: [
+                    TileLayer(
+                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      userAgentPackageName: 'com.dakarbus.app',
+                    ),
+                    MarkerLayer(
+                      markers: filteredStops.map((stop) {
+                        return Marker(
+                          point: stop['location'] as LatLng,
+                          width: 40,
+                          height: 40,
+                          child: GestureDetector(
+                            onTap: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('${stop['name']} (${stop['time']})')),
+                              );
+                            },
+                            child: CircleAvatar(
+                              backgroundColor: stop['color'],
+                              child: const Icon(Icons.directions_bus, color: Colors.white, size: 20),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
                 ),
                 Positioned(
                   right: 12,
                   bottom: 12,
                   child: FloatingActionButton.small(
-                    heroTag: 'map_btn',
                     backgroundColor: const Color(0xFF2E7D32),
                     onPressed: () {
+                      _moveToLocation(const LatLng(14.6937, -17.4441));
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Position actualisée sur Dakar')),
+                        const SnackBar(content: Text('Recentré sur Dakar')),
                       );
                     },
                     child: const Icon(Icons.my_location, color: Colors.white),
@@ -240,7 +248,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
             ),
           ),
 
-          // Barres de Recherche & Filtres
+          // Recherche & Filtres
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: Column(
@@ -248,14 +256,11 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                 TextField(
                   onChanged: (val) => setState(() => _searchQuery = val),
                   decoration: InputDecoration(
-                    hintText: 'Rechercher un arrêt ou une ligne (BRT, TER...)...',
+                    hintText: 'Rechercher un arrêt ou une ligne...',
                     prefixIcon: const Icon(Icons.search, color: Color(0xFF2E7D32)),
                     filled: true,
-                    fillColor: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.grey.shade800
-                        : const Color(0xFFF5F5F5),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
                     ),
                   ),
@@ -285,22 +290,15 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
                 final stop = filteredStops[index];
                 return Card(
                   margin: const EdgeInsets.only(bottom: 8),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(color: Colors.grey.shade300),
-                  ),
                   child: ListTile(
+                    onTap: () => _moveToLocation(stop['location'] as LatLng),
                     leading: CircleAvatar(
                       backgroundColor: stop['color'],
-                      child: Icon(stop['icon'], color: Colors.white, size: 20),
+                      child: const Icon(Icons.directions_bus, color: Colors.white, size: 20),
                     ),
-                    title: Text(stop['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                    subtitle: Text('${stop['type']} • ${stop['dir']}', style: const TextStyle(fontSize: 12)),
-                    trailing: Text(
-                      stop['time'],
-                      style: TextStyle(color: stop['color'], fontWeight: FontWeight.bold, fontSize: 13),
-                    ),
+                    title: Text(stop['name'], style: const TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: Text('${stop['type']} • ${stop['dir']}'),
+                    trailing: Text(stop['time'], style: TextStyle(color: stop['color'], fontWeight: FontWeight.bold)),
                   ),
                 );
               },
@@ -316,7 +314,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
     return Padding(
       padding: const EdgeInsets.only(right: 6.0),
       child: ChoiceChip(
-        label: Text(label, style: TextStyle(fontSize: 12, color: isSelected ? Colors.white : Colors.black87)),
+        label: Text(label),
         selected: isSelected,
         selectedColor: const Color(0xFF2E7D32),
         onSelected: (_) => setState(() => _selectedFilter = id),
@@ -327,7 +325,6 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
   void _showAIAssistant() {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (ctx) => Container(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -342,7 +339,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            const Text('💡 Recommandation du moment : Le BRT B1 est plus fluide que la VDN à cette heure-ci.'),
+            const Text('💡 Recommandation : Le BRT B1 est plus fluide que la VDN à cette heure-ci.'),
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
