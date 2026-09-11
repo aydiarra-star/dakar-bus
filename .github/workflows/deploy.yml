@@ -1,22 +1,23 @@
-name: Deploy Flutter Web to GitHub Pages
+name: Deploy to GitHub Pages
 
 on:
   push:
     branches:
       - main
+      - master
 
 permissions:
   contents: write
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up Java
+      - name: Set up Java JDK
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
@@ -27,19 +28,14 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Enable Web & Configure Project
-        run: |
-          flutter config --enable-web
-          flutter create . --platforms web
-
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build Web
+      - name: Build Web Application
         run: flutter build web --release --base-href "/dakar-bus/"
 
       - name: Deploy to GitHub Pages
-        uses: Peaceiris/actions-gh-pages@v3
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build/web
+          folder: build/web
+          branch: gh-pages
