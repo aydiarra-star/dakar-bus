@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
 
 void main() => runApp(const DakarBusApp());
 
+// ============================================================
+// COULEURS
+// ============================================================
 class AppColors {
   static const primary = Color(0xFF00695C);
   static const brt = Color(0xFF1976D2);
   static const ter = Color(0xFFE53935);
   static const aftu = Color(0xFFEF6C00);
+  static const tata = Color(0xFF7B1FA2);
+  static const ddd = Color(0xFF0288D1);
   static const background = Color(0xFFF8F9FA);
   static const surface = Color(0xFFFFFFFF);
   static const textPrimary = Color(0xFF1A1A1A);
@@ -17,69 +23,206 @@ class AppColors {
   static const success = Color(0xFF2E7D32);
 }
 
+// ============================================================
+// MODÈLES
+// ============================================================
 class Stop {
-  final String name, lines, distance, schedule, direction, price;
-  final bool isOfficial;
+  final String name, direction, schedule, price, distance;
   final IconData icon;
   final Color color;
   final LatLng location;
 
   const Stop({
     required this.name,
-    required this.lines,
-    required this.distance,
-    required this.schedule,
     required this.direction,
+    required this.schedule,
     required this.price,
-    required this.isOfficial,
+    required this.distance,
     required this.icon,
     required this.color,
     required this.location,
   });
 }
 
+class TransitRoute {
+  final String name;
+  final String code;
+  final String type;
+  final Color color;
+  final List<LatLng> points;
+
+  const TransitRoute({
+    required this.name,
+    required this.code,
+    required this.type,
+    required this.color,
+    required this.points,
+  });
+}
+
+// ============================================================
+// ARRÊTS DE DÉMONSTRATION
+// ============================================================
 final List<Stop> demoStops = [
   const Stop(
-    name: 'Gare TER Colobane',
-    lines: 'TER Ligne Express',
-    distance: '350 m',
-    schedule: '5 min',
-    direction: 'Dir. Diamniadio / Thiaroye',
+    name: 'Gare TER Dakar',
+    direction: 'Terminus Dakar',
+    schedule: '2 min',
     price: '500 FCFA',
-    isOfficial: true,
+    distance: '350 m',
+    icon: Icons.train_rounded,
+    color: AppColors.ter,
+    location: LatLng(14.6792, -17.4407),
+  ),
+  const Stop(
+    name: 'Gare TER Colobane',
+    direction: 'Dir. Diamniadio',
+    schedule: '5 min',
+    price: '500 FCFA',
+    distance: '400 m',
     icon: Icons.train_rounded,
     color: AppColors.ter,
     location: LatLng(14.6937, -17.4441),
   ),
   const Stop(
-    name: 'Station BRT Colobane (B1)',
-    lines: 'BRT Ligne B1',
-    distance: '150 m',
-    schedule: '1 min',
+    name: 'Station BRT Colobane',
     direction: 'Dir. Guédiawaye Petersen',
+    schedule: '1 min',
     price: '400 FCFA',
-    isOfficial: true,
+    distance: '150 m',
     icon: Icons.directions_bus_rounded,
     color: AppColors.brt,
     location: LatLng(14.6950, -17.4420),
   ),
   const Stop(
+    name: 'Station BRT Guédiawaye',
+    direction: 'Dir. Petersen',
+    schedule: '8 min',
+    price: '400 FCFA',
+    distance: '2.1 km',
+    icon: Icons.directions_bus_rounded,
+    color: AppColors.brt,
+    location: LatLng(14.7735, -17.3977),
+  ),
+  const Stop(
     name: 'Arrêt AFTU Ligne 23',
-    lines: 'Bus Tata 23',
-    distance: '280 m',
-    schedule: '3 min',
     direction: 'Dir. Parcelles Assainies',
+    schedule: '3 min',
     price: '200 FCFA',
-    isOfficial: false,
+    distance: '280 m',
     icon: Icons.directions_bus_outlined,
     color: AppColors.aftu,
     location: LatLng(14.6900, -17.4460),
   ),
+  const Stop(
+    name: 'Arrêt Tata 12',
+    direction: 'Dir. Guédiawaye',
+    schedule: '4 min',
+    price: '250 FCFA',
+    distance: '600 m',
+    icon: Icons.directions_bus_filled,
+    color: AppColors.tata,
+    location: LatLng(14.7200, -17.4700),
+  ),
+  const Stop(
+    name: 'Arrêt DDD Ligne 12',
+    direction: 'Dir. Ouakam / Almadies',
+    schedule: '6 min',
+    price: '300 FCFA',
+    distance: '800 m',
+    icon: Icons.directions_bus_filled_rounded,
+    color: AppColors.ddd,
+    location: LatLng(14.7250, -17.4900),
+  ),
 ];
 
+// ============================================================
+// LIGNES AVEC TRACÉS
+// ============================================================
+final List<TransitRoute> demoRoutes = [
+  // TER - Dakar à Diamniadio
+  const TransitRoute(
+    name: 'TER Ligne Express',
+    code: 'TER',
+    type: 'TER',
+    color: AppColors.ter,
+    points: [
+      LatLng(14.6792, -17.4407),
+      LatLng(14.6937, -17.4441),
+      LatLng(14.7100, -17.4350),
+      LatLng(14.7230, -17.4280),
+      LatLng(14.7380, -17.4150),
+      LatLng(14.7500, -17.3980),
+      LatLng(14.7650, -17.3800),
+    ],
+  ),
+  // BRT - Guédiawaye à Petersen
+  const TransitRoute(
+    name: 'BRT Ligne B1',
+    code: 'B1',
+    type: 'BRT',
+    color: AppColors.brt,
+    points: [
+      LatLng(14.7735, -17.3977),
+      LatLng(14.7550, -17.4100),
+      LatLng(14.7350, -17.4250),
+      LatLng(14.7150, -17.4350),
+      LatLng(14.6950, -17.4420),
+      LatLng(14.6820, -17.4480),
+      LatLng(14.6720, -17.4400),
+    ],
+  ),
+  // AFTU Ligne 23 - Parcelles à Plateau
+  const TransitRoute(
+    name: 'AFTU Ligne 23',
+    code: '23',
+    type: 'AFTU',
+    color: AppColors.aftu,
+    points: [
+      LatLng(14.7600, -17.4400),
+      LatLng(14.7400, -17.4450),
+      LatLng(14.7200, -17.4480),
+      LatLng(14.7000, -17.4500),
+      LatLng(14.6900, -17.4460),
+      LatLng(14.6790, -17.4400),
+    ],
+  ),
+  // Tata 12 - Guédiawaye à Plateau
+  const TransitRoute(
+    name: 'Tata Ligne 12',
+    code: '12',
+    type: 'TATA',
+    color: AppColors.tata,
+    points: [
+      LatLng(14.7735, -17.3977),
+      LatLng(14.7550, -17.4200),
+      LatLng(14.7300, -17.4500),
+      LatLng(14.7100, -17.4700),
+      LatLng(14.6850, -17.4600),
+      LatLng(14.6750, -17.4400),
+    ],
+  ),
+  // DDD 12 - Ouakam à Plateau
+  const TransitRoute(
+    name: 'DDD Ligne 12',
+    code: 'DDD-12',
+    type: 'DDD',
+    color: AppColors.ddd,
+    points: [
+      LatLng(14.7350, -17.5100),
+      LatLng(14.7250, -17.4900),
+      LatLng(14.7100, -17.4700),
+      LatLng(14.6950, -17.4550),
+      LatLng(14.6800, -17.4450),
+    ],
+  ),
+];
+
+// ============================================================
+// APP
+// ============================================================
 class DakarBusApp extends StatelessWidget {
   const DakarBusApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -100,7 +243,6 @@ class DakarBusApp extends StatelessWidget {
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
-
   @override
   State<MainShell> createState() => _MainShellState();
 }
@@ -141,6 +283,9 @@ class _MainShellState extends State<MainShell> {
   }
 }
 
+// ============================================================
+// ÉCRAN ACCUEIL
+// ============================================================
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
@@ -155,8 +300,7 @@ class HomePage extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  width: 44,
-                  height: 44,
+                  width: 44, height: 44,
                   decoration: BoxDecoration(
                     color: AppColors.primary.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(12),
@@ -174,7 +318,7 @@ class HomePage extends StatelessWidget {
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textPrimary)),
-                      Text('TER · BRT · AFTU',
+                      Text('TER · BRT · AFTU · Tata · DDD',
                           style: TextStyle(
                               fontSize: 12, color: AppColors.textSecondary)),
                     ],
@@ -193,8 +337,7 @@ class HomePage extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: 8,
-                    height: 8,
+                    width: 8, height: 8,
                     decoration: const BoxDecoration(
                         color: AppColors.success, shape: BoxShape.circle),
                   ),
@@ -216,7 +359,7 @@ class HomePage extends StatelessWidget {
               ),
               child: const TextField(
                 decoration: InputDecoration(
-                  hintText: 'Où voulez-vous aller ? (ex: Thiaroye...)',
+                  hintText: 'Où voulez-vous aller ?',
                   prefixIcon: Icon(Icons.search, color: AppColors.primary),
                   border: InputBorder.none,
                   contentPadding:
@@ -229,9 +372,12 @@ class HomePage extends StatelessWidget {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  _filterChip('Tous les réseaux', true),
-                  _filterChip('TER & BRT', false),
-                  _filterChip('AFTU Tata', false),
+                  _chip('Tous', true, AppColors.primary),
+                  _chip('TER', false, AppColors.ter),
+                  _chip('BRT', false, AppColors.brt),
+                  _chip('AFTU', false, AppColors.aftu),
+                  _chip('Tata', false, AppColors.tata),
+                  _chip('DDD', false, AppColors.ddd),
                 ],
               ),
             ),
@@ -252,35 +398,21 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _filterChip(String label, bool selected) {
+  Widget _chip(String label, bool sel, Color c) {
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: selected
-              ? AppColors.primary.withOpacity(0.15)
-              : AppColors.surface,
+          color: sel ? c.withOpacity(0.15) : AppColors.surface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-              color: selected ? AppColors.primary : AppColors.divider),
+          border: Border.all(color: sel ? c : AppColors.divider),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (selected) ...[
-              const Icon(Icons.check, size: 16, color: AppColors.primary),
-              const SizedBox(width: 6),
-            ],
-            Text(label,
-                style: TextStyle(
-                    color:
-                        selected ? AppColors.primary : AppColors.textSecondary,
-                    fontWeight:
-                        selected ? FontWeight.bold : FontWeight.normal,
-                    fontSize: 13)),
-          ],
-        ),
+        child: Text(label,
+            style: TextStyle(
+                color: sel ? c : AppColors.textSecondary,
+                fontWeight: sel ? FontWeight.bold : FontWeight.normal,
+                fontSize: 13)),
       ),
     );
   }
@@ -304,8 +436,7 @@ class StopCard extends StatelessWidget {
           child: Row(
             children: [
               Container(
-                width: 48,
-                height: 48,
+                width: 48, height: 48,
                 decoration:
                     BoxDecoration(color: stop.color, shape: BoxShape.circle),
                 child: Icon(stop.icon, color: Colors.white, size: 24),
@@ -348,6 +479,9 @@ class StopCard extends StatelessWidget {
   }
 }
 
+// ============================================================
+// ÉCRAN TRAJETS
+// ============================================================
 class TripsPage extends StatelessWidget {
   const TripsPage({super.key});
 
@@ -424,15 +558,53 @@ class TripsPage extends StatelessWidget {
   }
 }
 
+// ============================================================
+// ÉCRAN CARTE
+// ============================================================
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
-
   @override
   State<MapPage> createState() => _MapPageState();
 }
 
 class _MapPageState extends State<MapPage> {
-  final LatLng _dakarCenter = const LatLng(14.6937, -17.4441);
+  final MapController _mapController = MapController();
+  final LatLng _dakarCenter = const LatLng(14.7000, -17.4500);
+  LatLng? _userPosition;
+  bool _loadingLocation = false;
+
+  Future<void> _locateUser() async {
+    setState(() => _loadingLocation = true);
+    try {
+      LocationPermission perm = await Geolocator.checkPermission();
+      if (perm == LocationPermission.denied) {
+        perm = await Geolocator.requestPermission();
+      }
+      if (perm == LocationPermission.denied ||
+          perm == LocationPermission.deniedForever) {
+        throw Exception('Permission refusée');
+      }
+      final pos = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+      setState(() {
+        _userPosition = LatLng(pos.latitude, pos.longitude);
+        _loadingLocation = false;
+      });
+      _mapController.move(_userPosition!, 14.0);
+    } catch (e) {
+      setState(() => _loadingLocation = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Position indisponible: $e')),
+        );
+      }
+    }
+  }
+
+  void _openAI() {
+    Navigator.push(
+        context, MaterialPageRoute(builder: (_) => const AIChatPage()));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -441,9 +613,10 @@ class _MapPageState extends State<MapPage> {
         child: Stack(
           children: [
             FlutterMap(
+              mapController: _mapController,
               options: MapOptions(
                 initialCenter: _dakarCenter,
-                initialZoom: 13.0,
+                initialZoom: 12.5,
               ),
               children: [
                 TileLayer(
@@ -451,12 +624,22 @@ class _MapPageState extends State<MapPage> {
                       'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                   userAgentPackageName: 'dakar_bus',
                 ),
+                // Tracés des lignes
+                PolylineLayer(
+                  polylines: demoRoutes
+                      .map((r) => Polyline(
+                            points: r.points,
+                            color: r.color,
+                            strokeWidth: 4.0,
+                          ))
+                      .toList(),
+                ),
+                // Marqueurs des arrêts
                 MarkerLayer(
                   markers: demoStops.map((stop) {
                     return Marker(
                       point: stop.location,
-                      width: 50,
-                      height: 50,
+                      width: 44, height: 44,
                       child: GestureDetector(
                         onTap: () {
                           Navigator.push(
@@ -473,25 +656,64 @@ class _MapPageState extends State<MapPage> {
                                 Border.all(color: Colors.white, width: 2),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
+                                color: Colors.black.withOpacity(0.25),
                                 blurRadius: 6,
                               ),
                             ],
                           ),
-                          child: Icon(stop.icon,
-                              color: Colors.white, size: 26),
+                          child:
+                              Icon(stop.icon, color: Colors.white, size: 22),
                         ),
                       ),
                     );
                   }).toList(),
                 ),
+                // Position utilisateur
+                if (_userPosition != null)
+                  MarkerLayer(
+                    markers: [
+                      Marker(
+                        point: _userPosition!,
+                        width: 24, height: 24,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            shape: BoxShape.circle,
+                            border:
+                                Border.all(color: Colors.white, width: 3),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primary.withOpacity(0.4),
+                                blurRadius: 10,
+                                spreadRadius: 3,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
               ],
             ),
+            // Bouton GPS
             Positioned(
-              top: 16,
-              right: 16,
+              top: 16, left: 16,
+              child: FloatingActionButton.small(
+                onPressed: _loadingLocation ? null : _locateUser,
+                backgroundColor: AppColors.surface,
+                child: _loadingLocation
+                    ? const SizedBox(
+                        width: 18, height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Icon(Icons.my_location,
+                        color: AppColors.primary),
+              ),
+            ),
+            // Bouton Assistant IA
+            Positioned(
+              top: 16, right: 16,
               child: ElevatedButton.icon(
-                onPressed: () {},
+                onPressed: _openAI,
                 icon: const Icon(Icons.auto_awesome, size: 18),
                 label: const Text('Assistant IA'),
                 style: ElevatedButton.styleFrom(
@@ -504,13 +726,104 @@ class _MapPageState extends State<MapPage> {
                 ),
               ),
             ),
+            // Légende des couleurs
+            Positioned(
+              bottom: 16, left: 16,
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.surface.withOpacity(0.95),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 8),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _legendItem(AppColors.ter, 'TER'),
+                    const SizedBox(height: 4),
+                    _legendItem(AppColors.brt, 'BRT'),
+                    const SizedBox(height: 4),
+                    _legendItem(AppColors.aftu, 'AFTU'),
+                    const SizedBox(height: 4),
+                    _legendItem(AppColors.tata, 'Tata'),
+                    const SizedBox(height: 4),
+                    _legendItem(AppColors.ddd, 'DDD'),
+                  ],
+                ),
+              ),
+            ),
+            // Panneau temps réel en bas
+            Positioned(
+              bottom: 16, right: 16, left: 120,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.surface.withOpacity(0.95),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 8),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('⏱️ Temps réel',
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textSecondary)),
+                    const SizedBox(height: 4),
+                    Text('Prochain BRT Colobane : 1 min',
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.brt)),
+                    Text('Prochain TER Colobane : 5 min',
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.ter)),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
+
+  Widget _legendItem(Color color, String label) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 14, height: 4,
+          decoration: BoxDecoration(
+              color: color, borderRadius: BorderRadius.circular(2)),
+        ),
+        const SizedBox(width: 6),
+        Text(label,
+            style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary)),
+      ],
+    );
+  }
 }
 
+// ============================================================
+// ÉCRAN ALERTES
+// ============================================================
 class AlertsPage extends StatelessWidget {
   const AlertsPage({super.key});
 
@@ -529,7 +842,7 @@ class AlertsPage extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary)),
             const SizedBox(height: 20),
-            ...demoStops.take(2).map((s) => Padding(
+            ...demoStops.take(3).map((s) => Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Container(
                     padding: const EdgeInsets.all(16),
@@ -537,13 +850,11 @@ class AlertsPage extends StatelessWidget {
                         color: AppColors.surface,
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                            color: s.color.withOpacity(0.3),
-                            width: 1.5)),
+                            color: s.color.withOpacity(0.3), width: 1.5)),
                     child: Row(
                       children: [
                         Container(
-                          width: 44,
-                          height: 44,
+                          width: 44, height: 44,
                           decoration: BoxDecoration(
                               color: s.color.withOpacity(0.12),
                               shape: BoxShape.circle),
@@ -578,6 +889,9 @@ class AlertsPage extends StatelessWidget {
   }
 }
 
+// ============================================================
+// ÉCRAN DÉTAIL ARRÊT
+// ============================================================
 class StopDetailPage extends StatelessWidget {
   final Stop stop;
   const StopDetailPage({super.key, required this.stop});
@@ -598,8 +912,7 @@ class StopDetailPage extends StatelessWidget {
             child: Column(
               children: [
                 Container(
-                  width: 72,
-                  height: 72,
+                  width: 72, height: 72,
                   decoration: BoxDecoration(
                       color: stop.color, shape: BoxShape.circle),
                   child: Icon(stop.icon, color: Colors.white, size: 36),
@@ -678,6 +991,136 @@ class StopDetailPage extends StatelessWidget {
               style:
                   const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           Text(count, style: const TextStyle(color: AppColors.textSecondary)),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================
+// ÉCRAN ASSISTANT IA
+// ============================================================
+class AIChatPage extends StatefulWidget {
+  const AIChatPage({super.key});
+  @override
+  State<AIChatPage> createState() => _AIChatPageState();
+}
+
+class _AIChatPageState extends State<AIChatPage> {
+  final _controller = TextEditingController();
+  final _scrollController = ScrollController();
+  final List<Map<String, String>> _messages = [
+    {
+      'role': 'ai',
+      'text':
+          'Bonjour ! Je suis votre assistant Dakar Bus. Posez-moi une question sur les horaires, les lignes ou les arrêts.'
+    },
+  ];
+
+  void _send() {
+    final text = _controller.text.trim();
+    if (text.isEmpty) return;
+    setState(() {
+      _messages.add({'role': 'user', 'text': text});
+      _messages.add({'role': 'ai', 'text': _generateResponse(text)});
+    });
+    _controller.clear();
+    Future.delayed(const Duration(milliseconds: 100), () {
+      _scrollController
+          .jumpTo(_scrollController.position.maxScrollExtent);
+    });
+  }
+
+  String _generateResponse(String query) {
+    final q = query.toLowerCase();
+    if (q.contains('brt')) {
+      return 'Le prochain BRT passe à Colobane dans 1 min, direction Guédiawaye Petersen. Tarif : 400 FCFA.';
+    } else if (q.contains('ter')) {
+      return 'Le prochain TER part de la Gare de Dakar dans 5 min, direction Diamniadio. Tarif : 500 FCFA.';
+    } else if (q.contains('aftu') || q.contains('23')) {
+      return 'L\'arrêt AFTU Ligne 23 passe dans 3 min vers Parcelles Assainies. Tarif : 200 FCFA.';
+    } else if (q.contains('tata') || q.contains('12')) {
+      return 'Le Tata 12 passe dans 4 min vers Guédiawaye. Tarif : 250 FCFA.';
+    } else if (q.contains('ddd') || q.contains('dakar dem dikk')) {
+      return 'Le DDD Ligne 12 passe dans 6 min vers Ouakam / Almadies. Tarif : 300 FCFA.';
+    } else if (q.contains('plateau')) {
+      return 'Pour aller au Plateau : prenez le BRT depuis Colobane. Environ 15 min de trajet.';
+    } else if (q.contains('guédiawaye') || q.contains('guediawaye')) {
+      return 'Pour Guédiawaye : le BRT depuis Colobane, direction Petersen. 8 min d\'attente.';
+    } else if (q.contains('bonjour') || q.contains('salut')) {
+      return 'Bonjour ! Comment puis-je vous aider ?';
+    }
+    return 'Je peux vous renseigner sur les lignes TER, BRT, AFTU, Tata et DDD. Précisez votre destination ou votre arrêt.';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text('Assistant IA'),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              controller: _scrollController,
+              padding: const EdgeInsets.all(16),
+              itemCount: _messages.length,
+              itemBuilder: (context, index) {
+                final msg = _messages[index];
+                final isUser = msg['role'] == 'user';
+                return Align(
+                  alignment:
+                      isUser ? Alignment.centerRight : Alignment.centerLeft,
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 10),
+                    constraints: const BoxConstraints(maxWidth: 280),
+                    decoration: BoxDecoration(
+                      color: isUser
+                          ? AppColors.primary.withOpacity(0.15)
+                          : AppColors.surface,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                          color: isUser
+                              ? AppColors.primary.withOpacity(0.3)
+                              : AppColors.divider),
+                    ),
+                    child: Text(msg['text']!,
+                        style: const TextStyle(fontSize: 14)),
+                  ),
+                );
+              },
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(8),
+            color: AppColors.surface,
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    onSubmitted: (_) => _send(),
+                    decoration: const InputDecoration(
+                      hintText: 'Posez votre question...',
+                      border: InputBorder.none,
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 12),
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: _send,
+                  icon: const Icon(Icons.send, color: AppColors.primary),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
