@@ -25,26 +25,19 @@ List<int> _shift(List<int> base, int offset) {
   return base.map((m) => m + offset).toList();
 }
 
-// Vrai si aujourd hui est dimanche
-// (le TER circule alors a frequence reduite)
 bool _isSunday() => DateTime.now().weekday == DateTime.sunday;
 
-// Frequence TER officielle SETER :
-// - Lundi a Samedi : toutes les 10 min, 5h30 - 22h00
-// - Dimanche : toutes les 20 min, 5h30 - 22h00
 List<int> _buildTerBase() {
   final step = _isSunday() ? 20 : 10;
   return _generateSchedule(from: 330, to: 1320, step: step);
 }
 
-// Frequence BRT officielle SunuBRT : 6 min, 6h - 21h, 7j/7
 final List<int> _brtBase = _generateSchedule(
   from: 360,
   to: 1260,
   step: 6,
 );
 
-// Recalcule au demarrage selon le jour
 final List<int> _terBase = _buildTerBase();
 
 // ============================================================
@@ -208,34 +201,6 @@ class OfficialBadge extends StatelessWidget {
   }
 }
 
-class DemoBadge extends StatelessWidget {
-  const DemoBadge({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: AppColors.warning.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(
-          color: AppColors.warning.withOpacity(0.35),
-          width: 0.8,
-        ),
-      ),
-      child: const Text(
-        'DEMO',
-        style: TextStyle(
-          fontSize: 9,
-          fontWeight: FontWeight.bold,
-          color: AppColors.warning,
-          letterSpacing: 0.5,
-        ),
-      ),
-    );
-  }
-}
-
 // ============================================================
 // MODELES
 // ============================================================
@@ -289,7 +254,19 @@ class Stop {
     final normalized = d % (24 * 60);
     final h = (normalized ~/ 60).toString().padLeft(2, '0');
     final m = (normalized % 60).toString().padLeft(2, '0');
-    return h + 'h' + m;
+    return    h + 'h' + m;
+  }
+
+  /// required Prochain depart APRES une minute this donnee (pour le calcul de
+ .from /// correspondance). Retourne null si aucun depart.
+  int? departureAfter(int minFromMidnight) {
+    for (final d in departureMinutesFromMidnight) {
+      if (d > minFromMidnight) return d;
+    }
+    if (departureMinutesFromMidnight.isNotEmpty) {
+      return departureMinutesFromMidnight.first + 24 * 60;
+    }
+    return null;
   }
 }
 
@@ -333,17 +310,19 @@ class RouteSegment {
   final String? departureTime;
   final String? arrivalTime;
   final DataStatus status;
+  final bool isWalk;
 
   const RouteSegment({
     required this.modeLabel,
     required this.color,
     required this.icon,
-    required this.from,
+,
     required this.to,
     required this.durationMinutes,
     this.departureTime,
     this.arrivalTime,
     this.status = DataStatus.scheduled,
+    this.isWalk = false,
   });
 }
 
@@ -354,6 +333,7 @@ class PlannedRoute {
   final int totalMinutes;
   final bool isBest;
   final DataStatus status;
+  final int transferCount;
 
   const PlannedRoute({
     required this.fromName,
@@ -362,6 +342,7 @@ class PlannedRoute {
     required this.totalMinutes,
     this.isBest = false,
     this.status = DataStatus.scheduled,
+    this.transferCount = 0,
   });
 }
 
@@ -562,8 +543,8 @@ final List<Stop> brtStations = [
     icon: Icons.directions_bus_rounded,
     color: AppColors.brt,
     location: const LatLng(14.7050, -17.4400),
-    modeLabel: 'BRT',
-    source: DataSourceInfo.sunubrt,
+    modeLabel: 'StopBRT',
+    source: DataSource> allStopsInfo.sunubrt,
   ),
   Stop(
     name: 'BRT Parcelles',
@@ -660,7 +641,7 @@ final List<Stop> otherBusStations = [
   ),
 ];
 
-final List<Stop> allStops = [
+final List< = [
   ...terStations,
   ...brtStations,
   ...otherBusStations,
@@ -825,16 +806,25 @@ List<Place> buildPlaceDatabase() {
 final List<Place> placeDatabase = buildPlaceDatabase();
 
 // ============================================================
-// MOTEUR D ITINERAIRES
+// MOTEUR D ITINERAIRES INTELLIGENT
+// ------------------------------------------------------------
+// - Prise en compte des vrais horaires de depart
+// - Calcul du temps d attente aux correspondances
+// - Recherche automatique de tous les points de correspondance
+// - Tri par temps total croissant
 // ============================================================
 class RoutePlanner {
+  /// Distance max de marche acceptable entre 2 arrets
+  /// pour considerer qu il s agit d une correspondance.
+  static const double _maxWalkMeters = 900;
+
+  /// Vitesse de marche (m/min) : 5 km/h ≈ 83 m/min
+  static const double _walkSpeedMpm = 83.0;
+
   static RouteSearchResult plan({
     required String fromQuery,
     required String toQuery,
   }) {
-    final missing = <String>[];
-    final routes = <PlannedRoute>[];
-
     final fromPlace = _resolvePlace(fromQuery);
     final toPlace = _resolvePlace(toQuery);
 
@@ -873,111 +863,240 @@ class RoutePlanner {
       );
     }
 
+    final now = DateTime.now();
+    final currentMin = now.hour * 60 + now.minute;
+
+    final candidates = <PlannedRoute>[];
+
+    // 1. Cas direct : meme mode
     if (fromStop.modeLabel == toStop.modeLabel &&
         fromStop.name != toStop.name) {
-      final dist = DistanceHelper.haversineMeters(
-        fromStop.location,
-        toStop.location,
+      final direct = _buildDirectRoute(
+        fromStop,
+        toStop,
+        fromPlace.name,
+        toPlace.name,
+        currentMin,
       );
-      final speedKmh =
-          (fromStop.modeLabel == 'TER' ||
-                  fromStop.modeLabel == 'BRT')
-              ? 30.0
-              : 15.0;
-      final durationMin =
-          ((dist / 1000.0) / speedKmh * 60).ceil();
+      if (direct != null) candidates.add(direct);
+    }
 
-      routes.add(PlannedRoute(
-        fromName: fromPlace.name,
-        toName: toPlace.name,
-        totalMinutes: durationMin,
-        isBest: true,
-        status: DataStatus.scheduled,
-        segments: [
-          RouteSegment(
-            modeLabel: fromStop.modeLabel,
-            color: fromStop.color,
-            icon: fromStop.icon,
-            from: fromStop.name,
-            to: toStop.name,
-            durationMinutes: durationMin,
-            departureTime: fromStop.nextDepartureLabel(),
-            arrivalTime: _addMinutes(
-              fromStop.nextDepartureLabel(),
-              durationMin,
-            ),
-            status: DataStatus.scheduled,
-          ),
+    // 2. Cas avec correspondance
+    final transfers = _buildTransferRoutes(
+      fromStop,
+      toStop,
+      fromPlace.name,
+      toPlace.name,
+      currentMin,
+    );
+    candidates.addAll(transfers);
+
+    // 3. Aucun resultat
+    if (candidates.isEmpty) {
+      return RouteSearchResult(
+        missingData: [
+          'Correspondance connue entre ' +
+              fromStop.name +
+              ' et ' +
+              toStop.name
         ],
+        errorMessage:
+            'Aucun itineraire fiable avec les donnees actuelles.',
+      );
+    }
+
+    // 4. Tri par temps total, on garde les 3 meilleurs
+    candidates.sort((a, b) {
+      final c = a.totalMinutes.compareTo(b.totalMinutes);
+      if (c != 0) return c;
+      return a.transferCount.compareTo(b.transferCount);
+    });
+
+    final top = candidates.take(3).toList();
+    // Le premier est marque comme "meilleur"
+    final ranked = <PlannedRoute>[];
+    for (var i = 0; i < top.length; i++) {
+      ranked.add(PlannedRoute(
+        fromName: top[i].fromName,
+        toName: top[i].toName,
+        segments: top[i].segments,
+        totalMinutes: top[i].totalMinutes,
+        isBest: i == 0,
+        status: top[i].status,
+        transferCount: top[i].transferCount,
       ));
     }
 
-    if (routes.isEmpty) {
-      final hubs = allStops.where((s) =>
-          s.name.contains('Colobane') ||
-          s.name.contains('Petersen') ||
-          s.name.contains('Pikine')).toList();
+    return RouteSearchResult(routes: ranked);
+  }
 
-      for (final hub in hubs) {
-        final leg1 = _buildSegment(fromStop, hub);
-        final leg2 = _buildSegment(hub, toStop);
-        if (leg1 != null && leg2 != null) {
-          routes.add(PlannedRoute(
-            fromName: fromPlace.name,
-            toName: toPlace.name,
-            totalMinutes:
-                leg1.durationMinutes + leg2.durationMinutes + 5,
-            isBest: routes.isEmpty,
+  // ------------------------------------------------------------
+  // Cas direct (meme mode)
+  // ------------------------------------------------------------
+  static PlannedRoute? _buildDirectRoute(
+    Stop from,
+    Stop to,
+    String fromName,
+    String toName,
+    int currentMin,
+  ) {
+    final dep = from.departureAfter(currentMin - 1);
+    if (dep == null) return null;
+    final dur = _travelDuration(from, to);
+    final arr = dep + dur;
+
+    return PlannedRoute(
+      fromName: fromName,
+      toName: toName,
+      totalMinutes: arr - currentMin,
+      transferCount: 0,
+      status: DataStatus.scheduled,
+      segments: [
+        RouteSegment(
+          modeLabel: from.modeLabel,
+          color: from.color,
+          icon: from.icon,
+          from: from.name,
+          to: to.name,
+          durationMinutes: dur,
+          departureTime: _formatMin(dep),
+          arrivalTime: _formatMin(arr),
+          status: DataStatus.scheduled,
+        ),
+      ],
+    );
+  }
+
+  // ------------------------------------------------------------
+  // Cas avec correspondance
+  // ------------------------------------------------------------
+  static List<PlannedRoute> _buildTransferRoutes(
+    Stop from,
+    Stop to,
+    String fromName,
+    String toName,
+    int currentMin,
+  ) {
+    final results = <PlannedRoute>[];
+
+    // Arrets candidats pour la 1ere ligne : meme mode que from
+    final leg1Candidates = allStops
+        .where((s) =>
+            s.modeLabel == from.modeLabel &&
+            s.name != from.name)
+        .toList();
+
+    // Arrets candidats pour la 2eme ligne : meme mode que to
+    final leg2Candidates = allStops
+        .where((s) =>
+            s.modeLabel == to.modeLabel &&
+            s.name != to.name)
+        .toList();
+
+    for (final g1 in leg1Candidates) {
+      // Depart du 1er segment
+      final dep1 = from.departureAfter(currentMin - 1);
+      if (dep1 == null) continue;
+      final dur1 = _travelDuration(from, g1);
+      if (dur1 <= 0) continue;
+      final arr1 = dep1 + dur1;
+
+      for (final g2 in leg2Candidates) {
+        // Distance de marche entre g1 et g2
+        final walkMeters = DistanceHelper.haversineMeters(
+          g1.location,
+          g2.location,
+        );
+        if (walkMeters > _maxWalkMeters) continue;
+
+        final walkMin = (walkMeters / _walkSpeedMpm).ceil();
+        if (walkMin > 20) continue; // marche trop longue
+
+        // Depart du 2eme segment, apres la marche
+        final readyAt = arr1 + walkMin;
+        final dep2 = g2.departureAfter(readyAt - 1);
+        if (dep2 == null) continue;
+
+        final dur2 = _travelDuration(g2, to);
+        if (dur2 <= 0) continue;
+        final arr2 = dep2 + dur2;
+
+        // Filtrage : eviter les itineraires absurdes
+        final total = arr2 - currentMin;
+        if (total > 180) continue; // plus de 3h => probablement jour suivant
+        if (total <= 0) continue;
+
+        // Construire les segments
+        final segments = <RouteSegment>[
+          RouteSegment(
+            modeLabel: g1.modeLabel,
+            color: g1.color,
+            icon: g1.icon,
+            from: from.name,
+            to: g1.name,
+            durationMinutes: dur1,
+            departureTime: _formatMin(dep1),
+            arrivalTime: _formatMin(arr1),
             status: DataStatus.scheduled,
-            segments: [leg1, leg2],
-          ));
-          break;
-        }
+          ),
+          RouteSegment(
+            modeLabel: 'Marche',
+            color: AppColors.textSecondary,
+            icon: Icons.directions_walk,
+            from: g1.name,
+            to: g2.name,
+            durationMinutes: walkMin,
+            isWalk: true,
+            status: DataStatus.scheduled,
+          ),
+          RouteSegment(
+            modeLabel: g2.modeLabel,
+            color: g2.color,
+            icon: g2.icon,
+            from: g2.name,
+            to: to.name,
+            durationMinutes: dur2,
+            departureTime: _formatMin(dep2),
+            arrivalTime: _formatMin(arr2),
+            status: DataStatus.scheduled,
+          ),
+        ];
+
+        results.add(PlannedRoute(
+          fromName: fromName,
+          toName: toName,
+          totalMinutes: total,
+          transferCount: 1,
+          status: DataStatus.scheduled,
+          segments: segments,
+        ));
       }
     }
 
-    if (routes.isEmpty) {
-      missing.add('Correspondance connue entre ' +
-          fromStop.name +
-          ' et ' +
-          toStop.name);
-      return RouteSearchResult(
-        missingData: missing,
-        errorMessage:
-            'Aucun itineraire direct ou avec correspondance.',
-      );
-    }
-
-    return RouteSearchResult(routes: routes);
+    return results;
   }
 
-  static RouteSegment? _buildSegment(Stop from, Stop to) {
-    if (from.name == to.name) return null;
+  // ------------------------------------------------------------
+  // Calcul duree de trajet entre 2 arrets (en minutes)
+  // ------------------------------------------------------------
+  static int _travelDuration(Stop a, Stop b) {
     final dist = DistanceHelper.haversineMeters(
-      from.location,
-      to.location,
+      a.location,
+      b.location,
     );
-    if (dist > 30000) return null;
-    final speed =
-        (from.modeLabel == 'TER' || from.modeLabel == 'BRT')
-            ? 30.0
-            : 15.0;
-    final durationMin = ((dist / 1000.0) / speed * 60).ceil();
-    if (durationMin <= 0) return null;
-    return RouteSegment(
-      modeLabel: from.modeLabel,
-      color: from.color,
-      icon: from.icon,
-      from: from.name,
-      to: to.name,
-      durationMinutes: durationMin,
-      departureTime: from.nextDepartureLabel(),
-      arrivalTime: _addMinutes(
-        from.nextDepartureLabel(),
-        durationMin,
-      ),
-      status: DataStatus.scheduled,
-    );
+    if (dist < 50) return 0;
+    // Vitesses moyennes : TER/BRT plus rapides
+    final speedKmh =
+        (a.modeLabel == 'TER' || a.modeLabel == 'BRT') ? 30.0 : 15.0;
+    final minutes = ((dist / 1000.0) / speedKmh * 60).ceil();
+    return minutes < 2 ? 2 : minutes; // minimum 2 min
+  }
+
+  static String _formatMin(int minFromMidnight) {
+    final normalized = minFromMidnight % (24 * 60);
+    final h = (normalized ~/ 60).toString().padLeft(2, '0');
+    final m = (normalized % 60).toString().padLeft(2, '0');
+    return h + 'h' + m;
   }
 
   static Place? _resolvePlace(String query) {
@@ -1014,21 +1133,6 @@ class RoutePlanner {
       }
     }
     return best;
-  }
-
-  static String? _addMinutes(String? time, int minutes) {
-    if (time == null) return null;
-    final parts = time.split('h');
-    if (parts.length != 2) return null;
-    final h = int.tryParse(parts[0]);
-    final m = int.tryParse(parts[1]);
-    if (h == null || m == null) return null;
-    final total = h * 60 + m + minutes;
-    final nh = (total ~/ 60) % 24;
-    final nm = total % 60;
-    return nh.toString().padLeft(2, '0') +
-        'h' +
-        nm.toString().padLeft(2, '0');
   }
 }
 
@@ -2526,13 +2630,10 @@ class _TripsPageState extends State<TripsPage> {
             ],
           ),
           const SizedBox(height: 12),
-          ...res.routes.asMap().entries.map((entry) {
-            final r = entry.value;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: _routeCard(r),
-            );
-          }),
+          ...res.routes.map((r) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _routeCard(r),
+              )),
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(12),
@@ -2660,6 +2761,34 @@ class _TripsPageState extends State<TripsPage> {
             final seg = entry.value;
             final isLast =
                 entry.key == r.segments.length - 1;
+
+            if (seg.isWalk) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(
+                    vertical: 4, horizontal: 4),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.directions_walk,
+                      size: 14,
+                      color: AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Marche ' +
+                          seg.durationMinutes.toString() +
+                          ' min',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontStyle: FontStyle.italic,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -2717,7 +2846,7 @@ class _TripsPageState extends State<TripsPage> {
                         ),
                         if (seg.departureTime != null)
                           Text(
-                            'Depart ' + seg.departureTime!,
+                            seg.departureTime!,
                             style: const TextStyle(
                               fontSize: 10,
                               color:
@@ -2749,7 +2878,8 @@ class _TripsPageState extends State<TripsPage> {
                 compact: true,
               ),
               const Spacer(),
-              if (r.segments.first.departureTime != null &&
+              if (r.segments.isNotEmpty &&
+                  r.segments.first.departureTime != null &&
                   r.segments.last.arrivalTime != null)
                 Text(
                   r.segments.first.departureTime! +
@@ -3346,7 +3476,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   const SizedBox(height: 4),
                   const Text(
-                    'Version 3.6',
+                    'Version 4.0',
                     style: TextStyle(
                       fontSize: 13,
                       color: AppColors.textSecondary,
@@ -3355,8 +3485,8 @@ class _SettingsPageState extends State<SettingsPage> {
                   const SizedBox(height: 8),
                   Text(
                     _isSunday()
-                        ? 'TER : officiel SETER (dimanche 20 min, 5h30-22h).'
-                        : 'TER : officiel SETER (10 min, 5h30-22h).',
+                        ? 'TER : officiel SETER (dimanche 20 min).'
+                        : 'TER : officiel SETER (10 min).',
                     style: const TextStyle(
                       fontSize: 11,
                       color: AppColors.success,
@@ -3366,7 +3496,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   const SizedBox(height: 2),
                   const Text(
-                    'BRT : officiel SunuBRT (6 min, 6h-21h).',
+                    'BRT : officiel SunuBRT (6 min).',
                     style: TextStyle(
                       fontSize: 11,
                       color: AppColors.success,
@@ -3385,7 +3515,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   const SizedBox(height: 6),
                   const Text(
-                    'GPS : geolocator (position reelle)',
+                    'Moteur d itineraire intelligent actif',
                     style: TextStyle(
                       fontSize: 11,
                       color: AppColors.success,
