@@ -93,6 +93,32 @@ class DataStatusBadge extends StatelessWidget {
   }
 }
 
+/// Petit badge discret indiquant que les données actuellement visibles
+/// sont des données de DÉMONSTRATION (non LIVE).
+class DemoBadge extends StatelessWidget {
+  const DemoBadge({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: AppColors.warning.withOpacity(0.35), width: 0.8),
+      ),
+      child: const Text(
+        'DÉMO',
+        style: TextStyle(
+          fontSize: 9,
+          fontWeight: FontWeight.bold,
+          color: AppColors.warning,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+}
+
 // ============================================================
 // MODÈLES
 // ============================================================
@@ -225,7 +251,11 @@ class RouteSearchResult {
 }
 
 // ============================================================
-// DONNÉES
+// DONNÉES — ⚠️ DÉMO / NON LIVE ⚠️
+// ------------------------------------------------------------
+// Les listes ci-dessous sont des données statiques de démonstration.
+// Elles ne représentent PAS les horaires officiels des opérateurs.
+// Aucune donnée LIVE n'est simulée.
 // ============================================================
 final List<Stop> terStations = [
   const Stop(name: 'Gare TER Dakar', direction: 'Terminus Dakar', distanceMeters: 350, departureMinutesFromMidnight: [640, 700, 720, 740, 800, 820, 900, 960, 1020, 1080, 1140, 1200], icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.6792, -17.4407), modeLabel: 'TER'),
@@ -266,8 +296,9 @@ final List<Stop> mapPriorityStops = [
 final List<TransitRoute> demoRoutes = [
   const TransitRoute(name: 'TER', code: 'TER', type: 'TER', color: AppColors.ter, points: [
     LatLng(14.6792, -17.4407), LatLng(14.6937, -17.4441), LatLng(14.7222, -17.4321),
-    LatLng(14.7410, -17.4120), LatLng(14.7550, -17.3900), LatLng(14.7700, -17.3400),
-    LatLng(14.7750, -17.3100), LatLng(14.7500, -17.2900), LatLng(14.7157, -17.2703),
+    LatLng(14.7410, -17.4120), LatLng(14.7550, -17.3900), LatLng(14,
+.7700, -17.3400),
+         LatLng( location14.7750, -17:.3100), LatLng c(14.7500, -.$17.2900),2 LatLng(14.7157, -17.2703),
     LatLng(14.6900, -17.2200), LatLng(14.7160, -17.1986),
   ]),
   const TransitRoute(name: 'BRT', code: 'B1', type: 'BRT', color: AppColors.brt, points: [
@@ -337,7 +368,6 @@ List<Place> buildPlaceDatabase() {
       type: 'place',
       icon: Icons.location_city,
       color: AppColors.textSecondary,
-      location: c.$2,
     ));
   }
 
@@ -363,7 +393,7 @@ final List<Place> placeDatabase = buildPlaceDatabase();
 // ============================================================
 class RoutePlanner {
   /// Calcule un itinéraire entre deux lieux.
-  /// Utilise uniquement les données statiques disponibles.
+  /// Utilise uniquement les données statiques disponibles (DÉMO).
   static RouteSearchResult plan({
     required String fromQuery,
     required String toQuery,
@@ -408,9 +438,7 @@ class RoutePlanner {
     // 3. Cas direct : même mode, même famille de ligne
     if (fromStop.modeLabel == toStop.modeLabel &&
         fromStop.name != toStop.name) {
-      // Calcul durée basée sur la distance
       final dist = DistanceHelper.haversineMeters(fromStop.location, toStop.location);
-      // Vitesse moyenne approximative : 25 km/h pour TER/BRT, 15 km/h pour bus
       final speedKmh = (fromStop.modeLabel == 'TER' || fromStop.modeLabel == 'BRT') ? 30.0 : 15.0;
       final durationMin = ((dist / 1000.0) / speedKmh * 60).ceil();
 
@@ -438,8 +466,6 @@ class RoutePlanner {
 
     // 4. Si pas direct : chercher correspondance via un stop commun
     if (routes.isEmpty) {
-      // Chercher une paire (mode1 desservant fromStop, mode2 desservant toStop)
-      // On peut passer par le hub Colobane ou un autre stop intermédiaire
       final hubs = allStops.where((s) =>
         s.name.contains('Colobane') || s.name.contains('Petersen') || s.name.contains('Pikine')
       ).toList();
@@ -476,7 +502,7 @@ class RoutePlanner {
   static RouteSegment? _buildSegment(Stop from, Stop to) {
     if (from.name == to.name) return null;
     final dist = DistanceHelper.haversineMeters(from.location, to.location);
-    if (dist > 30000) return null; // trop loin
+    if (dist > 30000) return null;
     final speed = (from.modeLabel == 'TER' || from.modeLabel == 'BRT') ? 30.0 : 15.0;
     final durationMin = ((dist / 1000.0) / speed * 60).ceil();
     if (durationMin <= 0) return null;
@@ -497,17 +523,14 @@ class RoutePlanner {
     final q = query.trim().toLowerCase();
     if (q.isEmpty) return null;
 
-    // Correspondance exacte
     for (final p in placeDatabase) {
       if (p.name.toLowerCase() == q) return p;
     }
-    // Contient
     for (final p in placeDatabase) {
       if (p.name.toLowerCase().contains(q) || q.contains(p.name.toLowerCase())) {
         return p;
       }
     }
-    // Mots clés
     for (final word in q.split(' ')) {
       if (word.length < 3) continue;
       for (final p in placeDatabase) {
@@ -555,8 +578,8 @@ class TimeHelper {
     return '$minutes min';
   }
 
-  /// Vrai si l'attente dépasse 3h (le prochain bus est probablement
-  /// le lendemain — évite l'affichage absurde de type "1199 min").
+  /// Vrai si l'attente dépasse 3h : le prochain bus est probablement
+  /// le lendemain. Empêche tout affichage absurde type "1199 min".
   static bool isProbablyNextDay(int minutes) => minutes > 180;
 }
 
@@ -622,6 +645,7 @@ class _MainShellState extends State<MainShell> {
   @override
   void initState() {
     super.initState();
+    // Refresh toutes les 30s : le compteur d'attente se met à jour tout seul.
     _ticker = Timer.periodic(const Duration(seconds: 30), (_) { if (mounted) setState(() {}); });
   }
 
@@ -629,6 +653,8 @@ class _MainShellState extends State<MainShell> {
   void dispose() { _ticker?.cancel(); super.dispose(); }
 
   Future<void> _requestLocation() async {
+    // ⚠️ GPS réel non encore branché (étape suivante).
+    // Cette position provisoire est explicitement signalée comme non réelle.
     setState(() => _gpsState = GpsState.loading);
     await Future.delayed(const Duration(milliseconds: 800));
     if (!mounted) return;
@@ -638,7 +664,11 @@ class _MainShellState extends State<MainShell> {
     });
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Position obtenue'), backgroundColor: AppColors.success, duration: Duration(seconds: 2)),
+        const SnackBar(
+          content: Text('Position provisoire (GPS réel non encore branché)'),
+          backgroundColor: AppColors.warning,
+          duration: Duration(seconds: 2),
+        ),
       );
     }
   }
@@ -838,6 +868,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
                       Text('Dakar Bus', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                       Text('TER · BRT · AFTU · Tata · DDD', style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
                     ])),
+                    // Petit indicateur de transparence : données de démonstration.
+                    const DemoBadge(),
                   ]),
                   const SizedBox(height: 12),
                   Container(
@@ -981,8 +1013,8 @@ class StopCard extends StatelessWidget {
         Text('imminent', style: TextStyle(fontSize: 11, color: stop.color, fontWeight: FontWeight.w600)),
       ]);
     } else if (TimeHelper.isProbablyNextDay(remaining)) {
-      // CORRECTION : au-delà de 3h d'attente, on affiche "Demain"
-      // plutôt qu'un nombre de minutes absurde (ex: 1199 min).
+      // RENFORCEMENT : au-delà de 3h, on affiche "Demain" plutôt
+      // qu'un compteur absurde (ex: 1199 min).
       timeWidget = Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
         const Text('Demain', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
         Text(timeLabel ?? '--:--', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
@@ -1070,7 +1102,11 @@ class _TripsPageState extends State<TripsPage> {
           padding: const EdgeInsets.all(16),
           children: [
             const SizedBox(height: 8),
-            const Text('Planifier un trajet', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            Row(children: [
+              const Text('Planifier un trajet', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              const Spacer(),
+              const DemoBadge(),
+            ]),
             const SizedBox(height: 20),
             if (widget.favorites.isNotEmpty) ...[
               const Text('Favoris', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 1)),
@@ -1099,7 +1135,6 @@ class _TripsPageState extends State<TripsPage> {
               ),
               const SizedBox(height: 20),
             ],
-            // Champs départ / arrivée
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
@@ -1138,7 +1173,6 @@ class _TripsPageState extends State<TripsPage> {
                 ),
               ]),
             ),
-            // Résultats
             if (_result != null) ...[
               const SizedBox(height: 24),
               _buildResult(_result!),
@@ -1176,7 +1210,7 @@ class _TripsPageState extends State<TripsPage> {
               Icon(Icons.info_outline, color: AppColors.warning, size: 16),
               const SizedBox(width: 8),
               const Expanded(child: Text(
-                'Horaires programmés. Les conditions réelles de circulation peuvent modifier le temps de trajet.',
+                'Horaires programmés (données de démonstration). Le temps réel sera affiché dès qu\'il sera disponible.',
                 style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
               )),
             ]),
@@ -1185,7 +1219,6 @@ class _TripsPageState extends State<TripsPage> {
       );
     }
 
-    // Pas de routes
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(14)),
@@ -1388,6 +1421,8 @@ class _AlertsPageState extends State<AlertsPage> {
             Row(children: [
               const Text('Mes alertes', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
               const Spacer(),
+              const DemoBadge(),
+              const SizedBox(width: 6),
               IconButton(onPressed: _showAddAlert, icon: const Icon(Icons.add_circle, color: AppColors.primary, size: 28)),
             ]),
             const SizedBox(height: 4),
@@ -1531,11 +1566,13 @@ class _SettingsPageState extends State<SettingsPage> {
               child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text('Dakar Bus', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 SizedBox(height: 4),
-                Text('Version 3.2', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                Text('Version 3.3', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
                 SizedBox(height: 8),
                 Text('Application d\'information voyageurs pour Dakar.', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                 SizedBox(height: 4),
-                Text('Moteur d\'itinéraire basé sur données programmées.', style: TextStyle(fontSize: 11, color: AppColors.textSecondary, fontStyle: FontStyle.italic)),
+                Text('Données actuellement : DÉMO / NON LIVE.', style: TextStyle(fontSize: 11, color: AppColors.warning, fontStyle: FontStyle.italic, fontWeight: FontWeight.w600)),
+                SizedBox(height: 2),
+                Text('Les horaires réels seront affichés dès qu\'une source officielle sera connectée.', style: TextStyle(fontSize: 11, color: AppColors.textSecondary, fontStyle: FontStyle.italic)),
               ]),
             ),
             const SizedBox(height: 20),
@@ -1620,7 +1657,10 @@ class StopDetailPage extends StatelessWidget {
                 const Text('Plus de passage aujourd\'hui', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
                 if (stop.departureMinutesFromMidnight.isNotEmpty) ...[
                   const SizedBox(height: 6),
-                  Text('Prochain départ demain à ${stop.nextDepartureLabel() ?? "--:--"}', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                  Text(
+                    'Prochain départ demain à ${stop.nextDepartureLabel() ?? "--:--"}',
+                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  ),
                 ],
               ]),
             )
@@ -1645,14 +1685,24 @@ class StopDetailPage extends StatelessWidget {
               );
             }),
           const SizedBox(height: 16),
+          // Transparence sur la source
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(color: AppColors.warning.withOpacity(0.08), borderRadius: BorderRadius.circular(10)),
             child: Row(children: [
               Icon(Icons.info_outline, color: AppColors.warning, size: 16), const SizedBox(width: 8),
-              const Expanded(child: Text('Horaires programmés. Le temps réel sera affiché dès qu\'il sera disponible.', style: TextStyle(fontSize: 11, color: AppColors.textSecondary))),
+              const Expanded(child: Text(
+                'Horaires programmés (démonstration). Le temps réel sera affiché dès qu\'il sera disponible.',
+                style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+              )),
             ]),
           ),
+          const SizedBox(height: 8),
+          Row(children: [
+            const Icon(Icons.source_outlined, size: 12, color: AppColors.textSecondary),
+            const SizedBox(width: 6),
+            const Text('Source : démonstration · Statut : programmé', style: TextStyle(fontSize: 10, color: AppColors.textSecondary, fontStyle: FontStyle.italic)),
+          ]),
         ],
       ),
     );
@@ -1672,7 +1722,17 @@ class _AIChatPageState extends State<AIChatPage> {
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
   final List<Map<String, String>> _messages = [
-    {'role': 'ai', 'text': 'Bonjour ! Je suis l\'assistant Dakar Bus.\n\nJe peux vous renseigner sur :\n• les lignes TER, BRT, AFTU, Tata, DDD\n• les arrêts et stations\n• les horaires programmés\n• les itinéraires (en utilisant les données disponibles)\n\nJe ne dispose pas encore de données temps réel.'},
+    {
+      'role': 'ai',
+      'text': 'Bonjour ! Je suis l\'assistant Dakar Bus.\n\n'
+          'Je peux vous renseigner sur :\n'
+          '• les lignes TER, BRT, AFTU, Tata, DDD\n'
+          '• les arrêts et stations\n'
+          '• les horaires programmés\n'
+          '• les itinéraires (en utilisant les données disponibles)\n\n'
+          '⚠️ Les données actuelles sont des données de démonstration (non LIVE).\n\n'
+          'Je ne dispose pas encore de données temps réel.'
+    },
   ];
 
   void _send() {
@@ -1709,52 +1769,60 @@ class _AIChatPageState extends State<AIChatPage> {
         final t = stop.nextDepartureLabel();
         if (r != null && t != null) {
           if (TimeHelper.isProbablyNextDay(r)) {
-            return '📍 ${stop.name}\n\nDirection : ${stop.direction}\nDistance : ${DistanceHelper.format(stop.distanceMeters)}\nPlus de passage aujourd\'hui. Prochain départ demain à $t.\n\n🟠 Horaire programmé, pas temps réel.';
+            return '📍 ${stop.name}\n\nDirection : ${stop.direction}\nDistance : ${DistanceHelper.format(stop.distanceMeters)}\nPlus de passage aujourd\'hui. Prochain départ demain à $t.\n\n🟠 Horaire programmé (démo), pas temps réel.';
           }
-          return '📍 ${stop.name}\n\nDirection : ${stop.direction}\nDistance : ${DistanceHelper.format(stop.distanceMeters)}\nProchain départ : $t (${TimeHelper.formatRemaining(r)})\n\n🟠 Horaire programmé, pas temps réel.';
+          return '📍 ${stop.name}\n\nDirection : ${stop.direction}\nDistance : ${DistanceHelper.format(stop.distanceMeters)}\nProchain départ : $t (${TimeHelper.formatRemaining(r)})\n\n🟠 Horaire programmé (démo), pas temps réel.';
         }
         return '📍 ${stop.name}\n\nDirection : ${stop.direction}\n\nHoraire non disponible pour le moment.';
       }
     }
 
-    if (q.contains('diamniadio')) return '🚆 Pour Diamniadio : TER depuis la Gare de Dakar. 13 gares desservies. Environ 40 min.\n\n🟠 Horaire programmé.';
-    if (q.contains('plateau')) return '🚌 Pour le Plateau : BRT depuis Colobane ou DDD Ligne 7.\n\n🟠 Horaire programmé.';
-    if (q.contains('guediawaye')) return '🚌 Pour Guédiawaye : BRT depuis Colobane vers PEM Guédiawaye.\n\n🟠 Horaire programmé.';
-    if (q.contains('parcelles')) return '🚌 Pour Parcelles Assainies : AFTU Ligne 23 depuis Colobane.\n\n🟠 Horaire programmé.';
-    if (q.contains('ouakam') || q.contains('almadies')) return '🚌 Pour Ouakam / Almadies : DDD Ligne 12.\n\n🟠 Horaire programmé.';
-    if (q.contains('rufisque')) return '🚆 Pour Rufisque : TER depuis Dakar, 11ème gare.\n\n🟠 Horaire programmé.';
-    if (q.contains('thiaroye')) return '🚆 Pour Thiaroye : TER depuis Dakar, 7ème gare.\n\n🟠 Horaire programmé.';
-    if (q.contains('keur mbaye')) return '🚆 Keur Mbaye Fall est la 9ème gare du TER (entre Yeumbeul et PNR).\n\n🟠 Horaire programmé.';
+    if (q.contains('diamniadio')) return '🚆 Pour Diamniadio : TER depuis la Gare de Dakar. 13 gares desservies. Environ 40 min.\n\n🟠 Horaire programmé (démo).';
+    if (q.contains('plateau')) return '🚌 Pour le Plateau : BRT depuis Colobane ou DDD Ligne 7.\n\n🟠 Horaire programmé (démo).';
+    if (q.contains('guediawaye')) return '🚌 Pour Guédiawaye : BRT depuis Colobane vers PEM Guédiawaye.\n\n🟠 Horaire programmé (démo).';
+    if (q.contains('parcelles')) return '🚌 Pour Parcelles Assainies : AFTU Ligne 23 depuis Colobane.\n\n🟠 Horaire programmé (démo).';
+    if (q.contains('ouakam') || q.contains('almadies')) return '🚌 Pour Ouakam / Almadies : DDD Ligne 12.\n\n🟠 Horaire programmé (démo).';
+    if (q.contains('rufisque')) return '🚆 Pour Rufisque : TER depuis Dakar, 11ème gare.\n\n🟠 Horaire programmé (démo).';
+    if (q.contains('thiaroye')) return '🚆 Pour Thiaroye : TER depuis Dakar, 7ème gare.\n\n🟠 Horaire programmé (démo).';
+    if (q.contains('keur mbaye')) return '🚆 Keur Mbaye Fall est la 9ème gare du TER (entre Yeumbeul et PNR).\n\n🟠 Horaire programmé (démo).';
     if (q.contains('colobane')) return '📍 Colobane est un hub central : Gare TER Colobane, Station BRT Colobane, Arrêt AFTU 23.';
-    if (q.contains('yeumbeul')) return '🚆 Yeumbeul : 8ème gare du TER.\n\n🟠 Horaire programmé.';
-    if (q.contains('bargny')) return '🚆 Bargny : 12ème gare du TER.\n\n🟠 Horaire programmé.';
-    if (q.contains('hann')) return '🚆 Hann : 3ème gare du TER.\n\n🟠 Horaire programmé.';
-    if (q.contains('pikine')) return '🚆 Pikine : 6ème gare du TER.\n\n🟠 Horaire programmé.';
+    if (q.contains('yeumbeul')) return '🚆 Yeumbeul : 8ème gare du TER.\n\n🟠 Horaire programmé (démo).';
+    if (q.contains('bargny')) return '🚆 Bargny : 12ème gare du TER.\n\n🟠 Horaire programmé (démo).';
+    if (q.contains('hann')) return '🚆 Hann : 3ème gare du TER.\n\n🟠 Horaire programmé (démo).';
+    if (q.contains('pikine')) return '🚆 Pikine : 6ème gare du TER.\n\n🟠 Horaire programmé (démo).';
 
-    if (q.contains('ter') || q.contains('train')) return '🚆 Le TER relie Dakar à Diamniadio via 13 gares.\n\n🟠 Horaire programmé.';
-    if (q.contains('brt')) return '🚍 Le BRT compte 23 stations entre Petersen et Guédiawaye.\n\n🟠 Horaire programmé.';
-    if (q.contains('aftu')) return '🚌 AFTU dessert Dakar avec plusieurs lignes.\n\n🟠 Horaires estimés.';
-    if (q.contains('tata')) return '🚌 Les bus Tata couvrent plusieurs quartiers.\n\n🟠 Horaires estimés.';
-    if (q.contains('ddd')) return '🚌 Dakar Dem Dikk : plusieurs lignes à Dakar.\n\n🟠 Horaires estimés.';
+    if (q.contains('ter') || q.contains('train')) return '🚆 Le TER relie Dakar à Diamniadio via 13 gares.\n\n🟠 Horaire programmé (démo).';
+    if (q.contains('brt')) return '🚍 Le BRT compte 23 stations entre Petersen et Guédiawaye.\n\n🟠 Horaire programmé (démo).';
+    if (q.contains('aftu')) return '🚌 AFTU dessert Dakar avec plusieurs lignes.\n\n🟠 Horaires estimés (démo).';
+    if (q.contains('tata')) return '🚌 Les bus Tata couvrent plusieurs quartiers.\n\n🟠 Horaires estimés (démo).';
+    if (q.contains('ddd')) return '🚌 Dakar Dem Dikk : plusieurs lignes à Dakar.\n\n🟠 Horaires estimés (démo).';
 
     if (q.contains('prix') || q.contains('tarif') || q.contains('fcfa')) {
       return 'Je ne dispose pas d\'informations tarifaires fiables pour le moment.';
     }
     if (q.contains('retard') || q.contains('temps reel') || q.contains('live')) {
-      return 'Les données temps réel ne sont pas encore connectées. Les horaires affichés sont programmés.';
+      return 'Les données temps réel ne sont pas encore connectées. Les horaires affichés sont programmés (démonstration).';
     }
 
     if (q.contains('bonjour') || q.contains('salut')) return 'Bonjour ! Comment puis-je vous aider ?';
     if (q.contains('merci')) return 'Avec plaisir !';
 
-    return 'Je n\'ai pas d\'information fiable pour répondre.\n\nEssayez :\n• « Prochain TER »\n• « Où est Colobane ? »\n• « Comment aller à Diamniadio ? »';
+    return 'Je ne dispose pas actuellement d\'une donnée fiable pour confirmer cela.\n\nEssayez :\n• « Prochain TER »\n• « Où est Colobane ? »\n• « Comment aller à Diamniadio ? »';
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Assistant IA'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+      appBar: AppBar(
+        title: const Row(children: [
+          Text('Assistant IA'),
+          SizedBox(width: 8),
+          DemoBadge(),
+        ]),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+      ),
       body: Column(children: [
         Expanded(child: ListView.builder(
           controller: _scrollController,
