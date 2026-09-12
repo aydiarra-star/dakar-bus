@@ -6,7 +6,7 @@ import 'package:latlong2/latlong.dart';
 void main() => runApp(const DakarBusApp());
 
 // ============================================================
-// COULEURS (inchangées)
+// COULEURS
 // ============================================================
 class AppColors {
   static const primary = Color(0xFF00695C);
@@ -26,7 +26,7 @@ class AppColors {
 }
 
 // ============================================================
-// STATUT DE FIABILITÉ
+// STATUT
 // ============================================================
 enum DataStatus { scheduled, live, unknown }
 
@@ -100,11 +100,12 @@ class Stop {
   final String name;
   final String direction;
   final double distanceMeters;
-  final List<int> departureMinutesFromMidnight; // [700, 723, 745, ...]
+  final List<int> departureMinutesFromMidnight;
   final IconData icon;
   final Color color;
   final LatLng location;
   final DataStatus status;
+  final String modeLabel; // 'TER', 'BRT', 'AFTU', 'Tata', 'DDD'
 
   const Stop({
     required this.name,
@@ -114,33 +115,29 @@ class Stop {
     required this.icon,
     required this.color,
     required this.location,
+    required this.modeLabel,
     this.status = DataStatus.scheduled,
   });
 
-  // Prochain départ futur selon l'heure actuelle
   int? nextDepartureMinutes() {
     final now = DateTime.now();
     final currentMin = now.hour * 60 + now.minute;
     for (final d in departureMinutesFromMidnight) {
       if (d > currentMin) return d;
     }
-    // Si tous les départs sont passés, prendre le premier du lendemain (avec +24h)
     if (departureMinutesFromMidnight.isNotEmpty) {
       return departureMinutesFromMidnight.first + 24 * 60;
     }
     return null;
   }
 
-  // Minutes restantes avant le prochain départ
   int? remainingMinutes() {
     final d = nextDepartureMinutes();
     if (d == null) return null;
     final now = DateTime.now();
-    final currentMin = now.hour * 60 + now.minute;
-    return d - currentMin;
+    return d - (now.hour * 60 + now.minute);
   }
 
-  // Heure formatée du prochain départ
   String? nextDepartureLabel() {
     final d = nextDepartureMinutes();
     if (d == null) return null;
@@ -169,180 +166,100 @@ class FavoriteRoute {
   const FavoriteRoute({required this.label, required this.from, required this.to, required this.icon});
 }
 
-// ============================================================
-// UTILITAIRES
-// ============================================================
-class TimeHelper {
-  static String formatRemaining(int minutes) {
-    if (minutes <= 0) return 'Départ imminent';
-    if (minutes == 1) return '1 min';
-    return '$minutes min';
-  }
+// Segment d'itinéraire
+class RouteSegment {
+  final String modeLabel;
+  final Color color;
+  final IconData icon;
+  final String from;
+  final String to;
+  final int durationMinutes;
+  final String? departureTime;
+  final String? arrivalTime;
+  final DataStatus status;
 
-  static bool isImminent(int minutes) => minutes <= 1;
+  const RouteSegment({
+    required this.modeLabel,
+    required this.color,
+    required this.icon,
+    required this.from,
+    required this.to,
+    required this.durationMinutes,
+    this.departureTime,
+    this.arrivalTime,
+    this.status = DataStatus.scheduled,
+  });
 }
 
-class DistanceHelper {
-  static String format(double meters) {
-    if (meters < 1000) {
-      return '${meters.round()} m';
-    }
-    final km = meters / 1000.0;
-    return '${km.toStringAsFixed(km >= 10 ? 0 : 1)} km';
-  }
+class PlannedRoute {
+  final String fromName;
+  final String toName;
+  final List<RouteSegment> segments;
+  final int totalMinutes;
+  final bool isBest;
+  final DataStatus status;
 
-  // Distance Haversine entre deux points GPS
-  static double haversineMeters(LatLng a, LatLng b) {
-    const earthRadius = 6371000.0;
-    final lat1 = a.latitude * 3.141592653589793 / 180;
-    final lat2 = b.latitude * 3.141592653589793 / 180;
-    final dLat = (b.latitude - a.latitude) * 3.141592653589793 / 180;
-    final dLon = (b.longitude - a.longitude) * 3.141592653589793 / 180;
-    final h = (1 - _cos(dLat)) / 2 +
-        _cos(lat1) * _cos(lat2) * (1 - _cos(dLon)) / 2;
-    return 2 * earthRadius * _asin(_sqrt(h));
-  }
-
-  static double _cos(double x) {
-    // Approximation suffisante via dart:math non importé ici → on utilise Math
-    return _mathCos(x);
-  }
-
-  static double _asin(double x) => _mathAsin(x);
-  static double _sqrt(double x) => _mathSqrt(x);
+  const PlannedRoute({
+    required this.fromName,
+    required this.toName,
+    required this.segments,
+    required this.totalMinutes,
+    this.isBest = false,
+    this.status = DataStatus.scheduled,
+  });
 }
 
-// Fallback simple sans dart:math
-double _mathCos(double x) {
-  // Taylor rapide (suffisant pour lat/lon)
-  final x2 = x * x;
-  return 1 - x2 / 2 + x2 * x2 / 24 - x2 * x2 * x2 / 720;
-}
+// Résultat de recherche
+class RouteSearchResult {
+  final List<PlannedRoute> routes;
+  final List<String> missingData;
+  final String? errorMessage;
 
-double _mathAsin(double x) {
-  if (x < -1) return -1.5708;
-  if (x > 1) return 1.5708;
-  return x + (x * x * x) / 6 + (3 * x * x * x * x * x) / 40;
-}
+  const RouteSearchResult({
+    this.routes = const [],
+    this.missingData = const [],
+    this.errorMessage,
+  });
 
-double _mathSqrt(double x) {
-  if (x <= 0) return 0;
-  double r = x;
-  for (int i = 0; i < 20; i++) {
-    r = (r + x / r) / 2;
-  }
-  return r;
+  bool get hasRoutes => routes.isNotEmpty;
 }
 
 // ============================================================
-// DONNÉES (horaires programmés — départs en minutes depuis minuit)
+// DONNÉES
 // ============================================================
 final List<Stop> terStations = [
-  const Stop(
-    name: 'Gare TER Dakar', direction: 'Terminus Dakar',
-    distanceMeters: 350,
-    departureMinutesFromMidnight: [640, 700, 720, 740, 800, 820, 900, 960, 1020, 1080, 1140, 1200],
-    icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.6792, -17.4407),
-  ),
-  const Stop(
-    name: 'Gare TER Colobane', direction: 'Dir. Diamniadio',
-    distanceMeters: 1200,
-    departureMinutesFromMidnight: [645, 705, 725, 745, 805, 825, 905, 965, 1025, 1085, 1145, 1205],
-    icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.6937, -17.4441),
-  ),
-  const Stop(
-    name: 'Gare TER Hann', direction: 'Dir. Diamniadio',
-    distanceMeters: 3500,
-    departureMinutesFromMidnight: [650, 710, 730, 750, 810, 830, 910, 970, 1030, 1090, 1150, 1210],
-    icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.7222, -17.4321),
-  ),
-  const Stop(
-    name: 'Gare TER Pikine', direction: 'Dir. Diamniadio',
-    distanceMeters: 7200,
-    departureMinutesFromMidnight: [700, 720, 740, 800, 820, 840, 920, 980, 1040, 1100, 1160, 1220],
-    icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.7550, -17.3900),
-  ),
-  const Stop(
-    name: 'Gare TER Rufisque', direction: 'Dir. Diamniadio',
-    distanceMeters: 22100,
-    departureMinutesFromMidnight: [720, 740, 800, 820, 840, 900, 940, 1000, 1060, 1120, 1180, 1240],
-    icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.7157, -17.2703),
-  ),
-  const Stop(
-    name: 'Gare TER Diamniadio', direction: 'Terminus Diamniadio',
-    distanceMeters: 35000,
-    departureMinutesFromMidnight: [740, 800, 820, 840, 900, 920, 960, 1020, 1080, 1140, 1200, 1260],
-    icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.7160, -17.1986),
-  ),
+  const Stop(name: 'Gare TER Dakar', direction: 'Terminus Dakar', distanceMeters: 350, departureMinutesFromMidnight: [640, 700, 720, 740, 800, 820, 900, 960, 1020, 1080, 1140, 1200], icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.6792, -17.4407), modeLabel: 'TER'),
+  const Stop(name: 'Gare TER Colobane', direction: 'Dir. Diamniadio', distanceMeters: 1200, departureMinutesFromMidnight: [645, 705, 725, 745, 805, 825, 905, 965, 1025, 1085, 1145, 1205], icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.6937, -17.4441), modeLabel: 'TER'),
+  const Stop(name: 'Gare TER Hann', direction: 'Dir. Diamniadio', distanceMeters: 3500, departureMinutesFromMidnight: [650, 710, 730, 750, 810, 830, 910, 970, 1030, 1090, 1150, 1210], icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.7222, -17.4321), modeLabel: 'TER'),
+  const Stop(name: 'Gare TER Dalifort', direction: 'Dir. Diamniadio', distanceMeters: 5100, departureMinutesFromMidnight: [655, 715, 735, 755, 815, 835, 915, 975, 1035, 1095, 1155, 1215], icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.7410, -17.4120), modeLabel: 'TER'),
+  const Stop(name: 'Gare TER Baux Maraîchers', direction: 'Dir. Diamniadio', distanceMeters: 6300, departureMinutesFromMidnight: [658, 718, 738, 758, 818, 838, 918, 978, 1038, 1098, 1158, 1218], icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.7470, -17.4010), modeLabel: 'TER'),
+  const Stop(name: 'Gare TER Pikine', direction: 'Dir. Diamniadio', distanceMeters: 7200, departureMinutesFromMidnight: [700, 720, 740, 800, 820, 840, 920, 980, 1040, 1100, 1160, 1220], icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.7550, -17.3900), modeLabel: 'TER'),
+  const Stop(name: 'Gare TER Thiaroye', direction: 'Dir. Diamniadio', distanceMeters: 8100, departureMinutesFromMidnight: [704, 724, 744, 804, 824, 844, 924, 984, 1044, 1104, 1164, 1224], icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.7588, -17.3803), modeLabel: 'TER'),
+  const Stop(name: 'Gare TER Yeumbeul', direction: 'Dir. Diamniadio', distanceMeters: 11500, departureMinutesFromMidnight: [710, 730, 750, 810, 830, 850, 930, 990, 1050, 1110, 1170, 1230], icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.7700, -17.3400), modeLabel: 'TER'),
+  const Stop(name: 'Gare TER Keur Mbaye Fall', direction: 'Dir. Dakar / Diamniadio', distanceMeters: 14200, departureMinutesFromMidnight: [714, 734, 754, 814, 834, 854, 934, 994, 1054, 1114, 1174, 1234], icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.7750, -17.3100), modeLabel: 'TER'),
+  const Stop(name: 'Gare TER PNR', direction: 'Dir. Diamniadio', distanceMeters: 16800, departureMinutesFromMidnight: [718, 738, 758, 818, 838, 858, 938, 998, 1058, 1118, 1178, 1238], icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.7500, -17.2900), modeLabel: 'TER'),
+  const Stop(name: 'Gare TER Rufisque', direction: 'Dir. Diamniadio', distanceMeters: 22100, departureMinutesFromMidnight: [724, 744, 804, 824, 844, 904, 944, 1004, 1064, 1124, 1184, 1244], icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.7157, -17.2703), modeLabel: 'TER'),
+  const Stop(name: 'Gare TER Bargny', direction: 'Dir. Diamniadio', distanceMeters: 28500, departureMinutesFromMidnight: [730, 750, 810, 830, 850, 910, 950, 1010, 1070, 1130, 1190, 1250], icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.6900, -17.2200), modeLabel: 'TER'),
+  const Stop(name: 'Gare TER Diamniadio', direction: 'Terminus Diamniadio', distanceMeters: 35000, departureMinutesFromMidnight: [740, 800, 820, 840, 900, 920, 960, 1020, 1080, 1140, 1200, 1260], icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.7160, -17.1986), modeLabel: 'TER'),
 ];
 
 final List<Stop> otherStations = [
-  const Stop(
-    name: 'PEM Petersen', direction: 'Terminus sud BRT',
-    distanceMeters: 200,
-    departureMinutesFromMidnight: [630, 636, 642, 648, 654, 700, 706, 712, 718, 724, 730, 736],
-    icon: Icons.directions_bus_rounded, color: AppColors.brt, location: LatLng(14.6720, -17.4400),
-  ),
-  const Stop(
-    name: 'BRT Colobane', direction: 'Dir. Guédiawaye',
-    distanceMeters: 150,
-    departureMinutesFromMidnight: [635, 641, 647, 653, 659, 705, 711, 717, 723, 729, 735, 741],
-    icon: Icons.directions_bus_rounded, color: AppColors.brt, location: LatLng(14.6950, -17.4420),
-  ),
-  const Stop(
-    name: 'BRT Grand Dakar', direction: 'Dir. Guédiawaye',
-    distanceMeters: 1500,
-    departureMinutesFromMidnight: [640, 646, 652, 658, 704, 710, 716, 722, 728, 734, 740, 746],
-    icon: Icons.directions_bus_rounded, color: AppColors.brt, location: LatLng(14.7050, -17.4400),
-  ),
-  const Stop(
-    name: 'BRT Parcelles', direction: 'Dir. Guédiawaye',
-    distanceMeters: 5000,
-    departureMinutesFromMidnight: [650, 656, 702, 708, 714, 720, 726, 732, 738, 744, 750, 756],
-    icon: Icons.directions_bus_rounded, color: AppColors.brt, location: LatLng(14.7350, -17.4260),
-  ),
-  const Stop(
-    name: 'PEM Guédiawaye', direction: 'Terminus nord BRT',
-    distanceMeters: 10500,
-    departureMinutesFromMidnight: [700, 706, 712, 718, 724, 730, 736, 742, 748, 754, 800, 806],
-    icon: Icons.directions_bus_rounded, color: AppColors.brt, location: LatLng(14.7735, -17.3977),
-  ),
-  const Stop(
-    name: 'Arrêt AFTU 23', direction: 'Dir. Parcelles Assainies',
-    distanceMeters: 280,
-    departureMinutesFromMidnight: [630, 645, 700, 715, 730, 745, 800, 815, 830, 845, 900, 915],
-    icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: LatLng(14.6900, -17.4460),
-  ),
-  const Stop(
-    name: 'Arrêt AFTU 10', direction: 'Dir. Grand Yoff',
-    distanceMeters: 450,
-    departureMinutesFromMidnight: [635, 650, 705, 720, 735, 750, 805, 820, 835, 850, 905, 920],
-    icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: LatLng(14.7200, -17.4600),
-  ),
-  const Stop(
-    name: 'Arrêt Tata 12', direction: 'Dir. Guédiawaye',
-    distanceMeters: 600,
-    departureMinutesFromMidnight: [640, 655, 710, 725, 740, 755, 810, 825, 840, 855, 910, 925],
-    icon: Icons.directions_bus_filled, color: AppColors.tata, location: LatLng(14.7200, -17.4700),
-  ),
-  const Stop(
-    name: 'Arrêt DDD 12', direction: 'Dir. Ouakam',
-    distanceMeters: 800,
-    departureMinutesFromMidnight: [645, 700, 715, 730, 745, 800, 815, 830, 845, 900, 915, 930],
-    icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7250, -17.4900),
-  ),
-  const Stop(
-    name: 'Arrêt DDD 7', direction: 'Dir. Plateau',
-    distanceMeters: 1200,
-    departureMinutesFromMidnight: [650, 705, 720, 735, 750, 805, 820, 835, 850, 905, 920, 935],
-    icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7350, -17.4500),
-  ),
+  const Stop(name: 'PEM Petersen', direction: 'Terminus sud BRT', distanceMeters: 200, departureMinutesFromMidnight: [630, 636, 642, 648, 654, 700, 706, 712, 718, 724, 730, 736], icon: Icons.directions_bus_rounded, color: AppColors.brt, location: LatLng(14.6720, -17.4400), modeLabel: 'BRT'),
+  const Stop(name: 'BRT Colobane', direction: 'Dir. Guédiawaye', distanceMeters: 150, departureMinutesFromMidnight: [635, 641, 647, 653, 659, 705, 711, 717, 723, 729, 735, 741], icon: Icons.directions_bus_rounded, color: AppColors.brt, location: LatLng(14.6950, -17.4420), modeLabel: 'BRT'),
+  const Stop(name: 'BRT Grand Dakar', direction: 'Dir. Guédiawaye', distanceMeters: 1500, departureMinutesFromMidnight: [640, 646, 652, 658, 704, 710, 716, 722, 728, 734, 740, 746], icon: Icons.directions_bus_rounded, color: AppColors.brt, location: LatLng(14.7050, -17.4400), modeLabel: 'BRT'),
+  const Stop(name: 'BRT Parcelles', direction: 'Dir. Guédiawaye', distanceMeters: 5000, departureMinutesFromMidnight: [650, 656, 702, 708, 714, 720, 726, 732, 738, 744, 750, 756], icon: Icons.directions_bus_rounded, color: AppColors.brt, location: LatLng(14.7350, -17.4260), modeLabel: 'BRT'),
+  const Stop(name: 'PEM Guédiawaye', direction: 'Terminus nord BRT', distanceMeters: 10500, departureMinutesFromMidnight: [700, 706, 712, 718, 724, 730, 736, 742, 748, 754, 800, 806], icon: Icons.directions_bus_rounded, color: AppColors.brt, location: LatLng(14.7735, -17.3977), modeLabel: 'BRT'),
+  const Stop(name: 'Arrêt AFTU 23', direction: 'Dir. Parcelles Assainies', distanceMeters: 280, departureMinutesFromMidnight: [630, 645, 700, 715, 730, 745, 800, 815, 830, 845, 900, 915], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: LatLng(14.6900, -17.4460), modeLabel: 'AFTU'),
+  const Stop(name: 'Arrêt AFTU 10', direction: 'Dir. Grand Yoff', distanceMeters: 450, departureMinutesFromMidnight: [635, 650, 705, 720, 735, 750, 805, 820, 835, 850, 905, 920], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: LatLng(14.7200, -17.4600), modeLabel: 'AFTU'),
+  const Stop(name: 'Arrêt Tata 12', direction: 'Dir. Guédiawaye', distanceMeters: 600, departureMinutesFromMidnight: [640, 655, 710, 725, 740, 755, 810, 825, 840, 855, 910, 925], icon: Icons.directions_bus_filled, color: AppColors.tata, location: LatLng(14.7200, -17.4700), modeLabel: 'Tata'),
+  const Stop(name: 'Arrêt DDD 12', direction: 'Dir. Ouakam', distanceMeters: 800, departureMinutesFromMidnight: [645, 700, 715, 730, 745, 800, 815, 830, 845, 900, 915, 930], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7250, -17.4900), modeLabel: 'DDD'),
+  const Stop(name: 'Arrêt DDD 7', direction: 'Dir. Plateau', distanceMeters: 1200, departureMinutesFromMidnight: [650, 705, 720, 735, 750, 805, 820, 835, 850, 905, 920, 935], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7350, -17.4500), modeLabel: 'DDD'),
 ];
 
 final List<Stop> allStops = [...terStations, ...otherStations];
 
 final List<Stop> mapPriorityStops = [
-  terStations[0], terStations[1], terStations[3], terStations[4], terStations[5],
+  terStations[0], terStations[1], terStations[5], terStations[8], terStations[12],
   otherStations[1], otherStations[4], otherStations[8],
 ];
 
@@ -373,6 +290,295 @@ final List<TransitRoute> demoRoutes = [
 ];
 
 // ============================================================
+// BASE DE LIEUX (pour autocomplétion)
+// ============================================================
+class Place {
+  final String name;
+  final String type; // 'place', 'stop', 'station', 'line'
+  final IconData icon;
+  final Color color;
+  final LatLng? location;
+  final Stop? linkedStop;
+
+  const Place({
+    required this.name,
+    required this.type,
+    required this.icon,
+    required this.color,
+    this.location,
+    this.linkedStop,
+  });
+}
+
+List<Place> buildPlaceDatabase() {
+  final places = <Place>[];
+
+  // Villes et quartiers génériques
+  final cities = [
+    ('Dakar', LatLng(14.6928, -17.4467)),
+    ('Plateau', LatLng(14.6720, -17.4400)),
+    ('Guédiawaye', LatLng(14.7735, -17.3977)),
+    ('Parcelles Assainies', LatLng(14.7600, -17.4400)),
+    ('Pikine', LatLng(14.7550, -17.3900)),
+    ('Rufisque', LatLng(14.7157, -17.2703)),
+    ('Diamniadio', LatLng(14.7160, -17.1986)),
+    ('Ouakam', LatLng(14.7250, -17.4900)),
+    ('Almadies', LatLng(14.7350, -17.5100)),
+    ('Hann', LatLng(14.7222, -17.4321)),
+    ('Thiaroye', LatLng(14.7588, -17.3803)),
+    ('Yeumbeul', LatLng(14.7700, -17.3400)),
+    ('Keur Mbaye Fall', LatLng(14.7750, -17.3100)),
+    ('Bargny', LatLng(14.6900, -17.2200)),
+  ];
+
+  for (final c in cities) {
+    places.add(Place(
+      name: c.$1,
+      type: 'place',
+      icon: Icons.location_city,
+      color: AppColors.textSecondary,
+      location: c.$2,
+    ));
+  }
+
+  // Arrêts
+  for (final s in allStops) {
+    places.add(Place(
+      name: s.name,
+      type: s.modeLabel,
+      icon: s.icon,
+      color: s.color,
+      location: s.location,
+      linkedStop: s,
+    ));
+  }
+
+  return places;
+}
+
+final List<Place> placeDatabase = buildPlaceDatabase();
+
+// ============================================================
+// MOTEUR DE CALCUL D'ITINÉRAIRES
+// ============================================================
+class RoutePlanner {
+  /// Calcule un itinéraire entre deux lieux.
+  /// Utilise uniquement les données statiques disponibles.
+  static RouteSearchResult plan({
+    required String fromQuery,
+    required String toQuery,
+  }) {
+    final missing = <String>[];
+    final routes = <PlannedRoute>[];
+
+    // 1. Résoudre les lieux
+    final fromPlace = _resolvePlace(fromQuery);
+    final toPlace = _resolvePlace(toQuery);
+
+    if (fromPlace == null) {
+      return RouteSearchResult(
+        missingData: ['Lieu de départ introuvable dans la base'],
+        errorMessage: 'Nous ne reconnaissons pas « $fromQuery ». Essayez un nom de quartier, de ville ou d\'arrêt.',
+      );
+    }
+    if (toPlace == null) {
+      return RouteSearchResult(
+        missingData: ['Destination introuvable dans la base'],
+        errorMessage: 'Nous ne reconnaissons pas « $toQuery ». Essayez un nom de quartier, de ville ou d\'arrêt.',
+      );
+    }
+
+    // 2. Trouver les arrêts proches du départ et de la destination
+    final fromStop = fromPlace.linkedStop ?? _nearestStop(fromPlace.location);
+    final toStop = toPlace.linkedStop ?? _nearestStop(toPlace.location);
+
+    if (fromStop == null) {
+      return RouteSearchResult(
+        missingData: ['Aucun arrêt connu proche du départ'],
+        errorMessage: 'Aucun arrêt de transport n\'est répertorié proche de « ${fromPlace.name} ».',
+      );
+    }
+    if (toStop == null) {
+      return RouteSearchResult(
+        missingData: ['Aucun arrêt connu proche de la destination'],
+        errorMessage: 'Aucun arrêt de transport n\'est répertorié proche de « ${toPlace.name} ».',
+      );
+    }
+
+    // 3. Cas direct : même mode, même famille de ligne
+    if (fromStop.modeLabel == toStop.modeLabel &&
+        fromStop.name != toStop.name) {
+      // Calcul durée basée sur la distance
+      final dist = DistanceHelper.haversineMeters(fromStop.location, toStop.location);
+      // Vitesse moyenne approximative : 25 km/h pour TER/BRT, 15 km/h pour bus
+      final speedKmh = (fromStop.modeLabel == 'TER' || fromStop.modeLabel == 'BRT') ? 30.0 : 15.0;
+      final durationMin = ((dist / 1000.0) / speedKmh * 60).ceil();
+
+      routes.add(PlannedRoute(
+        fromName: fromPlace.name,
+        toName: toPlace.name,
+        totalMinutes: durationMin,
+        isBest: true,
+        status: DataStatus.scheduled,
+        segments: [
+          RouteSegment(
+            modeLabel: fromStop.modeLabel,
+            color: fromStop.color,
+            icon: fromStop.icon,
+            from: fromStop.name,
+            to: toStop.name,
+            durationMinutes: durationMin,
+            departureTime: fromStop.nextDepartureLabel(),
+            arrivalTime: _addMinutes(fromStop.nextDepartureLabel(), durationMin),
+            status: DataStatus.scheduled,
+          ),
+        ],
+      ));
+    }
+
+    // 4. Si pas direct : chercher correspondance via un stop commun
+    if (routes.isEmpty) {
+      // Chercher une paire (mode1 desservant fromStop, mode2 desservant toStop)
+      // On peut passer par le hub Colobane ou un autre stop intermédiaire
+      final hubs = allStops.where((s) =>
+        s.name.contains('Colobane') || s.name.contains('Petersen') || s.name.contains('Pikine')
+      ).toList();
+
+      for (final hub in hubs) {
+        final leg1 = _buildSegment(fromStop, hub);
+        final leg2 = _buildSegment(hub, toStop);
+        if (leg1 != null && leg2 != null) {
+          routes.add(PlannedRoute(
+            fromName: fromPlace.name,
+            toName: toPlace.name,
+            totalMinutes: leg1.durationMinutes + leg2.durationMinutes + 5,
+            isBest: routes.isEmpty,
+            status: DataStatus.scheduled,
+            segments: [leg1, leg2],
+          ));
+          break;
+        }
+      }
+    }
+
+    // 5. Résultat
+    if (routes.isEmpty) {
+      missing.add('Correspondance connue entre « ${fromStop.name} » et « ${toStop.name} »');
+      return RouteSearchResult(
+        missingData: missing,
+        errorMessage: 'Aucun itinéraire direct ou avec correspondance n\'est disponible dans notre base actuelle.',
+      );
+    }
+
+    return RouteSearchResult(routes: routes);
+  }
+
+  static RouteSegment? _buildSegment(Stop from, Stop to) {
+    if (from.name == to.name) return null;
+    final dist = DistanceHelper.haversineMeters(from.location, to.location);
+    if (dist > 30000) return null; // trop loin
+    final speed = (from.modeLabel == 'TER' || from.modeLabel == 'BRT') ? 30.0 : 15.0;
+    final durationMin = ((dist / 1000.0) / speed * 60).ceil();
+    if (durationMin <= 0) return null;
+    return RouteSegment(
+      modeLabel: from.modeLabel,
+      color: from.color,
+      icon: from.icon,
+      from: from.name,
+      to: to.name,
+      durationMinutes: durationMin,
+      departureTime: from.nextDepartureLabel(),
+      arrivalTime: _addMinutes(from.nextDepartureLabel(), durationMin),
+      status: DataStatus.scheduled,
+    );
+  }
+
+  static Place? _resolvePlace(String query) {
+    final q = query.trim().toLowerCase();
+    if (q.isEmpty) return null;
+
+    // Correspondance exacte
+    for (final p in placeDatabase) {
+      if (p.name.toLowerCase() == q) return p;
+    }
+    // Contient
+    for (final p in placeDatabase) {
+      if (p.name.toLowerCase().contains(q) || q.contains(p.name.toLowerCase())) {
+        return p;
+      }
+    }
+    // Mots clés
+    for (final word in q.split(' ')) {
+      if (word.length < 3) continue;
+      for (final p in placeDatabase) {
+        if (p.name.toLowerCase().contains(word)) return p;
+      }
+    }
+    return null;
+  }
+
+  static Stop? _nearestStop(LatLng? loc) {
+    if (loc == null) return null;
+    Stop? best;
+    double bestDist = double.infinity;
+    for (final s in allStops) {
+      final d = DistanceHelper.haversineMeters(loc, s.location);
+      if (d < bestDist) {
+        bestDist = d;
+        best = s;
+      }
+    }
+    return best;
+  }
+
+  static String? _addMinutes(String? time, int minutes) {
+    if (time == null) return null;
+    final parts = time.split('h');
+    if (parts.length != 2) return null;
+    final h = int.tryParse(parts[0]);
+    final m = int.tryParse(parts[1]);
+    if (h == null || m == null) return null;
+    final total = h * 60 + m + minutes;
+    final nh = (total ~/ 60) % 24;
+    final nm = total % 60;
+    return '${nh.toString().padLeft(2, '0')}h${nm.toString().padLeft(2, '0')}';
+  }
+}
+
+// ============================================================
+// UTILITAIRES
+// ============================================================
+class TimeHelper {
+  static String formatRemaining(int minutes) {
+    if (minutes <= 0) return 'Départ imminent';
+    if (minutes == 1) return '1 min';
+    return '$minutes min';
+  }
+}
+
+class DistanceHelper {
+  static String format(double meters) {
+    if (meters < 1000) return '${meters.round()} m';
+    final km = meters / 1000.0;
+    return '${km.toStringAsFixed(km >= 10 ? 0 : 1)} km';
+  }
+
+  static double haversineMeters(LatLng a, LatLng b) {
+    const R = 6371000.0;
+    final lat1 = a.latitude * 3.141592653589793 / 180;
+    final lat2 = b.latitude * 3.141592653589793 / 180;
+    final dLat = (b.latitude - a.latitude) * 3.141592653589793 / 180;
+    final dLon = (b.longitude - a.longitude) * 3.141592653589793 / 180;
+    final h = (1 - _cos(dLat)) / 2 + _cos(lat1) * _cos(lat2) * (1 - _cos(dLon)) / 2;
+    return 2 * R * _asin(_sqrt(h));
+  }
+
+  static double _cos(double x) { final x2 = x * x; return 1 - x2 / 2 + x2 * x2 / 24 - x2 * x2 * x2 / 720; }
+  static double _asin(double x) { if (x < -1) return -1.5708; if (x > 1) return 1.5708; return x + (x*x*x)/6 + (3*x*x*x*x*x)/40; }
+  static double _sqrt(double x) { if (x <= 0) return 0; double r = x; for (int i = 0; i < 20; i++) { r = (r + x / r) / 2; } return r; }
+}
+
+// ============================================================
 // APP
 // ============================================================
 class DakarBusApp extends StatelessWidget {
@@ -401,8 +607,6 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
   Timer? _ticker;
-
-  // État GPS
   LatLng? _userPosition;
   GpsState _gpsState = GpsState.idle;
 
@@ -414,66 +618,43 @@ class _MainShellState extends State<MainShell> {
   @override
   void initState() {
     super.initState();
-    // Rafraîchit l'UI toutes les 30 secondes pour recalculer les horaires
-    _ticker = Timer.periodic(const Duration(seconds: 30), (_) {
-      if (mounted) setState(() {});
-    });
+    _ticker = Timer.periodic(const Duration(seconds: 30), (_) { if (mounted) setState(() {}); });
   }
 
   @override
-  void dispose() {
-    _ticker?.cancel();
-    super.dispose();
-  }
+  void dispose() { _ticker?.cancel(); super.dispose(); }
 
   Future<void> _requestLocation() async {
     setState(() => _gpsState = GpsState.loading);
     await Future.delayed(const Duration(milliseconds: 800));
     if (!mounted) return;
-    // Sur le web, GPS natif indisponible. On utilise une position de référence.
-    // Sur natif, remplacer par Geolocator.
     setState(() {
-      _userPosition = const LatLng(14.6937, -17.4441); // Colobane (référence)
+      _userPosition = const LatLng(14.6937, -17.4441);
       _gpsState = GpsState.granted;
     });
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Position obtenue'),
-          backgroundColor: AppColors.success,
-          duration: Duration(seconds: 2),
-        ),
+        const SnackBar(content: Text('Position obtenue'), backgroundColor: AppColors.success, duration: Duration(seconds: 2)),
       );
     }
   }
 
-  void _addFavorite(FavoriteRoute fav) => setState(() => _favorites.add(fav));
+  void _addFavorite(FavoriteRoute f) => setState(() => _favorites.add(f));
   void _removeFavorite(int i) => setState(() => _favorites.removeAt(i));
 
   @override
   Widget build(BuildContext context) {
     final pages = [
-      ExplorerPage(
-        userPosition: _userPosition,
-        gpsState: _gpsState,
-        onRequestLocation: _requestLocation,
-      ),
+      ExplorerPage(userPosition: _userPosition, gpsState: _gpsState, onRequestLocation: _requestLocation),
       TripsPage(favorites: _favorites),
       const AlertsPage(),
-      SettingsPage(
-        favorites: _favorites,
-        onAdd: _addFavorite,
-        onRemove: _removeFavorite,
-      ),
+      SettingsPage(favorites: _favorites, onAdd: _addFavorite, onRemove: _removeFavorite),
     ];
 
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: pages),
       bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, -2))],
-        ),
+        decoration: BoxDecoration(color: AppColors.surface, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, -2))]),
         child: SafeArea(
           top: false,
           minimum: const EdgeInsets.only(bottom: 4),
@@ -506,14 +687,7 @@ class ExplorerPage extends StatefulWidget {
   final LatLng? userPosition;
   final GpsState gpsState;
   final Future<void> Function() onRequestLocation;
-
-  const ExplorerPage({
-    super.key,
-    required this.userPosition,
-    required this.gpsState,
-    required this.onRequestLocation,
-  });
-
+  const ExplorerPage({super.key, required this.userPosition, required this.gpsState, required this.onRequestLocation});
   @override
   State<ExplorerPage> createState() => _ExplorerPageState();
 }
@@ -527,9 +701,9 @@ class _ExplorerPageState extends State<ExplorerPage> {
   final TextEditingController _searchCtrl = TextEditingController();
 
   @override
-  void didUpdateWidget(covariant ExplorerPage oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.userPosition != null && oldWidget.userPosition == null) {
+  void didUpdateWidget(covariant ExplorerPage old) {
+    super.didUpdateWidget(old);
+    if (widget.userPosition != null && old.userPosition == null) {
       _mapController.move(widget.userPosition!, 14.5);
     }
   }
@@ -544,13 +718,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
       case 'DDD': base = allStops.where((s) => s.color == AppColors.ddd).toList(); break;
       default: base = List.from(allStops); break;
     }
-    // Tri par distance si position connue
     if (widget.userPosition != null) {
-      base.sort((a, b) {
-        final da = DistanceHelper.haversineMeters(widget.userPosition!, a.location);
-        final db = DistanceHelper.haversineMeters(widget.userPosition!, b.location);
-        return da.compareTo(db);
-      });
+      base.sort((a, b) => DistanceHelper.haversineMeters(widget.userPosition!, a.location).compareTo(DistanceHelper.haversineMeters(widget.userPosition!, b.location)));
     }
     return base;
   }
@@ -563,25 +732,16 @@ class _ExplorerPageState extends State<ExplorerPage> {
   List<Stop> get _searchResults {
     final q = _searchCtrl.text.trim().toLowerCase();
     if (q.isEmpty) return [];
-    return allStops.where((s) =>
-      s.name.toLowerCase().contains(q) ||
-      s.direction.toLowerCase().contains(q)
-    ).take(8).toList();
+    return allStops.where((s) => s.name.toLowerCase().contains(q) || s.direction.toLowerCase().contains(q)).take(8).toList();
   }
 
-  void _centerOnStop(Stop stop) => _mapController.move(stop.location, 14.5);
-
-  void _openAI() {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => const AIChatPage()));
-  }
-
-  void _cycleMapHeight() {
-    setState(() {
-      if (_mapHeight == 240) _mapHeight = 320;
-      else if (_mapHeight == 320) _mapHeight = 140;
-      else _mapHeight = 240;
-    });
-  }
+  void _centerOnStop(Stop s) => _mapController.move(s.location, 14.5);
+  void _openAI() => Navigator.push(context, MaterialPageRoute(builder: (_) => const AIChatPage()));
+  void _cycleMapHeight() => setState(() {
+    if (_mapHeight == 240) _mapHeight = 320;
+    else if (_mapHeight == 320) _mapHeight = 140;
+    else _mapHeight = 240;
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -593,7 +753,6 @@ class _ExplorerPageState extends State<ExplorerPage> {
         bottom: false,
         child: Column(
           children: [
-            // ====== CARTE ======
             AnimatedContainer(
               duration: const Duration(milliseconds: 250),
               height: _mapHeight.toDouble(),
@@ -601,169 +760,84 @@ class _ExplorerPageState extends State<ExplorerPage> {
                 children: [
                   FlutterMap(
                     mapController: _mapController,
-                    options: MapOptions(
-                      initialCenter: _dakarCenter,
-                      initialZoom: 11.5,
-                      minZoom: 10,
-                      maxZoom: 17,
-                    ),
+                    options: MapOptions(initialCenter: _dakarCenter, initialZoom: 11.5, minZoom: 10, maxZoom: 17),
                     children: [
-                      TileLayer(
-                        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                        userAgentPackageName: 'dakar_bus',
-                        maxZoom: 19,
-                      ),
-                      PolylineLayer(
-                        polylines: demoRoutes.map((r) => Polyline(
-                          points: r.points, color: r.color, strokeWidth: 3.5,
-                        )).toList(),
-                      ),
+                      TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', userAgentPackageName: 'dakar_bus', maxZoom: 19),
+                      PolylineLayer(polylines: demoRoutes.map((r) => Polyline(points: r.points, color: r.color, strokeWidth: 3.5)).toList()),
                       MarkerLayer(
-                        markers: mapPriorityStops.map((stop) => Marker(
-                          point: stop.location,
-                          width: 24, height: 24,
+                        markers: mapPriorityStops.map((s) => Marker(
+                          point: s.location, width: 24, height: 24,
                           child: GestureDetector(
-                            onTap: () {
-                              _centerOnStop(stop);
-                              Navigator.push(context, MaterialPageRoute(
-                                builder: (_) => StopDetailPage(stop: stop),
-                              ));
-                            },
+                            onTap: () { _centerOnStop(s); Navigator.push(context, MaterialPageRoute(builder: (_) => StopDetailPage(stop: s))); },
                             child: Container(
-                              decoration: BoxDecoration(
-                                color: stop.color,
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 2),
-                                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 3)],
-                              ),
-                              child: Icon(stop.icon, color: Colors.white, size: 12),
+                              decoration: BoxDecoration(color: s.color, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 3)]),
+                              child: Icon(s.icon, color: Colors.white, size: 12),
                             ),
                           ),
                         )).toList(),
                       ),
-                      // Position utilisateur (uniquement si connue)
                       if (widget.userPosition != null)
                         MarkerLayer(markers: [
                           Marker(
-                            point: widget.userPosition!,
-                            width: 18, height: 18,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: AppColors.primary,
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 2.5),
-                                boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.4), blurRadius: 8, spreadRadius: 2)],
-                              ),
-                            ),
+                            point: widget.userPosition!, width: 18, height: 18,
+                            child: Container(decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2.5), boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.4), blurRadius: 8, spreadRadius: 2)])),
                           ),
                         ]),
                     ],
                   ),
-
-                  // Bouton GPS 3 états
-                  Positioned(
-                    bottom: 12, left: 12,
-                    child: _gpsButton(),
-                  ),
-
-                  // Bouton IA
+                  Positioned(bottom: 12, left: 12, child: _gpsButton()),
                   Positioned(
                     bottom: 12, right: 12,
                     child: ElevatedButton.icon(
                       onPressed: _openAI,
                       icon: const Icon(Icons.auto_awesome, size: 14),
                       label: const Text('Assistant IA', style: TextStyle(fontSize: 11)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        minimumSize: const Size(0, 32),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                      ),
+                      style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), minimumSize: const Size(0, 32), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))),
                     ),
                   ),
-
-                  // Bouton rétracter carte
                   Positioned(
                     top: 8, right: 8,
                     child: GestureDetector(
                       onTap: _cycleMapHeight,
                       child: Container(
                         padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: AppColors.surface.withOpacity(0.95),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          _mapHeight == 140 ? Icons.expand_more : Icons.expand_less,
-                          color: AppColors.primary, size: 20,
-                        ),
+                        decoration: BoxDecoration(color: AppColors.surface.withOpacity(0.95), borderRadius: BorderRadius.circular(8)),
+                        child: Icon(_mapHeight == 140 ? Icons.expand_more : Icons.expand_less, color: AppColors.primary, size: 20),
                       ),
                     ),
                   ),
-
-                  // Légende
                   Positioned(
                     top: 8, left: 8,
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface.withOpacity(0.95),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _legend(AppColors.ter, 'TER'),
-                          const SizedBox(width: 6),
-                          _legend(AppColors.brt, 'BRT'),
-                          const SizedBox(width: 6),
-                          _legend(AppColors.aftu, 'AFTU'),
-                          const SizedBox(width: 6),
-                          _legend(AppColors.tata, 'Tata'),
-                          const SizedBox(width: 6),
-                          _legend(AppColors.ddd, 'DDD'),
-                        ],
-                      ),
+                      decoration: BoxDecoration(color: AppColors.surface.withOpacity(0.95), borderRadius: BorderRadius.circular(8)),
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        _legend(AppColors.ter, 'TER'), const SizedBox(width: 6),
+                        _legend(AppColors.brt, 'BRT'), const SizedBox(width: 6),
+                        _legend(AppColors.aftu, 'AFTU'), const SizedBox(width: 6),
+                        _legend(AppColors.tata, 'Tata'), const SizedBox(width: 6),
+                        _legend(AppColors.ddd, 'DDD'),
+                      ]),
                     ),
                   ),
                 ],
               ),
             ),
-
-            // ====== CONTENU ======
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 36, height: 36,
-                        decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.12), borderRadius: BorderRadius.circular(10)),
-                        child: const Icon(Icons.directions_bus, color: AppColors.primary, size: 20),
-                      ),
-                      const SizedBox(width: 10),
-                      const Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Dakar Bus', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                            Text('TER · BRT · AFTU · Tata · DDD', style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                  Row(children: [
+                    Container(width: 36, height: 36, decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.12), borderRadius: BorderRadius.circular(10)), child: const Icon(Icons.directions_bus, color: AppColors.primary, size: 20)),
+                    const SizedBox(width: 10),
+                    const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text('Dakar Bus', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      Text('TER · BRT · AFTU · Tata · DDD', style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                    ])),
+                  ]),
                   const SizedBox(height: 12),
-
-                  // Recherche
                   Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.divider),
-                    ),
+                    decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.divider)),
                     child: TextField(
                       controller: _searchCtrl,
                       onChanged: (_) => setState(() => _searchFocused = true),
@@ -771,102 +845,40 @@ class _ExplorerPageState extends State<ExplorerPage> {
                       decoration: InputDecoration(
                         hintText: 'Où voulez-vous aller ?',
                         prefixIcon: const Icon(Icons.search, color: AppColors.primary, size: 20),
-                        suffixIcon: _searchFocused
-                            ? IconButton(
-                                icon: const Icon(Icons.close, size: 18, color: AppColors.textSecondary),
-                                onPressed: () {
-                                  _searchCtrl.clear();
-                                  setState(() => _searchFocused = false);
-                                },
-                              )
-                            : null,
+                        suffixIcon: _searchFocused ? IconButton(icon: const Icon(Icons.close, size: 18, color: AppColors.textSecondary), onPressed: () { _searchCtrl.clear(); setState(() => _searchFocused = false); }) : null,
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       ),
                     ),
                   ),
-
-                  // Suggestions typées
                   if (_searchFocused && _searchResults.isNotEmpty) ...[
                     const SizedBox(height: 8),
                     Container(
                       decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12)),
-                      child: Column(
-                        children: _searchResults.map((s) => ListTile(
-                          dense: true,
-                          leading: Icon(s.icon, color: s.color, size: 20),
-                          title: Text(s.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                          subtitle: Row(
-                            children: [
-                              Text(s.direction, style: const TextStyle(fontSize: 11)),
-                              const SizedBox(width: 6),
-                              _categoryChip(s),
-                            ],
-                          ),
-                          onTap: () {
-                            _searchCtrl.text = s.name;
-                            setState(() => _searchFocused = false);
-                            _centerOnStop(s);
-                          },
-                        )).toList(),
-                      ),
+                      child: Column(children: _searchResults.map((s) => ListTile(
+                        dense: true,
+                        leading: Icon(s.icon, color: s.color, size: 20),
+                        title: Text(s.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                        subtitle: Row(children: [Text(s.direction, style: const TextStyle(fontSize: 11)), const SizedBox(width: 6), _categoryChip(s)]),
+                        onTap: () { _searchCtrl.text = s.name; setState(() => _searchFocused = false); _centerOnStop(s); },
+                      )).toList()),
                     ),
                   ],
-
                   const SizedBox(height: 10),
-
-                  // Filtres
-                  SizedBox(
-                    height: 36,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      children: [
-                        _chip('Tous'),
-                        _chip('TER'),
-                        _chip('BRT'),
-                        _chip('AFTU'),
-                        _chip('Tata'),
-                        _chip('DDD'),
-                      ],
-                    ),
-                  ),
-
+                  SizedBox(height: 36, child: ListView(scrollDirection: Axis.horizontal, children: [_chip('Tous'), _chip('TER'), _chip('BRT'), _chip('AFTU'), _chip('Tata'), _chip('DDD')])),
                   const SizedBox(height: 14),
-
-                  // En-tête "X arrêts"
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        '${stops.length} arrêts',
-                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-                      ),
-                      const SizedBox(width: 6),
-                      const Padding(
-                        padding: EdgeInsets.only(bottom: 1),
-                        child: Text(
-                          'À proximité',
-                          style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                        ),
-                      ),
-                    ],
-                  ),
+                  Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                    Text('${stops.length} arrêts', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                    const SizedBox(width: 6),
+                    const Padding(padding: EdgeInsets.only(bottom: 1), child: Text('À proximité', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
+                  ]),
                   const SizedBox(height: 8),
-
-                  // Liste
                   if (stops.isEmpty)
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12)),
-                      child: const Text('Aucun arrêt à proximité', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-                    )
+                    Container(padding: const EdgeInsets.all(20), decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12)), child: const Text('Aucun arrêt à proximité', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)))
                   else
                     ...stops.map((s) => Padding(
                       padding: const EdgeInsets.only(bottom: 10),
-                      child: GestureDetector(
-                        onTap: () => _centerOnStop(s),
-                        child: StopCard(stop: s, distanceMeters: _distanceTo(s)),
-                      ),
+                      child: GestureDetector(onTap: () => _centerOnStop(s), child: StopCard(stop: s, distanceMeters: _distanceTo(s))),
                     )),
                 ],
               ),
@@ -880,62 +892,32 @@ class _ExplorerPageState extends State<ExplorerPage> {
   Widget _gpsButton() {
     switch (widget.gpsState) {
       case GpsState.loading:
-        return FloatingActionButton.small(
-          onPressed: null,
-          backgroundColor: AppColors.surface,
-          child: const SizedBox(
-            width: 18, height: 18,
-            child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
-          ),
-        );
+        return FloatingActionButton.small(onPressed: null, backgroundColor: AppColors.surface,
+          child: const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary)));
       case GpsState.granted:
         return FloatingActionButton.small(
-          onPressed: () {
-            if (widget.userPosition != null) {
-              _mapController.move(widget.userPosition!, 14.5);
-            }
-          },
+          onPressed: () { if (widget.userPosition != null) _mapController.move(widget.userPosition!, 14.5); },
           backgroundColor: AppColors.surface,
-          child: const Icon(Icons.my_location, color: AppColors.primary, size: 20),
-        );
+          child: const Icon(Icons.my_location, color: AppColors.primary, size: 20));
       default:
-        return FloatingActionButton.small(
-          onPressed: () => widget.onRequestLocation(),
-          backgroundColor: AppColors.surface,
-          child: const Icon(Icons.location_searching, color: AppColors.primary, size: 20),
-        );
+        return FloatingActionButton.small(onPressed: () => widget.onRequestLocation(), backgroundColor: AppColors.surface,
+          child: const Icon(Icons.location_searching, color: AppColors.primary, size: 20));
     }
   }
 
   Widget _categoryChip(Stop s) {
-    String label;
-    if (s.color == AppColors.ter) label = 'TER';
-    else if (s.color == AppColors.brt) label = 'BRT';
-    else if (s.color == AppColors.aftu) label = 'AFTU';
-    else if (s.color == AppColors.tata) label = 'Tata';
-    else if (s.color == AppColors.ddd) label = 'DDD';
-    else label = 'Arrêt';
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: s.color.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(label, style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: s.color)),
+      decoration: BoxDecoration(color: s.color.withOpacity(0.12), borderRadius: BorderRadius.circular(4)),
+      child: Text(s.modeLabel, style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: s.color)),
     );
   }
 
-  Widget _legend(Color c, String label) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(width: 10, height: 3, decoration: BoxDecoration(color: c, borderRadius: BorderRadius.circular(2))),
-        const SizedBox(width: 3),
-        Text(label, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold)),
-      ],
-    );
-  }
+  Widget _legend(Color c, String label) => Row(mainAxisSize: MainAxisSize.min, children: [
+    Container(width: 10, height: 3, decoration: BoxDecoration(color: c, borderRadius: BorderRadius.circular(2))),
+    const SizedBox(width: 3),
+    Text(label, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold)),
+  ]);
 
   Widget _chip(String label) {
     final color = _colorFor(label);
@@ -985,44 +967,21 @@ class StopCard extends StatelessWidget {
 
     Widget timeWidget;
     if (next == null || remaining == null) {
-      timeWidget = const Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text('Horaire', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
-          Text('non disponible', style: TextStyle(fontSize: 9, color: AppColors.textSecondary)),
-        ],
-      );
+      timeWidget = const Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+        Text('Horaire', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+        Text('non disponible', style: TextStyle(fontSize: 9, color: AppColors.textSecondary)),
+      ]);
     } else if (remaining <= 0) {
-      timeWidget = Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text('Départ', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: stop.color)),
-          Text('imminent', style: TextStyle(fontSize: 11, color: stop.color, fontWeight: FontWeight.w600)),
-        ],
-      );
+      timeWidget = Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+        Text('Départ', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: stop.color)),
+        Text('imminent', style: TextStyle(fontSize: 11, color: stop.color, fontWeight: FontWeight.w600)),
+      ]);
     } else {
       final isUrgent = remaining <= 3;
-      timeWidget = Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text(
-            TimeHelper.formatRemaining(remaining),
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: isUrgent ? AppColors.ter : AppColors.success,
-            ),
-          ),
-          Text(
-            'd\'attente',
-            style: TextStyle(
-              fontSize: 9,
-              color: isUrgent ? AppColors.ter : AppColors.textSecondary,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      );
+      timeWidget = Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+        Text(TimeHelper.formatRemaining(remaining), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isUrgent ? AppColors.ter : AppColors.success)),
+        Text('d\'attente', style: TextStyle(fontSize: 9, color: isUrgent ? AppColors.ter : AppColors.textSecondary, fontWeight: FontWeight.w500)),
+      ]);
     }
 
     return Material(
@@ -1033,44 +992,24 @@ class StopCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         child: Padding(
           padding: const EdgeInsets.all(14),
-          child: Row(
-            children: [
-              Container(
-                width: 42, height: 42,
-                decoration: BoxDecoration(color: stop.color, shape: BoxShape.circle),
-                child: Icon(stop.icon, color: Colors.white, size: 20),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(stop.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${stop.direction} · ${DistanceHelper.format(distanceMeters)}',
-                      style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                    ),
-                    if (next != null && timeLabel != null) ...[
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Text('Départ $timeLabel', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                          const SizedBox(width: 6),
-                          DataStatusBadge(status: stop.status, compact: true),
-                        ],
-                      ),
-                    ] else ...[
-                      const SizedBox(height: 4),
-                      const DataStatusBadge(status: DataStatus.unknown, compact: true),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              timeWidget,
-            ],
-          ),
+          child: Row(children: [
+            Container(width: 42, height: 42, decoration: BoxDecoration(color: stop.color, shape: BoxShape.circle), child: Icon(stop.icon, color: Colors.white, size: 20)),
+            const SizedBox(width: 10),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(stop.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 2),
+              Text('${stop.direction} · ${DistanceHelper.format(distanceMeters)}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+              if (next != null && timeLabel != null) ...[
+                const SizedBox(height: 4),
+                Row(children: [Text('Départ $timeLabel', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)), const SizedBox(width: 6), DataStatusBadge(status: stop.status, compact: true)]),
+              ] else ...[
+                const SizedBox(height: 4),
+                const DataStatusBadge(status: DataStatus.unknown, compact: true),
+              ],
+            ])),
+            const SizedBox(width: 8),
+            timeWidget,
+          ]),
         ),
       ),
     );
@@ -1078,7 +1017,7 @@ class StopCard extends StatelessWidget {
 }
 
 // ============================================================
-// TRAJETS
+// TRAJETS — AVEC MOTEUR RÉEL
 // ============================================================
 class TripsPage extends StatefulWidget {
   final List<FavoriteRoute> favorites;
@@ -1088,18 +1027,26 @@ class TripsPage extends StatefulWidget {
 }
 
 class _TripsPageState extends State<TripsPage> {
-  final _fromCtrl = TextEditingController(text: 'Ma position');
-  final _toCtrl = TextEditingController();
-  bool _searched = false;
+  final _fromCtrl = TextEditingController(text: 'Keur Mbaye Fall');
+  final _toCtrl = TextEditingController(text: 'Dakar');
+  bool _loading = false;
+  RouteSearchResult? _result;
+  bool _fromFocus = false;
+  bool _toFocus = false;
 
-  void _search() {
-    if (_toCtrl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez saisir une destination'), backgroundColor: AppColors.warning),
-      );
-      return;
-    }
-    setState(() => _searched = true);
+  List<Place> _suggestions(String query) {
+    if (query.trim().length < 2) return [];
+    final q = query.toLowerCase();
+    return placeDatabase.where((p) => p.name.toLowerCase().contains(q)).take(6).toList();
+  }
+
+  Future<void> _search() async {
+    FocusScope.of(context).unfocus();
+    setState(() { _loading = true; _result = null; });
+    await Future.delayed(const Duration(milliseconds: 600));
+    final res = RoutePlanner.plan(fromQuery: _fromCtrl.text, toQuery: _toCtrl.text);
+    if (!mounted) return;
+    setState(() { _loading = false; _result = res; });
   }
 
   @override
@@ -1124,23 +1071,16 @@ class _TripsPageState extends State<TripsPage> {
                   children: widget.favorites.map((f) => Padding(
                     padding: const EdgeInsets.only(right: 10),
                     child: GestureDetector(
-                      onTap: () {
-                        _toCtrl.text = f.to;
-                        _search();
-                      },
+                      onTap: () { _toCtrl.text = f.to; _search(); },
                       child: Container(
-                        width: 140,
-                        padding: const EdgeInsets.all(12),
+                        width: 140, padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12)),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Icon(f.icon, color: AppColors.primary, size: 20),
-                            const Spacer(),
-                            Text(f.label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                            Text(f.to, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary), maxLines: 1, overflow: TextOverflow.ellipsis),
-                          ],
-                        ),
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Icon(f.icon, color: AppColors.primary, size: 20),
+                          const Spacer(),
+                          Text(f.label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                          Text(f.to, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary), maxLines: 1, overflow: TextOverflow.ellipsis),
+                        ]),
                       ),
                     ),
                   )).toList(),
@@ -1148,55 +1088,49 @@ class _TripsPageState extends State<TripsPage> {
               ),
               const SizedBox(height: 20),
             ],
+            // Champs départ / arrivée
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
-              child: Column(
-                children: [
-                  _field(Icons.my_location, AppColors.primary, 'Départ', _fromCtrl),
-                  const Divider(height: 24),
-                  _field(Icons.location_on, AppColors.ter, 'Destination', _toCtrl),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _search,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                      child: const Text('Rechercher', style: TextStyle(fontWeight: FontWeight.bold)),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (_searched) ...[
-              const SizedBox(height: 24),
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(14)),
-                child: Column(
-                  children: [
-                    Icon(Icons.construction, size: 40, color: AppColors.warning),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Moteur d\'itinéraire en préparation',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Le calcul d\'itinéraires sera disponible dès que les données officielles des opérateurs seront connectées.',
-                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 12),
-                    const DataStatusBadge(status: DataStatus.unknown),
-                  ],
+              child: Column(children: [
+                _autocompleteField(
+                  icon: Icons.my_location, color: AppColors.primary, label: 'Départ',
+                  ctrl: _fromCtrl, focused: _fromFocus,
+                  onFocus: (v) => setState(() => _fromFocus = v),
+                  onSelect: (p) { _fromCtrl.text = p.name; setState(() => _fromFocus = false); },
                 ),
-              ),
+                const Divider(height: 24),
+                _autocompleteField(
+                  icon: Icons.location_on, color: AppColors.ter, label: 'Destination',
+                  ctrl: _toCtrl, focused: _toFocus,
+                  onFocus: (v) => setState(() => _toFocus = v),
+                  onSelect: (p) { _toCtrl.text = p.name; setState(() => _toFocus = false); },
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _loading ? null : _search,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary, foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    child: _loading
+                      ? const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                          SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
+                          SizedBox(width: 10),
+                          Text('Recherche de votre trajet...', style: TextStyle(fontWeight: FontWeight.bold)),
+                        ])
+                      : const Text('Rechercher', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ]),
+            ),
+            // Résultats
+            if (_result != null) ...[
+              const SizedBox(height: 24),
+              _buildResult(_result!),
             ],
             const SizedBox(height: 20),
           ],
@@ -1205,31 +1139,195 @@ class _TripsPageState extends State<TripsPage> {
     );
   }
 
-  Widget _field(IconData icon, Color c, String label, TextEditingController ctrl) {
-    return Row(
-      children: [
-        Icon(icon, color: c, size: 22),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-              TextField(
-                controller: ctrl,
-                decoration: const InputDecoration(
-                  isDense: true,
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.zero,
-                  hintText: 'Saisir...',
-                ),
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-              ),
-            ],
+  Widget _buildResult(RouteSearchResult res) {
+    if (res.hasRoutes) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            const Text('Itinéraires proposés', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const Spacer(),
+            const DataStatusBadge(status: DataStatus.scheduled),
+          ]),
+          const SizedBox(height: 12),
+          ...res.routes.asMap().entries.map((entry) {
+            final r = entry.value;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _routeCard(r),
+            );
+          }),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: AppColors.warning.withOpacity(0.08), borderRadius: BorderRadius.circular(10)),
+            child: Row(children: [
+              Icon(Icons.info_outline, color: AppColors.warning, size: 16),
+              const SizedBox(width: 8),
+              const Expanded(child: Text(
+                'Horaires programmés. Les conditions réelles de circulation peuvent modifier le temps de trajet.',
+                style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+              )),
+            ]),
           ),
-        ),
+        ],
+      );
+    }
+
+    // Pas de routes
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(14)),
+      child: Column(
+        children: [
+          Icon(Icons.route_outlined, size: 40, color: AppColors.warning),
+          const SizedBox(height: 12),
+          const Text('Itinéraire indisponible', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+          const SizedBox(height: 8),
+          Text(
+            res.errorMessage ?? 'Nous ne disposons pas encore de suffisamment de données pour calculer précisément ce trajet.',
+            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            textAlign: TextAlign.center,
+          ),
+          if (res.missingData.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 8),
+            const Align(alignment: Alignment.centerLeft, child: Text('Données manquantes :', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
+            const SizedBox(height: 6),
+            ...res.missingData.map((m) => Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Icon(Icons.circle, size: 6, color: AppColors.textSecondary),
+                const SizedBox(width: 8),
+                Expanded(child: Text(m, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
+              ]),
+            )),
+          ],
+          const SizedBox(height: 12),
+          const DataStatusBadge(status: DataStatus.unknown),
+        ],
+      ),
+    );
+  }
+
+  Widget _routeCard(PlannedRoute r) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: r.isBest ? Border.all(color: AppColors.primary, width: 1.5) : null,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            if (r.isBest) ...[
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(4)),
+                child: const Text('Meilleur', style: TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+              const SizedBox(width: 6),
+            ],
+            Expanded(child: Text('${r.fromName} → ${r.toName}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
+            Text('${r.totalMinutes} min', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primary)),
+          ]),
+          const SizedBox(height: 12),
+          ...r.segments.asMap().entries.map((entry) {
+            final seg = entry.value;
+            final isLast = entry.key == r.segments.length - 1;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(children: [
+                  Container(
+                    width: 32, height: 32,
+                    decoration: BoxDecoration(color: seg.color.withOpacity(0.15), shape: BoxShape.circle),
+                    child: Icon(seg.icon, color: seg.color, size: 16),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(seg.modeLabel, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: seg.color)),
+                    Text('${seg.from} → ${seg.to}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                  ])),
+                  Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                    Text('${seg.durationMinutes} min', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    if (seg.departureTime != null) Text('Départ ${seg.departureTime}', style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                  ]),
+                ]),
+                if (!isLast) Padding(
+                  padding: const EdgeInsets.only(left: 16, top: 4, bottom: 4),
+                  child: Container(width: 2, height: 14, color: AppColors.divider),
+                ),
+              ],
+            );
+          }),
+          const SizedBox(height: 10),
+          Row(children: [
+            const DataStatusBadge(status: DataStatus.scheduled, compact: true),
+            const Spacer(),
+            if (r.segments.first.departureTime != null && r.segments.last.arrivalTime != null)
+              Text(
+                '${r.segments.first.departureTime} → ${r.segments.last.arrivalTime}',
+                style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+              ),
+          ]),
+        ],
+      ),
+    );
+  }
+
+  Widget _autocompleteField({
+    required IconData icon, required Color color, required String label,
+    required TextEditingController ctrl, required bool focused,
+    required Function(bool) onFocus, required Function(Place) onSelect,
+  }) {
+    final suggestions = focused ? _suggestions(ctrl.text) : <Place>[];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(children: [
+          Icon(icon, color: color, size: 22),
+          const SizedBox(width: 12),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+            TextField(
+              controller: ctrl,
+              onTap: () => onFocus(true),
+              onChanged: (_) => onFocus(true),
+              decoration: const InputDecoration(isDense: true, border: InputBorder.none, contentPadding: EdgeInsets.zero, hintText: 'Saisir un lieu, une gare, un arrêt...'),
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+            ),
+          ])),
+        ]),
+        if (suggestions.isNotEmpty)
+          Container(
+            margin: const EdgeInsets.only(top: 4),
+            decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(8)),
+            child: Column(children: suggestions.map((p) => ListTile(
+              dense: true,
+              leading: Icon(p.icon, color: p.color, size: 18),
+              title: Text(p.name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+              subtitle: Text(_typeLabel(p.type), style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+              onTap: () => onSelect(p),
+            )).toList()),
+          ),
       ],
     );
+  }
+
+  String _typeLabel(String t) {
+    switch (t) {
+      case 'place': return '📍 Lieu';
+      case 'TER': return '🚆 Gare TER';
+      case 'BRT': return '🚌 Station BRT';
+      case 'AFTU': return '🚌 Arrêt AFTU';
+      case 'Tata': return '🚌 Arrêt Tata';
+      case 'DDD': return '🚌 Arrêt DDD';
+      default: return t;
+    }
   }
 }
 
@@ -1253,24 +1351,15 @@ class _AlertsPageState extends State<AlertsPage> {
       context: context,
       builder: (ctx) => Container(
         padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Nouvelle alerte', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            ...allStops.take(6).map((s) => ListTile(
-              leading: Icon(s.icon, color: s.color),
-              title: Text(s.name),
-              onTap: () {
-                Navigator.pop(ctx);
-                setState(() {
-                  _alerts.add({'stop': s.name, 'icon': s.icon, 'color': s.color, 'minutes': 10, 'active': true});
-                });
-              },
-            )),
-          ],
-        ),
+        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text('Nouvelle alerte', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
+          ...allStops.take(6).map((s) => ListTile(
+            leading: Icon(s.icon, color: s.color),
+            title: Text(s.name),
+            onTap: () { Navigator.pop(ctx); setState(() { _alerts.add({'stop': s.name, 'icon': s.icon, 'color': s.color, 'minutes': 10, 'active': true}); }); },
+          )),
+        ]),
       ),
     );
   }
@@ -1285,105 +1374,45 @@ class _AlertsPageState extends State<AlertsPage> {
           padding: const EdgeInsets.all(16),
           children: [
             const SizedBox(height: 8),
-            Row(
-              children: [
-                const Text('Mes alertes', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                const Spacer(),
-                IconButton(
-                  onPressed: _showAddAlert,
-                  icon: const Icon(Icons.add_circle, color: AppColors.primary, size: 28),
-                ),
-              ],
-            ),
+            Row(children: [
+              const Text('Mes alertes', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              const Spacer(),
+              IconButton(onPressed: _showAddAlert, icon: const Icon(Icons.add_circle, color: AppColors.primary, size: 28)),
+            ]),
             const SizedBox(height: 4),
             Text('${_alerts.where((a) => a['active'] == true).length} alerte(s) active(s)', style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
             const SizedBox(height: 20),
-            if (_alerts.isEmpty)
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12)),
-                child: Column(
-                  children: [
-                    Icon(Icons.notifications_off_outlined, size: 48, color: AppColors.textSecondary),
-                    const SizedBox(height: 12),
-                    const Text('Aucune alerte', style: TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 4),
-                    const Text('Ajoutez une alerte pour être prévenu avant le passage.', style: TextStyle(fontSize: 12, color: AppColors.textSecondary), textAlign: TextAlign.center),
-                  ],
+            ..._alerts.asMap().entries.map((entry) {
+              final idx = entry.key;
+              final a = entry.value;
+              final stop = allStops.firstWhere((s) => s.name == a['stop'], orElse: () => allStops.first);
+              final remaining = stop.remainingMinutes();
+              final timeLabel = stop.nextDepartureLabel();
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface, borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: (a['color'] as Color).withOpacity(0.3), width: 1.5),
+                  ),
+                  child: Row(children: [
+                    Container(width: 42, height: 42, decoration: BoxDecoration(color: (a['color'] as Color).withOpacity(0.12), shape: BoxShape.circle), child: Icon(a['icon'] as IconData, color: a['color'] as Color, size: 20)),
+                    const SizedBox(width: 12),
+                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(a['stop'] as String, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                      if (remaining != null && timeLabel != null)
+                        Text('Départ prévu $timeLabel · dans ${TimeHelper.formatRemaining(remaining)}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))
+                      else
+                        const Text('Horaire non disponible', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                      const SizedBox(height: 4),
+                      DataStatusBadge(status: stop.status, compact: true),
+                    ])),
+                    Switch(value: a['active'] as bool, activeColor: AppColors.primary, onChanged: (v) => setState(() => _alerts[idx]['active'] = v)),
+                  ]),
                 ),
-              )
-            else
-              ..._alerts.asMap().entries.map((entry) {
-                final idx = entry.key;
-                final a = entry.value;
-                final stop = allStops.firstWhere(
-                  (s) => s.name == a['stop'],
-                  orElse: () => allStops.first,
-                );
-                final remaining = stop.remainingMinutes();
-                final timeLabel = stop.nextDepartureLabel();
-
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: (a['color'] as Color).withOpacity(0.3), width: 1.5),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 42, height: 42,
-                          decoration: BoxDecoration(color: (a['color'] as Color).withOpacity(0.12), shape: BoxShape.circle),
-                          child: Icon(a['icon'] as IconData, color: a['color'] as Color, size: 20),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(a['stop'] as String, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                              if (remaining != null && timeLabel != null)
-                                Text(
-                                  'Départ prévu $timeLabel · dans ${TimeHelper.formatRemaining(remaining)}',
-                                  style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                                )
-                              else
-                                const Text('Horaire non disponible', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                              const SizedBox(height: 4),
-                              DataStatusBadge(status: stop.status, compact: true),
-                            ],
-                          ),
-                        ),
-                        Switch(
-                          value: a['active'] as bool,
-                          activeColor: AppColors.primary,
-                          onChanged: (v) => setState(() => _alerts[idx]['active'] = v),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: AppColors.warning.withOpacity(0.08), borderRadius: BorderRadius.circular(10)),
-              child: Row(
-                children: [
-                  Icon(Icons.info_outline, color: AppColors.warning, size: 16),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    child: Text(
-                      'Les alertes reposent sur les horaires programmés. Le temps réel sera activé avec les données officielles.',
-                      style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+              );
+            }),
           ],
         ),
       ),
@@ -1414,13 +1443,10 @@ class _SettingsPageState extends State<SettingsPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Nouveau favori'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(controller: labelCtrl, decoration: const InputDecoration(labelText: 'Nom (ex: Maison)')),
-            TextField(controller: toCtrl, decoration: const InputDecoration(labelText: 'Destination')),
-          ],
-        ),
+        content: Column(mainAxisSize: MainAxisSize.min, children: [
+          TextField(controller: labelCtrl, decoration: const InputDecoration(labelText: 'Nom (ex: Maison)')),
+          TextField(controller: toCtrl, decoration: const InputDecoration(labelText: 'Destination')),
+        ]),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
           ElevatedButton(
@@ -1454,47 +1480,27 @@ class _SettingsPageState extends State<SettingsPage> {
             _toggle('Notifications', 'Alertes de passage', Icons.notifications_outlined, _notifications, (v) => setState(() => _notifications = v)),
             _toggle('Localisation', 'Position sur la carte', Icons.location_on_outlined, _gps, (v) => setState(() => _gps = v)),
             const SizedBox(height: 20),
-            Row(
-              children: [
-                _section('Mes favoris'),
-                const Spacer(),
-                TextButton.icon(
-                  onPressed: _addFavorite,
-                  icon: const Icon(Icons.add, size: 16),
-                  label: const Text('Ajouter'),
-                ),
-              ],
-            ),
+            Row(children: [
+              _section('Mes favoris'),
+              const Spacer(),
+              TextButton.icon(onPressed: _addFavorite, icon: const Icon(Icons.add, size: 16), label: const Text('Ajouter')),
+            ]),
             if (widget.favorites.isEmpty)
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12)),
-                child: const Text('Aucun favori. Ajoutez vos trajets fréquents.', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-              )
+              Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12)), child: const Text('Aucun favori. Ajoutez vos trajets fréquents.', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)))
             else
               ...widget.favorites.asMap().entries.map((entry) => Container(
                 margin: const EdgeInsets.only(bottom: 8),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12)),
-                child: Row(
-                  children: [
-                    Icon(entry.value.icon, color: AppColors.primary, size: 22),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(entry.value.label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                          Text('${entry.value.from} → ${entry.value.to}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => widget.onRemove(entry.key),
-                      icon: const Icon(Icons.delete_outline, color: AppColors.ter, size: 20),
-                    ),
-                  ],
-                ),
+                child: Row(children: [
+                  Icon(entry.value.icon, color: AppColors.primary, size: 22),
+                  const SizedBox(width: 12),
+                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(entry.value.label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                    Text('${entry.value.from} → ${entry.value.to}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                  ])),
+                  IconButton(onPressed: () => widget.onRemove(entry.key), icon: const Icon(Icons.delete_outline, color: AppColors.ter, size: 20)),
+                ]),
               )),
             const SizedBox(height: 20),
             _section('Réseaux'),
@@ -1508,18 +1514,15 @@ class _SettingsPageState extends State<SettingsPage> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12)),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Dakar Bus', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  SizedBox(height: 4),
-                  Text('Version 3.1', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-                  SizedBox(height: 8),
-                  Text('Application d\'information voyageurs pour Dakar.', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                  SizedBox(height: 4),
-                  Text('Horaires programmés — temps réel en préparation.', style: TextStyle(fontSize: 11, color: AppColors.textSecondary, fontStyle: FontStyle.italic)),
-                ],
-              ),
+              child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('Dakar Bus', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                SizedBox(height: 4),
+                Text('Version 3.2', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                SizedBox(height: 8),
+                Text('Application d\'information voyageurs pour Dakar.', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                SizedBox(height: 4),
+                Text('Moteur d\'itinéraire basé sur données programmées.', style: TextStyle(fontSize: 11, color: AppColors.textSecondary, fontStyle: FontStyle.italic)),
+              ]),
             ),
             const SizedBox(height: 20),
           ],
@@ -1528,58 +1531,36 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _section(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 1)),
-    );
-  }
+  Widget _section(String t) => Padding(padding: const EdgeInsets.only(bottom: 8), child: Text(t, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 1)));
 
   Widget _toggle(String title, String sub, IconData icon, bool value, Function(bool) onChange) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      margin: const EdgeInsets.only(bottom: 8), padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12)),
-      child: Row(
-        children: [
-          Icon(icon, color: AppColors.primary, size: 22),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                Text(sub, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-              ],
-            ),
-          ),
-          Switch(value: value, activeColor: AppColors.primary, onChanged: onChange),
-        ],
-      ),
+      child: Row(children: [
+        Icon(icon, color: AppColors.primary, size: 22), const SizedBox(width: 12),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+          Text(sub, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+        ])),
+        Switch(value: value, activeColor: AppColors.primary, onChanged: onChange),
+      ]),
     );
   }
 
   Widget _tileSetting(String title, String sub, IconData icon, Color color) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: 8), padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12)),
-      child: Row(
-        children: [
-          Container(width: 36, height: 36, decoration: BoxDecoration(color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(8)), child: Icon(icon, color: color, size: 20)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                Text(sub, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-              ],
-            ),
-          ),
-          const Icon(Icons.check_circle, color: AppColors.success, size: 20),
-        ],
-      ),
+      child: Row(children: [
+        Container(width: 36, height: 36, decoration: BoxDecoration(color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(8)), child: Icon(icon, color: color, size: 20)),
+        const SizedBox(width: 12),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+          Text(sub, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+        ])),
+        const Icon(Icons.check_circle, color: AppColors.success, size: 20),
+      ]),
     );
   }
 }
@@ -1595,12 +1576,7 @@ class StopDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final now = DateTime.now();
     final currentMin = now.hour * 60 + now.minute;
-
-    // Filtrer les départs futurs
-    final futureDepartures = stop.departureMinutesFromMidnight
-        .where((d) => d > currentMin)
-        .take(3)
-        .toList();
+    final future = stop.departureMinutesFromMidnight.where((d) => d > currentMin).take(3).toList();
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -1608,135 +1584,52 @@ class StopDetailPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Center(
-            child: Column(
-              children: [
-                Container(width: 72, height: 72, decoration: BoxDecoration(color: stop.color, shape: BoxShape.circle), child: Icon(stop.icon, color: Colors.white, size: 36)),
-                const SizedBox(height: 12),
-                Text(stop.direction, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                const SizedBox(height: 4),
-                Text('À ${DistanceHelper.format(stop.distanceMeters)} de vous', style: const TextStyle(color: AppColors.textSecondary)),
-              ],
-            ),
-          ),
+          Center(child: Column(children: [
+            Container(width: 72, height: 72, decoration: BoxDecoration(color: stop.color, shape: BoxShape.circle), child: Icon(stop.icon, color: Colors.white, size: 36)),
+            const SizedBox(height: 12),
+            Text(stop.direction, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 4),
+            Text('À ${DistanceHelper.format(stop.distanceMeters)} de vous', style: const TextStyle(color: AppColors.textSecondary)),
+          ])),
           const SizedBox(height: 24),
-          Row(
-            children: [
-              const Text('Prochains passages', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              const Spacer(),
-              DataStatusBadge(status: stop.status),
-            ],
-          ),
+          Row(children: [
+            const Text('Prochains passages', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const Spacer(),
+            DataStatusBadge(status: stop.status),
+          ]),
           const SizedBox(height: 12),
-          if (futureDepartures.isEmpty)
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(10)),
-              child: const Text('Horaire non disponible pour le moment', style: TextStyle(color: AppColors.textSecondary)),
-            )
+          if (future.isEmpty)
+            Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(10)), child: const Text('Horaire non disponible pour le moment', style: TextStyle(color: AppColors.textSecondary)))
           else
-            ...futureDepartures.map((d) {
+            ...future.map((d) {
               final h = (d ~/ 60).toString().padLeft(2, '0');
               final m = (d % 60).toString().padLeft(2, '0');
               final remaining = d - currentMin;
-              final isNext = d == futureDepartures.first;
-
+              final isNext = d == future.first;
               return Container(
                 margin: const EdgeInsets.only(bottom: 8),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
                   color: isNext ? stop.color.withOpacity(0.08) : AppColors.surface,
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: isNext ? stop.color.withOpacity(0.4) : AppColors.divider,
-                    width: isNext ? 1.5 : 1,
-                  ),
+                  border: Border.all(color: isNext ? stop.color.withOpacity(0.4) : AppColors.divider, width: isNext ? 1.5 : 1),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '${h}h$m',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: isNext ? stop.color : AppColors.textPrimary,
-                      ),
-                    ),
-                    Text(
-                      TimeHelper.formatRemaining(remaining),
-                      style: TextStyle(
-                        color: isNext ? stop.color : AppColors.textSecondary,
-                        fontWeight: isNext ? FontWeight.bold : FontWeight.normal,
-                      ),
-                    ),
-                  ],
-                ),
+                child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                  Text('${h}h$m', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isNext ? stop.color : AppColors.textPrimary)),
+                  Text(TimeHelper.formatRemaining(remaining), style: TextStyle(color: isNext ? stop.color : AppColors.textSecondary, fontWeight: isNext ? FontWeight.bold : FontWeight.normal)),
+                ]),
               );
             }),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(color: AppColors.warning.withOpacity(0.08), borderRadius: BorderRadius.circular(10)),
-            child: Row(
-              children: [
-                Icon(Icons.info_outline, color: AppColors.warning, size: 16),
-                const SizedBox(width: 8),
-                const Expanded(
-                  child: Text(
-                    'Horaires programmés. Le temps réel sera affiché dès qu\'il sera disponible.',
-                    style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () => _showAlertDialog(context, stop),
-              icon: const Icon(Icons.notifications_active),
-              label: const Text('Me prévenir avant le passage'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-            ),
+            child: Row(children: [
+              Icon(Icons.info_outline, color: AppColors.warning, size: 16), const SizedBox(width: 8),
+              const Expanded(child: Text('Horaires programmés. Le temps réel sera affiché dès qu\'il sera disponible.', style: TextStyle(fontSize: 11, color: AppColors.textSecondary))),
+            ]),
           ),
         ],
-      ),
-    );
-  }
-
-  void _showAlertDialog(BuildContext context, Stop stop) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Me prévenir'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Délai avant passage :', style: TextStyle(fontSize: 13)),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [5, 10, 15].map((m) => ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Alerte activée : $m min avant ${stop.name}'), backgroundColor: AppColors.success),
-                  );
-                },
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-                child: Text('$m min'),
-              )).toList(),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -1755,24 +1648,19 @@ class _AIChatPageState extends State<AIChatPage> {
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
   final List<Map<String, String>> _messages = [
-    {
-      'role': 'ai',
-      'text': 'Bonjour ! Je suis l\'assistant Dakar Bus.\n\nJe peux vous renseigner sur :\n• les lignes TER, BRT, AFTU, Tata, DDD\n• les arrêts et stations\n• les horaires programmés\n\nJe ne dispose pas encore de données temps réel.'
-    },
+    {'role': 'ai', 'text': 'Bonjour ! Je suis l\'assistant Dakar Bus.\n\nJe peux vous renseigner sur :\n• les lignes TER, BRT, AFTU, Tata, DDD\n• les arrêts et stations\n• les horaires programmés\n• les itinéraires (en utilisant les données disponibles)\n\nJe ne dispose pas encore de données temps réel.'},
   ];
 
   void _send() {
-    final text = _controller.text.trim();
-    if (text.isEmpty) return;
+    final t = _controller.text.trim();
+    if (t.isEmpty) return;
     setState(() {
-      _messages.add({'role': 'user', 'text': text});
-      _messages.add({'role': 'ai', 'text': _generateResponse(text)});
+      _messages.add({'role': 'user', 'text': t});
+      _messages.add({'role': 'ai', 'text': _generateResponse(t)});
     });
     _controller.clear();
     Future.delayed(const Duration(milliseconds: 100), () {
-      if (_scrollController.hasClients) {
-        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
-      }
+      if (_scrollController.hasClients) _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
     });
   }
 
@@ -1793,51 +1681,46 @@ class _AIChatPageState extends State<AIChatPage> {
     for (final stop in allStops) {
       final sn = _normalize(stop.name);
       if (q.contains(sn) || sn.contains(q)) {
-        final remaining = stop.remainingMinutes();
-        final timeLabel = stop.nextDepartureLabel();
-        if (remaining != null && timeLabel != null) {
-          return '📍 ${stop.name}\n\nDirection : ${stop.direction}\nDistance : ${DistanceHelper.format(stop.distanceMeters)}\nProchain départ : $timeLabel (${TimeHelper.formatRemaining(remaining)})\n\n🟠 Horaire programmé, pas temps réel.';
+        final r = stop.remainingMinutes();
+        final t = stop.nextDepartureLabel();
+        if (r != null && t != null) {
+          return '📍 ${stop.name}\n\nDirection : ${stop.direction}\nDistance : ${DistanceHelper.format(stop.distanceMeters)}\nProchain départ : $t (${TimeHelper.formatRemaining(r)})\n\n🟠 Horaire programmé, pas temps réel.';
         }
         return '📍 ${stop.name}\n\nDirection : ${stop.direction}\n\nHoraire non disponible pour le moment.';
       }
     }
 
     if (q.contains('diamniadio')) return '🚆 Pour Diamniadio : TER depuis la Gare de Dakar. 13 gares desservies. Environ 40 min.\n\n🟠 Horaire programmé.';
-    if (q.contains('plateau')) return '🚌 Pour le Plateau : BRT depuis Colobane (environ 15 min) ou DDD Ligne 7.\n\n🟠 Horaire programmé.';
+    if (q.contains('plateau')) return '🚌 Pour le Plateau : BRT depuis Colobane ou DDD Ligne 7.\n\n🟠 Horaire programmé.';
     if (q.contains('guediawaye')) return '🚌 Pour Guédiawaye : BRT depuis Colobane vers PEM Guédiawaye.\n\n🟠 Horaire programmé.';
     if (q.contains('parcelles')) return '🚌 Pour Parcelles Assainies : AFTU Ligne 23 depuis Colobane.\n\n🟠 Horaire programmé.';
     if (q.contains('ouakam') || q.contains('almadies')) return '🚌 Pour Ouakam / Almadies : DDD Ligne 12.\n\n🟠 Horaire programmé.';
     if (q.contains('rufisque')) return '🚆 Pour Rufisque : TER depuis Dakar, 11ème gare.\n\n🟠 Horaire programmé.';
     if (q.contains('thiaroye')) return '🚆 Pour Thiaroye : TER depuis Dakar, 7ème gare.\n\n🟠 Horaire programmé.';
-    if (q.contains('keur mbaye')) return '🚆 Pour Keur Mbaye Fall : TER depuis Dakar, 9ème gare.\n\n🟠 Horaire programmé.';
-    if (q.contains('colobane')) return '📍 Colobane est un hub central :\n• Gare TER Colobane\n• Station BRT Colobane\n• Arrêt AFTU Ligne 23';
-    if (q.contains('yeumbeul')) return '🚆 Pour Yeumbeul : TER depuis Dakar, 8ème gare.\n\n🟠 Horaire programmé.';
-    if (q.contains('bargny')) return '🚆 Pour Bargny : TER depuis Dakar, 12ème gare.\n\n🟠 Horaire programmé.';
-    if (q.contains('hann')) return '🚆 Pour Hann : TER depuis Dakar, 3ème gare.\n\n🟠 Horaire programmé.';
-    if (q.contains('pikine')) return '🚆 Pour Pikine : TER depuis Dakar, 6ème gare.\n\n🟠 Horaire programmé.';
+    if (q.contains('keur mbaye')) return '🚆 Keur Mbaye Fall est la 9ème gare du TER (entre Yeumbeul et PNR).\n\n🟠 Horaire programmé.';
+    if (q.contains('colobane')) return '📍 Colobane est un hub central : Gare TER Colobane, Station BRT Colobane, Arrêt AFTU 23.';
+    if (q.contains('yeumbeul')) return '🚆 Yeumbeul : 8ème gare du TER.\n\n🟠 Horaire programmé.';
+    if (q.contains('bargny')) return '🚆 Bargny : 12ème gare du TER.\n\n🟠 Horaire programmé.';
+    if (q.contains('hann')) return '🚆 Hann : 3ème gare du TER.\n\n🟠 Horaire programmé.';
+    if (q.contains('pikine')) return '🚆 Pikine : 6ème gare du TER.\n\n🟠 Horaire programmé.';
 
     if (q.contains('ter') || q.contains('train')) return '🚆 Le TER relie Dakar à Diamniadio via 13 gares.\n\n🟠 Horaire programmé.';
     if (q.contains('brt')) return '🚍 Le BRT compte 23 stations entre Petersen et Guédiawaye.\n\n🟠 Horaire programmé.';
     if (q.contains('aftu')) return '🚌 AFTU dessert Dakar avec plusieurs lignes.\n\n🟠 Horaires estimés.';
     if (q.contains('tata')) return '🚌 Les bus Tata couvrent plusieurs quartiers.\n\n🟠 Horaires estimés.';
-    if (q.contains('ddd') || q.contains('dakar dem dikk')) return '🚌 Dakar Dem Dikk : plusieurs lignes à Dakar.\n\n🟠 Horaires estimés.';
+    if (q.contains('ddd')) return '🚌 Dakar Dem Dikk : plusieurs lignes à Dakar.\n\n🟠 Horaires estimés.';
 
-    if (q.contains('prix') || q.contains('tarif') || q.contains('fcfa') || q.contains('coute') || q.contains('combien')) {
-      return 'Je ne dispose pas d\'informations tarifaires fiables pour le moment.\n\nLes prix ne sont pas affichés dans Dakar Bus.';
+    if (q.contains('prix') || q.contains('tarif') || q.contains('fcfa')) {
+      return 'Je ne dispose pas d\'informations tarifaires fiables pour le moment.';
     }
-    if (q.contains('retard') || q.contains('temps reel') || q.contains('temps réel') || q.contains('live')) {
-      return 'Les données temps réel ne sont pas encore connectées à Dakar Bus.\n\nLes horaires affichés sont des horaires programmés. Le statut réel sera bientôt disponible.';
-    }
-    if (q.contains('perturbation') || q.contains('greve') || q.contains('accident')) {
-      return 'Je n\'ai pas de source fiable pour vous informer sur les perturbations en cours.\n\nLes alertes seront disponibles dès que les données officielles seront connectées.';
+    if (q.contains('retard') || q.contains('temps reel') || q.contains('live')) {
+      return 'Les données temps réel ne sont pas encore connectées. Les horaires affichés sont programmés.';
     }
 
-    if (q.contains('bonjour') || q.contains('salut') || q.contains('bonsoir') || q.contains('hello')) {
-      return 'Bonjour ! Comment puis-je vous aider ?';
-    }
+    if (q.contains('bonjour') || q.contains('salut')) return 'Bonjour ! Comment puis-je vous aider ?';
     if (q.contains('merci')) return 'Avec plaisir !';
 
-    return 'Je n\'ai pas d\'information fiable pour répondre à cette question.\n\nEssayez :\n• « Prochain TER »\n• « Où est Colobane ? »\n• « Comment aller à Diamniadio ? »';
+    return 'Je n\'ai pas d\'information fiable pour répond         re.\n\nEssayez :\n• « Prochain TER »\n• « Où est Colobane ? »\n• « Comment aller à Diamniadio ? »';
   }
 
   @override
@@ -1845,54 +1728,43 @@ class _AIChatPageState extends State<AIChatPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(title: const Text('Assistant IA'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(16),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final msg = _messages[index];
-                final isUser = msg['role'] == 'user';
-                return Align(
-                  alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 10),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    constraints: const BoxConstraints(maxWidth: 300),
-                    decoration: BoxDecoration(
-                      color: isUser ? AppColors.primary.withOpacity(0.15) : AppColors.surface,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: isUser ? AppColors.primary.withOpacity(0.3) : AppColors.divider),
-                    ),
-                    child: Text(msg['text']!, style: const TextStyle(fontSize: 13.5, height: 1.4)),
-                  ),
-                );
-              },
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(8),
-            color: AppColors.surface,
-            child: SafeArea(
-              top: false,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _controller,
-                      onSubmitted: (_) => _send(),
-                      decoration: const InputDecoration(hintText: 'Posez votre question...', border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 12)),
-                    ),
-                  ),
-                  IconButton(onPressed: _send, icon: const Icon(Icons.send, color: AppColors.primary)),
-                ],
+      body: Column(children: [
+        Expanded(child: ListView.builder(
+          controller: _scrollController,
+          padding: const EdgeInsets.all(16),
+          itemCount: _messages.length,
+          itemBuilder: (context, index) {
+            final msg = _messages[index];
+            final isUser = msg['role'] == 'user';
+            return Align(
+              alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                constraints: const BoxConstraints(maxWidth: 300),
+                decoration: BoxDecoration(
+                  color: isUser ? AppColors.primary.withOpacity(0.15) : AppColors.surface,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: isUser ? AppColors.primary.withOpacity(0.3) : AppColors.divider),
+                ),
+                child: Text(msg['text']!, style: const TextStyle(fontSize: 13.5, height: 1.4)),
               ),
-            ),
-          ),
-        ],
-      ),
+            );
+          },
+        )),
+        Container(
+          padding: const EdgeInsets.all(8),
+ color: AppColors.surface,
+          child: SafeArea(top: false, child: Row(children: [
+            Expanded(child: TextField(
+              controller: _controller,
+              onSubmitted: (_) => _send(),
+              decoration: const InputDecoration(hintText: 'Posez votre question...', border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 12)),
+            )),
+            IconButton(onPressed: _send, icon: const Icon(Icons.send, color: AppColors.primary)),
+          ])),
+        ),
+      ]),
     );
   }
 }
