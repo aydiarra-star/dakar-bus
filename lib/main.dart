@@ -115,22 +115,42 @@ class _MainShellState extends State<MainShell> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: _pages),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (i) => setState(() => _currentIndex = i),
-        backgroundColor: AppColors.surface,
-        indicatorColor: AppColors.primary.withOpacity(0.15),
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home, color: AppColors.primary), label: 'Explorer'),
-          NavigationDestination(icon: Icon(Icons.alt_route_outlined), selectedIcon: Icon(Icons.alt_route, color: AppColors.primary), label: 'Trajets'),
-          NavigationDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings, color: AppColors.primary), label: 'Paramètres'),
-          NavigationDestination(icon: Icon(Icons.notifications_outlined), selectedIcon: Icon(Icons.notifications, color: AppColors.primary), label: 'Alertes'),
-        ],
+      // ====== BARRE DE NAVIGATION PROTÉGÉE PAR SAFEAREA ======
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 8,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          top: false,
+          minimum: const EdgeInsets.only(bottom: 8),
+          child: NavigationBar(
+            selectedIndex: _currentIndex,
+            onDestinationSelected: (i) => setState(() => _currentIndex = i),
+            backgroundColor: AppColors.surface,
+            indicatorColor: AppColors.primary.withOpacity(0.15),
+            destinations: const [
+              NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home, color: AppColors.primary), label: 'Explorer'),
+              NavigationDestination(icon: Icon(Icons.alt_route_outlined), selectedIcon: Icon(Icons.alt_route, color: AppColors.primary), label: 'Trajets'),
+              NavigationDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings, color: AppColors.primary), label: 'Paramètres'),
+              NavigationDestination(icon: Icon(Icons.notifications_outlined), selectedIcon: Icon(Icons.notifications, color: AppColors.primary), label: 'Alertes'),
+            ],
+          ),
+        ),
       ),
     );
   }
 }
 
+// ============================================================
+// ÉCRAN EXPLORER
+// ============================================================
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
   @override
@@ -162,10 +182,11 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
+        bottom: false,
         child: Column(
           children: [
             SizedBox(
-              height: 280,
+              height: 260,
               child: Stack(
                 children: [
                   FlutterMap(
@@ -354,6 +375,7 @@ class _HomePageState extends State<HomePage> {
                     padding: const EdgeInsets.only(bottom: 10),
                     child: StopCard(stop: s),
                   )),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
@@ -438,6 +460,9 @@ class StopCard extends StatelessWidget {
   }
 }
 
+// ============================================================
+// ÉCRAN TRAJETS
+// ============================================================
 class TripsPage extends StatelessWidget {
   const TripsPage({super.key});
 
@@ -446,6 +471,7 @@ class TripsPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
+        bottom: false,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
@@ -477,6 +503,7 @@ class TripsPage extends StatelessWidget {
                 ],
               ),
             ),
+            const SizedBox(height: 20),
           ],
         ),
       ),
@@ -500,6 +527,9 @@ class TripsPage extends StatelessWidget {
   }
 }
 
+// ============================================================
+// ÉCRAN PARAMÈTRES
+// ============================================================
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
   @override
@@ -515,6 +545,7 @@ class _SettingsPageState extends State<SettingsPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
+        bottom: false,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
@@ -547,6 +578,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 ],
               ),
             ),
+            const SizedBox(height: 20),
           ],
         ),
       ),
@@ -614,6 +646,9 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 }
 
+// ============================================================
+// ÉCRAN ALERTES
+// ============================================================
 class AlertsPage extends StatelessWidget {
   const AlertsPage({super.key});
 
@@ -622,6 +657,7 @@ class AlertsPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
+        bottom: false,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
@@ -660,6 +696,7 @@ class AlertsPage extends StatelessWidget {
                 ),
               ),
             )),
+            const SizedBox(height: 20),
           ],
         ),
       ),
@@ -667,6 +704,9 @@ class AlertsPage extends StatelessWidget {
   }
 }
 
+// ============================================================
+// ÉCRAN DÉTAIL ARRÊT
+// ============================================================
 class StopDetailPage extends StatelessWidget {
   final Stop stop;
   const StopDetailPage({super.key, required this.stop});
@@ -753,6 +793,9 @@ class StopDetailPage extends StatelessWidget {
   }
 }
 
+// ============================================================
+// ASSISTANT IA
+// ============================================================
 class AIChatPage extends StatefulWidget {
   const AIChatPage({super.key});
   @override
@@ -763,7 +806,10 @@ class _AIChatPageState extends State<AIChatPage> {
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
   final List<Map<String, String>> _messages = [
-    {'role': 'ai', 'text': 'Bonjour ! Je suis votre assistant Dakar Bus. Posez-moi une question.'},
+    {
+      'role': 'ai',
+      'text': 'Bonjour ! Je suis votre assistant Dakar Bus. Posez-moi une question : destination, arrêt, ligne TER, BRT, AFTU, Tata ou DDD.'
+    },
   ];
 
   void _send() {
@@ -779,23 +825,77 @@ class _AIChatPageState extends State<AIChatPage> {
     });
   }
 
+  String _normalize(String s) {
+    s = s.toLowerCase();
+    s = s.replaceAll('é', 'e').replaceAll('è', 'e').replaceAll('ê', 'e');
+    s = s.replaceAll('à', 'a').replaceAll('â', 'a');
+    s = s.replaceAll('î', 'i').replaceAll('ï', 'i');
+    s = s.replaceAll('ô', 'o').replaceAll('ö', 'o');
+    s = s.replaceAll('ù', 'u').replaceAll('û', 'u');
+    s = s.replaceAll('ç', 'c');
+    return s;
+  }
+
   String _generateResponse(String query) {
-    final q = query.toLowerCase();
-    if (q.contains('brt')) return 'Prochain BRT à Colobane dans 1 min, dir. Guédiawaye Petersen. 400 FCFA.';
-    if (q.contains('ter')) return 'Prochain TER de Dakar dans 5 min, dir. Diamniadio. 500 FCFA.';
-    if (q.contains('aftu') || q.contains('23')) return 'AFTU Ligne 23 dans 3 min, dir. Parcelles Assainies. 200 FCFA.';
-    if (q.contains('tata') || q.contains('12')) return 'Tata 12 dans 4 min, dir. Guédiawaye. 250 FCFA.';
-    if (q.contains('ddd')) return 'DDD Ligne 12 dans 6 min, dir. Ouakam. 300 FCFA.';
-    if (q.contains('plateau')) return 'Pour le Plateau : BRT depuis Colobane, environ 15 min.';
-    if (q.contains('bonjour') || q.contains('salut')) return 'Bonjour ! Comment puis-je vous aider ?';
-    return 'Je peux vous renseigner sur TER, BRT, AFTU, Tata et DDD.';
+    final q = _normalize(query);
+
+    for (final stop in demoStops) {
+      final stopName = _normalize(stop.name);
+      if (q.contains(stopName) || stopName.contains(q)) {
+        return '📍 ${stop.name}\nDirection : ${stop.direction}\nProchain passage : ${stop.schedule}\nTarif : ${stop.price}\nDistance : ${stop.distance}';
+      }
+    }
+
+    if (q.contains('diamniadio')) return '🚆 Pour Diamniadio : TER depuis la Gare de Dakar. 13 gares, terminus Diamniadio. ~40 min. Tarif jusqu\'à 800 FCFA.';
+    if (q.contains('plateau')) return '🚌 Pour le Plateau : BRT depuis Colobane (~15 min, 400 FCFA) ou DDD Ligne 7 (~20 min, 300 FCFA).';
+    if (q.contains('guediawaye')) return '🚌 Pour Guédiawaye : BRT depuis Colobane (PEM Guédiawaye). ~20 min. Tarif 400 FCFA.';
+    if (q.contains('parcelles')) return '🚌 Pour Parcelles Assainies : AFTU Ligne 23 depuis Colobane. 3 min d\'attente. Tarif 200 FCFA.';
+    if (q.contains('ouakam') || q.contains('almadies')) return '🚌 Pour Ouakam / Almadies : DDD Ligne 12. 6 min d\'attente. Tarif 300 FCFA.';
+    if (q.contains('petersen')) return '🚌 Petersen est desservi par le BRT Ligne B1 (terminus sud). Tarif 400 FCFA.';
+    if (q.contains('rufisque')) return '🚆 Pour Rufisque : TER depuis Dakar (11ème gare). Tarif ~700 FCFA.';
+    if (q.contains('thiaroye')) return '🚆 Thiaroye est la 7ème gare du TER depuis Dakar. Tarif ~500 FCFA.';
+    if (q.contains('keur mbaye') || q.contains('keurmbaye')) return '🚆 Keur Mbaye Fall est la 9ème gare du TER depuis Dakar, direction Diamniadio. Tarif ~600 FCFA.';
+    if (q.contains('colobane')) return '📍 Colobane : hub central avec TER + BRT + bus AFTU. Connexion facile vers tous les quartiers.';
+    if (q.contains('yeumbeul')) return '🚆 Yeumbeul est la 8ème gare du TER. Direction Diamniadio. Tarif ~600 FCFA.';
+    if (q.contains('bargny')) return '🚆 Bargny est la 12ème gare du TER, avant Diamniadio. Tarif ~700 FCFA.';
+    if (q.contains('hann')) return '🚆 Hann est la 3ème gare du TER depuis Dakar. Tarif 500 FCFA.';
+    if (q.contains('pikine')) return '🚆 Pikine est la 6ème gare du TER depuis Dakar. Tarif 500 FCFA.';
+
+    if (q.contains('ter') || q.contains('train')) return '🚆 Le TER relie Dakar à Diamniadio via 13 gares : Dakar, Colobane, Hann, Dalifort, Baux Maraîchers, Pikine, Thiaroye, Yeumbeul, Keur Mbaye Fall, PNR, Rufisque, Bargny, Diamniadio. Prochain départ de Dakar dans 2 min.';
+    if (q.contains('brt')) return '🚍 Le BRT compte 23 stations de Petersen à Guédiawaye. Prochain BRT à Colobane dans 1 min. Tarif 400 FCFA.';
+    if (q.contains('aftu')) return '🚌 AFTU couvre Dakar. Ligne 23 vers Parcelles Assainies dans 3 min. Tarif 200 FCFA.';
+    if (q.contains('tata')) return '🚌 Les bus Tata desservent plusieurs quartiers. Tata 12 vers Guédiawaye dans 4 min. Tarif 250 FCFA.';
+    if (q.contains('ddd') || q.contains('dakar dem dikk')) return '🚌 DDD : Ligne 12 vers Ouakam dans 6 min. Tarif 300 FCFA.';
+
+    if (q.contains('bonjour') || q.contains('salut') || q.contains('bonsoir') || q.contains('hello')) {
+      return 'Bonjour ! Je peux vous aider à trouver un trajet, une ligne ou un arrêt. Que cherchez-vous ?';
+    }
+    if (q.contains('merci')) return 'Avec plaisir ! Autre chose ?';
+    if (q.contains('aide') || q.contains('help')) {
+      return 'Je comprends : destinations, lignes (TER, BRT, AFTU, Tata, DDD), arrêts, tarifs et horaires. Exemples : « Je veux aller à Diamniadio », « Prochain BRT », « Où est Colobane ? »';
+    }
+
+    final words = q.split(' ').where((w) => w.length > 3).toList();
+    for (final word in words) {
+      for (final stop in demoStops) {
+        if (_normalize(stop.name).contains(word)) {
+          return '📍 ${stop.name}\n${stop.direction}\nProchain : ${stop.schedule} · ${stop.price}';
+        }
+      }
+    }
+
+    return 'Je n\'ai pas trouvé d\'information précise. Essayez : « Je veux aller à Diamniadio », « Prochain BRT », « Gare TER Colobane », « Plateau », « Guédiawaye ».';
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Assistant IA'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+      appBar: AppBar(
+        title: const Text('Assistant IA'),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+      ),
       body: Column(
         children: [
           Expanded(
@@ -826,21 +926,24 @@ class _AIChatPageState extends State<AIChatPage> {
           Container(
             padding: const EdgeInsets.all(8),
             color: AppColors.surface,
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    onSubmitted: (_) => _send(),
-                    decoration: const InputDecoration(
-                      hintText: 'Posez votre question...',
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12),
+            child: SafeArea(
+              top: false,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _controller,
+                      onSubmitted: (_) => _send(),
+                      decoration: const InputDecoration(
+                        hintText: 'Posez votre question...',
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12),
+                      ),
                     ),
                   ),
-                ),
-                IconButton(onPressed: _send, icon: const Icon(Icons.send, color: AppColors.primary)),
-              ],
+                  IconButton(onPressed: _send, icon: const Icon(Icons.send, color: AppColors.primary)),
+                ],
+              ),
             ),
           ),
         ],
