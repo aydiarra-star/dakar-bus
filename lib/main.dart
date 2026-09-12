@@ -1093,33 +1093,24 @@ class RoutePlanner {
     return h + 'h' + m;
   }
 
-  // ------------------------------------------------------------
-  // RESOLUTION DE LIEU
-  // Priorite : arrets (nom exact) > lieux (nom exact)
-  //            > arrets (contient) > lieux (contient)
-  // ------------------------------------------------------------
   static Place? _resolvePlace(String query) {
     final q = query.trim().toLowerCase();
     if (q.isEmpty) {
       return null;
     }
 
-    // 1. Correspondance exacte sur un arret
     for (final p in placeDatabase) {
       if (p.linkedStop != null && p.name.toLowerCase() == q) {
         return p;
       }
     }
 
-    // 2. Correspondance exacte sur un lieu
     for (final p in placeDatabase) {
       if (p.name.toLowerCase() == q) {
         return p;
       }
     }
 
-    // 3. Arret dont le nom contient la requete
-    // (prioritaire sur les lieux generiques)
     for (final p in placeDatabase) {
       if (p.linkedStop != null &&
           p.name.toLowerCase().contains(q)) {
@@ -1127,21 +1118,18 @@ class RoutePlanner {
       }
     }
 
-    // 4. Lieu dont le nom contient la requete
     for (final p in placeDatabase) {
       if (p.name.toLowerCase().contains(q)) {
         return p;
       }
     }
 
-    // 5. Requete qui contient le nom du lieu
     for (final p in placeDatabase) {
       if (q.contains(p.name.toLowerCase())) {
         return p;
       }
     }
 
-    // 6. Recherche par mots
     for (final word in q.split(' ')) {
       if (word.length < 3) {
         continue;
@@ -3607,7 +3595,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   const SizedBox(height: 4),
                   const Text(
-                    'Version 4.0',
+                    'Version 4.1',
                     style: TextStyle(
                       fontSize: 13,
                       color: AppColors.textSecondary,
@@ -3646,7 +3634,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   const SizedBox(height: 6),
                   const Text(
-                    'Moteur d itineraire intelligent actif',
+                    'Assistant IA intelligent actif',
                     style: TextStyle(
                       fontSize: 11,
                       color: AppColors.success,
@@ -4023,7 +4011,7 @@ class StopDetailPage extends StatelessWidget {
 }
 
 // ============================================================
-// ASSISTANT IA
+// ASSISTANT IA INTELLIGENT
 // ============================================================
 class AIChatPage extends StatefulWidget {
   const AIChatPage({super.key});
@@ -4039,11 +4027,10 @@ class _AIChatPageState extends State<AIChatPage> {
     {
       'role': 'ai',
       'text': 'Bonjour ! Je suis l assistant Dakar Bus.\n\n'
-          'Je peux vous renseigner sur :\n'
-          '- les lignes TER, BRT, AFTU, Tata, DDD\n'
-          '- les arrets et stations\n'
-          '- les horaires programmes\n'
-          '- les itineraires\n\n'
+          'Je peux vous aider a :\n'
+          '- calculer un itineraire (ex : "De Keur Mbaye Fall a Plateau")\n'
+          '- trouver le prochain depart d un arret\n'
+          '- connaitre les frequences TER et BRT\n\n'
           'Note : le temps reel n est pas encore connecte.'
     },
   ];
@@ -4081,9 +4068,199 @@ class _AIChatPageState extends State<AIChatPage> {
     return s;
   }
 
+  bool _isGreeting(String q) {
+    return q.contains('bonjour') ||
+        q.contains('salut') ||
+        q.contains('bonsoir') ||
+        q.contains('coucou');
+  }
+
+  bool _isAboutPrice(String q) {
+    return q.contains('prix') ||
+        q.contains('tarif') ||
+        q.contains('fcfa') ||
+        q.contains('cout') ||
+        q.contains('combien');
+  }
+
+  bool _isAboutRealTime(String q) {
+    return q.contains('retard') ||
+        q.contains('temps reel') ||
+        q.contains('live') ||
+        q.contains('position du bus') ||
+        q.contains('ou est le bus');
+  }
+
+  bool _wantsRoute(String q) {
+    return q.contains('aller') ||
+        q.contains('comment') ||
+        q.contains('trajet') ||
+        q.contains('rejoindre') ||
+        q.contains('rendre') ||
+        q.contains('itineraire') ||
+        q.contains('chemin') ||
+        q.contains('direction');
+  }
+
+  bool _destinationConnue(String toName) {
+    final t = toName.toLowerCase();
+    for (final p in placeDatabase) {
+      if (p.name.toLowerCase().contains(t) ||
+          t.contains(p.name.toLowerCase())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  String? _tryRouteQuery(String q) {
+    if (!_wantsRoute(q)) {
+      return null;
+    }
+
+    String? fromName;
+    String? toName;
+
+    // Pattern 1 : "de X a Y" / "de X vers Y" / "de X pour Y"
+    final deMatch = RegExp(
+      r'de\s+(.+?)\s+(?:a|vers|pour|jusqu.?a)\s+(.+)',
+    ).firstMatch(q);
+    if (deMatch != null) {
+      fromName = deMatch.group(1);
+      toName = deMatch.group(2);
+    } else {
+      // Pattern 2 : "vers X" / "pour X" / "a X" / "aller a X"
+      final toMatch = RegExp(
+        r'(?:vers|pour|aller\s+a|aller\s+au|aller\s+aux|jusqu.?a|rejoindre|a)\s+(.+)',
+      ).firstMatch(q);
+      if (toMatch != null) {
+        toName = toMatch.group(1);
+      }
+    }
+
+    if (toName == null) {
+      return null;
+    }
+
+    toName = toName
+        .trim()
+        .replaceAll(RegExp(r'[?!.,;:]+$'), '')
+        .trim();
+    if (fromName != null) {
+      fromName = fromName
+          .trim()
+          .replaceAll(RegExp(r'[?!.,;:]+$'), '')
+          .trim();
+    }
+
+    if (toName.isEmpty) {
+      return null;
+    }
+
+    if (!_destinationConnue(toName)) {
+      return 'Je ne trouve pas de lieu correspondant a "' +
+          toName +
+          '" dans notre base.';
+    }
+
+    if (fromName == null || fromName.isEmpty) {
+      return 'Pour calculer un itineraire vers ' +
+          toName +
+          ', precisez le depart.\n\nExemple : "De Keur Mbaye Fall a ' +
+          toName +
+          '"';
+    }
+
+    final result = RoutePlanner.plan(
+      fromQuery: fromName,
+      toQuery: toName,
+    );
+
+    if (result.hasRoutes) {
+      return _formatRouteAnswer(result);
+    }
+
+    return result.errorMessage ??
+        'Je ne peux pas calculer cet itineraire avec les donnees actuelles.';
+  }
+
+  String _formatRouteAnswer(RouteSearchResult res) {
+    final buf = StringBuffer();
+    buf.writeln('Voici les itineraires proposes :\n');
+
+    for (int i = 0; i < res.routes.length; i++) {
+      final r = res.routes[i];
+      if (i > 0) {
+        buf.writeln('---');
+        buf.writeln();
+      }
+
+      final titre =
+          (i == 0 ? 'Meilleur' : 'Option ' + (i + 1).toString());
+      buf.writeln(titre + ' : ' + r.fromName + ' -> ' + r.toName);
+      buf.writeln(
+          'Duree totale : ' + r.totalMinutes.toString() + ' min');
+      if (r.transferCount > 0) {
+        buf.writeln(
+            'Correspondances : ' + r.transferCount.toString());
+      }
+      buf.writeln();
+
+      for (final seg in r.segments) {
+        if (seg.isWalk) {
+          buf.writeln('- Marche ' +
+              seg.durationMinutes.toString() +
+              ' min');
+        } else {
+          buf.writeln('- ' +
+              seg.modeLabel +
+              ' : ' +
+              seg.from +
+              ' -> ' +
+              seg.to);
+          if (seg.departureTime != null &&
+              seg.arrivalTime != null) {
+            buf.writeln('  Depart ' +
+                seg.departureTime! +
+                ' -> Arrivee ' +
+                seg.arrivalTime!);
+          }
+        }
+      }
+      buf.writeln();
+    }
+
+    buf.writeln('Statut : programme (officiel SETER / SunuBRT).');
+    buf.writeln('Le temps reel n est pas encore disponible.');
+
+    return buf.toString();
+  }
+
   String _generateResponse(String query) {
     final q = _normalize(query);
 
+    // 1. Salutations
+    if (_isGreeting(q)) {
+      return 'Bonjour ! Comment puis-je vous aider ?';
+    }
+
+    // 2. Prix
+    if (_isAboutPrice(q)) {
+      return 'Je ne dispose pas d informations tarifaires fiables pour le moment.';
+    }
+
+    // 3. Temps reel
+    if (_isAboutRealTime(q)) {
+      return 'Les donnees temps reel ne sont pas encore connectees.\nLes horaires affiches sont programmes (officiels SETER / SunuBRT).';
+    }
+
+    // 4. Question d'itineraire (priorite haute)
+    final routeAnswer = _tryRouteQuery(q);
+    if (routeAnswer != null) {
+      return routeAnswer;
+    }
+
+    // 5. Arret specifique
     for (final stop in allStops) {
       final sn = _normalize(stop.name);
       if (q.contains(sn) || sn.contains(q)) {
@@ -4115,57 +4292,55 @@ class _AIChatPageState extends State<AIChatPage> {
       }
     }
 
-    if (q.contains('diamniadio')) {
-      return 'Pour Diamniadio : TER depuis la Gare de Dakar.\n\nHoraire officiel SETER.';
-    }
-    if (q.contains('plateau')) {
-      return 'Pour le Plateau : BRT depuis Colobane.\n\nHoraire officiel SunuBRT.';
-    }
-    if (q.contains('guediawaye')) {
-      return 'Pour Guediawaye : BRT vers PEM Guediawaye.\n\nHoraire officiel SunuBRT.';
-    }
-    if (q.contains('parcelles')) {
-      return 'Pour Parcelles Assainies : AFTU Ligne 23.\n\nHoraires de demonstration.';
-    }
-    if (q.contains('ouakam') || q.contains('almadies')) {
-      return 'Pour Ouakam / Almadies : DDD Ligne 12.\n\nHoraires de demonstration.';
-    }
-    if (q.contains('rufisque')) {
-      return 'Pour Rufisque : TER depuis Dakar, 11eme gare.\n\nHoraire officiel SETER.';
-    }
-    if (q.contains('colobane')) {
-      return 'Colobane : hub TER + BRT + AFTU.';
-    }
+    // 6. Reseaux specifiques
     if (q.contains('ter') || q.contains('train')) {
-      return _isSunday()
-          ? 'TER : Dakar - Diamniadio, 13 gares.\nAujourd hui (dimanche) : frequence 20 min, 5h30-22h.'
-          : 'TER : Dakar - Diamniadio, 13 gares.\nFrequence officielle SETER : 10 min, 5h30-22h.';
+      final freq = _isSunday() ? '20 min' : '10 min';
+      return 'TER (officiel SETER) : Dakar - Diamniadio, 13 gares.\nFrequence : ' +
+          freq +
+          ', 5h30-22h.';
     }
     if (q.contains('brt')) {
-      return 'BRT : 23 stations Petersen - Guediawaye.\nFrequence officielle SunuBRT : 6 min, 6h-21h.';
+      return 'BRT (officiel SunuBRT) : 23 stations Petersen - Guediawaye.\nFrequence : 6 min, 6h-21h.';
     }
     if (q.contains('aftu')) {
-      return 'AFTU : horaires de demonstration.';
+      return 'AFTU : donnees de demonstration.\nSource officielle non encore connectee.';
     }
     if (q.contains('tata')) {
-      return 'Tata : horaires de demonstration.';
+      return 'Tata : donnees de demonstration.\nSource officielle non encore connectee.';
     }
-    if (q.contains('ddd')) {
-      return 'Dakar Dem Dikk : horaires de demonstration.';
-    }
-    if (q.contains('prix') ||
-        q.contains('tarif') ||
-        q.contains('fcfa')) {
-      return 'Pas d informations tarifaires fiables.';
-    }
-    if (q.contains('bonjour') || q.contains('salut')) {
-      return 'Bonjour !';
-    }
-    if (q.contains('merci')) {
-      return 'Avec plaisir !';
+    if (q.contains('ddd') || q.contains('dem dikk')) {
+      return 'Dakar Dem Dikk : donnees de demonstration.\nSource officielle non encore connectee.';
     }
 
-    return 'Je ne dispose pas d une donnee fiable pour cela.';
+    // 7. Mots-cles de lieux sans intention d'itineraire
+    final keywords = [
+      'diamniadio',
+      'plateau',
+      'guediawaye',
+      'parcelles',
+      'ouakam',
+      'almadies',
+      'rufisque',
+      'thiaroye',
+      'keur mbaye',
+      'colobane',
+      'yeumbeul',
+      'bargny',
+      'hann',
+      'pikine',
+    ];
+    for (final k in keywords) {
+      if (q.contains(k)) {
+        return 'Vous parlez de "' +
+            k +
+            '".\n\nPour calculer un itineraire, ecrivez par exemple :\n"De Keur Mbaye Fall a ' +
+            k +
+            '"';
+      }
+    }
+
+    // 8. Fallback
+    return 'Je ne dispose pas d une donnee fiable pour repondre.\n\nEssayez par exemple :\n- "De Keur Mbaye Fall a Plateau"\n- "Prochain TER"\n- "Ou est Colobane ?"';
   }
 
   @override
