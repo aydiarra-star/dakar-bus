@@ -554,6 +554,10 @@ class TimeHelper {
     if (minutes == 1) return '1 min';
     return '$minutes min';
   }
+
+  /// Vrai si l'attente dépasse 3h (le prochain bus est probablement
+  /// le lendemain — évite l'affichage absurde de type "1199 min").
+  static bool isProbablyNextDay(int minutes) => minutes > 180;
 }
 
 class DistanceHelper {
@@ -975,6 +979,13 @@ class StopCard extends StatelessWidget {
       timeWidget = Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
         Text('Départ', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: stop.color)),
         Text('imminent', style: TextStyle(fontSize: 11, color: stop.color, fontWeight: FontWeight.w600)),
+      ]);
+    } else if (TimeHelper.isProbablyNextDay(remaining)) {
+      // CORRECTION : au-delà de 3h d'attente, on affiche "Demain"
+      // plutôt qu'un nombre de minutes absurde (ex: 1199 min).
+      timeWidget = Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+        const Text('Demain', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+        Text(timeLabel ?? '--:--', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
       ]);
     } else {
       final isUrgent = remaining <= 3;
@@ -1402,7 +1413,10 @@ class _AlertsPageState extends State<AlertsPage> {
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Text(a['stop'] as String, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
                       if (remaining != null && timeLabel != null)
-                        Text('Départ prévu $timeLabel · dans ${TimeHelper.formatRemaining(remaining)}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))
+                        if (TimeHelper.isProbablyNextDay(remaining))
+                          Text('Départ prévu demain à $timeLabel', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))
+                        else
+                          Text('Départ prévu $timeLabel · dans ${TimeHelper.formatRemaining(remaining)}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))
                       else
                         const Text('Horaire non disponible', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                       const SizedBox(height: 4),
@@ -1599,7 +1613,17 @@ class StopDetailPage extends StatelessWidget {
           ]),
           const SizedBox(height: 12),
           if (future.isEmpty)
-            Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(10)), child: const Text('Horaire non disponible pour le moment', style: TextStyle(color: AppColors.textSecondary)))
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(10)),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Text('Plus de passage aujourd\'hui', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
+                if (stop.departureMinutesFromMidnight.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Text('Prochain départ demain à ${stop.nextDepartureLabel() ?? "--:--"}', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                ],
+              ]),
+            )
           else
             ...future.map((d) {
               final h = (d ~/ 60).toString().padLeft(2, '0');
@@ -1684,6 +1708,9 @@ class _AIChatPageState extends State<AIChatPage> {
         final r = stop.remainingMinutes();
         final t = stop.nextDepartureLabel();
         if (r != null && t != null) {
+          if (TimeHelper.isProbablyNextDay(r)) {
+            return '📍 ${stop.name}\n\nDirection : ${stop.direction}\nDistance : ${DistanceHelper.format(stop.distanceMeters)}\nPlus de passage aujourd\'hui. Prochain départ demain à $t.\n\n🟠 Horaire programmé, pas temps réel.';
+          }
           return '📍 ${stop.name}\n\nDirection : ${stop.direction}\nDistance : ${DistanceHelper.format(stop.distanceMeters)}\nProchain départ : $t (${TimeHelper.formatRemaining(r)})\n\n🟠 Horaire programmé, pas temps réel.';
         }
         return '📍 ${stop.name}\n\nDirection : ${stop.direction}\n\nHoraire non disponible pour le moment.';
@@ -1720,7 +1747,7 @@ class _AIChatPageState extends State<AIChatPage> {
     if (q.contains('bonjour') || q.contains('salut')) return 'Bonjour ! Comment puis-je vous aider ?';
     if (q.contains('merci')) return 'Avec plaisir !';
 
-    return 'Je n\'ai pas d\'information fiable pour répond         re.\n\nEssayez :\n• « Prochain TER »\n• « Où est Colobane ? »\n• « Comment aller à Diamniadio ? »';
+    return 'Je n\'ai pas d\'information fiable pour répondre.\n\nEssayez :\n• « Prochain TER »\n• « Où est Colobane ? »\n• « Comment aller à Diamniadio ? »';
   }
 
   @override
@@ -1754,7 +1781,7 @@ class _AIChatPageState extends State<AIChatPage> {
         )),
         Container(
           padding: const EdgeInsets.all(8),
- color: AppColors.surface,
+          color: AppColors.surface,
           child: SafeArea(top: false, child: Row(children: [
             Expanded(child: TextField(
               controller: _controller,
