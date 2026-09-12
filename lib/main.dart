@@ -728,9 +728,9 @@ final List<TransitRoute> demoRoutes = [
     color: AppColors.ddd,
     points: [
       LatLng(14.7350, -17.5100),
-      LatLayeng(14.7250, -17.490 Fall0),
-      LatLng(14.7100,', -17. Lat4700),
-     L LatLng(14.6950, -17.4550),
+      LatLng(14.7250, -17.4900),
+      LatLng(14.7100, -17.4700),
+      LatLng(14.6950, -17.4550),
       LatLng(14.6800, -17.4450),
     ],
   ),
@@ -773,7 +773,7 @@ List<Place> buildPlaceDatabase() {
     ['Hann', LatLng(14.7222, -17.4321)],
     ['Thiaroye', LatLng(14.7588, -17.3803)],
     ['Yeumbeul', LatLng(14.7700, -17.3400)],
-    ['Keur Mbng(14.7750, -17.3100)],
+    ['Keur Mbaye Fall', LatLng(14.7750, -17.3100)],
     ['Bargny', LatLng(14.6900, -17.2200)],
   ];
 
@@ -820,17 +820,15 @@ class RoutePlanner {
     if (fromPlace == null) {
       return RouteSearchResult(
         missingData: ['Lieu de depart introuvable'],
-        errorMessage: 'Nous ne reconnaissons pas ' +
-            fromQuery +
-            '.',
+        errorMessage:
+            'Nous ne reconnaissons pas ' + fromQuery + '.',
       );
     }
     if (toPlace == null) {
       return RouteSearchResult(
         missingData: ['Destination introuvable'],
-        errorMessage: 'Nous ne reconnaissons pas ' +
-            toQuery +
-            '.',
+        errorMessage:
+            'Nous ne reconnaissons pas ' + toQuery + '.',
       );
     }
 
@@ -842,13 +840,15 @@ class RoutePlanner {
     if (fromStop == null) {
       return RouteSearchResult(
         missingData: ['Aucun arret proche du depart'],
-        errorMessage: 'Aucun arret proche de ' + fromPlace.name,
+        errorMessage:
+            'Aucun arret proche de ' + fromPlace.name,
       );
     }
     if (toStop == null) {
       return RouteSearchResult(
         missingData: ['Aucun arret proche de la destination'],
-        errorMessage: 'Aucun arret proche de ' + toPlace.name,
+        errorMessage:
+            'Aucun arret proche de ' + toPlace.name,
       );
     }
 
@@ -882,10 +882,12 @@ class RoutePlanner {
 
     if (candidates.isEmpty) {
       return RouteSearchResult(
-        missingData: ['Correspondance connue entre ' +
-            fromStop.name +
-            ' et ' +
-            toStop.name],
+        missingData: [
+          'Correspondance connue entre ' +
+              fromStop.name +
+              ' et ' +
+              toStop.name,
+        ],
         errorMessage:
             'Aucun itineraire fiable avec les donnees actuelles.',
       );
@@ -1077,7 +1079,9 @@ class RoutePlanner {
       return 0;
     }
     final speedKmh =
-        (a.modeLabel == 'TER' || a.modeLabel == 'BRT') ? 30.0 : 15.0;
+        (a.modeLabel == 'TER' || a.modeLabel == 'BRT')
+            ? 30.0
+            : 15.0;
     final minutes = ((dist / 1000.0) / speedKmh * 60).ceil();
     return minutes < 2 ? 2 : minutes;
   }
@@ -1315,10 +1319,7 @@ class _MainShellState extends State<MainShell> {
           _gpsMessage =
               'GPS desactive. Activez la localisation.';
         });
-        _showSnack(
-          'GPS desactive.',
-          AppColors.warning,
-        );
+        _showSnack('GPS desactive.', AppColors.warning);
         return;
       }
 
@@ -1388,10 +1389,7 @@ class _MainShellState extends State<MainShell> {
         _gpsState = GpsState.error;
         _gpsMessage = 'Erreur GPS.';
       });
-      _showSnack(
-        'Erreur GPS.',
-        AppColors.ter,
-      );
+      _showSnack('Erreur GPS.', AppColors.ter);
     }
   }
 
@@ -1450,26 +1448,34 @@ class _MainShellState extends State<MainShell> {
             destinations: const [
               NavigationDestination(
                 icon: Icon(Icons.explore_outlined),
-                selectedIcon:
-                    Icon(Icons.explore, color: AppColors.primary),
+                selectedIcon: Icon(
+                  Icons.explore,
+                  color: AppColors.primary,
+                ),
                 label: 'Explorer',
               ),
               NavigationDestination(
                 icon: Icon(Icons.alt_route_outlined),
-                selectedIcon:
-                    Icon(Icons.alt_route, color: AppColors.primary),
+                selectedIcon: Icon(
+                  Icons.alt_route,
+                  color: AppColors.primary,
+                ),
                 label: 'Trajets',
               ),
               NavigationDestination(
                 icon: Icon(Icons.notifications_outlined),
-                selectedIcon: Icon(Icons.notifications,
-                    color: AppColors.primary),
+                selectedIcon: Icon(
+                  Icons.notifications,
+                  color: AppColors.primary,
+                ),
                 label: 'Alertes',
               ),
               NavigationDestination(
                 icon: Icon(Icons.settings_outlined),
-                selectedIcon:
-                    Icon(Icons.settings, color: AppColors.primary),
+                selectedIcon: Icon(
+                  Icons.settings,
+                  color: AppColors.primary,
+                ),
                 label: 'Reglages',
               ),
             ],
@@ -1643,54 +1649,58 @@ class _ExplorerPageState extends State<ExplorerPage> {
                       ),
                       PolylineLayer(
                         polylines: demoRoutes
-                            .map((r) => Polyline(
-                                  points: r.points,
-                                  color: r.color,
-                                  strokeWidth: 3.5,
-                                ))
+                            .map(
+                              (r) => Polyline(
+                                points: r.points,
+                                color: r.color,
+                                strokeWidth: 3.5,
+                              ),
+                            )
                             .toList(),
                       ),
                       MarkerLayer(
                         markers: mapPriorityStops
-                            .map((s) => Marker(
-                                  point: s.location,
-                                  width: 24,
-                                  height: 24,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      _centerOnStop(s);
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) =>
-                                              StopDetailPage(stop: s),
-                                        ),
-                                      );
-                                    },
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: s.color,
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: Colors.white,
-                                          width: 2,
-                                        ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black
-                                                .withOpacity(0.2),
-                                            blurRadius: 3,
-                                          ),
-                                        ],
+                            .map(
+                              (s) => Marker(
+                                point: s.location,
+                                width: 24,
+                                height: 24,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    _centerOnStop(s);
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            StopDetailPage(stop: s),
                                       ),
-                                      child: Icon(
-                                        s.icon,
+                                    );
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: s.color,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
                                         color: Colors.white,
-                                        size: 12,
+                                        width: 2,
                                       ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black
+                                              .withOpacity(0.2),
+                                          blurRadius: 3,
+                                        ),
+                                      ],
+                                    ),
+                                    child: Icon(
+                                      s.icon,
+                                      color: Colors.white,
+                                      size: 12,
                                     ),
                                   ),
-                                ))
+                                ),
+                              ),
+                            )
                             .toList(),
                       ),
                       if (widget.userPosition != null)
@@ -1733,7 +1743,10 @@ class _ExplorerPageState extends State<ExplorerPage> {
                     right: 12,
                     child: ElevatedButton.icon(
                       onPressed: _openAI,
-                      icon: const Icon(Icons.auto_awesome, size: 14),
+                      icon: const Icon(
+                        Icons.auto_awesome,
+                        size: 14,
+                      ),
                       label: const Text(
                         'Assistant IA',
                         style: TextStyle(fontSize: 11),
@@ -1747,7 +1760,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
                         ),
                         minimumSize: const Size(0, 32),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius:
+                              BorderRadius.circular(20),
                         ),
                       ),
                     ),
@@ -1760,8 +1774,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
                       child: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color:
-                              AppColors.surface.withOpacity(0.95),
+                          color: AppColors.surface
+                              .withOpacity(0.95),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(
@@ -1783,8 +1797,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
                         vertical: 5,
                       ),
                       decoration: BoxDecoration(
-                        color:
-                            AppColors.surface.withOpacity(0.95),
+                        color: AppColors.surface
+                            .withOpacity(0.95),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
@@ -1817,8 +1831,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
                         width: 36,
                         height: 36,
                         decoration: BoxDecoration(
-                          color:
-                              AppColors.primary.withOpacity(0.12),
+                          color: AppColors.primary
+                              .withOpacity(0.12),
                           borderRadius:
                               BorderRadius.circular(10),
                         ),
@@ -1883,8 +1897,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
                               widget.gpsMessage!,
                               style: const TextStyle(
                                 fontSize: 11,
-                                color:
-                                    AppColors.textSecondary,
+                                color: AppColors
+                                    .textSecondary,
                               ),
                             ),
                           ),
@@ -1897,7 +1911,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
                     decoration: BoxDecoration(
                       color: AppColors.surface,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.divider),
+                      border:
+                          Border.all(color: AppColors.divider),
                     ),
                     child: TextField(
                       controller: _searchCtrl,
@@ -1919,14 +1934,13 @@ class _ExplorerPageState extends State<ExplorerPage> {
                                 icon: const Icon(
                                   Icons.close,
                                   size: 18,
-                                  color:
-                                      AppColors.textSecondary,
+                                  color: AppColors
+                                      .textSecondary,
                                 ),
                                 onPressed: () {
                                   _searchCtrl.clear();
-                                  setState(
-                                    () => _searchFocused = false,
-                                  );
+                                  setState(() =>
+                                      _searchFocused = false);
                                 },
                               )
                             : null,
@@ -1949,40 +1963,41 @@ class _ExplorerPageState extends State<ExplorerPage> {
                       ),
                       child: Column(
                         children: _searchResults
-                            .map((s) => ListTile(
-                                  dense: true,
-                                  leading: Icon(
-                                    s.icon,
-                                    color: s.color,
-                                    size: 20,
+                            .map(
+                              (s) => ListTile(
+                                dense: true,
+                                leading: Icon(
+                                  s.icon,
+                                  color: s.color,
+                                  size: 20,
+                                ),
+                                title: Text(
+                                  s.name,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
                                   ),
-                                  title: Text(
-                                    s.name,
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight:
-                                          FontWeight.w600,
-                                    ),
-                                  ),
-                                  subtitle: Row(
-                                    children: [
-                                      Text(
-                                        s.direction,
-                                        style: const TextStyle(
-                                          fontSize: 11,
-                                        ),
+                                ),
+                                subtitle: Row(
+                                  children: [
+                                    Text(
+                                      s.direction,
+                                      style: const TextStyle(
+                                        fontSize: 11,
                                       ),
-                                      const SizedBox(width: 6),
-                                      _categoryChip(s),
-                                    ],
-                                  ),
-                                  onTap: () {
-                                    _searchCtrl.text = s.name;
-                                    setState(() =>
-                                        _searchFocused = false);
-                                    _centerOnStop(s);
-                                  },
-                                ))
+                                    ),
+                                    const SizedBox(width: 6),
+                                    _categoryChip(s),
+                                  ],
+                                ),
+                                onTap: () {
+                                  _searchCtrl.text = s.name;
+                                  setState(() =>
+                                      _searchFocused = false);
+                                  _centerOnStop(s);
+                                },
+                              ),
+                            )
                             .toList(),
                       ),
                     ),
@@ -2324,8 +2339,9 @@ class StopCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color:
-                  isUrgent ? AppColors.ter : AppColors.success,
+              color: isUrgent
+                  ? AppColors.ter
+                  : AppColors.success,
             ),
           ),
           Text(
@@ -2400,7 +2416,8 @@ class StopCard extends StatelessWidget {
                             'Depart ' + timeLabel,
                             style: const TextStyle(
                               fontSize: 11,
-                              color: AppColors.textSecondary,
+                              color:
+                                  AppColors.textSecondary,
                             ),
                           ),
                           const SizedBox(width: 6),
@@ -2828,7 +2845,7 @@ class _TripsPageState extends State<TripsPage> {
             ],
           ),
           const SizedBox(height: 12),
-          ...r.segments.asMap().entries.map((entry) {
+          ...r.segments.asMap().entries.map<Widget>((entry) {
             final seg = entry.value;
             final isLast =
                 entry.key == r.segments.length - 1;
@@ -3268,7 +3285,8 @@ class _AlertsPageState extends State<AlertsPage> {
                                       timeLabel +
                                       ' . dans ' +
                                       TimeHelper.formatRemaining(
-                                          remaining),
+                                        remaining,
+                                      ),
                                   style: const TextStyle(
                                     fontSize: 11,
                                     color: AppColors
@@ -3851,58 +3869,62 @@ class StopDetailPage extends StatelessWidget {
               ),
             )
           else
-            ...future.map((d) {
-              final h = (d ~/ 60).toString().padLeft(2, '0');
-              final m = (d % 60).toString().padLeft(2, '0');
-              final remaining = d - currentMin;
-              final isNext = d == future.first;
-              return Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: isNext
-                      ? stop.color.withOpacity(0.08)
-                      : AppColors.surface,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: isNext
-                        ? stop.color.withOpacity(0.4)
-                        : AppColors.divider,
-                    width: isNext ? 1.5 : 1,
+            ...future.map(
+              (d) {
+                final h =
+                    (d ~/ 60).toString().padLeft(2, '0');
+                final m =
+                    (d % 60).toString().padLeft(2, '0');
+                final remaining = d - currentMin;
+                final isNext = d == future.first;
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
                   ),
-                ),
-                child: Row(
-                  mainAxisAlignment:
-                      MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      h + 'h' + m,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: isNext
-                            ? stop.color
-                            : AppColors.textPrimary,
-                      ),
+                  decoration: BoxDecoration(
+                    color: isNext
+                        ? stop.color.withOpacity(0.08)
+                        : AppColors.surface,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: isNext
+                          ? stop.color.withOpacity(0.4)
+                          : AppColors.divider,
+                      width: isNext ? 1.5 : 1,
                     ),
-                    Text(
-                      TimeHelper.formatRemaining(remaining),
-                      style: TextStyle(
-                        color: isNext
-                            ? stop.color
-                            : AppColors.textSecondary,
-                        fontWeight: isNext
-                            ? FontWeight.bold
-                            : FontWeight.normal,
+                  ),
+                  child: Row(
+                    mainAxisAlignment:
+                        MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        h + 'h' + m,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: isNext
+                              ? stop.color
+                              : AppColors.textPrimary,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              );
-            }),
+                      Text(
+                        TimeHelper.formatRemaining(remaining),
+                        style: TextStyle(
+                          color: isNext
+                              ? stop.color
+                              : AppColors.textSecondary,
+                          fontWeight: isNext
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(12),
@@ -3918,7 +3940,8 @@ class StopDetailPage extends StatelessWidget {
                   stop.source.origin == DataOrigin.official
                       ? Icons.verified_outlined
                       : Icons.info_outline,
-                  color: stop.source.origin == DataOrigin.official
+                  color: stop.source.origin ==
+                          DataOrigin.official
                       ? AppColors.success
                       : AppColors.warning,
                   size: 16,
