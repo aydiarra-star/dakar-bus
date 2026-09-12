@@ -141,7 +141,6 @@ class _MainShellState extends State<MainShell> {
   }
 }
 
-// ------------------- ACCUEIL -------------------
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
@@ -153,7 +152,6 @@ class HomePage extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            // Header
             Row(
               children: [
                 Container(
@@ -185,8 +183,6 @@ class HomePage extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 20),
-
-            // Badge temps réel
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
@@ -197,7 +193,8 @@ class HomePage extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: 8, height: 8,
+                    width: 8,
+                    height: 8,
                     decoration: const BoxDecoration(
                         color: AppColors.success, shape: BoxShape.circle),
                   ),
@@ -211,8 +208,6 @@ class HomePage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-
-            // Recherche
             Container(
               decoration: BoxDecoration(
                 color: AppColors.surface,
@@ -230,8 +225,6 @@ class HomePage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-
-            // Filtres
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
@@ -243,7 +236,6 @@ class HomePage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-
             const Text('Prochains départs autour de vous',
                 style: TextStyle(
                     fontSize: 18,
@@ -266,7 +258,9 @@ class HomePage extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: selected ? AppColors.primary.withValues(alpha: 0.15) : AppColors.surface,
+          color: selected
+              ? AppColors.primary.withValues(alpha: 0.15)
+              : AppColors.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
               color: selected ? AppColors.primary : AppColors.divider),
@@ -280,8 +274,10 @@ class HomePage extends StatelessWidget {
             ],
             Text(label,
                 style: TextStyle(
-                    color: selected ? AppColors.primary : AppColors.textSecondary,
-                    fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                    color:
+                        selected ? AppColors.primary : AppColors.textSecondary,
+                    fontWeight:
+                        selected ? FontWeight.bold : FontWeight.normal,
                     fontSize: 13)),
           ],
         ),
@@ -308,8 +304,10 @@ class StopCard extends StatelessWidget {
           child: Row(
             children: [
               Container(
-                width: 48, height: 48,
-                decoration: BoxDecoration(color: stop.color, shape: BoxShape.circle),
+                width: 48,
+                height: 48,
+                decoration:
+                    BoxDecoration(color: stop.color, shape: BoxShape.circle),
                 child: Icon(stop.icon, color: Colors.white, size: 24),
               ),
               const SizedBox(width: 12),
@@ -350,7 +348,6 @@ class StopCard extends StatelessWidget {
   }
 }
 
-// ------------------- TRAJETS -------------------
 class TripsPage extends StatelessWidget {
   const TripsPage({super.key});
 
@@ -376,9 +373,11 @@ class TripsPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16)),
               child: Column(
                 children: [
-                  _tile(Icons.my_location, AppColors.primary, 'Départ', 'Gare TER Colobane'),
+                  _tile(Icons.my_location, AppColors.primary, 'Départ',
+                      'Gare TER Colobane'),
                   const Divider(height: 24),
-                  _tile(Icons.location_on, AppColors.ter, 'Arrivée', 'Guédiawaye (BRT)'),
+                  _tile(Icons.location_on, AppColors.ter, 'Arrivée',
+                      'Guédiawaye (BRT)'),
                   const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,
@@ -425,7 +424,6 @@ class TripsPage extends StatelessWidget {
   }
 }
 
-// ------------------- CARTE (avec flutter_map) -------------------
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
 
@@ -449,26 +447,30 @@ class _MapPageState extends State<MapPage> {
               ),
               children: [
                 TileLayer(
-                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  urlTemplate:
+                      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                   userAgentPackageName: 'dakar_bus',
                 ),
                 MarkerLayer(
                   markers: demoStops.map((stop) {
                     return Marker(
                       point: stop.location,
-                      width: 50, height: 50,
+                      width: 50,
+                      height: 50,
                       child: GestureDetector(
                         onTap: () {
                           Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (_) => StopDetailPage(stop: stop)));
+                                  builder: (_) =>
+                                      StopDetailPage(stop: stop)));
                         },
                         child: Container(
                           decoration: BoxDecoration(
                             color: stop.color,
                             shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
+                            border:
+                                Border.all(color: Colors.white, width: 2),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withValues(alpha: 0.2),
@@ -476,7 +478,8 @@ class _MapPageState extends State<MapPage> {
                               ),
                             ],
                           ),
-                          child: Icon(stop.icon, color: Colors.white, size: 26),
+                          child: Icon(stop.icon,
+                              color: Colors.white, size: 26),
                         ),
                       ),
                     );
@@ -484,9 +487,9 @@ class _MapPageState extends State<MapPage> {
                 ),
               ],
             ),
-            // Bouton Assistant IA
             Positioned(
-              top: 16, right: 16,
+              top: 16,
+              right: 16,
               child: ElevatedButton.icon(
                 onPressed: () {},
                 icon: const Icon(Icons.auto_awesome, size: 18),
@@ -494,7 +497,8 @@ class _MapPageState extends State<MapPage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 12),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(24)),
                 ),
@@ -507,7 +511,6 @@ class _MapPageState extends State<MapPage> {
   }
 }
 
-// ------------------- ALERTES -------------------
 class AlertsPage extends StatelessWidget {
   const AlertsPage({super.key});
 
@@ -534,11 +537,13 @@ class AlertsPage extends StatelessWidget {
                         color: AppColors.surface,
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                            color: s.color.withValues(alpha: 0.3), width: 1.5)),
+                            color: s.color.withValues(alpha: 0.3),
+                            width: 1.5)),
                     child: Row(
                       children: [
                         Container(
-                          width: 44, height: 44,
+                          width: 44,
+                          height: 44,
                           decoration: BoxDecoration(
                               color: s.color.withValues(alpha: 0.12),
                               shape: BoxShape.circle),
@@ -551,9 +556,10 @@ class AlertsPage extends StatelessWidget {
                             children: [
                               Text(s.name,
                                   style: const TextStyle(
-                                      fontWeight: FontWeight.w600, fontSize: 15)),
-                              Text('Prévenu 10 min avant',
-                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 15)),
+                              const Text('Prévenu 10 min avant',
+                                  style: TextStyle(
                                       fontSize: 12,
                                       color: AppColors.textSecondary)),
                             ],
@@ -572,7 +578,6 @@ class AlertsPage extends StatelessWidget {
   }
 }
 
-// ------------------- DÉTAIL ARRÊT -------------------
 class StopDetailPage extends StatelessWidget {
   final Stop stop;
   const StopDetailPage({super.key, required this.stop});
@@ -593,8 +598,10 @@ class StopDetailPage extends StatelessWidget {
             child: Column(
               children: [
                 Container(
-                  width: 72, height: 72,
-                  decoration: BoxDecoration(color: stop.color, shape: BoxShape.circle),
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                      color: stop.color, shape: BoxShape.circle),
                   child: Icon(stop.icon, color: Colors.white, size: 36),
                 ),
                 const SizedBox(height: 12),
@@ -668,7 +675,8 @@ class StopDetailPage extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(time,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              style:
+                  const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           Text(count, style: const TextStyle(color: AppColors.textSecondary)),
         ],
       ),
