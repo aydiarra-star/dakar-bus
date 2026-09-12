@@ -6,6 +6,26 @@ import 'package:latlong2/latlong.dart';
 void main() => runApp(const DakarBusApp());
 
 // ============================================================
+// GENERATEUR D HORAIRES OFFICIELS
+// ------------------------------------------------------------
+// TER (SETER) : toutes les 10 min de 5h30 a 22h00 (Lun-Sam)
+// BRT (SunuBRT) : toutes les 6 min de 6h00 a 21h00 (7j/7)
+// ============================================================
+List<int> _generateSchedule({required int from, required int to, required int step}) {
+  final list = <int>[];
+  for (int m = from; m <= to; m += step) {
+    list.add(m);
+  }
+  return list;
+}
+
+List<int> _shift(List<int> base, int offset) => base.map((m) => m + offset).toList();
+
+// Plages horaires en minutes depuis minuit
+final List<int> _terBase = _generateSchedule(from: 330, to: 1320, step: 10); // 5h30 -> 22h00
+final List<int> _brtBase = _generateSchedule(from: 360, to: 1260, step: 6);  // 6h00 -> 21h00
+
+// ============================================================
 // COULEURS
 // ============================================================
 class AppColors {
@@ -23,6 +43,21 @@ class AppColors {
   static const success = Color(0xFF2E7D32);
   static const warning = Color(0xFFEF6C00);
   static const neutral = Color(0xFF9E9E9E);
+}
+
+// ============================================================
+// SOURCE DE DONNEES
+// ============================================================
+enum DataOrigin { official, demo }
+
+class DataSourceInfo {
+  final DataOrigin origin;
+  final String label;
+  const DataSourceInfo({required this.origin, required this.label});
+
+  static const seter = DataSourceInfo(origin: DataOrigin.official, label: 'SETER');
+  static const sunubrt = DataSourceInfo(origin: DataOrigin.official, label: 'SunuBRT');
+  static const demo = DataSourceInfo(origin: DataOrigin.demo, label: 'Demonstration');
 }
 
 // ============================================================
@@ -93,6 +128,30 @@ class DataStatusBadge extends StatelessWidget {
   }
 }
 
+class OfficialBadge extends StatelessWidget {
+  const OfficialBadge({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: AppColors.success.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: AppColors.success.withOpacity(0.35), width: 0.8),
+      ),
+      child: const Text(
+        'OFFICIEL',
+        style: TextStyle(
+          fontSize: 9,
+          fontWeight: FontWeight.bold,
+          color: AppColors.success,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+}
+
 class DemoBadge extends StatelessWidget {
   const DemoBadge({super.key});
   @override
@@ -130,6 +189,7 @@ class Stop {
   final LatLng location;
   final DataStatus status;
   final String modeLabel;
+  final DataSourceInfo source;
 
   const Stop({
     required this.name,
@@ -141,6 +201,7 @@ class Stop {
     required this.location,
     required this.modeLabel,
     this.status = DataStatus.scheduled,
+    this.source = DataSourceInfo.demo,
   });
 
   int? nextDepartureMinutes() {
@@ -247,30 +308,35 @@ class RouteSearchResult {
 }
 
 // ============================================================
-// DONNEES - DEMO / NON LIVE
+// DONNEES
+// ------------------------------------------------------------
+// TER : horaires officiels SETER (toutes les 10 min, 5h30-22h, semaine)
+// BRT : horaires officiels SunuBRT (toutes les 6 min, 6h-21h, 7j/7)
+// AFTU / Tata / DDD : DEMO (pas de source officielle fournie)
 // ============================================================
 final List<Stop> terStations = [
-  const Stop(name: 'Gare TER Dakar', direction: 'Terminus Dakar', distanceMeters: 350, departureMinutesFromMidnight: [640, 700, 720, 740, 800, 820, 900, 960, 1020, 1080, 1140, 1200], icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.6792, -17.4407), modeLabel: 'TER'),
-  const Stop(name: 'Gare TER Colobane', direction: 'Dir. Diamniadio', distanceMeters: 1200, departureMinutesFromMidnight: [645, 705, 725, 745, 805, 825, 905, 965, 1025, 1085, 1145, 1205], icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.6937, -17.4441), modeLabel: 'TER'),
-  const Stop(name: 'Gare TER Hann', direction: 'Dir. Diamniadio', distanceMeters: 3500, departureMinutesFromMidnight: [650, 710, 730, 750, 810, 830, 910, 970, 1030, 1090, 1150, 1210], icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.7222, -17.4321), modeLabel: 'TER'),
-  const Stop(name: 'Gare TER Dalifort', direction: 'Dir. Diamniadio', distanceMeters: 5100, departureMinutesFromMidnight: [655, 715, 735, 755, 815, 835, 915, 975, 1035, 1095, 1155, 1215], icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.7410, -17.4120), modeLabel: 'TER'),
-  const Stop(name: 'Gare TER Baux Maraichers', direction: 'Dir. Diamniadio', distanceMeters: 6300, departureMinutesFromMidnight: [658, 718, 738, 758, 818, 838, 918, 978, 1038, 1098, 1158, 1218], icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.7470, -17.4010), modeLabel: 'TER'),
-  const Stop(name: 'Gare TER Pikine', direction: 'Dir. Diamniadio', distanceMeters: 7200, departureMinutesFromMidnight: [700, 720, 740, 800, 820, 840, 920, 980, 1040, 1100, 1160, 1220], icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.7550, -17.3900), modeLabel: 'TER'),
-  const Stop(name: 'Gare TER Thiaroye', direction: 'Dir. Diamniadio', distanceMeters: 8100, departureMinutesFromMidnight: [704, 724, 744, 804, 824, 844, 924, 984, 1044, 1104, 1164, 1224], icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.7588, -17.3803), modeLabel: 'TER'),
-  const Stop(name: 'Gare TER Yeumbeul', direction: 'Dir. Diamniadio', distanceMeters: 11500, departureMinutesFromMidnight: [710, 730, 750, 810, 830, 850, 930, 990, 1050, 1110, 1170, 1230], icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.7700, -17.3400), modeLabel: 'TER'),
-  const Stop(name: 'Gare TER Keur Mbaye Fall', direction: 'Dir. Dakar / Diamniadio', distanceMeters: 14200, departureMinutesFromMidnight: [714, 734, 754, 814, 834, 854, 934, 994, 1054, 1114, 1174, 1234], icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.7750, -17.3100), modeLabel: 'TER'),
-  const Stop(name: 'Gare TER PNR', direction: 'Dir. Diamniadio', distanceMeters: 16800, departureMinutesFromMidnight: [718, 738, 758, 818, 838, 858, 938, 998, 1058, 1118, 1178, 1238], icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.7500, -17.2900), modeLabel: 'TER'),
-  const Stop(name: 'Gare TER Rufisque', direction: 'Dir. Diamniadio', distanceMeters: 22100, departureMinutesFromMidnight: [724, 744, 804, 824, 844, 904, 944, 1004, 1064, 1124, 1184, 1244], icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.7157, -17.2703), modeLabel: 'TER'),
-  const Stop(name: 'Gare TER Bargny', direction: 'Dir. Diamniadio', distanceMeters: 28500, departureMinutesFromMidnight: [730, 750, 810, 830, 850, 910, 950, 1010, 1070, 1130, 1190, 1250], icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.6900, -17.2200), modeLabel: 'TER'),
-  const Stop(name: 'Gare TER Diamniadio', direction: 'Terminus Diamniadio', distanceMeters: 35000, departureMinutesFromMidnight: [740, 800, 820, 840, 900, 920, 960, 1020, 1080, 1140, 1200, 1260], icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.7160, -17.1986), modeLabel: 'TER'),
+  Stop(name: 'Gare TER Dakar', direction: 'Terminus Dakar', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 0), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6792, -17.4407), modeLabel: 'TER', source: DataSourceInfo.seter),
+  Stop(name: 'Gare TER Colobane', direction: 'Dir. Diamniadio', distanceMeters: 1200, departureMinutesFromMidnight: _shift(_terBase, 5), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6937, -17.4441), modeLabel: 'TER', source: DataSourceInfo.seter),
+  Stop(name: 'Gare TER Hann', direction: 'Dir. Diamniadio', distanceMeters: 3500, departureMinutesFromMidnight: _shift(_terBase, 9), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7222, -17.4321), modeLabel: 'TER', source: DataSourceInfo.seter),
+  Stop(name: 'Gare TER Dalifort', direction: 'Dir. Diamniadio', distanceMeters: 5100, departureMinutesFromMidnight: _shift(_terBase, 12), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7410, -17.4120), modeLabel: 'TER', source: DataSourceInfo.seter),
+  Stop(name: 'Gare TER Baux Maraichers', direction: 'Dir. Diamniadio', distanceMeters: 6300, departureMinutesFromMidnight: _shift(_terBase, 14), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7470, -17.4010), modeLabel: 'TER', source: DataSourceInfo.seter),
+  Stop(name: 'Gare TER Pikine', direction: 'Dir. Diamniadio', distanceMeters: 7200, departureMinutesFromMidnight: _shift(_terBase, 17), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7550, -17.3900), modeLabel: 'TER', source: DataSourceInfo.seter),
+  Stop(name: 'Gare TER Thiaroye', direction: 'Dir. Diamniadio', distanceMeters: 8100, departureMinutesFromMidnight: _shift(_terBase, 20), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7588, -17.3803), modeLabel: 'TER', source: DataSourceInfo.seter),
+  Stop(name: 'Gare TER Yeumbeul', direction: 'Dir. Diamniadio', distanceMeters: 11500, departureMinutesFromMidnight: _shift(_terBase, 24), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7700, -17.3400), modeLabel: 'TER', source: DataSourceInfo.seter),
+  Stop(name: 'Gare TER Keur Mbaye Fall', direction: 'Dir. Dakar / Diamniadio', distanceMeters: 14200, departureMinutesFromMidnight: _shift(_terBase, 27), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7750, -17.3100), modeLabel: 'TER', source: DataSourceInfo.seter),
+  Stop(name: 'Gare TER PNR', direction: 'Dir. Diamniadio', distanceMeters: 16800, departureMinutesFromMidnight: _shift(_terBase, 30), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7500, -17.2900), modeLabel: 'TER', source: DataSourceInfo.seter),
+  Stop(name: 'Gare TER Rufisque', direction: 'Dir. Diamniadio', distanceMeters: 22100, departureMinutesFromMidnight: _shift(_terBase, 36), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7157, -17.2703), modeLabel: 'TER', source: DataSourceInfo.seter),
+  Stop(name: 'Gare TER Bargny', direction: 'Dir. Diamniadio', distanceMeters: 28500, departureMinutesFromMidnight: _shift(_terBase, 42), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6900, -17.2200), modeLabel: 'TER', source: DataSourceInfo.seter),
+  Stop(name: 'Gare TER Diamniadio', direction: 'Terminus Diamniadio', distanceMeters: 35000, departureMinutesFromMidnight: _shift(_terBase, .50), icon: Icons.train_0rounded, color: AppColors.ter, location:;
+ const LatLng(14.     7160, -17.198 final6), modeLabel: ' durationTER', source: DataSourceInfo.seter),
 ];
 
 final List<Stop> otherStations = [
-  const Stop(name: 'PEM Petersen', direction: 'Terminus sud BRT', distanceMeters: 200, departureMinutesFromMidnight: [630, 636, 642, 648, 654, 700, 706, 712, 718, 724, 730, 736], icon: Icons.directions_bus_rounded, color: AppColors.brt, location: LatLng(14.6720, -17.4400), modeLabel: 'BRT'),
-  const Stop(name: 'BRT Colobane', direction: 'Dir. Guediawaye', distanceMeters: 150, departureMinutesFromMidnight: [635, 641, 647, 653, 659, 705, 711, 717, 723, 729, 735, 741], icon: Icons.directions_bus_rounded, color: AppColors.brt, location: LatLng(14.6950, -17.4420), modeLabel: 'BRT'),
-  const Stop(name: 'BRT Grand Dakar', direction: 'Dir. Guediawaye', distanceMeters: 1500, departureMinutesFromMidnight: [640, 646, 652, 658, 704, 710, 716, 722, 728, 734, 740, 746], icon: Icons.directions_bus_rounded, color: AppColors.brt, location: LatLng(14.7050, -17.4400), modeLabel: 'BRT'),
-  const Stop(name: 'BRT Parcelles', direction: 'Dir. Guediawaye', distanceMeters: 5000, departureMinutesFromMidnight: [650, 656, 702, 708, 714, 720, 726, 732, 738, 744, 750, 756], icon: Icons.directions_bus_rounded, color: AppColors.brt, location: LatLng(14.7350, -17.4260), modeLabel: 'BRT'),
-  const Stop(name: 'PEM Guediawaye', direction: 'Terminus nord BRT', distanceMeters: 10500, departureMinutesFromMidnight: [700, 706, 712, 718, 724, 730, 736, 742, 748, 754, 800, 806], icon: Icons.directions_bus_rounded, color: AppColors.brt, location: LatLng(14.7735, -17.3977), modeLabel: 'BRT'),
+  Stop(name: 'PEM Petersen', direction: 'Terminus sud BRT', distanceMeters: 200, departureMinutesFromMidnight: _shift(_brtBase, 0), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.6720, -17.4400), modeLabel: 'BRT', source: DataSourceInfo.sunubrt),
+  Stop(name: 'BRT Colobane', direction: 'Dir. Guediawaye', distanceMeters: 150, departureMinutesFromMidnight: _shift(_brtBase, 2), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.6950, -17.4420), modeLabel: 'BRT', source: DataSourceInfo.sunubrt),
+  Stop(name: 'BRT Grand Dakar', direction: 'Dir. Guediawaye', distanceMeters: 1500, departureMinutesFromMidnight: _shift(_brtBase, 4), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.7050, -17.4400), modeLabel: 'BRT', source: DataSourceInfo.sunubrt),
+  Stop(name: 'BRT Parcelles', direction: 'Dir. Guediawaye', distanceMeters: 5000, departureMinutesFromMidnight: _shift(_brtBase, 6), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.7350, -17.4260), modeLabel: 'BRT', source: DataSourceInfo.sunubrt),
+  Stop(name: 'PEM Guediawaye', direction: 'Terminus nord BRT', distanceMeters: 10500, departureMinutesFromMidnight: _shift(_brtBase, 8), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.7735, -17.3977), modeLabel: 'BRT', source: DataSourceInfo.sunubrt),
   const Stop(name: 'Arret AFTU 23', direction: 'Dir. Parcelles Assainies', distanceMeters: 280, departureMinutesFromMidnight: [630, 645, 700, 715, 730, 745, 800, 815, 830, 845, 900, 915], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: LatLng(14.6900, -17.4460), modeLabel: 'AFTU'),
   const Stop(name: 'Arret AFTU 10', direction: 'Dir. Grand Yoff', distanceMeters: 450, departureMinutesFromMidnight: [635, 650, 705, 720, 735, 750, 805, 820, 835, 850, 905, 920], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: LatLng(14.7200, -17.4600), modeLabel: 'AFTU'),
   const Stop(name: 'Arret Tata 12', direction: 'Dir. Guediawaye', distanceMeters: 600, departureMinutesFromMidnight: [640, 655, 710, 725, 740, 755, 810, 825, 840, 855, 910, 925], icon: Icons.directions_bus_filled, color: AppColors.tata, location: LatLng(14.7200, -17.4700), modeLabel: 'Tata'),
@@ -423,8 +489,7 @@ class RoutePlanner {
 
     if (fromStop.modeLabel == toStop.modeLabel && fromStop.name != toStop.name) {
       final dist = DistanceHelper.haversineMeters(fromStop.location, toStop.location);
-      final speedKmh = (fromStop.modeLabel == 'TER' || fromStop.modeLabel == 'BRT') ? 30.0 : 15.0;
-      final durationMin = ((dist / 1000.0) / speedKmh * 60).ceil();
+      final speedKmh = (fromStop.modeLabel == 'TER' || fromStop.modeLabel == 'BRT') ? 30.0 : 15Min = ((dist / 1000.0) / speedKmh * 60).ceil();
 
       routes.add(PlannedRoute(
         fromName: fromPlace.name,
@@ -845,7 +910,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                       Text('Dakar Bus', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                       Text('TER / BRT / AFTU / Tata / DDD', style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
                     ])),
-                    const DemoBadge(),
+                    const OfficialBadge(),
                   ]),
                   const SizedBox(height: 12),
                   Container(
@@ -1079,7 +1144,7 @@ class _TripsPageState extends State<TripsPage> {
             Row(children: [
               const Text('Planifier un trajet', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
               const Spacer(),
-              const DemoBadge(),
+              const OfficialBadge(),
             ]),
             const SizedBox(height: 20),
             if (widget.favorites.isNotEmpty) ...[
@@ -1184,7 +1249,7 @@ class _TripsPageState extends State<TripsPage> {
               Icon(Icons.info_outline, color: AppColors.warning, size: 16),
               const SizedBox(width: 8),
               const Expanded(child: Text(
-                'Horaires programmes (demonstration). Le temps reel sera affiche des qu il sera disponible.',
+                'Horaires programmes officiels. Le temps reel sera affiche des qu il sera disponible.',
                 style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
               )),
             ]),
@@ -1395,7 +1460,7 @@ class _AlertsPageState extends State<AlertsPage> {
             Row(children: [
               const Text('Mes alertes', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
               const Spacer(),
-              const DemoBadge(),
+              const OfficialBadge(),
               const SizedBox(width: 6),
               IconButton(onPressed: _showAddAlert, icon: const Icon(Icons.add_circle, color: AppColors.primary, size: 28)),
             ]),
@@ -1540,13 +1605,15 @@ class _SettingsPageState extends State<SettingsPage> {
               child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text('Dakar Bus', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 SizedBox(height: 4),
-                Text('Version 3.3', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                Text('Version 3.4', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
                 SizedBox(height: 8),
                 Text('Application d information voyageurs pour Dakar.', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                 SizedBox(height: 4),
-                Text('Donnees actuellement : DEMO / NON LIVE.', style: TextStyle(fontSize: 11, color: AppColors.warning, fontStyle: FontStyle.italic, fontWeight: FontWeight.w600)),
+                Text('TER : horaires officiels SETER (toutes les 10 min, 5h30-22h).', style: TextStyle(fontSize: 11, color: AppColors.success, fontStyle: FontStyle.italic, fontWeight: FontWeight.w600)),
                 SizedBox(height: 2),
-                Text('Les horaires reels seront affiches des qu une source officielle sera connectee.', style: TextStyle(fontSize: 11, color: AppColors.textSecondary, fontStyle: FontStyle.italic)),
+                Text('BRT : horaires officiels SunuBRT (toutes les 6 min, 6h-21h).', style: TextStyle(fontSize: 11, color: AppColors.success, fontStyle: FontStyle.italic, fontWeight: FontWeight.w600)),
+                SizedBox(height: 2),
+                Text('AFTU / Tata / DDD : donnees de demonstration en attente de source officielle.', style: TextStyle(fontSize: 11, color: AppColors.warning, fontStyle: FontStyle.italic)),
               ]),
             ),
             const SizedBox(height: 20),
@@ -1658,12 +1725,15 @@ class StopDetailPage extends StatelessWidget {
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: AppColors.warning.withOpacity(0.08), borderRadius: BorderRadius.circular(10)),
+            decoration: BoxDecoration(color: stop.source.origin == DataOrigin.official ? AppColors.success.withOpacity(0.08) : AppColors.warning.withOpacity(0.08), borderRadius: BorderRadius.circular(10)),
             child: Row(children: [
-              Icon(Icons.info_outline, color: AppColors.warning, size: 16), const SizedBox(width: 8),
-              const Expanded(child: Text(
-                'Horaires programmes (demonstration). Le temps reel sera affiche des qu il sera disponible.',
-                style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+              Icon(stop.source.origin == DataOrigin.official ? Icons.verified_outlined : Icons.info_outline, color: stop.source.origin == DataOrigin.official ? AppColors.success : AppColors.warning, size: 16),
+              const SizedBox(width: 8),
+              Expanded(child: Text(
+                stop.source.origin == DataOrigin.official
+                  ? 'Horaires programmes officiels (' + stop.source.label + '). Le temps reel sera affiche des qu il sera disponible.'
+                  : 'Horaires de demonstration. Aucune source officielle connectee pour ce reseau.',
+                style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
               )),
             ]),
           ),
@@ -1671,7 +1741,7 @@ class StopDetailPage extends StatelessWidget {
           Row(children: [
             const Icon(Icons.source_outlined, size: 12, color: AppColors.textSecondary),
             const SizedBox(width: 6),
-            const Text('Source : demonstration . Statut : programme', style: TextStyle(fontSize: 10, color: AppColors.textSecondary, fontStyle: FontStyle.italic)),
+            Text('Source : ' + stop.source.label + ' . Statut : programme', style: const TextStyle(fontSize: 10, color: AppColors.textSecondary, fontStyle: FontStyle.italic)),
           ]),
         ],
       ),
@@ -1698,10 +1768,9 @@ class _AIChatPageState extends State<AIChatPage> {
           'Je peux vous renseigner sur :\n'
           '- les lignes TER, BRT, AFTU, Tata, DDD\n'
           '- les arrets et stations\n'
-          '- les horaires programmes\n'
+          '- les horaires programmes (TER et BRT : officiels)\n'
           '- les itineraires (en utilisant les donnees disponibles)\n\n'
-          'Note : les donnees actuelles sont des donnees de demonstration (non LIVE).\n\n'
-          'Je ne dispose pas encore de donnees temps reel.'
+          'Note : le temps reel n est pas encore connecte.'
     },
   ];
 
@@ -1739,39 +1808,39 @@ class _AIChatPageState extends State<AIChatPage> {
         final t = stop.nextDepartureLabel();
         if (r != null && t != null) {
           if (TimeHelper.isProbablyNextDay(r)) {
-            return 'Arret : ' + stop.name + '\n\nDirection : ' + stop.direction + '\nDistance : ' + DistanceHelper.format(stop.distanceMeters) + '\nPlus de passage aujourd hui. Prochain depart demain a ' + t + '.\n\nHoraire programme (demo), pas temps reel.';
+            return 'Arret : ' + stop.name + '\n\nDirection : ' + stop.direction + '\nDistance : ' + DistanceHelper.format(stop.distanceMeters) + '\nPlus de passage aujourd hui. Prochain depart demain a ' + t + '.\n\nSource : ' + stop.source.label + ' (programme).';
           }
-          return 'Arret : ' + stop.name + '\n\nDirection : ' + stop.direction + '\nDistance : ' + DistanceHelper.format(stop.distanceMeters) + '\nProchain depart : ' + t + ' (' + TimeHelper.formatRemaining(r) + ')\n\nHoraire programme (demo), pas temps reel.';
+          return 'Arret : ' + stop.name + '\n\nDirection : ' + stop.direction + '\nDistance : ' + DistanceHelper.format(stop.distanceMeters) + '\nProchain depart : ' + t + ' (' + TimeHelper.formatRemaining(r) + ')\n\nSource : ' + stop.source.label + ' (programme).';
         }
         return 'Arret : ' + stop.name + '\n\nDirection : ' + stop.direction + '\n\nHoraire non disponible pour le moment.';
       }
     }
 
-    if (q.contains('diamniadio')) return 'Pour Diamniadio : TER depuis la Gare de Dakar. 13 gares desservies. Environ 40 min.\n\nHoraire programme (demo).';
-    if (q.contains('plateau')) return 'Pour le Plateau : BRT depuis Colobane ou DDD Ligne 7.\n\nHoraire programme (demo).';
-    if (q.contains('guediawaye')) return 'Pour Guediawaye : BRT depuis Colobane vers PEM Guediawaye.\n\nHoraire programme (demo).';
-    if (q.contains('parcelles')) return 'Pour Parcelles Assainies : AFTU Ligne 23 depuis Colobane.\n\nHoraire programme (demo).';
-    if (q.contains('ouakam') || q.contains('almadies')) return 'Pour Ouakam / Almadies : DDD Ligne 12.\n\nHoraire programme (demo).';
-    if (q.contains('rufisque')) return 'Pour Rufisque : TER depuis Dakar, 11eme gare.\n\nHoraire programme (demo).';
-    if (q.contains('thiaroye')) return 'Pour Thiaroye : TER depuis Dakar, 7eme gare.\n\nHoraire programme (demo).';
-    if (q.contains('keur mbaye')) return 'Keur Mbaye Fall est la 9eme gare du TER (entre Yeumbeul et PNR).\n\nHoraire programme (demo).';
+    if (q.contains('diamniadio')) return 'Pour Diamniadio : TER depuis la Gare de Dakar. 13 gares desservies. Environ 40 min.\n\nHoraire officiel SETER.';
+    if (q.contains('plateau')) return 'Pour le Plateau : BRT depuis Colobane ou DDD Ligne 7.\n\nBRT : horaire officiel SunuBRT.';
+    if (q.contains('guediawaye')) return 'Pour Guediawaye : BRT depuis Colobane vers PEM Guediawaye.\n\nHoraire officiel SunuBRT.';
+    if (q.contains('parcelles')) return 'Pour Parcelles Assainies : AFTU Ligne 23 depuis Colobane.\n\nHoraires de demonstration.';
+    if (q.contains('ouakam') || q.contains('almadies')) return 'Pour Ouakam / Almadies : DDD Ligne 12.\n\nHoraires de demonstration.';
+    if (q.contains('rufisque')) return 'Pour Rufisque : TER depuis Dakar, 11eme gare.\n\nHoraire officiel SETER.';
+    if (q.contains('thiaroye')) return 'Pour Thiaroye : TER depuis Dakar, 7eme gare.\n\nHoraire officiel SETER.';
+    if (q.contains('keur mbaye')) return 'Keur Mbaye Fall est la 9eme gare du TER (entre Yeumbeul et PNR).\n\nHoraire officiel SETER.';
     if (q.contains('colobane')) return 'Colobane est un hub central : Gare TER Colobane, Station BRT Colobane, Arret AFTU 23.';
-    if (q.contains('yeumbeul')) return 'Yeumbeul : 8eme gare du TER.\n\nHoraire programme (demo).';
-    if (q.contains('bargny')) return 'Bargny : 12eme gare du TER.\n\nHoraire programme (demo).';
-    if (q.contains('hann')) return 'Hann : 3eme gare du TER.\n\nHoraire programme (demo).';
-    if (q.contains('pikine')) return 'Pikine : 6eme gare du TER.\n\nHoraire programme (demo).';
+    if (q.contains('yeumbeul')) return 'Yeumbeul : 8eme gare du TER.\n\nHoraire officiel SETER.';
+    if (q.contains('bargny')) return 'Bargny : 12eme gare du TER.\n\nHoraire officiel SETER.';
+    if (q.contains('hann')) return 'Hann : 3eme gare du TER.\n\nHoraire officiel SETER.';
+    if (q.contains('pikine')) return 'Pikine : 6eme gare du TER.\n\nHoraire officiel SETER.';
 
-    if (q.contains('ter') || q.contains('train')) return 'Le TER relie Dakar a Diamniadio via 13 gares.\n\nHoraire programme (demo).';
-    if (q.contains('brt')) return 'Le BRT compte 23 stations entre Petersen et Guediawaye.\n\nHoraire programme (demo).';
-    if (q.contains('aftu')) return 'AFTU dessert Dakar avec plusieurs lignes.\n\nHoraires estimes (demo).';
-    if (q.contains('tata')) return 'Les bus Tata couvrent plusieurs quartiers.\n\nHoraires estimes (demo).';
-    if (q.contains('ddd')) return 'Dakar Dem Dikk : plusieurs lignes a Dakar.\n\nHoraires estimes (demo).';
+    if (q.contains('ter') || q.contains('train')) return 'Le TER relie Dakar a Diamniadio via 13 gares.\n\nFrequence officielle SETER : toutes les 10 min de 5h30 a 22h (Lun-Sam).';
+    if (q.contains('brt')) return 'Le BRT compte 23 stations entre Petersen et Guediawaye.\n\nFrequence officielle SunuBRT : toutes les 6 min de 6h a 21h (7j/7).';
+    if (q.contains('aftu')) return 'AFTU dessert Dakar avec plusieurs lignes.\n\nHoraires de demonstration (source officielle non connectee).';
+    if (q.contains('tata')) return 'Les bus Tata couvrent plusieurs quartiers.\n\nHoraires de demonstration.';
+    if (q.contains('ddd')) return 'Dakar Dem Dikk : plusieurs lignes a Dakar.\n\nHoraires de demonstration.';
 
     if (q.contains('prix') || q.contains('tarif') || q.contains('fcfa')) {
       return 'Je ne dispose pas d informations tarifaires fiables pour le moment.';
     }
     if (q.contains('retard') || q.contains('temps reel') || q.contains('live')) {
-      return 'Les donnees temps reel ne sont pas encore connectees. Les horaires affiches sont programmes (demonstration).';
+      return 'Les donnees temps reel ne sont pas encore connectees. Les horaires affiches sont programmes.';
     }
 
     if (q.contains('bonjour') || q.contains('salut')) return 'Bonjour ! Comment puis-je vous aider ?';
@@ -1788,7 +1857,7 @@ class _AIChatPageState extends State<AIChatPage> {
         title: const Row(children: [
           Text('Assistant IA'),
           SizedBox(width: 8),
-          DemoBadge(),
+          OfficialBadge(),
         ]),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
