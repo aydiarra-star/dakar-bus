@@ -25,17 +25,27 @@ List<int> _shift(List<int> base, int offset) {
   return base.map((m) => m + offset).toList();
 }
 
-final List<int> _terBase = _generateSchedule(
-  from: 330,
-  to: 1320,
-  step: 10,
-);
+// Vrai si aujourd hui est dimanche
+// (le TER circule alors a frequence reduite)
+bool _isSunday() => DateTime.now().weekday == DateTime.sunday;
 
+// Frequence TER officielle SETER :
+// - Lundi a Samedi : toutes les 10 min, 5h30 - 22h00
+// - Dimanche : toutes les 20 min, 5h30 - 22h00
+List<int> _buildTerBase() {
+  final step = _isSunday() ? 20 : 10;
+  return _generateSchedule(from: 330, to: 1320, step: step);
+}
+
+// Frequence BRT officielle SunuBRT : 6 min, 6h - 21h, 7j/7
 final List<int> _brtBase = _generateSchedule(
   from: 360,
   to: 1260,
   step: 6,
 );
+
+// Recalcule au demarrage selon le jour
+final List<int> _terBase = _buildTerBase();
 
 // ============================================================
 // COULEURS
@@ -1107,7 +1117,6 @@ class MainShell extends StatefulWidget {
   State<MainShell> createState() => _MainShellState();
 }
 
-// Etats GPS (etendus)
 enum GpsState {
   idle,
   loading,
@@ -1168,9 +1177,6 @@ class _MainShellState extends State<MainShell> {
     );
   }
 
-  // ------------------------------------------------------------
-  // GPS REEL via geolocator (fonctionne aussi sur Flutter Web)
-  // ------------------------------------------------------------
   Future<void> _requestLocation() async {
     setState(() {
       _gpsState = GpsState.loading;
@@ -1178,7 +1184,6 @@ class _MainShellState extends State<MainShell> {
     });
 
     try {
-      // 1. Le service de localisation est-il active ?
       final serviceEnabled =
           await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
@@ -1195,7 +1200,6 @@ class _MainShellState extends State<MainShell> {
         return;
       }
 
-      // 2. Verification de la permission
       LocationPermission permission =
           await Geolocator.checkPermission();
 
@@ -1231,7 +1235,6 @@ class _MainShellState extends State<MainShell> {
         return;
       }
 
-      // 3. Recuperation de la position
       final position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
         timeLimit: const Duration(seconds: 10),
@@ -1698,7 +1701,6 @@ class _ExplorerPageState extends State<ExplorerPage> {
                       const OfficialBadge(),
                     ],
                   ),
-                  // Bandeau de statut GPS
                   if (widget.gpsMessage != null) ...[
                     const SizedBox(height: 10),
                     Container(
@@ -1716,7 +1718,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                       ),
                       child: Row(
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.location_off_outlined,
                             size: 16,
                             color: AppColors.warning,
@@ -2540,7 +2542,7 @@ class _TripsPageState extends State<TripsPage> {
             ),
             child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.info_outline,
                   color: AppColors.warning,
                   size: 16,
@@ -2570,7 +2572,7 @@ class _TripsPageState extends State<TripsPage> {
       ),
       child: Column(
         children: [
-          Icon(
+          const Icon(
             Icons.route_outlined,
             size: 40,
             color: AppColors.warning,
@@ -3294,13 +3296,15 @@ class _SettingsPageState extends State<SettingsPage> {
             _section('Reseaux'),
             _tileSetting(
               'TER',
-              'Train Express Regional (officiel)',
+              _isSunday()
+                  ? 'Train Express Regional (dimanche : 20 min)'
+                  : 'Train Express Regional (10 min)',
               Icons.train_rounded,
               AppColors.ter,
             ),
             _tileSetting(
               'BRT',
-              'Bus Rapid Transit (officiel)',
+              'Bus Rapid Transit (6 min)',
               Icons.directions_bus_rounded,
               AppColors.brt,
             ),
@@ -3330,36 +3334,38 @@ class _SettingsPageState extends State<SettingsPage> {
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Column(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     'Dakar Bus',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 4),
-                  Text(
-                    'Version 3.5',
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Version 3.6',
                     style: TextStyle(
                       fontSize: 13,
                       color: AppColors.textSecondary,
                     ),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
-                    'TER : officiel SETER (10 min, 5h30-22h).',
-                    style: TextStyle(
+                    _isSunday()
+                        ? 'TER : officiel SETER (dimanche 20 min, 5h30-22h).'
+                        : 'TER : officiel SETER (10 min, 5h30-22h).',
+                    style: const TextStyle(
                       fontSize: 11,
                       color: AppColors.success,
                       fontStyle: FontStyle.italic,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  SizedBox(height: 2),
-                  Text(
+                  const SizedBox(height: 2),
+                  const Text(
                     'BRT : officiel SunuBRT (6 min, 6h-21h).',
                     style: TextStyle(
                       fontSize: 11,
@@ -3368,8 +3374,8 @@ class _SettingsPageState extends State<SettingsPage> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  SizedBox(height: 2),
-                  Text(
+                  const SizedBox(height: 2),
+                  const Text(
                     'AFTU / Tata / DDD : demonstration.',
                     style: TextStyle(
                       fontSize: 11,
@@ -3377,8 +3383,8 @@ class _SettingsPageState extends State<SettingsPage> {
                       fontStyle: FontStyle.italic,
                     ),
                   ),
-                  SizedBox(height: 6),
-                  Text(
+                  const SizedBox(height: 6),
+                  const Text(
                     'GPS : geolocator (position reelle)',
                     style: TextStyle(
                       fontSize: 11,
@@ -3850,7 +3856,9 @@ class _AIChatPageState extends State<AIChatPage> {
       return 'Colobane : hub TER + BRT + AFTU.';
     }
     if (q.contains('ter') || q.contains('train')) {
-      return 'TER : Dakar - Diamniadio, 13 gares.\nFrequence officielle SETER : 10 min, 5h30-22h.';
+      return _isSunday()
+          ? 'TER : Dakar - Diamniadio, 13 gares.\nAujourd hui (dimanche) : frequence 20 min, 5h30-22h.'
+          : 'TER : Dakar - Diamniadio, 13 gares.\nFrequence officielle SETER : 10 min, 5h30-22h.';
     }
     if (q.contains('brt')) {
       return 'BRT : 23 stations Petersen - Guediawaye.\nFrequence officielle SunuBRT : 6 min, 6h-21h.';
