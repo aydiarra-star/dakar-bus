@@ -1093,23 +1093,55 @@ class RoutePlanner {
     return h + 'h' + m;
   }
 
+  // ------------------------------------------------------------
+  // RESOLUTION DE LIEU
+  // Priorite : arrets (nom exact) > lieux (nom exact)
+  //            > arrets (contient) > lieux (contient)
+  // ------------------------------------------------------------
   static Place? _resolvePlace(String query) {
     final q = query.trim().toLowerCase();
     if (q.isEmpty) {
       return null;
     }
 
+    // 1. Correspondance exacte sur un arret
+    for (final p in placeDatabase) {
+      if (p.linkedStop != null && p.name.toLowerCase() == q) {
+        return p;
+      }
+    }
+
+    // 2. Correspondance exacte sur un lieu
     for (final p in placeDatabase) {
       if (p.name.toLowerCase() == q) {
         return p;
       }
     }
+
+    // 3. Arret dont le nom contient la requete
+    // (prioritaire sur les lieux generiques)
     for (final p in placeDatabase) {
-      if (p.name.toLowerCase().contains(q) ||
-          q.contains(p.name.toLowerCase())) {
+      if (p.linkedStop != null &&
+          p.name.toLowerCase().contains(q)) {
         return p;
       }
     }
+
+    // 4. Lieu dont le nom contient la requete
+    for (final p in placeDatabase) {
+      if (p.name.toLowerCase().contains(q)) {
+        return p;
+      }
+    }
+
+    // 5. Requete qui contient le nom du lieu
+    for (final p in placeDatabase) {
+      if (q.contains(p.name.toLowerCase())) {
+        return p;
+      }
+    }
+
+    // 6. Recherche par mots
     for (final word in q.split(' ')) {
       if (word.length < 3) {
         continue;
