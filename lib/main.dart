@@ -56,13 +56,13 @@ class _MapScreenState extends State<MapScreen> {
       id: '1',
       name: 'Place de l\'Indépendance',
       location: const LatLng(14.6698, -17.4381),
-      lines: ['Ligne 1', 'Ligne 10', 'BRT'],
+      lines: ['Ligne 1', 'Ligne 10', 'BRT B1'],
     ),
     BusStop(
       id: '2',
       name: 'Gare Routière Petersen',
       location: const LatLng(14.6780, -17.4410),
-      lines: ['Ligne 2', 'Ligne 6', 'Dem Dikk'],
+      lines: ['Ligne 2', 'Ligne 6', 'Dem Dikk', 'BRT B1'],
     ),
     BusStop(
       id: '3',
@@ -74,7 +74,7 @@ class _MapScreenState extends State<MapScreen> {
       id: '4',
       name: 'Grand Yoff - Marché',
       location: const LatLng(14.7300, -17.4500),
-      lines: ['Ligne 8', 'Ligne 12'],
+      lines: ['Ligne 8', 'Tata 24', 'BRT B1'],
     ),
   ];
 
@@ -102,7 +102,7 @@ class _MapScreenState extends State<MapScreen> {
           padding: const EdgeInsets.all(20.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAlignment.start,
+            crossAlignment: CrossAlignment.start,
             children: [
               Row(
                 children: [
