@@ -4,7 +4,7 @@ import 'package:latlong2/latlong.dart';
 
 void main() => runApp(const DakarBusApp());
 
-class AppColors {j
+class AppColors {
   static const primary = Color(0xFF00695C);
   static const brt = Color(0xFF1976D2);
   static const ter = Color(0xFFE53935);
