@@ -52,7 +52,7 @@ class TransitRoute {
 }
 
 // ============================================================
-// 13 GARES DU TER (Dakar → Diamniadio)
+// 13 GARES DU TER
 // ============================================================
 final List<Stop> terStations = [
   const Stop(name: 'Gare TER Dakar', direction: 'Terminus Dakar', price: '500 FCFA', distance: '350 m', minutesUntilArrival: 2, icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.6792, -17.4407)),
@@ -71,7 +71,7 @@ final List<Stop> terStations = [
 ];
 
 // ============================================================
-// 15 AUTRES ARRÊTS (BRT + AFTU + Tata + DDD)
+// 15 AUTRES ARRÊTS
 // ============================================================
 final List<Stop> otherStations = [
   const Stop(name: 'PEM Petersen', direction: 'Terminus sud BRT', price: '400 FCFA', distance: '200 m', minutesUntilArrival: 1, icon: Icons.directions_bus_rounded, color: AppColors.brt, location: LatLng(14.6720, -17.4400)),
@@ -93,20 +93,14 @@ final List<Stop> otherStations = [
 
 final List<Stop> allStops = [...terStations, ...otherStations];
 
-// Arrêts prioritaires pour la carte (8 seulement — performance)
+// Arrêts prioritaires carte (8 seulement)
 final List<Stop> mapPriorityStops = [
-  terStations[0],    // Dakar
-  terStations[1],    // Colobane
-  terStations[5],    // Pikine
-  terStations[10],   // Rufisque
-  terStations[12],   // Diamniadio
-  otherStations[1],  // BRT Colobane
-  otherStations[8],  // PEM Guédiawaye
-  otherStations[13], // DDD 12
+  terStations[0], terStations[1], terStations[5], terStations[10], terStations[12],
+  otherStations[1], otherStations[8], otherStations[13],
 ];
 
 // ============================================================
-// TRACÉS OPTIMISÉS (waypoints réduits)
+// TRACÉS
 // ============================================================
 final List<TransitRoute> demoRoutes = [
   const TransitRoute(name: 'TER', code: 'TER', type: 'TER', color: AppColors.ter, points: [
@@ -214,9 +208,9 @@ class _MainShellState extends State<MainShell> {
   @override
   void initState() {
     super.initState();
-    // ⚡ Optimisation : timer lent (5s) + seulement sur l'onglet Carte
+    // Animation uniquement sur l'onglet Explorer (0) et Carte si besoin
     _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      if (mounted && _currentIndex == 1) {
+      if (mounted && _currentIndex == 0) {
         setState(() {
           _busProgress = (_busProgress + 0.02) % 1.0;
           _minuteOffset++;
@@ -234,8 +228,7 @@ class _MainShellState extends State<MainShell> {
   @override
   Widget build(BuildContext context) {
     final pages = [
-      ExplorerPage(minuteOffset: _minuteOffset),
-      MapTabPage(minuteOffset: _minuteOffset, busProgress: _busProgress),
+      ExplorerPage(minuteOffset: _minuteOffset, busProgress: _busProgress),
       TripsPage(minuteOffset: _minuteOffset),
       AlertsPage(minuteOffset: _minuteOffset),
       const SettingsPage(),
@@ -260,7 +253,6 @@ class _MainShellState extends State<MainShell> {
             height: 64,
             destinations: const [
               NavigationDestination(icon: Icon(Icons.explore_outlined), selectedIcon: Icon(Icons.explore, color: AppColors.primary), label: 'Explorer'),
-              NavigationDestination(icon: Icon(Icons.map_outlined), selectedIcon: Icon(Icons.map, color: AppColors.primary), label: 'Carte'),
               NavigationDestination(icon: Icon(Icons.alt_route_outlined), selectedIcon: Icon(Icons.alt_route, color: AppColors.primary), label: 'Trajets'),
               NavigationDestination(icon: Icon(Icons.notifications_outlined), selectedIcon: Icon(Icons.notifications, color: AppColors.primary), label: 'Alertes'),
               NavigationDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings, color: AppColors.primary), label: 'Réglages'),
@@ -273,16 +265,20 @@ class _MainShellState extends State<MainShell> {
 }
 
 // ============================================================
-// ONGLET 1 : EXPLORER
+// ONGLET 1 : EXPLORER (avec carte intégrée en haut)
 // ============================================================
 class ExplorerPage extends StatefulWidget {
   final int minuteOffset;
-  const ExplorerPage({super.key, required this.minuteOffset});
+  final double busProgress;
+  const ExplorerPage({super.key, required this.minuteOffset, required this.busProgress});
   @override
   State<ExplorerPage> createState() => _ExplorerPageState();
 }
 
 class _ExplorerPageState extends State<ExplorerPage> {
+  final MapController _mapController = MapController();
+  final LatLng _dakarCenter = const LatLng(14.7200, -17.4300);
+  final LatLng _simulatedPosition = const LatLng(14.6937, -17.4441);
   String _selectedFilter = 'Tous';
 
   List<Stop> get _filteredStops {
@@ -302,100 +298,265 @@ class _ExplorerPageState extends State<ExplorerPage> {
     }
   }
 
+  void _locateUser() {
+    _mapController.move(_simulatedPosition, 14.0);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('📍 Position centrée sur Colobane'), backgroundColor: AppColors.primary, duration: Duration(seconds: 2)),
+    );
+  }
+
   void _openAI() {
     Navigator.push(context, MaterialPageRoute(builder: (_) => const AIChatPage()));
   }
 
+  Widget _busMarker(Color color, IconData icon) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+        border: Border.all(color: color, width: 3),
+        boxShadow: [BoxShadow(color: color.withOpacity(0.5), blurRadius: 6, spreadRadius: 1)],
+      ),
+      child: Icon(icon, color: color, size: 12),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final p = widget.busProgress;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         bottom: false,
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-              child: Row(
+            // ====== CARTE EN HAUT ======
+            SizedBox(
+              height: 220,
+              child: Stack(
                 children: [
-                  Container(
-                    width: 40, height: 40,
-                    decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.12), borderRadius: BorderRadius.circular(10)),
-                    child: const Icon(Icons.directions_bus, color: AppColors.primary, size: 22),
+                  FlutterMap(
+                    mapController: _mapController,
+                    options: MapOptions(
+                      initialCenter: _dakarCenter,
+                      initialZoom: 11.5,
+                      minZoom: 10,
+                      maxZoom: 17,
+                    ),
+                    children: [
+                      TileLayer(
+                        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        userAgentPackageName: 'dakar_bus',
+                        maxZoom: 19,
+                      ),
+                      // Tracés
+                      PolylineLayer(
+                        polylines: demoRoutes.map((r) => Polyline(
+                          points: r.points,
+                          color: r.color,
+                          strokeWidth: 3.5,
+                        )).toList(),
+                      ),
+                      // 8 arrêts prioritaires
+                      MarkerLayer(
+                        markers: mapPriorityStops.map((stop) => Marker(
+                          point: stop.location,
+                          width: 24, height: 24,
+                          child: GestureDetector(
+                            onTap: () => Navigator.push(context, MaterialPageRoute(
+                              builder: (_) => StopDetailPage(stop: stop, minuteOffset: widget.minuteOffset),
+                            )),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: stop.color,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 2),
+                                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 3)],
+                              ),
+                              child: Icon(stop.icon, color: Colors.white, size: 12),
+                            ),
+                          ),
+                        )).toList(),
+                      ),
+                      // 5 bus animés
+                      MarkerLayer(
+                        markers: [
+                          Marker(point: AnimatedBusPosition.interpolate(demoRoutes[0].points, p), width: 18, height: 18, child: _busMarker(AppColors.ter, Icons.train_rounded)),
+                          Marker(point: AnimatedBusPosition.interpolate(demoRoutes[1].points, p), width: 18, height: 18, child: _busMarker(AppColors.brt, Icons.directions_bus_rounded)),
+                          Marker(point: AnimatedBusPosition.interpolate(demoRoutes[2].points, p), width: 18, height: 18, child: _busMarker(AppColors.aftu, Icons.directions_bus_outlined)),
+                          Marker(point: AnimatedBusPosition.interpolate(demoRoutes[3].points, (p + 0.5) % 1.0), width: 18, height: 18, child: _busMarker(AppColors.tata, Icons.directions_bus_filled)),
+                          Marker(point: AnimatedBusPosition.interpolate(demoRoutes[4].points, (p + 0.5) % 1.0), width: 18, height: 18, child: _busMarker(AppColors.ddd, Icons.directions_bus_filled_rounded)),
+                        ],
+                      ),
+                      // Position utilisateur
+                      MarkerLayer(markers: [
+                        Marker(
+                          point: _simulatedPosition,
+                          width: 18, height: 18,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: AppColors.primary,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2.5),
+                              boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.4), blurRadius: 8, spreadRadius: 2)],
+                            ),
+                          ),
+                        ),
+                      ]),
+                    ],
                   ),
-                  const SizedBox(width: 10),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  // Bouton GPS
+                  Positioned(
+                    bottom: 12, left: 12,
+                    child: FloatingActionButton.small(
+                      onPressed: _locateUser,
+                      backgroundColor: AppColors.surface,
+                      child: const Icon(Icons.my_location, color: AppColors.primary, size: 20),
+                    ),
+                  ),
+                  // Bouton Assistant IA
+                  Positioned(
+                    bottom: 12, right: 12,
+                    child: ElevatedButton.icon(
+                      onPressed: _openAI,
+                      icon: const Icon(Icons.auto_awesome, size: 14),
+                      label: const Text('Assistant IA', style: TextStyle(fontSize: 11)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        minimumSize: const Size(0, 32),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      ),
+                    ),
+                  ),
+                  // Légende
+                  Positioned(
+                    top: 8, left: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface.withOpacity(0.95),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _legend(AppColors.ter, 'TER'),
+                          const SizedBox(width: 6),
+                          _legend(AppColors.brt, 'BRT'),
+                          const SizedBox(width: 6),
+                          _legend(AppColors.aftu, 'AFTU'),
+                          const SizedBox(width: 6),
+                          _legend(AppColors.tata, 'Tata'),
+                          const SizedBox(width: 6),
+                          _legend(AppColors.ddd, 'DDD'),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // ====== CONTENU DÉFILABLE EN DESSOUS ======
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+                children: [
+                  // En-tête
+                  Row(
+                    children: [
+                      Container(
+                        width: 36, height: 36,
+                        decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.12), borderRadius: BorderRadius.circular(10)),
+                        child: const Icon(Icons.directions_bus, color: AppColors.primary, size: 20),
+                      ),
+                      const SizedBox(width: 10),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Dakar Bus', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                            Text('TER · BRT · AFTU · Tata · DDD', style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(color: AppColors.success.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(width: 6, height: 6, decoration: const BoxDecoration(color: AppColors.success, shape: BoxShape.circle)),
+                            const SizedBox(width: 4),
+                            const Text('Live', style: TextStyle(color: AppColors.success, fontWeight: FontWeight.bold, fontSize: 10)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  // Barre de recherche
+                  Container(
+                    decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.divider)),
+                    child: const TextField(
+                      decoration: InputDecoration(
+                        hintText: 'Où voulez-vous aller ?',
+                        prefixIcon: Icon(Icons.search, color: AppColors.primary, size: 20),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  // Filtres
+                  SizedBox(
+                    height: 36,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
                       children: [
-                        Text('Dakar Bus', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                        Text('TER · BRT · AFTU · Tata · DDD', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                        _chip('Tous'),
+                        _chip('TER'),
+                        _chip('BRT'),
+                        _chip('AFTU'),
+                        _chip('Tata'),
+                        _chip('DDD'),
                       ],
                     ),
                   ),
-                  IconButton(
-                    onPressed: _openAI,
-                    icon: const Icon(Icons.auto_awesome, color: AppColors.primary),
-                    tooltip: 'Assistant IA',
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Text('${_filteredStops.length} arrêts', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      const SizedBox(width: 4),
+                      Text('· $_selectedFilter', style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                    ],
                   ),
+                  const SizedBox(height: 8),
+                  // Liste
+                  ..._filteredStops.map((s) => Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: StopCard(stop: s, minuteOffset: widget.minuteOffset),
+                  )),
                 ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Container(
-                decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.divider)),
-                child: const TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Où voulez-vous aller ?',
-                    prefixIcon: Icon(Icons.search, color: AppColors.primary),
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              height: 40,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                children: [
-                  _chip('Tous'),
-                  _chip('TER'),
-                  _chip('BRT'),
-                  _chip('AFTU'),
-                  _chip('Tata'),
-                  _chip('DDD'),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  Text('${_filteredStops.length} arrêts', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                  const SizedBox(width: 4),
-                  Text('· $_selectedFilter', style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-                itemCount: _filteredStops.length,
-                itemBuilder: (ctx, i) => Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: StopCard(stop: _filteredStops[i], minuteOffset: widget.minuteOffset),
-                ),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _legend(Color c, String label) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(width: 10, height: 3, decoration: BoxDecoration(color: c, borderRadius: BorderRadius.circular(2))),
+        const SizedBox(width: 3),
+        Text(label, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold)),
+      ],
     );
   }
 
@@ -428,202 +589,6 @@ class _ExplorerPageState extends State<ExplorerPage> {
       case 'DDD': return AppColors.ddd;
       default: return AppColors.primary;
     }
-  }
-}
-
-// ============================================================
-// ONGLET 2 : CARTE (optimisée)
-// ============================================================
-class MapTabPage extends StatefulWidget {
-  final int minuteOffset;
-  final double busProgress;
-  const MapTabPage({super.key, required this.minuteOffset, required this.busProgress});
-  @override
-  State<MapTabPage> createState() => _MapTabPageState();
-}
-
-class _MapTabPageState extends State<MapTabPage> {
-  final MapController _mapController = MapController();
-  final LatLng _dakarCenter = const LatLng(14.7200, -17.4300);
-  final LatLng _simulatedPosition = const LatLng(14.6937, -17.4441);
-
-  void _locateUser() {
-    _mapController.move(_simulatedPosition, 15.0);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('📍 Position centrée sur Colobane'), backgroundColor: AppColors.primary, duration: Duration(seconds: 2)),
-    );
-  }
-
-  Widget _busMarker(Color color, IconData icon) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        shape: BoxShape.circle,
-        border: Border.all(color: color, width: 3),
-        boxShadow: [BoxShadow(color: color.withOpacity(0.5), blurRadius: 6, spreadRadius: 1)],
-      ),
-      child: Icon(icon, color: color, size: 12),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final p = widget.busProgress;
-
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Stack(
-        children: [
-          FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(
-              initialCenter: _dakarCenter,
-              initialZoom: 11.5,
-              minZoom: 10,
-              maxZoom: 17,
-            ),
-            children: [
-              TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'dakar_bus',
-                maxZoom: 19,
-              ),
-              // Tracés
-              PolylineLayer(
-                polylines: demoRoutes.map((r) => Polyline(
-                  points: r.points,
-                  color: r.color,
-                  strokeWidth: 4.0,
-                )).toList(),
-              ),
-              // 🎯 Seulement 8 arrêts prioritaires (performance)
-              MarkerLayer(
-                markers: mapPriorityStops.map((stop) => Marker(
-                  point: stop.location,
-                  width: 26, height: 26,
-                  child: GestureDetector(
-                    onTap: () => Navigator.push(context, MaterialPageRoute(
-                      builder: (_) => StopDetailPage(stop: stop, minuteOffset: widget.minuteOffset),
-                    )),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: stop.color,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 3)],
-                      ),
-                      child: Icon(stop.icon, color: Colors.white, size: 14),
-                    ),
-                  ),
-                )).toList(),
-              ),
-              // 🚌 5 bus animés (1 par ligne)
-              MarkerLayer(
-                markers: [
-                  Marker(point: AnimatedBusPosition.interpolate(demoRoutes[0].points, p), width: 22, height: 22, child: _busMarker(AppColors.ter, Icons.train_rounded)),
-                  Marker(point: AnimatedBusPosition.interpolate(demoRoutes[1].points, p), width: 22, height: 22, child: _busMarker(AppColors.brt, Icons.directions_bus_rounded)),
-                  Marker(point: AnimatedBusPosition.interpolate(demoRoutes[2].points, p), width: 22, height: 22, child: _busMarker(AppColors.aftu, Icons.directions_bus_outlined)),
-                  Marker(point: AnimatedBusPosition.interpolate(demoRoutes[3].points, (p + 0.5) % 1.0), width: 22, height: 22, child: _busMarker(AppColors.tata, Icons.directions_bus_filled)),
-                  Marker(point: AnimatedBusPosition.interpolate(demoRoutes[4].points, (p + 0.5) % 1.0), width: 22, height: 22, child: _busMarker(AppColors.ddd, Icons.directions_bus_filled_rounded)),
-                ],
-              ),
-              // Position utilisateur
-              MarkerLayer(markers: [
-                Marker(
-                  point: _simulatedPosition,
-                  width: 20, height: 20,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 3),
-                      boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.4), blurRadius: 10, spreadRadius: 3)],
-                    ),
-                  ),
-                ),
-              ]),
-            ],
-          ),
-
-          // Barre du haut
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Row(
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8)],
-                    ),
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                      child: Row(
-                        children: [
-                          Icon(Icons.search, color: AppColors.primary, size: 20),
-                          SizedBox(width: 8),
-                          Text('Où voulez-vous aller ?', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Bouton GPS
-          Positioned(
-            top: 90, left: 12,
-            child: FloatingActionButton.small(
-              onPressed: _locateUser,
-              backgroundColor: AppColors.surface,
-              child: const Icon(Icons.my_location, color: AppColors.primary),
-            ),
-          ),
-
-          // Légende
-          Positioned(
-            top: 90, right: 12,
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: AppColors.surface.withOpacity(0.95),
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 6)],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _legend(AppColors.ter, 'TER'),
-                  const SizedBox(height: 4),
-                  _legend(AppColors.brt, 'BRT'),
-                  const SizedBox(height: 4),
-                  _legend(AppColors.aftu, 'AFTU'),
-                  const SizedBox(height: 4),
-                  _legend(AppColors.tata, 'Tata'),
-                  const SizedBox(height: 4),
-                  _legend(AppColors.ddd, 'DDD'),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _legend(Color c, String label) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(width: 14, height: 4, decoration: BoxDecoration(color: c, borderRadius: BorderRadius.circular(2))),
-        const SizedBox(width: 6),
-        Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
-      ],
-    );
   }
 }
 
@@ -681,7 +646,7 @@ class StopCard extends StatelessWidget {
 }
 
 // ============================================================
-// ONGLET 3 : TRAJETS
+// ONGLET 2 : TRAJETS
 // ============================================================
 class TripsPage extends StatefulWidget {
   final int minuteOffset;
@@ -801,7 +766,7 @@ class _TripsPageState extends State<TripsPage> {
 }
 
 // ============================================================
-// ONGLET 4 : ALERTES
+// ONGLET 3 : ALERTES
 // ============================================================
 class AlertsPage extends StatelessWidget {
   final int minuteOffset;
@@ -866,7 +831,7 @@ class AlertsPage extends StatelessWidget {
 }
 
 // ============================================================
-// ONGLET 5 : PARAMÈTRES
+// ONGLET 4 : PARAMÈTRES
 // ============================================================
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
