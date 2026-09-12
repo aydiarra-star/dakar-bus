@@ -26,7 +26,7 @@ jobs:
         run: flutter pub get
 
       - name: Build Web
-        run: flutter build web --release --base-href "/dakar-bus/"
+        run: flutter build web --release --web-renderer html --base-href "/dakar-bus/"
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
