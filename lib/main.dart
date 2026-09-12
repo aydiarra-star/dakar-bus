@@ -761,20 +761,68 @@ List<Place> buildPlaceDatabase() {
   final places = <Place>[];
 
   final cities = <List<Object>>[
+    // ============ CENTRE-VILLE / PLATEAU ============
     ['Dakar', LatLng(14.6928, -17.4467)],
     ['Plateau', LatLng(14.6720, -17.4400)],
-    ['Guediawaye', LatLng(14.7735, -17.3977)],
-    ['Parcelles Assainies', LatLng(14.7600, -17.4400)],
-    ['Pikine', LatLng(14.7550, -17.3900)],
-    ['Rufisque', LatLng(14.7157, -17.2703)],
-    ['Diamniadio', LatLng(14.7160, -17.1986)],
-    ['Ouakam', LatLng(14.7250, -17.4900)],
+    ['Medina', LatLng(14.6837, -17.4500)],
+    ['Fass', LatLng(14.6880, -17.4500)],
+    ['Gueule Tapee', LatLng(14.6900, -17.4450)],
+    ['Soumbedioune', LatLng(14.6850, -17.4420)],
+
+    // ============ DAKAR CENTRE-EST ============
+    ['Fann', LatLng(14.6900, -17.4650)],
+    ['Point E', LatLng(14.6950, -17.4600)],
+    ['Mermoz', LatLng(14.7050, -17.4750)],
+    ['Sacre-Coeur', LatLng(14.7100, -17.4700)],
+    ['Grand Dakar', LatLng(14.7000, -17.4550)],
+    ['HLM', LatLng(14.7080, -17.4700)],
+
+    // ============ DAKAR NORD ============
+    ['Yoff', LatLng(14.7550, -17.4750)],
+    ['Ngor', LatLng(14.7550, -17.5000)],
     ['Almadies', LatLng(14.7350, -17.5100)],
+    ['Ouakam', LatLng(14.7250, -17.4900)],
+    ['Mamelles', LatLng(14.7200, -17.4950)],
+    ['Grand Yoff', LatLng(14.7300, -17.4600)],
+    ['Patte d Oie', LatLng(14.7350, -17.4550)],
+    ['Liberte 6', LatLng(14.7250, -17.4650)],
+    ['SICAP Liberte', LatLng(14.7280, -17.4620)],
+    ['Dieuppeul', LatLng(14.7150, -17.4600)],
+    ['Derkle', LatLng(14.7180, -17.4550)],
+
+    // ============ DAKAR EST / SUD ============
     ['Hann', LatLng(14.7222, -17.4321)],
+    ['Bel-Air', LatLng(14.7180, -17.4200)],
+    ['Front de Terre', LatLng(14.7100, -17.4400)],
+
+    // ============ PARCELLES / GRAND YOFF ============
+    ['Parcelles Assainies', LatLng(14.7600, -17.4400)],
+    ['Grand Medine', LatLng(14.7650, -17.4500)],
+    ['Cite Comico', LatLng(14.7700, -17.4400)],
+    ['Unite 15', LatLng(14.7620, -17.4380)],
+
+    // ============ PIKINE / GUEDIAWAYE ============
+    ['Pikine', LatLng(14.7550, -17.3900)],
+    ['Guediawaye', LatLng(14.7735, -17.3977)],
     ['Thiaroye', LatLng(14.7588, -17.3803)],
+    ['Guinaw Rail', LatLng(14.7700, -17.3800)],
+    ['Diamaguenne', LatLng(14.7800, -17.3600)],
+    ['Camberene', LatLng(14.7700, -17.4300)],
+
+    // ============ BANLIEUE NORD-EST ============
     ['Yeumbeul', LatLng(14.7700, -17.3400)],
+    ['Malika', LatLng(14.7850, -17.3300)],
+    ['Keur Massar', LatLng(14.7900, -17.3500)],
+    ['Jaxaay', LatLng(14.7900, -17.3700)],
+    ['Tivaouane Peulh', LatLng(14.7900, -17.4200)],
     ['Keur Mbaye Fall', LatLng(14.7750, -17.3100)],
+
+    // ============ BANLIEUE EST ============
+    ['Rufisque', LatLng(14.7157, -17.2703)],
     ['Bargny', LatLng(14.6900, -17.2200)],
+    ['Diamniadio', LatLng(14.7160, -17.1986)],
+    ['Sebikotane', LatLng(14.7400, -17.1700)],
+    ['Sangalkam', LatLng(14.7800, -17.2200)],
   ];
 
   for (final c in cities) {
@@ -3595,7 +3643,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   const SizedBox(height: 4),
                   const Text(
-                    'Version 4.1',
+                    'Version 4.2',
                     style: TextStyle(
                       fontSize: 13,
                       color: AppColors.textSecondary,
@@ -3634,7 +3682,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   const SizedBox(height: 6),
                   const Text(
-                    'Assistant IA intelligent actif',
+                    'Assistant IA + base de 48 lieux actifs',
                     style: TextStyle(
                       fontSize: 11,
                       color: AppColors.success,
@@ -4121,7 +4169,6 @@ class _AIChatPageState extends State<AIChatPage> {
     String? fromName;
     String? toName;
 
-    // Pattern 1 : "de X a Y" / "de X vers Y" / "de X pour Y"
     final deMatch = RegExp(
       r'de\s+(.+?)\s+(?:a|vers|pour|jusqu.?a)\s+(.+)',
     ).firstMatch(q);
@@ -4129,7 +4176,6 @@ class _AIChatPageState extends State<AIChatPage> {
       fromName = deMatch.group(1);
       toName = deMatch.group(2);
     } else {
-      // Pattern 2 : "vers X" / "pour X" / "a X" / "aller a X"
       final toMatch = RegExp(
         r'(?:vers|pour|aller\s+a|aller\s+au|aller\s+aux|jusqu.?a|rejoindre|a)\s+(.+)',
       ).firstMatch(q);
@@ -4239,28 +4285,23 @@ class _AIChatPageState extends State<AIChatPage> {
   String _generateResponse(String query) {
     final q = _normalize(query);
 
-    // 1. Salutations
     if (_isGreeting(q)) {
       return 'Bonjour ! Comment puis-je vous aider ?';
     }
 
-    // 2. Prix
     if (_isAboutPrice(q)) {
       return 'Je ne dispose pas d informations tarifaires fiables pour le moment.';
     }
 
-    // 3. Temps reel
     if (_isAboutRealTime(q)) {
       return 'Les donnees temps reel ne sont pas encore connectees.\nLes horaires affiches sont programmes (officiels SETER / SunuBRT).';
     }
 
-    // 4. Question d'itineraire (priorite haute)
     final routeAnswer = _tryRouteQuery(q);
     if (routeAnswer != null) {
       return routeAnswer;
     }
 
-    // 5. Arret specifique
     for (final stop in allStops) {
       final sn = _normalize(stop.name);
       if (q.contains(sn) || sn.contains(q)) {
@@ -4292,7 +4333,6 @@ class _AIChatPageState extends State<AIChatPage> {
       }
     }
 
-    // 6. Reseaux specifiques
     if (q.contains('ter') || q.contains('train')) {
       final freq = _isSunday() ? '20 min' : '10 min';
       return 'TER (officiel SETER) : Dakar - Diamniadio, 13 gares.\nFrequence : ' +
@@ -4312,7 +4352,6 @@ class _AIChatPageState extends State<AIChatPage> {
       return 'Dakar Dem Dikk : donnees de demonstration.\nSource officielle non encore connectee.';
     }
 
-    // 7. Mots-cles de lieux sans intention d'itineraire
     final keywords = [
       'diamniadio',
       'plateau',
@@ -4328,6 +4367,12 @@ class _AIChatPageState extends State<AIChatPage> {
       'bargny',
       'hann',
       'pikine',
+      'mermoz',
+      'yoff',
+      'sacre coeur',
+      'point e',
+      'fann',
+      'medina',
     ];
     for (final k in keywords) {
       if (q.contains(k)) {
@@ -4339,7 +4384,6 @@ class _AIChatPageState extends State<AIChatPage> {
       }
     }
 
-    // 8. Fallback
     return 'Je ne dispose pas d une donnee fiable pour repondre.\n\nEssayez par exemple :\n- "De Keur Mbaye Fall a Plateau"\n- "Prochain TER"\n- "Ou est Colobane ?"';
   }
 
