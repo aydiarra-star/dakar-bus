@@ -22,6 +22,9 @@ jobs:
           flutter-version: '3.19.x'
           channel: 'stable'
 
+      - name: Recreate Web Support
+        run: flutter create . --platforms web
+
       - name: Install Dependencies
         run: flutter pub get
 
