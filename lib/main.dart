@@ -71,7 +71,7 @@ final List<Stop> terStations = [
 ];
 
 // ============================================================
-// STATIONS BRT + AUTRES
+// 15 AUTRES ARRÊTS (BRT + AFTU + Tata + DDD)
 // ============================================================
 final List<Stop> otherStations = [
   const Stop(name: 'PEM Petersen', direction: 'Terminus sud BRT', price: '400 FCFA', distance: '200 m', minutesUntilArrival: 1, icon: Icons.directions_bus_rounded, color: AppColors.brt, location: LatLng(14.6720, -17.4400)),
@@ -93,53 +93,44 @@ final List<Stop> otherStations = [
 
 final List<Stop> allStops = [...terStations, ...otherStations];
 
+// Arrêts prioritaires pour la carte (8 seulement — performance)
+final List<Stop> mapPriorityStops = [
+  terStations[0],    // Dakar
+  terStations[1],    // Colobane
+  terStations[5],    // Pikine
+  terStations[10],   // Rufisque
+  terStations[12],   // Diamniadio
+  otherStations[1],  // BRT Colobane
+  otherStations[8],  // PEM Guédiawaye
+  otherStations[13], // DDD 12
+];
+
 // ============================================================
-// TRACÉS AMÉLIORÉS (waypoints + réalistes)
+// TRACÉS OPTIMISÉS (waypoints réduits)
 // ============================================================
 final List<TransitRoute> demoRoutes = [
-  // TER : suit le corridor ferroviaire Dakar-Diamniadio
   const TransitRoute(name: 'TER', code: 'TER', type: 'TER', color: AppColors.ter, points: [
-    LatLng(14.6792, -17.4407), LatLng(14.6850, -17.4425), LatLng(14.6937, -17.4441),
-    LatLng(14.7040, -17.4400), LatLng(14.7120, -17.4360), LatLng(14.7222, -17.4321),
-    LatLng(14.7320, -17.4230), LatLng(14.7410, -17.4120), LatLng(14.7470, -17.4010),
-    LatLng(14.7520, -17.3950), LatLng(14.7550, -17.3900), LatLng(14.7588, -17.3803),
-    LatLng(14.7650, -17.3600), LatLng(14.7700, -17.3400), LatLng(14.7750, -17.3100),
-    LatLng(14.7650, -17.2950), LatLng(14.7500, -17.2900), LatLng(14.7350, -17.2820),
-    LatLng(14.7200, -17.2750), LatLng(14.7157, -17.2703), LatLng(14.7050, -17.2500),
-    LatLng(14.6950, -17.2350), LatLng(14.6900, -17.2200), LatLng(14.7000, -17.2080),
-    LatLng(14.7160, -17.1986),
+    LatLng(14.6792, -17.4407), LatLng(14.6937, -17.4441), LatLng(14.7222, -17.4321),
+    LatLng(14.7410, -17.4120), LatLng(14.7550, -17.3900), LatLng(14.7700, -17.3400),
+    LatLng(14.7750, -17.3100), LatLng(14.7500, -17.2900), LatLng(14.7157, -17.2703),
+    LatLng(14.6900, -17.2200), LatLng(14.7160, -17.1986),
   ]),
-  // BRT : corridor dédié Petersen - Guédiawaye
   const TransitRoute(name: 'BRT', code: 'B1', type: 'BRT', color: AppColors.brt, points: [
-    LatLng(14.6720, -17.4400), LatLng(14.6800, -17.4410), LatLng(14.6880, -17.4420),
-    LatLng(14.6950, -17.4420), LatLng(14.7000, -17.4410), LatLng(14.7050, -17.4400),
-    LatLng(14.7120, -17.4375), LatLng(14.7180, -17.4350), LatLng(14.7220, -17.4330),
-    LatLng(14.7280, -17.4300), LatLng(14.7350, -17.4260), LatLng(14.7420, -17.4210),
-    LatLng(14.7450, -17.4180), LatLng(14.7480, -17.4140), LatLng(14.7520, -17.4100),
-    LatLng(14.7580, -17.4040), LatLng(14.7640, -17.4000), LatLng(14.7690, -17.3985),
+    LatLng(14.6720, -17.4400), LatLng(14.6950, -17.4420), LatLng(14.7050, -17.4400),
+    LatLng(14.7220, -17.4330), LatLng(14.7350, -17.4260), LatLng(14.7520, -17.4100),
     LatLng(14.7735, -17.3977),
   ]),
-  // AFTU 23 : Parcelles - Plateau
   const TransitRoute(name: 'AFTU', code: '23', type: 'AFTU', color: AppColors.aftu, points: [
-    LatLng(14.7600, -17.4400), LatLng(14.7520, -17.4420), LatLng(14.7440, -17.4440),
-    LatLng(14.7350, -17.4460), LatLng(14.7260, -17.4470), LatLng(14.7170, -17.4480),
-    LatLng(14.7080, -17.4485), LatLng(14.7000, -17.4490), LatLng(14.6930, -17.4475),
-    LatLng(14.6900, -17.4460), LatLng(14.6850, -17.4430), LatLng(14.6790, -17.4400),
+    LatLng(14.7600, -17.4400), LatLng(14.7350, -17.4460), LatLng(14.7080, -17.4485),
+    LatLng(14.6900, -17.4460), LatLng(14.6790, -17.4400),
   ]),
-  // Tata 12
   const TransitRoute(name: 'Tata', code: '12', type: 'TATA', color: AppColors.tata, points: [
-    LatLng(14.7735, -17.3977), LatLng(14.7650, -17.4080), LatLng(14.7560, -17.4180),
-    LatLng(14.7480, -17.4280), LatLng(14.7400, -17.4380), LatLng(14.7320, -17.4470),
-    LatLng(14.7240, -17.4560), LatLng(14.7150, -17.4650), LatLng(14.7080, -17.4700),
-    LatLng(14.6980, -17.4670), LatLng(14.6880, -17.4620), LatLng(14.6800, -17.4500),
-    LatLng(14.6750, -17.4400),
+    LatLng(14.7735, -17.3977), LatLng(14.7480, -17.4280), LatLng(14.7240, -17.4560),
+    LatLng(14.7080, -17.4700), LatLng(14.6880, -17.4620), LatLng(14.6750, -17.4400),
   ]),
-  // DDD 12 : Ouakam - Plateau
   const TransitRoute(name: 'DDD', code: 'DDD-12', type: 'DDD', color: AppColors.ddd, points: [
-    LatLng(14.7350, -17.5100), LatLng(14.7300, -17.5000), LatLng(14.7250, -17.4900),
-    LatLng(14.7200, -17.4800), LatLng(14.7150, -17.4720), LatLng(14.7100, -17.4700),
-    LatLng(14.7030, -17.4620), LatLng(14.6950, -17.4550), LatLng(14.6880, -17.4500),
-    LatLng(14.6800, -17.4450),
+    LatLng(14.7350, -17.5100), LatLng(14.7250, -17.4900), LatLng(14.7100, -17.4700),
+    LatLng(14.6950, -17.4550), LatLng(14.6800, -17.4450),
   ]),
 ];
 
@@ -219,19 +210,16 @@ class _MainShellState extends State<MainShell> {
   int _minuteOffset = 0;
   double _busProgress = 0.0;
   Timer? _timer;
-  DateTime _lastUpdate = DateTime.now();
 
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(const Duration(seconds: 2), (timer) {
-      if (mounted) {
+    // ⚡ Optimisation : timer lent (5s) + seulement sur l'onglet Carte
+    _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      if (mounted && _currentIndex == 1) {
         setState(() {
-          _busProgress = (_busProgress + 0.008) % 1.0;
-          if (timer.tick % 15 == 0) {
-            _minuteOffset++;
-            _lastUpdate = DateTime.now();
-          }
+          _busProgress = (_busProgress + 0.02) % 1.0;
+          _minuteOffset++;
         });
       }
     });
@@ -285,7 +273,7 @@ class _MainShellState extends State<MainShell> {
 }
 
 // ============================================================
-// ONGLET 1 : EXPLORER (liste, sans carte)
+// ONGLET 1 : EXPLORER
 // ============================================================
 class ExplorerPage extends StatefulWidget {
   final int minuteOffset;
@@ -444,7 +432,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
 }
 
 // ============================================================
-// ONGLET 2 : CARTE (plein écran + bottom sheet)
+// ONGLET 2 : CARTE (optimisée)
 // ============================================================
 class MapTabPage extends StatefulWidget {
   final int minuteOffset;
@@ -486,25 +474,33 @@ class _MapTabPageState extends State<MapTabPage> {
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // Carte plein écran
           FlutterMap(
             mapController: _mapController,
             options: MapOptions(
               initialCenter: _dakarCenter,
-              initialZoom: 12.0,
+              initialZoom: 11.5,
               minZoom: 10,
-              maxZoom: 18,
+              maxZoom: 17,
             ),
             children: [
-              TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', userAgentPackageName: 'dakar_bus'),
-              PolylineLayer(
-                polylines: demoRoutes.map((r) => Polyline(points: r.points, color: r.color, strokeWidth: 4.0)).toList(),
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'dakar_bus',
+                maxZoom: 19,
               ),
-              // Marqueurs arrêts (taille réduite pour limiter le chevauchement)
+              // Tracés
+              PolylineLayer(
+                polylines: demoRoutes.map((r) => Polyline(
+                  points: r.points,
+                  color: r.color,
+                  strokeWidth: 4.0,
+                )).toList(),
+              ),
+              // 🎯 Seulement 8 arrêts prioritaires (performance)
               MarkerLayer(
-                markers: allStops.map((stop) => Marker(
+                markers: mapPriorityStops.map((stop) => Marker(
                   point: stop.location,
-                  width: 24, height: 24,
+                  width: 26, height: 26,
                   child: GestureDetector(
                     onTap: () => Navigator.push(context, MaterialPageRoute(
                       builder: (_) => StopDetailPage(stop: stop, minuteOffset: widget.minuteOffset),
@@ -513,23 +509,22 @@ class _MapTabPageState extends State<MapTabPage> {
                       decoration: BoxDecoration(
                         color: stop.color,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 1.5),
+                        border: Border.all(color: Colors.white, width: 2),
+                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 3)],
                       ),
-                      child: Icon(stop.icon, color: Colors.white, size: 12),
+                      child: Icon(stop.icon, color: Colors.white, size: 14),
                     ),
                   ),
                 )).toList(),
               ),
-              // Bus animés
+              // 🚌 5 bus animés (1 par ligne)
               MarkerLayer(
                 markers: [
-                  Marker(point: AnimatedBusPosition.interpolate(demoRoutes[0].points, p), width: 20, height: 20, child: _busMarker(AppColors.ter, Icons.train_rounded)),
-                  Marker(point: AnimatedBusPosition.interpolate(demoRoutes[0].points, (p + 0.5) % 1.0), width: 20, height: 20, child: _busMarker(AppColors.ter, Icons.train_rounded)),
-                  Marker(point: AnimatedBusPosition.interpolate(demoRoutes[1].points, p), width: 20, height: 20, child: _busMarker(AppColors.brt, Icons.directions_bus_rounded)),
-                  Marker(point: AnimatedBusPosition.interpolate(demoRoutes[1].points, (p + 0.5) % 1.0), width: 20, height: 20, child: _busMarker(AppColors.brt, Icons.directions_bus_rounded)),
-                  Marker(point: AnimatedBusPosition.interpolate(demoRoutes[2].points, p), width: 20, height: 20, child: _busMarker(AppColors.aftu, Icons.directions_bus_outlined)),
-                  Marker(point: AnimatedBusPosition.interpolate(demoRoutes[3].points, (p + 0.3) % 1.0), width: 20, height: 20, child: _busMarker(AppColors.tata, Icons.directions_bus_filled)),
-                  Marker(point: AnimatedBusPosition.interpolate(demoRoutes[4].points, (p + 0.6) % 1.0), width: 20, height: 20, child: _busMarker(AppColors.ddd, Icons.directions_bus_filled_rounded)),
+                  Marker(point: AnimatedBusPosition.interpolate(demoRoutes[0].points, p), width: 22, height: 22, child: _busMarker(AppColors.ter, Icons.train_rounded)),
+                  Marker(point: AnimatedBusPosition.interpolate(demoRoutes[1].points, p), width: 22, height: 22, child: _busMarker(AppColors.brt, Icons.directions_bus_rounded)),
+                  Marker(point: AnimatedBusPosition.interpolate(demoRoutes[2].points, p), width: 22, height: 22, child: _busMarker(AppColors.aftu, Icons.directions_bus_outlined)),
+                  Marker(point: AnimatedBusPosition.interpolate(demoRoutes[3].points, (p + 0.5) % 1.0), width: 22, height: 22, child: _busMarker(AppColors.tata, Icons.directions_bus_filled)),
+                  Marker(point: AnimatedBusPosition.interpolate(demoRoutes[4].points, (p + 0.5) % 1.0), width: 22, height: 22, child: _busMarker(AppColors.ddd, Icons.directions_bus_filled_rounded)),
                 ],
               ),
               // Position utilisateur
@@ -550,7 +545,7 @@ class _MapTabPageState extends State<MapTabPage> {
             ],
           ),
 
-          // Barre du haut : recherche
+          // Barre du haut
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(12),
@@ -578,7 +573,7 @@ class _MapTabPageState extends State<MapTabPage> {
             ),
           ),
 
-          // Bouton GPS flottant
+          // Bouton GPS
           Positioned(
             top: 90, left: 12,
             child: FloatingActionButton.small(
@@ -588,7 +583,7 @@ class _MapTabPageState extends State<MapTabPage> {
             ),
           ),
 
-          // Légende en haut à droite
+          // Légende
           Positioned(
             top: 90, right: 12,
             child: Container(
@@ -633,7 +628,7 @@ class _MapTabPageState extends State<MapTabPage> {
 }
 
 // ============================================================
-// CARTE D'ARRÊT (réutilisable)
+// CARTE D'ARRÊT
 // ============================================================
 class StopCard extends StatelessWidget {
   final Stop stop;
@@ -1186,16 +1181,15 @@ class _AIChatPageState extends State<AIChatPage> {
       if (q.contains(stopName) || stopName.contains(q)) {
         final r = TimeHelper.remainingMinutes(stop.minutesUntilArrival, 0);
         final t = TimeHelper.nextArrival(stop.minutesUntilArrival, now, 0);
-        return '📍 ${stop.name}\nDirection : ${stop.direction}\nProchain passage : $t (dans ${TimeHelper.formatRemaining(r)})\nTarif : ${stop.price}\nDistance : ${stop.distance}';
+        return '📍 ${stop.name}\nDirection : ${stop.direction}\nProchain passage : $t (dans ${TimeHelper.formatRemaining(r)})\nTarif : ${stop.price}';
       }
     }
 
     if (q.contains('diamniadio')) return '🚆 Pour Diamniadio : TER depuis la Gare de Dakar. 13 gares, terminus Diamniadio. ~40 min. Jusqu\'à 800 FCFA.';
     if (q.contains('plateau')) return '🚌 Pour le Plateau : BRT depuis Colobane (~15 min, 400 FCFA) ou DDD 7 (~20 min, 300 FCFA).';
-    if (q.contains('guediawaye')) return '🚌 Pour Guédiawaye : BRT depuis Colobane (PEM Guédiawaye). ~20 min. 400 FCFA.';
+    if (q.contains('guediawaye')) return '🚌 Pour Guédiawaye : BRT depuis Colobane. ~20 min. 400 FCFA.';
     if (q.contains('parcelles')) return '🚌 Pour Parcelles Assainies : AFTU 23 depuis Colobane. 3 min. 200 FCFA.';
     if (q.contains('ouakam') || q.contains('almadies')) return '🚌 Pour Ouakam : DDD 12. 6 min. 300 FCFA.';
-    if (q.contains('petersen')) return '🚌 Petersen : terminus sud du BRT (B1). 400 FCFA.';
     if (q.contains('rufisque')) return '🚆 Rufisque : 11ème gare du TER depuis Dakar. ~700 FCFA.';
     if (q.contains('thiaroye')) return '🚆 Thiaroye : 7ème gare du TER. ~500 FCFA.';
     if (q.contains('keur mbaye') || q.contains('keurmbaye')) return '🚆 Keur Mbaye Fall : 9ème gare du TER. ~600 FCFA.';
@@ -1205,11 +1199,11 @@ class _AIChatPageState extends State<AIChatPage> {
     if (q.contains('hann')) return '🚆 Hann : 3ème gare du TER. 500 FCFA.';
     if (q.contains('pikine')) return '🚆 Pikine : 6ème gare du TER. 500 FCFA.';
 
-    if (q.contains('ter') || q.contains('train')) return '🚆 Le TER relie Dakar à Diamniadio via 13 gares. Prochain départ dans 2 min.';
-    if (q.contains('brt')) return '🚍 Le BRT relie Petersen à Guédiawaye. 23 stations. Prochain à Colobane dans 1 min.';
-    if (q.contains('aftu')) return '🚌 AFTU : Ligne 23 vers Parcelles Assainies. 3 min. 200 FCFA.';
-    if (q.contains('tata')) return '🚌 Tata : Ligne 12 vers Guédiawaye. 4 min. 250 FCFA.';
-    if (q.contains('ddd') || q.contains('dakar dem dikk')) return '🚌 DDD : Ligne 12 vers Ouakam. 6 min. 300 FCFA.';
+    if (q.contains('ter') || q.contains('train')) return '🚆 Le TER relie Dakar à Diamniadio via 13 gares.';
+    if (q.contains('brt')) return '🚍 Le BRT relie Petersen à Guédiawaye. 23 stations.';
+    if (q.contains('aftu')) return '🚌 AFTU : Ligne 23 vers Parcelles Assainies. 200 FCFA.';
+    if (q.contains('tata')) return '🚌 Tata : Ligne 12 vers Guédiawaye. 250 FCFA.';
+    if (q.contains('ddd') || q.contains('dakar dem dikk')) return '🚌 DDD : Ligne 12 vers Ouakam. 300 FCFA.';
 
     if (q.contains('bonjour') || q.contains('salut')) return 'Bonjour ! Que cherchez-vous ?';
     if (q.contains('merci')) return 'Avec plaisir !';
