@@ -929,6 +929,15 @@ class RoutePlanner {
     candidates.addAll(transfers);
 
     if (candidates.isEmpty) {
+      final nowH = DateTime.now().hour;
+      final horsService = nowH >= 22 || nowH < 5;
+      final msg = horsService
+          ? 'Aucun itineraire a cette heure.\n\nLe service s arrete vers 22h et reprend a 5h30.'
+          : 'Aucun itineraire trouve entre ' +
+              fromStop.name +
+              ' et ' +
+              toStop.name +
+              '.\n\nRappel : les horaires AFTU / Tata / DDD sont des donnees de demonstration limitees a certaines heures. Essayez un depart proche d une gare TER ou BRT.';
       return RouteSearchResult(
         missingData: [
           'Correspondance connue entre ' +
@@ -936,8 +945,7 @@ class RoutePlanner {
               ' et ' +
               toStop.name,
         ],
-        errorMessage:
-            'Aucun itineraire fiable avec les donnees actuelles.',
+        errorMessage: msg,
       );
     }
 
@@ -3643,7 +3651,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   const SizedBox(height: 4),
                   const Text(
-                    'Version 4.2',
+                    'Version 4.3',
                     style: TextStyle(
                       fontSize: 13,
                       color: AppColors.textSecondary,
@@ -3682,7 +3690,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   const SizedBox(height: 6),
                   const Text(
-                    'Assistant IA + base de 48 lieux actifs',
+                    'Assistant IA + base de 48 lieux + messages d erreur contextuels',
                     style: TextStyle(
                       fontSize: 11,
                       color: AppColors.success,
