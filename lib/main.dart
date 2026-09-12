@@ -117,7 +117,7 @@ class _MainShellState extends State<MainShell> {
         selectedIndex: _currentIndex,
         onDestinationSelected: (i) => setState(() => _currentIndex = i),
         backgroundColor: AppColors.surface,
-        indicatorColor: AppColors.primary.withValues(alpha: 0.15),
+        indicatorColor: AppColors.primary.withOpacity(0.15),
         destinations: const [
           NavigationDestination(
               icon: Icon(Icons.home_outlined),
@@ -158,7 +158,7 @@ class HomePage extends StatelessWidget {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.12),
+                    color: AppColors.primary.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(Icons.directions_bus,
@@ -186,7 +186,7 @@ class HomePage extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: AppColors.success.withValues(alpha: 0.1),
+                color: AppColors.success.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
@@ -259,7 +259,7 @@ class HomePage extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           color: selected
-              ? AppColors.primary.withValues(alpha: 0.15)
+              ? AppColors.primary.withOpacity(0.15)
               : AppColors.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
@@ -473,7 +473,7 @@ class _MapPageState extends State<MapPage> {
                                 Border.all(color: Colors.white, width: 2),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.2),
+                                color: Colors.black.withOpacity(0.2),
                                 blurRadius: 6,
                               ),
                             ],
@@ -537,7 +537,7 @@ class AlertsPage extends StatelessWidget {
                         color: AppColors.surface,
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                            color: s.color.withValues(alpha: 0.3),
+                            color: s.color.withOpacity(0.3),
                             width: 1.5)),
                     child: Row(
                       children: [
@@ -545,7 +545,7 @@ class AlertsPage extends StatelessWidget {
                           width: 44,
                           height: 44,
                           decoration: BoxDecoration(
-                              color: s.color.withValues(alpha: 0.12),
+                              color: s.color.withOpacity(0.12),
                               shape: BoxShape.circle),
                           child: Icon(s.icon, color: s.color, size: 22),
                         ),
