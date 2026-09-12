@@ -27,14 +27,9 @@ class Stop {
   final Color color;
   final LatLng location;
   const Stop({
-    required this.name,
-    required this.direction,
-    required this.price,
-    required this.distance,
-    required this.minutesUntilArrival,
-    required this.icon,
-    required this.color,
-    required this.location,
+    required this.name, required this.direction, required this.price,
+    required this.distance, required this.minutesUntilArrival,
+    required this.icon, required this.color, required this.location,
   });
 }
 
@@ -43,17 +38,11 @@ class TransitRoute {
   final Color color;
   final List<LatLng> points;
   const TransitRoute({
-    required this.name,
-    required this.code,
-    required this.type,
-    required this.color,
-    required this.points,
+    required this.name, required this.code, required this.type,
+    required this.color, required this.points,
   });
 }
 
-// ============================================================
-// 13 GARES DU TER
-// ============================================================
 final List<Stop> terStations = [
   const Stop(name: 'Gare TER Dakar', direction: 'Terminus Dakar', price: '500 FCFA', distance: '350 m', minutesUntilArrival: 2, icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.6792, -17.4407)),
   const Stop(name: 'Gare TER Colobane', direction: 'Dir. Diamniadio', price: '500 FCFA', distance: '1.2 km', minutesUntilArrival: 4, icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.6937, -17.4441)),
@@ -70,9 +59,6 @@ final List<Stop> terStations = [
   const Stop(name: 'Gare TER Diamniadio', direction: 'Terminus Diamniadio', price: '800 FCFA', distance: '35.0 km', minutesUntilArrival: 32, icon: Icons.train_rounded, color: AppColors.ter, location: LatLng(14.7160, -17.1986)),
 ];
 
-// ============================================================
-// 15 AUTRES ARRÊTS
-// ============================================================
 final List<Stop> otherStations = [
   const Stop(name: 'PEM Petersen', direction: 'Terminus sud BRT', price: '400 FCFA', distance: '200 m', minutesUntilArrival: 1, icon: Icons.directions_bus_rounded, color: AppColors.brt, location: LatLng(14.6720, -17.4400)),
   const Stop(name: 'BRT Colobane', direction: 'Dir. Guédiawaye', price: '400 FCFA', distance: '150 m', minutesUntilArrival: 1, icon: Icons.directions_bus_rounded, color: AppColors.brt, location: LatLng(14.6950, -17.4420)),
@@ -93,15 +79,11 @@ final List<Stop> otherStations = [
 
 final List<Stop> allStops = [...terStations, ...otherStations];
 
-// Arrêts prioritaires carte (8 seulement)
 final List<Stop> mapPriorityStops = [
   terStations[0], terStations[1], terStations[5], terStations[10], terStations[12],
   otherStations[1], otherStations[8], otherStations[13],
 ];
 
-// ============================================================
-// TRACÉS
-// ============================================================
 final List<TransitRoute> demoRoutes = [
   const TransitRoute(name: 'TER', code: 'TER', type: 'TER', color: AppColors.ter, points: [
     LatLng(14.6792, -17.4407), LatLng(14.6937, -17.4441), LatLng(14.7222, -17.4321),
@@ -128,27 +110,18 @@ final List<TransitRoute> demoRoutes = [
   ]),
 ];
 
-// ============================================================
-// UTILITAIRES
-// ============================================================
 class TimeHelper {
   static String nextArrival(int minutesFromStart, DateTime now, int minuteOffset) {
     int remaining = minutesFromStart - minuteOffset;
-    while (remaining <= 0) {
-      remaining += 15;
-    }
+    while (remaining <= 0) { remaining += 15; }
     final arrivalTime = now.add(Duration(minutes: remaining));
     return '${arrivalTime.hour.toString().padLeft(2, '0')}h${arrivalTime.minute.toString().padLeft(2, '0')}';
   }
-
   static int remainingMinutes(int minutesFromStart, int minuteOffset) {
     int remaining = minutesFromStart - minuteOffset;
-    while (remaining <= 0) {
-      remaining += 15;
-    }
+    while (remaining <= 0) { remaining += 15; }
     return remaining;
   }
-
   static String formatRemaining(int minutes) {
     if (minutes <= 0) return 'À l\'arrêt';
     if (minutes == 1) return '1 min';
@@ -173,9 +146,6 @@ class AnimatedBusPosition {
   }
 }
 
-// ============================================================
-// APP
-// ============================================================
 class DakarBusApp extends StatelessWidget {
   const DakarBusApp({super.key});
   @override
@@ -208,7 +178,6 @@ class _MainShellState extends State<MainShell> {
   @override
   void initState() {
     super.initState();
-    // Animation uniquement sur l'onglet Explorer (0) et Carte si besoin
     _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
       if (mounted && _currentIndex == 0) {
         setState(() {
@@ -265,7 +234,7 @@ class _MainShellState extends State<MainShell> {
 }
 
 // ============================================================
-// ONGLET 1 : EXPLORER (avec carte intégrée en haut)
+// ONGLET EXPLORER — CARTE + LISTE FUSIONNÉES
 // ============================================================
 class ExplorerPage extends StatefulWidget {
   final int minuteOffset;
@@ -279,23 +248,22 @@ class _ExplorerPageState extends State<ExplorerPage> {
   final MapController _mapController = MapController();
   final LatLng _dakarCenter = const LatLng(14.7200, -17.4300);
   final LatLng _simulatedPosition = const LatLng(14.6937, -17.4441);
+  final ScrollController _listController = ScrollController();
   String _selectedFilter = 'Tous';
 
   List<Stop> get _filteredStops {
     switch (_selectedFilter) {
-      case 'TER':
-        return allStops.where((s) => s.color == AppColors.ter).toList();
-      case 'BRT':
-        return allStops.where((s) => s.color == AppColors.brt).toList();
-      case 'AFTU':
-        return allStops.where((s) => s.color == AppColors.aftu).toList();
-      case 'Tata':
-        return allStops.where((s) => s.color == AppColors.tata).toList();
-      case 'DDD':
-        return allStops.where((s) => s.color == AppColors.ddd).toList();
-      default:
-        return allStops;
+      case 'TER': return allStops.where((s) => s.color == AppColors.ter).toList();
+      case 'BRT': return allStops.where((s) => s.color == AppColors.brt).toList();
+      case 'AFTU': return allStops.where((s) => s.color == AppColors.aftu).toList();
+      case 'Tata': return allStops.where((s) => s.color == AppColors.tata).toList();
+      case 'DDD': return allStops.where((s) => s.color == AppColors.ddd).toList();
+      default: return allStops;
     }
+  }
+
+  void _centerOnStop(Stop stop) {
+    _mapController.move(stop.location, 14.5);
   }
 
   void _locateUser() {
@@ -333,7 +301,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
           children: [
             // ====== CARTE EN HAUT ======
             SizedBox(
-              height: 220,
+              height: 240,
               child: Stack(
                 children: [
                   FlutterMap(
@@ -350,23 +318,22 @@ class _ExplorerPageState extends State<ExplorerPage> {
                         userAgentPackageName: 'dakar_bus',
                         maxZoom: 19,
                       ),
-                      // Tracés
                       PolylineLayer(
                         polylines: demoRoutes.map((r) => Polyline(
-                          points: r.points,
-                          color: r.color,
-                          strokeWidth: 3.5,
+                          points: r.points, color: r.color, strokeWidth: 3.5,
                         )).toList(),
                       ),
-                      // 8 arrêts prioritaires
                       MarkerLayer(
                         markers: mapPriorityStops.map((stop) => Marker(
                           point: stop.location,
                           width: 24, height: 24,
                           child: GestureDetector(
-                            onTap: () => Navigator.push(context, MaterialPageRoute(
-                              builder: (_) => StopDetailPage(stop: stop, minuteOffset: widget.minuteOffset),
-                            )),
+                            onTap: () {
+                              _centerOnStop(stop);
+                              Navigator.push(context, MaterialPageRoute(
+                                builder: (_) => StopDetailPage(stop: stop, minuteOffset: widget.minuteOffset),
+                              ));
+                            },
                             child: Container(
                               decoration: BoxDecoration(
                                 color: stop.color,
@@ -379,7 +346,6 @@ class _ExplorerPageState extends State<ExplorerPage> {
                           ),
                         )).toList(),
                       ),
-                      // 5 bus animés
                       MarkerLayer(
                         markers: [
                           Marker(point: AnimatedBusPosition.interpolate(demoRoutes[0].points, p), width: 18, height: 18, child: _busMarker(AppColors.ter, Icons.train_rounded)),
@@ -389,7 +355,6 @@ class _ExplorerPageState extends State<ExplorerPage> {
                           Marker(point: AnimatedBusPosition.interpolate(demoRoutes[4].points, (p + 0.5) % 1.0), width: 18, height: 18, child: _busMarker(AppColors.ddd, Icons.directions_bus_filled_rounded)),
                         ],
                       ),
-                      // Position utilisateur
                       MarkerLayer(markers: [
                         Marker(
                           point: _simulatedPosition,
@@ -415,7 +380,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                       child: const Icon(Icons.my_location, color: AppColors.primary, size: 20),
                     ),
                   ),
-                  // Bouton Assistant IA
+                  // Bouton IA
                   Positioned(
                     bottom: 12, right: 12,
                     child: ElevatedButton.icon(
@@ -460,12 +425,12 @@ class _ExplorerPageState extends State<ExplorerPage> {
               ),
             ),
 
-            // ====== CONTENU DÉFILABLE EN DESSOUS ======
+            // ====== LISTE EN DESSOUS ======
             Expanded(
               child: ListView(
+                controller: _listController,
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
                 children: [
-                  // En-tête
                   Row(
                     children: [
                       Container(
@@ -498,7 +463,6 @@ class _ExplorerPageState extends State<ExplorerPage> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  // Barre de recherche
                   Container(
                     decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.divider)),
                     child: const TextField(
@@ -511,7 +475,6 @@ class _ExplorerPageState extends State<ExplorerPage> {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  // Filtres
                   SizedBox(
                     height: 36,
                     child: ListView(
@@ -535,10 +498,12 @@ class _ExplorerPageState extends State<ExplorerPage> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  // Liste
                   ..._filteredStops.map((s) => Padding(
                     padding: const EdgeInsets.only(bottom: 10),
-                    child: StopCard(stop: s, minuteOffset: widget.minuteOffset),
+                    child: GestureDetector(
+                      onTap: () => _centerOnStop(s),
+                      child: StopCard(stop: s, minuteOffset: widget.minuteOffset),
+                    ),
                   )),
                 ],
               ),
@@ -592,9 +557,6 @@ class _ExplorerPageState extends State<ExplorerPage> {
   }
 }
 
-// ============================================================
-// CARTE D'ARRÊT
-// ============================================================
 class StopCard extends StatelessWidget {
   final Stop stop;
   final int minuteOffset;
@@ -646,7 +608,7 @@ class StopCard extends StatelessWidget {
 }
 
 // ============================================================
-// ONGLET 2 : TRAJETS
+// TRAJETS
 // ============================================================
 class TripsPage extends StatefulWidget {
   final int minuteOffset;
@@ -766,7 +728,7 @@ class _TripsPageState extends State<TripsPage> {
 }
 
 // ============================================================
-// ONGLET 3 : ALERTES
+// ALERTES
 // ============================================================
 class AlertsPage extends StatelessWidget {
   final int minuteOffset;
@@ -831,7 +793,7 @@ class AlertsPage extends StatelessWidget {
 }
 
 // ============================================================
-// ONGLET 4 : PARAMÈTRES
+// PARAMÈTRES
 // ============================================================
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -945,7 +907,7 @@ class _SettingsPageState extends State<SettingsPage> {
 }
 
 // ============================================================
-// ÉCRAN DÉTAIL ARRÊT
+// DÉTAIL ARRÊT
 // ============================================================
 class StopDetailPage extends StatefulWidget {
   final Stop stop;
@@ -1110,7 +1072,7 @@ class _AIChatPageState extends State<AIChatPage> {
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
   final List<Map<String, String>> _messages = [
-    {'role': 'ai', 'text': 'Bonjour ! Je suis votre assistant Dakar Bus. Posez-moi une question : destination, arrêt, ligne TER, BRT, AFTU, Tata ou DDD.'},
+    {'role': 'ai', 'text': 'Bonjour ! Je suis votre assistant Dakar Bus. Posez-moi une question.'},
   ];
 
   void _send() {
@@ -1150,31 +1112,30 @@ class _AIChatPageState extends State<AIChatPage> {
       }
     }
 
-    if (q.contains('diamniadio')) return '🚆 Pour Diamniadio : TER depuis la Gare de Dakar. 13 gares, terminus Diamniadio. ~40 min. Jusqu\'à 800 FCFA.';
-    if (q.contains('plateau')) return '🚌 Pour le Plateau : BRT depuis Colobane (~15 min, 400 FCFA) ou DDD 7 (~20 min, 300 FCFA).';
+    if (q.contains('diamniadio')) return '🚆 Pour Diamniadio : TER depuis Dakar. 13 gares, ~40 min, jusqu\'à 800 FCFA.';
+    if (q.contains('plateau')) return '🚌 Pour le Plateau : BRT depuis Colobane (~15 min, 400 FCFA) ou DDD 7.';
     if (q.contains('guediawaye')) return '🚌 Pour Guédiawaye : BRT depuis Colobane. ~20 min. 400 FCFA.';
-    if (q.contains('parcelles')) return '🚌 Pour Parcelles Assainies : AFTU 23 depuis Colobane. 3 min. 200 FCFA.';
-    if (q.contains('ouakam') || q.contains('almadies')) return '🚌 Pour Ouakam : DDD 12. 6 min. 300 FCFA.';
-    if (q.contains('rufisque')) return '🚆 Rufisque : 11ème gare du TER depuis Dakar. ~700 FCFA.';
+    if (q.contains('parcelles')) return '🚌 Parcelles Assainies : AFTU 23 depuis Colobane. 200 FCFA.';
+    if (q.contains('ouakam') || q.contains('almadies')) return '🚌 Ouakam : DDD 12. 300 FCFA.';
+    if (q.contains('rufisque')) return '🚆 Rufisque : 11ème gare du TER. ~700 FCFA.';
     if (q.contains('thiaroye')) return '🚆 Thiaroye : 7ème gare du TER. ~500 FCFA.';
-    if (q.contains('keur mbaye') || q.contains('keurmbaye')) return '🚆 Keur Mbaye Fall : 9ème gare du TER. ~600 FCFA.';
+    if (q.contains('keur mbaye')) return '🚆 Keur Mbaye Fall : 9ème gare du TER. ~600 FCFA.';
     if (q.contains('colobane')) return '📍 Colobane : hub central (TER + BRT + AFTU).';
-    if (q.contains('yeumbeul')) return '🚆 Yeumbeul : 8ème gare du TER. ~600 FCFA.';
-    if (q.contains('bargny')) return '🚆 Bargny : 12ème gare du TER. ~700 FCFA.';
+    if (q.contains('yeumbeul')) return '🚆 Yeumbeul : 8ème gare du TER.';
+    if (q.contains('bargny')) return '🚆 Bargny : 12ème gare du TER.';
     if (q.contains('hann')) return '🚆 Hann : 3ème gare du TER. 500 FCFA.';
     if (q.contains('pikine')) return '🚆 Pikine : 6ème gare du TER. 500 FCFA.';
 
     if (q.contains('ter') || q.contains('train')) return '🚆 Le TER relie Dakar à Diamniadio via 13 gares.';
     if (q.contains('brt')) return '🚍 Le BRT relie Petersen à Guédiawaye. 23 stations.';
-    if (q.contains('aftu')) return '🚌 AFTU : Ligne 23 vers Parcelles Assainies. 200 FCFA.';
+    if (q.contains('aftu')) return '🚌 AFTU : Ligne 23 vers Parcelles. 200 FCFA.';
     if (q.contains('tata')) return '🚌 Tata : Ligne 12 vers Guédiawaye. 250 FCFA.';
-    if (q.contains('ddd') || q.contains('dakar dem dikk')) return '🚌 DDD : Ligne 12 vers Ouakam. 300 FCFA.';
+    if (q.contains('ddd')) return '🚌 DDD : Ligne 12 vers Ouakam. 300 FCFA.';
 
     if (q.contains('bonjour') || q.contains('salut')) return 'Bonjour ! Que cherchez-vous ?';
     if (q.contains('merci')) return 'Avec plaisir !';
-    if (q.contains('aide') || q.contains('help')) return 'Demandez-moi : « Prochain TER », « Comment aller à Diamniadio », « Où est Colobane ? »';
 
-    return 'Je n\'ai pas trouvé. Essayez : « Prochain TER », « Diamniadio », « Plateau », « Colobane ».';
+    return 'Je n\'ai pas trouvé. Essayez : « Prochain TER », « Diamniadio », « Plateau ».';
   }
 
   @override
