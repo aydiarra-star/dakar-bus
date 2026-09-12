@@ -2,13 +2,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
 
 void main() => runApp(const DakarBusApp());
 
 // ============================================================
 // GENERATEUR D HORAIRES OFFICIELS
-// TER : toutes les 10 min de 5h30 a 22h00
-// BRT : toutes les 6 min de 6h00 a 21h00
 // ============================================================
 List<int> _generateSchedule({
   required int from,
@@ -834,7 +833,7 @@ class RoutePlanner {
         missingData: ['Lieu de depart introuvable'],
         errorMessage: 'Nous ne reconnaissons pas ' +
             fromQuery +
-            '. Essayez un nom de quartier ou d arret.',
+            '.',
       );
     }
     if (toPlace == null) {
@@ -842,7 +841,7 @@ class RoutePlanner {
         missingData: ['Destination introuvable'],
         errorMessage: 'Nous ne reconnaissons pas ' +
             toQuery +
-            '. Essayez un nom de quartier ou d arret.',
+            '.',
       );
     }
 
@@ -853,13 +852,13 @@ class RoutePlanner {
 
     if (fromStop == null) {
       return RouteSearchResult(
-        missingData: ['Aucun arret connu proche du depart'],
+        missingData: ['Aucun arret proche du depart'],
         errorMessage: 'Aucun arret proche de ' + fromPlace.name,
       );
     }
     if (toStop == null) {
       return RouteSearchResult(
-        missingData: ['Aucun arret connu proche de la destination'],
+        missingData: ['Aucun arret proche de la destination'],
         errorMessage: 'Aucun arret proche de ' + toPlace.name,
       );
     }
@@ -1108,13 +1107,23 @@ class MainShell extends StatefulWidget {
   State<MainShell> createState() => _MainShellState();
 }
 
-enum GpsState { idle, loading, granted, denied }
+// Etats GPS (etendus)
+enum GpsState {
+  idle,
+  loading,
+  granted,
+  denied,
+  deniedForever,
+  serviceDisabled,
+  error,
+}
 
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
   Timer? _ticker;
   LatLng? _userPosition;
   GpsState _gpsState = GpsState.idle;
+  String? _gpsMessage;
 
   List<FavoriteRoute> _favorites = [
     const FavoriteRoute(
@@ -1148,22 +1157,108 @@ class _MainShellState extends State<MainShell> {
     super.dispose();
   }
 
-  Future<void> _requestLocation() async {
-    setState(() => _gpsState = GpsState.loading);
-    await Future.delayed(const Duration(milliseconds: 800));
+  void _showSnack(String message, Color color) {
     if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: color,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+  // ------------------------------------------------------------
+  // GPS REEL via geolocator (fonctionne aussi sur Flutter Web)
+  // ------------------------------------------------------------
+  Future<void> _requestLocation() async {
     setState(() {
-      _userPosition = const LatLng(14.6937, -17.4441);
-      _gpsState = GpsState.granted;
+      _gpsState = GpsState.loading;
+      _gpsMessage = null;
     });
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content:
-              Text('Position provisoire (GPS non encore branche)'),
-          backgroundColor: AppColors.warning,
-          duration: Duration(seconds: 2),
-        ),
+
+    try {
+      // 1. Le service de localisation est-il active ?
+      final serviceEnabled =
+          await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        if (!mounted) return;
+        setState(() {
+          _gpsState = GpsState.serviceDisabled;
+          _gpsMessage =
+              'GPS desactive. Activez la localisation du telephone.';
+        });
+        _showSnack(
+          'GPS desactive. Activez la localisation.',
+          AppColors.warning,
+        );
+        return;
+      }
+
+      // 2. Verification de la permission
+      LocationPermission permission =
+          await Geolocator.checkPermission();
+
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+
+      if (permission == LocationPermission.denied) {
+        if (!mounted) return;
+        setState(() {
+          _gpsState = GpsState.denied;
+          _gpsMessage =
+              'Permission refusee. Recherche manuelle disponible.';
+        });
+        _showSnack(
+          'Permission GPS refusee.',
+          AppColors.warning,
+        );
+        return;
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        if (!mounted) return;
+        setState(() {
+          _gpsState = GpsState.deniedForever;
+          _gpsMessage =
+              'Permission bloquee. Autorisez dans les reglages.';
+        });
+        _showSnack(
+          'Permission GPS bloquee.',
+          AppColors.warning,
+        );
+        return;
+      }
+
+      // 3. Recuperation de la position
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 10),
+      );
+
+      if (!mounted) return;
+      setState(() {
+        _userPosition = LatLng(
+          position.latitude,
+          position.longitude,
+        );
+        _gpsState = GpsState.granted;
+        _gpsMessage = null;
+      });
+      _showSnack(
+        'Position GPS obtenue.',
+        AppColors.success,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _gpsState = GpsState.error;
+        _gpsMessage = 'Erreur GPS : ' + e.toString();
+      });
+      _showSnack(
+        'Erreur GPS : impossible d obtenir la position.',
+        AppColors.ter,
       );
     }
   }
@@ -1182,6 +1277,7 @@ class _MainShellState extends State<MainShell> {
       ExplorerPage(
         userPosition: _userPosition,
         gpsState: _gpsState,
+        gpsMessage: _gpsMessage,
         onRequestLocation: _requestLocation,
       ),
       TripsPage(favorites: _favorites),
@@ -1258,12 +1354,14 @@ class _MainShellState extends State<MainShell> {
 class ExplorerPage extends StatefulWidget {
   final LatLng? userPosition;
   final GpsState gpsState;
+  final String? gpsMessage;
   final Future<void> Function() onRequestLocation;
 
   const ExplorerPage({
     super.key,
     required this.userPosition,
     required this.gpsState,
+    required this.gpsMessage,
     required this.onRequestLocation,
   });
 
@@ -1600,6 +1698,44 @@ class _ExplorerPageState extends State<ExplorerPage> {
                       const OfficialBadge(),
                     ],
                   ),
+                  // Bandeau de statut GPS
+                  if (widget.gpsMessage != null) ...[
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppColors.warning
+                            .withOpacity(0.10),
+                        borderRadius:
+                            BorderRadius.circular(10),
+                        border: Border.all(
+                          color: AppColors.warning
+                              .withOpacity(0.3),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.location_off_outlined,
+                            size: 16,
+                            color: AppColors.warning,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              widget.gpsMessage!,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color:
+                                    AppColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 12),
                   Container(
                     decoration: BoxDecoration(
@@ -1719,16 +1855,38 @@ class _ExplorerPageState extends State<ExplorerPage> {
                         ),
                       ),
                       const SizedBox(width: 6),
-                      const Padding(
-                        padding: EdgeInsets.only(bottom: 1),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 1),
                         child: Text(
-                          'A proximite',
-                          style: TextStyle(
+                          widget.userPosition != null
+                              ? 'Autour de vous'
+                              : 'A proximite',
+                          style: const TextStyle(
                             fontSize: 12,
                             color: AppColors.textSecondary,
                           ),
                         ),
                       ),
+                      const Spacer(),
+                      if (widget.userPosition != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.success
+                                .withOpacity(0.12),
+                            borderRadius:
+                                BorderRadius.circular(4),
+                          ),
+                          child: const Text(
+                            'GPS',
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.success,
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -3184,7 +3342,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   SizedBox(height: 4),
                   Text(
-                    'Version 3.4',
+                    'Version 3.5',
                     style: TextStyle(
                       fontSize: 13,
                       color: AppColors.textSecondary,
@@ -3217,6 +3375,16 @@ class _SettingsPageState extends State<SettingsPage> {
                       fontSize: 11,
                       color: AppColors.warning,
                       fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                  SizedBox(height: 6),
+                  Text(
+                    'GPS : geolocator (position reelle)',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppColors.success,
+                      fontStyle: FontStyle.italic,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
