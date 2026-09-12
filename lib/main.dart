@@ -254,11 +254,9 @@ class Stop {
     final normalized = d % (24 * 60);
     final h = (normalized ~/ 60).toString().padLeft(2, '0');
     final m = (normalized % 60).toString().padLeft(2, '0');
-    return    h + 'h' + m;
+    return h + 'h' + m;
   }
 
-  /// required Prochain depart APRES une minute this donnee (pour le calcul de
- .from /// correspondance). Retourne null si aucun depart.
   int? departureAfter(int minFromMidnight) {
     for (final d in departureMinutesFromMidnight) {
       if (d > minFromMidnight) return d;
@@ -316,7 +314,7 @@ class RouteSegment {
     required this.modeLabel,
     required this.color,
     required this.icon,
-,
+    required this.from,
     required this.to,
     required this.durationMinutes,
     this.departureTime,
@@ -543,8 +541,8 @@ final List<Stop> brtStations = [
     icon: Icons.directions_bus_rounded,
     color: AppColors.brt,
     location: const LatLng(14.7050, -17.4400),
-    modeLabel: 'StopBRT',
-    source: DataSource> allStopsInfo.sunubrt,
+    modeLabel: 'BRT',
+    source: DataSourceInfo.sunubrt,
   ),
   Stop(
     name: 'BRT Parcelles',
@@ -641,7 +639,7 @@ final List<Stop> otherBusStations = [
   ),
 ];
 
-final List< = [
+final List<Stop> allStops = [
   ...terStations,
   ...brtStations,
   ...otherBusStations,
@@ -730,9 +728,9 @@ final List<TransitRoute> demoRoutes = [
     color: AppColors.ddd,
     points: [
       LatLng(14.7350, -17.5100),
-      LatLng(14.7250, -17.4900),
-      LatLng(14.7100, -17.4700),
-      LatLng(14.6950, -17.4550),
+      LatLayeng(14.7250, -17.490 Fall0),
+      LatLng(14.7100,', -17. Lat4700),
+     L LatLng(14.6950, -17.4550),
       LatLng(14.6800, -17.4450),
     ],
   ),
@@ -775,7 +773,7 @@ List<Place> buildPlaceDatabase() {
     ['Hann', LatLng(14.7222, -17.4321)],
     ['Thiaroye', LatLng(14.7588, -17.3803)],
     ['Yeumbeul', LatLng(14.7700, -17.3400)],
-    ['Keur Mbaye Fall', LatLng(14.7750, -17.3100)],
+    ['Keur Mbng(14.7750, -17.3100)],
     ['Bargny', LatLng(14.6900, -17.2200)],
   ];
 
@@ -807,18 +805,9 @@ final List<Place> placeDatabase = buildPlaceDatabase();
 
 // ============================================================
 // MOTEUR D ITINERAIRES INTELLIGENT
-// ------------------------------------------------------------
-// - Prise en compte des vrais horaires de depart
-// - Calcul du temps d attente aux correspondances
-// - Recherche automatique de tous les points de correspondance
-// - Tri par temps total croissant
 // ============================================================
 class RoutePlanner {
-  /// Distance max de marche acceptable entre 2 arrets
-  /// pour considerer qu il s agit d une correspondance.
   static const double _maxWalkMeters = 900;
-
-  /// Vitesse de marche (m/min) : 5 km/h ≈ 83 m/min
   static const double _walkSpeedMpm = 83.0;
 
   static RouteSearchResult plan({
@@ -868,7 +857,6 @@ class RoutePlanner {
 
     final candidates = <PlannedRoute>[];
 
-    // 1. Cas direct : meme mode
     if (fromStop.modeLabel == toStop.modeLabel &&
         fromStop.name != toStop.name) {
       final direct = _buildDirectRoute(
@@ -878,10 +866,11 @@ class RoutePlanner {
         toPlace.name,
         currentMin,
       );
-      if (direct != null) candidates.add(direct);
+      if (direct != null) {
+        candidates.add(direct);
+      }
     }
 
-    // 2. Cas avec correspondance
     final transfers = _buildTransferRoutes(
       fromStop,
       toStop,
@@ -891,48 +880,43 @@ class RoutePlanner {
     );
     candidates.addAll(transfers);
 
-    // 3. Aucun resultat
     if (candidates.isEmpty) {
       return RouteSearchResult(
-        missingData: [
-          'Correspondance connue entre ' +
-              fromStop.name +
-              ' et ' +
-              toStop.name
-        ],
+        missingData: ['Correspondance connue entre ' +
+            fromStop.name +
+            ' et ' +
+            toStop.name],
         errorMessage:
             'Aucun itineraire fiable avec les donnees actuelles.',
       );
     }
 
-    // 4. Tri par temps total, on garde les 3 meilleurs
     candidates.sort((a, b) {
       final c = a.totalMinutes.compareTo(b.totalMinutes);
-      if (c != 0) return c;
+      if (c != 0) {
+        return c;
+      }
       return a.transferCount.compareTo(b.transferCount);
     });
 
     final top = candidates.take(3).toList();
-    // Le premier est marque comme "meilleur"
     final ranked = <PlannedRoute>[];
-    for (var i = 0; i < top.length; i++) {
+    for (int i = 0; i < top.length; i++) {
+      final src = top[i];
       ranked.add(PlannedRoute(
-        fromName: top[i].fromName,
-        toName: top[i].toName,
-        segments: top[i].segments,
-        totalMinutes: top[i].totalMinutes,
+        fromName: src.fromName,
+        toName: src.toName,
+        segments: src.segments,
+        totalMinutes: src.totalMinutes,
         isBest: i == 0,
-        status: top[i].status,
-        transferCount: top[i].transferCount,
+        status: src.status,
+        transferCount: src.transferCount,
       ));
     }
 
     return RouteSearchResult(routes: ranked);
   }
 
-  // ------------------------------------------------------------
-  // Cas direct (meme mode)
-  // ------------------------------------------------------------
   static PlannedRoute? _buildDirectRoute(
     Stop from,
     Stop to,
@@ -941,7 +925,9 @@ class RoutePlanner {
     int currentMin,
   ) {
     final dep = from.departureAfter(currentMin - 1);
-    if (dep == null) return null;
+    if (dep == null) {
+      return null;
+    }
     final dur = _travelDuration(from, to);
     final arr = dep + dur;
 
@@ -967,9 +953,6 @@ class RoutePlanner {
     );
   }
 
-  // ------------------------------------------------------------
-  // Cas avec correspondance
-  // ------------------------------------------------------------
   static List<PlannedRoute> _buildTransferRoutes(
     Stop from,
     Stop to,
@@ -979,14 +962,12 @@ class RoutePlanner {
   ) {
     final results = <PlannedRoute>[];
 
-    // Arrets candidats pour la 1ere ligne : meme mode que from
     final leg1Candidates = allStops
         .where((s) =>
             s.modeLabel == from.modeLabel &&
             s.name != from.name)
         .toList();
 
-    // Arrets candidats pour la 2eme ligne : meme mode que to
     final leg2Candidates = allStops
         .where((s) =>
             s.modeLabel == to.modeLabel &&
@@ -994,39 +975,50 @@ class RoutePlanner {
         .toList();
 
     for (final g1 in leg1Candidates) {
-      // Depart du 1er segment
       final dep1 = from.departureAfter(currentMin - 1);
-      if (dep1 == null) continue;
+      if (dep1 == null) {
+        continue;
+      }
       final dur1 = _travelDuration(from, g1);
-      if (dur1 <= 0) continue;
+      if (dur1 <= 0) {
+        continue;
+      }
       final arr1 = dep1 + dur1;
 
       for (final g2 in leg2Candidates) {
-        // Distance de marche entre g1 et g2
         final walkMeters = DistanceHelper.haversineMeters(
           g1.location,
           g2.location,
         );
-        if (walkMeters > _maxWalkMeters) continue;
+        if (walkMeters > _maxWalkMeters) {
+          continue;
+        }
 
         final walkMin = (walkMeters / _walkSpeedMpm).ceil();
-        if (walkMin > 20) continue; // marche trop longue
+        if (walkMin > 20) {
+          continue;
+        }
 
-        // Depart du 2eme segment, apres la marche
         final readyAt = arr1 + walkMin;
         final dep2 = g2.departureAfter(readyAt - 1);
-        if (dep2 == null) continue;
+        if (dep2 == null) {
+          continue;
+        }
 
         final dur2 = _travelDuration(g2, to);
-        if (dur2 <= 0) continue;
+        if (dur2 <= 0) {
+          continue;
+        }
         final arr2 = dep2 + dur2;
 
-        // Filtrage : eviter les itineraires absurdes
         final total = arr2 - currentMin;
-        if (total > 180) continue; // plus de 3h => probablement jour suivant
-        if (total <= 0) continue;
+        if (total > 180) {
+          continue;
+        }
+        if (total <= 0) {
+          continue;
+        }
 
-        // Construire les segments
         final segments = <RouteSegment>[
           RouteSegment(
             modeLabel: g1.modeLabel,
@@ -1076,20 +1068,18 @@ class RoutePlanner {
     return results;
   }
 
-  // ------------------------------------------------------------
-  // Calcul duree de trajet entre 2 arrets (en minutes)
-  // ------------------------------------------------------------
   static int _travelDuration(Stop a, Stop b) {
     final dist = DistanceHelper.haversineMeters(
       a.location,
       b.location,
     );
-    if (dist < 50) return 0;
-    // Vitesses moyennes : TER/BRT plus rapides
+    if (dist < 50) {
+      return 0;
+    }
     final speedKmh =
         (a.modeLabel == 'TER' || a.modeLabel == 'BRT') ? 30.0 : 15.0;
     final minutes = ((dist / 1000.0) / speedKmh * 60).ceil();
-    return minutes < 2 ? 2 : minutes; // minimum 2 min
+    return minutes < 2 ? 2 : minutes;
   }
 
   static String _formatMin(int minFromMidnight) {
@@ -1101,10 +1091,14 @@ class RoutePlanner {
 
   static Place? _resolvePlace(String query) {
     final q = query.trim().toLowerCase();
-    if (q.isEmpty) return null;
+    if (q.isEmpty) {
+      return null;
+    }
 
     for (final p in placeDatabase) {
-      if (p.name.toLowerCase() == q) return p;
+      if (p.name.toLowerCase() == q) {
+        return p;
+      }
     }
     for (final p in placeDatabase) {
       if (p.name.toLowerCase().contains(q) ||
@@ -1113,16 +1107,22 @@ class RoutePlanner {
       }
     }
     for (final word in q.split(' ')) {
-      if (word.length < 3) continue;
+      if (word.length < 3) {
+        continue;
+      }
       for (final p in placeDatabase) {
-        if (p.name.toLowerCase().contains(word)) return p;
+        if (p.name.toLowerCase().contains(word)) {
+          return p;
+        }
       }
     }
     return null;
   }
 
   static Stop? _nearestStop(LatLng? loc) {
-    if (loc == null) return null;
+    if (loc == null) {
+      return null;
+    }
     Stop? best;
     double bestDist = double.infinity;
     for (final s in allStops) {
@@ -1141,8 +1141,12 @@ class RoutePlanner {
 // ============================================================
 class TimeHelper {
   static String formatRemaining(int minutes) {
-    if (minutes <= 0) return 'Depart imminent';
-    if (minutes == 1) return '1 min';
+    if (minutes <= 0) {
+      return 'Depart imminent';
+    }
+    if (minutes == 1) {
+      return '1 min';
+    }
     return minutes.toString() + ' min';
   }
 
@@ -1151,7 +1155,9 @@ class TimeHelper {
 
 class DistanceHelper {
   static String format(double meters) {
-    if (meters < 1000) return meters.round().toString() + ' m';
+    if (meters < 1000) {
+      return meters.round().toString() + ' m';
+    }
     final km = meters / 1000.0;
     return km.toStringAsFixed(km >= 10 ? 0 : 1) + ' km';
   }
@@ -1175,13 +1181,19 @@ class DistanceHelper {
   }
 
   static double _asin(double x) {
-    if (x < -1) return -1.5708;
-    if (x > 1) return 1.5708;
+    if (x < -1) {
+      return -1.5708;
+    }
+    if (x > 1) {
+      return 1.5708;
+    }
     return x + (x * x * x) / 6 + (3 * x * x * x * x * x) / 40;
   }
 
   static double _sqrt(double x) {
-    if (x <= 0) return 0;
+    if (x <= 0) {
+      return 0;
+    }
     double r = x;
     for (int i = 0; i < 20; i++) {
       r = (r + x / r) / 2;
@@ -1259,7 +1271,9 @@ class _MainShellState extends State<MainShell> {
     _ticker = Timer.periodic(
       const Duration(seconds: 30),
       (_) {
-        if (mounted) setState(() {});
+        if (mounted) {
+          setState(() {});
+        }
       },
     );
   }
@@ -1271,7 +1285,9 @@ class _MainShellState extends State<MainShell> {
   }
 
   void _showSnack(String message, Color color) {
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -1291,14 +1307,16 @@ class _MainShellState extends State<MainShell> {
       final serviceEnabled =
           await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
         setState(() {
           _gpsState = GpsState.serviceDisabled;
           _gpsMessage =
-              'GPS desactive. Activez la localisation du telephone.';
+              'GPS desactive. Activez la localisation.';
         });
         _showSnack(
-          'GPS desactive. Activez la localisation.',
+          'GPS desactive.',
           AppColors.warning,
         );
         return;
@@ -1312,11 +1330,12 @@ class _MainShellState extends State<MainShell> {
       }
 
       if (permission == LocationPermission.denied) {
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
         setState(() {
           _gpsState = GpsState.denied;
-          _gpsMessage =
-              'Permission refusee. Recherche manuelle disponible.';
+          _gpsMessage = 'Permission refusee.';
         });
         _showSnack(
           'Permission GPS refusee.',
@@ -1326,7 +1345,9 @@ class _MainShellState extends State<MainShell> {
       }
 
       if (permission == LocationPermission.deniedForever) {
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
         setState(() {
           _gpsState = GpsState.deniedForever;
           _gpsMessage =
@@ -1344,7 +1365,9 @@ class _MainShellState extends State<MainShell> {
         timeLimit: const Duration(seconds: 10),
       );
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       setState(() {
         _userPosition = LatLng(
           position.latitude,
@@ -1358,13 +1381,15 @@ class _MainShellState extends State<MainShell> {
         AppColors.success,
       );
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       setState(() {
         _gpsState = GpsState.error;
-        _gpsMessage = 'Erreur GPS : ' + e.toString();
+        _gpsMessage = 'Erreur GPS.';
       });
       _showSnack(
-        'Erreur GPS : impossible d obtenir la position.',
+        'Erreur GPS.',
         AppColors.ter,
       );
     }
@@ -1425,14 +1450,14 @@ class _MainShellState extends State<MainShell> {
             destinations: const [
               NavigationDestination(
                 icon: Icon(Icons.explore_outlined),
-                selectedIcon: Icon(Icons.explore,
-                    color: AppColors.primary),
+                selectedIcon:
+                    Icon(Icons.explore, color: AppColors.primary),
                 label: 'Explorer',
               ),
               NavigationDestination(
                 icon: Icon(Icons.alt_route_outlined),
-                selectedIcon: Icon(Icons.alt_route,
-                    color: AppColors.primary),
+                selectedIcon:
+                    Icon(Icons.alt_route, color: AppColors.primary),
                 label: 'Trajets',
               ),
               NavigationDestination(
@@ -1443,8 +1468,8 @@ class _MainShellState extends State<MainShell> {
               ),
               NavigationDestination(
                 icon: Icon(Icons.settings_outlined),
-                selectedIcon: Icon(Icons.settings,
-                    color: AppColors.primary),
+                selectedIcon:
+                    Icon(Icons.settings, color: AppColors.primary),
                 label: 'Reglages',
               ),
             ],
@@ -1527,9 +1552,13 @@ class _ExplorerPageState extends State<ExplorerPage> {
     if (widget.userPosition != null) {
       base.sort((a, b) {
         final da = DistanceHelper.haversineMeters(
-            widget.userPosition!, a.location);
+          widget.userPosition!,
+          a.location,
+        );
         final db = DistanceHelper.haversineMeters(
-            widget.userPosition!, b.location);
+          widget.userPosition!,
+          b.location,
+        );
         return da.compareTo(db);
       });
     }
@@ -1537,14 +1566,20 @@ class _ExplorerPageState extends State<ExplorerPage> {
   }
 
   double _distanceTo(Stop s) {
-    if (widget.userPosition == null) return s.distanceMeters;
+    if (widget.userPosition == null) {
+      return s.distanceMeters;
+    }
     return DistanceHelper.haversineMeters(
-        widget.userPosition!, s.location);
+      widget.userPosition!,
+      s.location,
+    );
   }
 
   List<Stop> get _searchResults {
     final q = _searchCtrl.text.trim().toLowerCase();
-    if (q.isEmpty) return [];
+    if (q.isEmpty) {
+      return [];
+    }
     return allStops
         .where((s) =>
             s.name.toLowerCase().contains(q) ||
@@ -1553,22 +1588,28 @@ class _ExplorerPageState extends State<ExplorerPage> {
         .toList();
   }
 
-  void _centerOnStop(Stop s) => _mapController.move(s.location, 14.5);
+  void _centerOnStop(Stop s) {
+    _mapController.move(s.location, 14.5);
+  }
 
-  void _openAI() => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const AIChatPage()),
-      );
+  void _openAI() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const AIChatPage()),
+    );
+  }
 
-  void _cycleMapHeight() => setState(() {
-        if (_mapHeight == 240) {
-          _mapHeight = 320;
-        } else if (_mapHeight == 320) {
-          _mapHeight = 140;
-        } else {
-          _mapHeight = 240;
-        }
-      });
+  void _cycleMapHeight() {
+    setState(() {
+      if (_mapHeight == 240) {
+        _mapHeight = 320;
+      } else if (_mapHeight == 320) {
+        _mapHeight = 140;
+      } else {
+        _mapHeight = 240;
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1631,8 +1672,9 @@ class _ExplorerPageState extends State<ExplorerPage> {
                                         color: s.color,
                                         shape: BoxShape.circle,
                                         border: Border.all(
-                                            color: Colors.white,
-                                            width: 2),
+                                          color: Colors.white,
+                                          width: 2,
+                                        ),
                                         boxShadow: [
                                           BoxShadow(
                                             color: Colors.black
@@ -1663,7 +1705,9 @@ class _ExplorerPageState extends State<ExplorerPage> {
                                   color: AppColors.primary,
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                      color: Colors.white, width: 2.5),
+                                    color: Colors.white,
+                                    width: 2.5,
+                                  ),
                                   boxShadow: [
                                     BoxShadow(
                                       color: AppColors.primary
@@ -1698,7 +1742,9 @@ class _ExplorerPageState extends State<ExplorerPage> {
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 6),
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
                         minimumSize: const Size(0, 32),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
@@ -1714,8 +1760,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
                       child: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: AppColors.surface
-                              .withOpacity(0.95),
+                          color:
+                              AppColors.surface.withOpacity(0.95),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(
@@ -1733,9 +1779,12 @@ class _ExplorerPageState extends State<ExplorerPage> {
                     left: 8,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 5),
+                        horizontal: 8,
+                        vertical: 5,
+                      ),
                       decoration: BoxDecoration(
-                        color: AppColors.surface.withOpacity(0.95),
+                        color:
+                            AppColors.surface.withOpacity(0.95),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
@@ -1768,8 +1817,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
                         width: 36,
                         height: 36,
                         decoration: BoxDecoration(
-                          color: AppColors.primary
-                              .withOpacity(0.12),
+                          color:
+                              AppColors.primary.withOpacity(0.12),
                           borderRadius:
                               BorderRadius.circular(10),
                         ),
@@ -1809,12 +1858,13 @@ class _ExplorerPageState extends State<ExplorerPage> {
                     const SizedBox(height: 10),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
-                        color: AppColors.warning
-                            .withOpacity(0.10),
-                        borderRadius:
-                            BorderRadius.circular(10),
+                        color:
+                            AppColors.warning.withOpacity(0.10),
+                        borderRadius: BorderRadius.circular(10),
                         border: Border.all(
                           color: AppColors.warning
                               .withOpacity(0.3),
@@ -1852,9 +1902,11 @@ class _ExplorerPageState extends State<ExplorerPage> {
                     child: TextField(
                       controller: _searchCtrl,
                       onChanged: (_) => setState(
-                          () => _searchFocused = true),
+                        () => _searchFocused = true,
+                      ),
                       onTap: () => setState(
-                          () => _searchFocused = true),
+                        () => _searchFocused = true,
+                      ),
                       decoration: InputDecoration(
                         hintText: 'Ou voulez-vous aller ?',
                         prefixIcon: const Icon(
@@ -1873,7 +1925,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
                                 onPressed: () {
                                   _searchCtrl.clear();
                                   setState(
-                                      () => _searchFocused = false);
+                                    () => _searchFocused = false,
+                                  );
                                 },
                               )
                             : null,
@@ -1886,8 +1939,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
                       ),
                     ),
                   ),
-                  if (_searchFocused && _searchResults.isNotEmpty)
-                    ...[
+                  if (_searchFocused &&
+                      _searchResults.isNotEmpty) ...[
                     const SizedBox(height: 8),
                     Container(
                       decoration: BoxDecoration(
@@ -1916,7 +1969,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
                                       Text(
                                         s.direction,
                                         style: const TextStyle(
-                                            fontSize: 11),
+                                          fontSize: 11,
+                                        ),
                                       ),
                                       const SizedBox(width: 6),
                                       _categoryChip(s),
@@ -1962,7 +2016,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
                       ),
                       const SizedBox(width: 6),
                       Padding(
-                        padding: const EdgeInsets.only(bottom: 1),
+                        padding:
+                            const EdgeInsets.only(bottom: 1),
                         child: Text(
                           widget.userPosition != null
                               ? 'Autour de vous'
@@ -1977,7 +2032,9 @@ class _ExplorerPageState extends State<ExplorerPage> {
                       if (widget.userPosition != null)
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.success
                                 .withOpacity(0.12),
@@ -2012,17 +2069,19 @@ class _ExplorerPageState extends State<ExplorerPage> {
                       ),
                     )
                   else
-                    ...stops.map((s) => Padding(
-                          padding:
-                              const EdgeInsets.only(bottom: 10),
-                          child: GestureDetector(
-                            onTap: () => _centerOnStop(s),
-                            child: StopCard(
-                              stop: s,
-                              distanceMeters: _distanceTo(s),
-                            ),
+                    ...stops.map(
+                      (s) => Padding(
+                        padding:
+                            const EdgeInsets.only(bottom: 10),
+                        child: GestureDetector(
+                          onTap: () => _centerOnStop(s),
+                          child: StopCard(
+                            stop: s,
+                            distanceMeters: _distanceTo(s),
                           ),
-                        )),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -2093,27 +2152,29 @@ class _ExplorerPageState extends State<ExplorerPage> {
     );
   }
 
-  Widget _legend(Color c, String label) => Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 10,
-            height: 3,
-            decoration: BoxDecoration(
-              color: c,
-              borderRadius: BorderRadius.circular(2),
-            ),
+  Widget _legend(Color c, String label) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 10,
+          height: 3,
+          decoration: BoxDecoration(
+            color: c,
+            borderRadius: BorderRadius.circular(2),
           ),
-          const SizedBox(width: 3),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.bold,
-            ),
+        ),
+        const SizedBox(width: 3),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 9,
+            fontWeight: FontWeight.bold,
           ),
-        ],
-      );
+        ),
+      ],
+    );
+  }
 
   Widget _chip(String label) {
     final color = _colorFor(label);
@@ -2124,11 +2185,12 @@ class _ExplorerPageState extends State<ExplorerPage> {
         onTap: () => setState(() => _selectedFilter = label),
         child: Container(
           padding: const EdgeInsets.symmetric(
-              horizontal: 14, vertical: 8),
+            horizontal: 14,
+            vertical: 8,
+          ),
           decoration: BoxDecoration(
-            color: sel
-                ? color.withOpacity(0.15)
-                : AppColors.surface,
+            color:
+                sel ? color.withOpacity(0.15) : AppColors.surface,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: sel ? color : AppColors.divider,
@@ -2138,8 +2200,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
           child: Text(
             label,
             style: TextStyle(
-              color:
-                  sel ? color : AppColors.textSecondary,
+              color: sel ? color : AppColors.textSecondary,
               fontWeight:
                   sel ? FontWeight.bold : FontWeight.normal,
               fontSize: 12,
@@ -2263,9 +2324,8 @@ class StopCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: isUrgent
-                  ? AppColors.ter
-                  : AppColors.success,
+              color:
+                  isUrgent ? AppColors.ter : AppColors.success,
             ),
           ),
           Text(
@@ -2392,7 +2452,9 @@ class _TripsPageState extends State<TripsPage> {
   bool _toFocus = false;
 
   List<Place> _suggestions(String query) {
-    if (query.trim().length < 2) return [];
+    if (query.trim().length < 2) {
+      return [];
+    }
     final q = query.toLowerCase();
     return placeDatabase
         .where((p) => p.name.toLowerCase().contains(q))
@@ -2411,7 +2473,9 @@ class _TripsPageState extends State<TripsPage> {
       fromQuery: _fromCtrl.text,
       toQuery: _toCtrl.text,
     );
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     setState(() {
       _loading = false;
       _result = res;
@@ -2458,57 +2522,59 @@ class _TripsPageState extends State<TripsPage> {
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   children: widget.favorites
-                      .map((f) => Padding(
-                            padding: const EdgeInsets.only(
-                                right: 10),
-                            child: GestureDetector(
-                              onTap: () {
-                                _toCtrl.text = f.to;
-                                _search();
-                              },
-                              child: Container(
-                                width: 140,
-                                padding:
-                                    const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: AppColors.surface,
-                                  borderRadius:
-                                      BorderRadius.circular(12),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                  children: [
-                                    Icon(
-                                      f.icon,
-                                      color: AppColors.primary,
-                                      size: 20,
+                      .map(
+                        (f) => Padding(
+                          padding:
+                              const EdgeInsets.only(right: 10),
+                          child: GestureDetector(
+                            onTap: () {
+                              _toCtrl.text = f.to;
+                              _search();
+                            },
+                            child: Container(
+                              width: 140,
+                              padding:
+                                  const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: AppColors.surface,
+                                borderRadius:
+                                    BorderRadius.circular(12),
+                              ),
+                              child: Column(
+                                crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                children: [
+                                  Icon(
+                                    f.icon,
+                                    color: AppColors.primary,
+                                    size: 20,
+                                  ),
+                                  const Spacer(),
+                                  Text(
+                                    f.label,
+                                    style: const TextStyle(
+                                      fontWeight:
+                                          FontWeight.bold,
+                                      fontSize: 13,
                                     ),
-                                    const Spacer(),
-                                    Text(
-                                      f.label,
-                                      style: const TextStyle(
-                                        fontWeight:
-                                            FontWeight.bold,
-                                        fontSize: 13,
-                                      ),
+                                  ),
+                                  Text(
+                                    f.to,
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      color: AppColors
+                                          .textSecondary,
                                     ),
-                                    Text(
-                                      f.to,
-                                      style: const TextStyle(
-                                        fontSize: 10,
-                                        color: AppColors
-                                            .textSecondary,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow
-                                          .ellipsis,
-                                    ),
-                                  ],
-                                ),
+                                    maxLines: 1,
+                                    overflow:
+                                        TextOverflow.ellipsis,
+                                  ),
+                                ],
                               ),
                             ),
-                          ))
+                          ),
+                        ),
+                      )
                       .toList(),
                 ),
               ),
@@ -2558,7 +2624,8 @@ class _TripsPageState extends State<TripsPage> {
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
-                            vertical: 16),
+                          vertical: 16,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius:
                               BorderRadius.circular(10),
@@ -2630,10 +2697,12 @@ class _TripsPageState extends State<TripsPage> {
             ],
           ),
           const SizedBox(height: 12),
-          ...res.routes.map((r) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _routeCard(r),
-              )),
+          ...res.routes.map(
+            (r) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _routeCard(r),
+            ),
+          ),
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(12),
@@ -2721,7 +2790,9 @@ class _TripsPageState extends State<TripsPage> {
               if (r.isBest) ...[
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 6, vertical: 2),
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.primary,
                     borderRadius: BorderRadius.circular(4),
@@ -2765,7 +2836,9 @@ class _TripsPageState extends State<TripsPage> {
             if (seg.isWalk) {
               return Padding(
                 padding: const EdgeInsets.symmetric(
-                    vertical: 4, horizontal: 4),
+                  vertical: 4,
+                  horizontal: 4,
+                ),
                 child: Row(
                   children: [
                     const Icon(
@@ -2860,7 +2933,10 @@ class _TripsPageState extends State<TripsPage> {
                 if (!isLast)
                   Padding(
                     padding: const EdgeInsets.only(
-                        left: 16, top: 4, bottom: 4),
+                      left: 16,
+                      top: 4,
+                      bottom: 4,
+                    ),
                     child: Container(
                       width: 2,
                       height: 14,
@@ -2956,29 +3032,31 @@ class _TripsPageState extends State<TripsPage> {
             ),
             child: Column(
               children: suggestions
-                  .map((p) => ListTile(
-                        dense: true,
-                        leading: Icon(
-                          p.icon,
-                          color: p.color,
-                          size: 18,
+                  .map(
+                    (p) => ListTile(
+                      dense: true,
+                      leading: Icon(
+                        p.icon,
+                        color: p.color,
+                        size: 18,
+                      ),
+                      title: Text(
+                        p.name,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
                         ),
-                        title: Text(
-                          p.name,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
+                      ),
+                      subtitle: Text(
+                        _typeLabel(p.type),
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: AppColors.textSecondary,
                         ),
-                        subtitle: Text(
-                          _typeLabel(p.type),
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                        onTap: () => onSelect(p),
-                      ))
+                      ),
+                      onTap: () => onSelect(p),
+                    ),
+                  )
                   .toList(),
             ),
           ),
@@ -3051,22 +3129,24 @@ class _AlertsPageState extends State<AlertsPage> {
               ),
             ),
             const SizedBox(height: 16),
-            ...allStops.take(6).map((s) => ListTile(
-                  leading: Icon(s.icon, color: s.color),
-                  title: Text(s.name),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    setState(() {
-                      _alerts.add({
-                        'stop': s.name,
-                        'icon': s.icon,
-                        'color': s.color,
-                        'minutes': 10,
-                        'active': true,
+            ...allStops.take(6).map(
+                  (s) => ListTile(
+                    leading: Icon(s.icon, color: s.color),
+                    title: Text(s.name),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      setState(() {
+                        _alerts.add({
+                          'stop': s.name,
+                          'icon': s.icon,
+                          'color': s.color,
+                          'minutes': 10,
+                          'active': true,
+                        });
                       });
-                    });
-                  },
-                )),
+                    },
+                  ),
+                ),
           ],
         ),
       ),
@@ -3135,8 +3215,8 @@ class _AlertsPageState extends State<AlertsPage> {
                     color: AppColors.surface,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: (a['color'] as Color)
-                          .withOpacity(0.3),
+                      color:
+                          (a['color'] as Color).withOpacity(0.3),
                       width: 1.5,
                     ),
                   ),
@@ -3216,7 +3296,8 @@ class _AlertsPageState extends State<AlertsPage> {
                         value: a['active'] as bool,
                         activeColor: AppColors.primary,
                         onChanged: (v) => setState(
-                            () => _alerts[idx]['active'] = v),
+                          () => _alerts[idx]['active'] = v,
+                        ),
                       ),
                     ],
                   ),
@@ -3533,18 +3614,20 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _section(String t) => Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: Text(
-          t,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textSecondary,
-            letterSpacing: 1,
-          ),
+  Widget _section(String t) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Text(
+        t,
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.bold,
+          color: AppColors.textSecondary,
+          letterSpacing: 1,
         ),
-      );
+      ),
+    );
+  }
 
   Widget _toggle(
     String title,
@@ -3556,7 +3639,9 @@ class _SettingsPageState extends State<SettingsPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(
-          horizontal: 14, vertical: 10),
+        horizontal: 14,
+        vertical: 10,
+      ),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
@@ -3707,7 +3792,9 @@ class StopDetailPage extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   'A ' +
-                      DistanceHelper.format(stop.distanceMeters) +
+                      DistanceHelper.format(
+                        stop.distanceMeters,
+                      ) +
                       ' de vous',
                   style: const TextStyle(
                     color: AppColors.textSecondary,
@@ -3748,8 +3835,8 @@ class StopDetailPage extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  if (stop
-                      .departureMinutesFromMidnight.isNotEmpty) ...[
+                  if (stop.departureMinutesFromMidnight
+                      .isNotEmpty) ...[
                     const SizedBox(height: 6),
                     Text(
                       'Prochain depart demain a ' +
@@ -3772,7 +3859,9 @@ class StopDetailPage extends StatelessWidget {
               return Container(
                 margin: const EdgeInsets.only(bottom: 8),
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 12),
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: isNext
                       ? stop.color.withOpacity(0.08)
@@ -3906,10 +3995,15 @@ class _AIChatPageState extends State<AIChatPage> {
 
   void _send() {
     final t = _controller.text.trim();
-    if (t.isEmpty) return;
+    if (t.isEmpty) {
+      return;
+    }
     setState(() {
       _messages.add({'role': 'user', 'text': t});
-      _messages.add({'role': 'ai', 'text': _generateResponse(t)});
+      _messages.add({
+        'role': 'ai',
+        'text': _generateResponse(t),
+      });
     });
     _controller.clear();
     Future.delayed(const Duration(milliseconds: 100), () {
@@ -3960,7 +4054,9 @@ class _AIChatPageState extends State<AIChatPage> {
               ')\n\nSource : ' +
               stop.source.label;
         }
-        return 'Arret : ' + stop.name + '\n\nHoraire non disponible.';
+        return 'Arret : ' +
+            stop.name +
+            '\n\nHoraire non disponible.';
       }
     }
 
@@ -4010,7 +4106,9 @@ class _AIChatPageState extends State<AIChatPage> {
     if (q.contains('bonjour') || q.contains('salut')) {
       return 'Bonjour !';
     }
-    if (q.contains('merci')) return 'Avec plaisir !';
+    if (q.contains('merci')) {
+      return 'Avec plaisir !';
+    }
 
     return 'Je ne dispose pas d une donnee fiable pour cela.';
   }
@@ -4047,7 +4145,9 @@ class _AIChatPageState extends State<AIChatPage> {
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 10),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 10),
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
                     constraints:
                         const BoxConstraints(maxWidth: 300),
                     decoration: BoxDecoration(
