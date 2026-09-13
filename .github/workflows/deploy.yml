@@ -5,13 +5,11 @@ on:
     branches:
       - main
 
-# Autorisations requises pour publier sur GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Empêche les déploiements simultanés
 concurrency:
   group: 'pages'
   cancel-in-progress: true
@@ -20,28 +18,28 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout du code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configuration de Java
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Configuration de Flutter
+      - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           cache: true
 
-      - name: Installer les dépendances
+      - name: Install Dependencies
         run: flutter pub get
 
-      - name: Créer le site web
+      - name: Build Web
         run: flutter build web --release --base-href "/dakar-bus/"
 
-      - name: Charger l'artefact Pages
+      - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: build/web
@@ -53,6 +51,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Déployer sur GitHub Pages
+      - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
