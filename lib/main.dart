@@ -26,7 +26,7 @@ class OppositeStopService {
       
       if (distance <= 50.0 && distance < minDistance) {
         final stopName = stop.name.toLowerCase();
-        if (currentName.contains(stopName) || stopName.contains(currentName) || currentName.substring(0, (currentName.length * 0.6).toInt()) == stopName.substring(0, (stopName.length * 0.6).toInt())) {
+        if (currentName.contains(stopName) || stopName.contains(currentName) || currentName.substring(0, (currentName.length * 0.6).toInt()) == stopName.substring(0, (currentName.length * 0.6).toInt())) {
           minDistance = distance;
           bestCandidate = stop;
         }
