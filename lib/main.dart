@@ -8,40 +8,6 @@ import 'package:geolocator/geolocator.dart';
 void main() => runApp(const DakarBusApp());
 
 // ============================================================
-// MODÈLE ET BASE DE DONNÉES DDD INTÉGRÉS
-// ============================================================
-class DddBusLine {
-  final String code;
-  final String departure;
-  final String arrival;
-  final String category;
-
-  const DddBusLine({
-    required this.code,
-    required this.departure,
-    required this.arrival,
-    required this.category,
-  });
-}
-
-final List<DddBusLine> dddBusDatabase = [
-  const DddBusLine(code: '1', departure: 'Parcelles Assainies', arrival: 'Place Leclerc', category: 'Urbaine'),
-  const DddBusLine(code: '4', departure: 'Liberté 5', arrival: 'Place Leclerc', category: 'Urbaine'),
-  const DddBusLine(code: '7', departure: 'Ouakam', arrival: 'Palais 2', category: 'Urbaine'),
-  const DddBusLine(code: '8', departure: 'Aéroport LSS', arrival: 'Palais 2', category: 'Urbaine'),
-  const DddBusLine(code: '9', departure: 'Liberté 6', arrival: 'Palais 2', category: 'Urbaine'),
-  const DddBusLine(code: '217', departure: 'Thiaroye', arrival: 'Ouakam', category: 'Banlieue'),
-  const DddBusLine(code: '218', departure: 'Thiaroye', arrival: 'Djiolof Chicken Almadie', category: 'Banlieue'),
-  const DddBusLine(code: '219', departure: 'Daroukhane', arrival: 'Ouakam', category: 'Banlieue'),
-  const DddBusLine(code: '220', departure: 'Rufisque', arrival: 'Guédiawaye', category: 'Banlieue'),
-  const DddBusLine(code: '221', departure: 'Gadaye', arrival: 'Almadies', category: 'Banlieue'),
-  const DddBusLine(code: '227', departure: 'Keur Massar', arrival: 'Parcelles Assainies', category: 'Banlieue'),
-  const DddBusLine(code: '401', departure: 'Ouakam', arrival: 'Aéroport Diass (AIBD)', category: 'Express AIBD'),
-  const DddBusLine(code: '402', departure: 'Thiaroye', arrival: 'Aéroport Diass (AIBD)', category: 'Express AIBD'),
-  const DddBusLine(code: '403', departure: 'Parcelles Assainies', arrival: 'Aéroport Diass (AIBD)', category: 'Express AIBD'),
-];
-
-// ============================================================
 // SERVICE DE DÉTECTION DES DEUX SENS (ALLER / RETOUR)
 // ============================================================
 class OppositeStopService {
@@ -680,7 +646,7 @@ final List<Stop> brtStations = [
 ];
 
 // ============================================================
-// DONNEES AFTU / TATA / DDD (demo)
+// DONNEES AFTU / TATA / DDD (Intégration complète des lignes DDD)
 // ============================================================
 final List<Stop> otherBusStations = [
   const Stop(
@@ -722,30 +688,145 @@ final List<Stop> otherBusStations = [
     location: LatLng(14.7200, -17.4700),
     modeLabel: 'Tata',
   ),
+  // Nouveaux bus DDD intégrés
   const Stop(
-    name: 'Arret DDD 12',
-    direction: 'Dir. Ouakam',
-    distanceMeters: 800,
-    departureMinutesFromMidnight: [
-      645, 700, 715, 730, 745, 800,
-      815, 830, 845, 900, 915, 930,
-    ],
+    name: 'Ligne DDD 1',
+    direction: 'Parcelles Assainies ➔ Place Leclerc',
+    distanceMeters: 350,
+    departureMinutesFromMidnight: [360, 420, 480, 540, 600, 660, 720, 780, 840, 900, 960],
+    icon: Icons.directions_bus_filled_rounded,
+    color: AppColors.ddd,
+    location: LatLng(14.7600, -17.4400),
+    modeLabel: 'DDD',
+  ),
+  const Stop(
+    name: 'Ligne DDD 4',
+    direction: 'Liberté 5 ➔ Place Leclerc',
+    distanceMeters: 420,
+    departureMinutesFromMidnight: [370, 430, 490, 550, 610, 670, 730, 790, 850, 910, 970],
+    icon: Icons.directions_bus_filled_rounded,
+    color: AppColors.ddd,
+    location: LatLng(14.7150, -17.4600),
+    modeLabel: 'DDD',
+  ),
+  const Stop(
+    name: 'Ligne DDD 7',
+    direction: 'Ouakam ➔ Palais 2',
+    distanceMeters: 500,
+    departureMinutesFromMidnight: [380, 440, 500, 560, 620, 680, 740, 800, 860, 920, 980],
     icon: Icons.directions_bus_filled_rounded,
     color: AppColors.ddd,
     location: LatLng(14.7250, -17.4900),
     modeLabel: 'DDD',
   ),
   const Stop(
-    name: 'Arret DDD 7',
-    direction: 'Dir. Plateau',
-    distanceMeters: 1200,
-    departureMinutesFromMidnight: [
-      650, 705, 720, 735, 750, 805,
-      820, 835, 850, 905, 920, 935,
-    ],
+    name: 'Ligne DDD 8',
+    direction: 'Aéroport LSS ➔ Palais 2',
+    distanceMeters: 600,
+    departureMinutesFromMidnight: [390, 450, 510, 570, 630, 690, 750, 810, 870, 930],
     icon: Icons.directions_bus_filled_rounded,
     color: AppColors.ddd,
-    location: LatLng(14.7350, -17.4500),
+    location: LatLng(14.7550, -17.4750),
+    modeLabel: 'DDD',
+  ),
+  const Stop(
+    name: 'Ligne DDD 9',
+    direction: 'Liberté 6 ➔ Palais 2',
+    distanceMeters: 650,
+    departureMinutesFromMidnight: [400, 460, 520, 580, 640, 700, 760, 820, 880, 940],
+    icon: Icons.directions_bus_filled_rounded,
+    color: AppColors.ddd,
+    location: LatLng(14.7250, -17.4650),
+    modeLabel: 'DDD',
+  ),
+  const Stop(
+    name: 'Ligne DDD 217',
+    direction: 'Thiaroye ➔ Ouakam',
+    distanceMeters: 850,
+    departureMinutesFromMidnight: [360, 440, 520, 600, 680, 760, 840, 920],
+    icon: Icons.directions_bus_filled_rounded,
+    color: AppColors.ddd,
+    location: LatLng(14.7588, -17.3803),
+    modeLabel: 'DDD',
+  ),
+  const Stop(
+    name: 'Ligne DDD 218',
+    direction: 'Thiaroye ➔ Djiolof Chicken Almadie',
+    distanceMeters: 900,
+    departureMinutesFromMidnight: [370, 450, 530, 610, 690, 770, 850, 930],
+    icon: Icons.directions_bus_filled_rounded,
+    color: AppColors.ddd,
+    location: LatLng(14.7588, -17.3803),
+    modeLabel: 'DDD',
+  ),
+  const Stop(
+    name: 'Ligne DDD 219',
+    direction: 'Daroukhane ➔ Ouakam',
+    distanceMeters: 950,
+    departureMinutesFromMidnight: [380, 460, 540, 620, 700, 780, 860, 940],
+    icon: Icons.directions_bus_filled_rounded,
+    color: AppColors.ddd,
+    location: LatLng(14.7200, -17.4900),
+    modeLabel: 'DDD',
+  ),
+  const Stop(
+    name: 'Ligne DDD 220',
+    direction: 'Rufisque ➔ Guédiawaye',
+    distanceMeters: 1100,
+    departureMinutesFromMidnight: [390, 470, 550, 630, 710, 790, 870, 950],
+    icon: Icons.directions_bus_filled_rounded,
+    color: AppColors.ddd,
+    location: LatLng(14.7157, -17.2703),
+    modeLabel: 'DDD',
+  ),
+  const Stop(
+    name: 'Ligne DDD 221',
+    direction: 'Gadaye ➔ Almadies',
+    distanceMeters: 1200,
+    departureMinutesFromMidnight: [400, 480, 560, 640, 720, 800, 880, 960],
+    icon: Icons.directions_bus_filled_rounded,
+    color: AppColors.ddd,
+    location: LatLng(14.7700, -17.4300),
+    modeLabel: 'DDD',
+  ),
+  const Stop(
+    name: 'Ligne DDD 227',
+    direction: 'Keur Massar ➔ Parcelles Assainies',
+    distanceMeters: 1300,
+    departureMinutesFromMidnight: [410, 490, 570, 650, 730, 810, 890, 970],
+    icon: Icons.directions_bus_filled_rounded,
+    color: AppColors.ddd,
+    location: LatLng(14.7900, -17.3500),
+    modeLabel: 'DDD',
+  ),
+  const Stop(
+    name: 'Ligne DDD 401',
+    direction: 'Ouakam ➔ Aéroport Diass (AIBD)',
+    distanceMeters: 2500,
+    departureMinutesFromMidnight: [420, 540, 660, 780, 900],
+    icon: Icons.directions_bus_filled_rounded,
+    color: AppColors.ddd,
+    location: LatLng(14.7250, -17.4900),
+    modeLabel: 'DDD',
+  ),
+  const Stop(
+    name: 'Ligne DDD 402',
+    direction: 'Thiaroye ➔ Aéroport Diass (AIBD)',
+    distanceMeters: 2600,
+    departureMinutesFromMidnight: [430, 550, 670, 790, 910],
+    icon: Icons.directions_bus_filled_rounded,
+    color: AppColors.ddd,
+    location: LatLng(14.7588, -17.3803),
+    modeLabel: 'DDD',
+  ),
+  const Stop(
+    name: 'Ligne DDD 403',
+    direction: 'Parcelles Assainies ➔ Aéroport Diass (AIBD)',
+    distanceMeters: 2700,
+    departureMinutesFromMidnight: [440, 560, 680, 800, 920],
+    icon: Icons.directions_bus_filled_rounded,
+    color: AppColors.ddd,
+    location: LatLng(14.7600, -17.4400),
     modeLabel: 'DDD',
   ),
 ];
@@ -1512,7 +1593,6 @@ class _ExplorerPageState extends State<ExplorerPage> {
     return DistanceHelper.haversineMeters(widget.userPosition!, s.location);
   }
 
-  // Recherche combinée des arrêts et des nouvelles lignes DDD
   List<Stop> get _searchResults {
     final q = _searchCtrl.text.trim().toLowerCase();
     if (q.isEmpty) return [];
@@ -1520,17 +1600,6 @@ class _ExplorerPageState extends State<ExplorerPage> {
         .where((s) => s.name.toLowerCase().contains(q) || s.direction.toLowerCase().contains(q))
         .take(8)
         .toList();
-  }
-
-  List<DddBusLine> get _searchDddResults {
-    final q = _searchCtrl.text.trim().toLowerCase();
-    if (q.isEmpty) return [];
-    return dddBusDatabase.where((bus) {
-      return bus.code.toLowerCase().contains(q) ||
-          bus.departure.toLowerCase().contains(q) ||
-          bus.arrival.toLowerCase().contains(q) ||
-          bus.category.toLowerCase().contains(q);
-    }).take(6).toList();
   }
 
   void _centerOnStop(Stop s) => _mapController.move(s.location, 14.5);
@@ -1551,8 +1620,6 @@ class _ExplorerPageState extends State<ExplorerPage> {
   @override
   Widget build(BuildContext context) {
     final stops = _filteredStops;
-    final dddResults = _searchDddResults;
-    final stopResults = _searchResults;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -1781,58 +1848,35 @@ class _ExplorerPageState extends State<ExplorerPage> {
                       ),
                     ),
                   ),
-                  // Affichage des résultats de recherche (Arrêts + Lignes DDD)
-                  if (_searchFocused && (stopResults.isNotEmpty || dddResults.isNotEmpty)) ...[
+                  if (_searchFocused && _searchResults.isNotEmpty) ...[
                     const SizedBox(height: 8),
                     Container(
                       decoration: BoxDecoration(
                         color: AppColors.surface,
                         borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 6, offset: const Offset(0, 3)),
-                        ],
                       ),
                       child: Column(
-                        children: [
-                          ...stopResults.map(
-                            (s) => ListTile(
-                              dense: true,
-                              leading: Icon(s.icon, color: s.color, size: 20),
-                              title: Text(s.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                              subtitle: Row(
-                                children: [
-                                  Text(s.direction, style: const TextStyle(fontSize: 11)),
-                                  const SizedBox(width: 6),
-                                  _categoryChip(s),
-                                ],
-                              ),
-                              onTap: () {
-                                _searchCtrl.text = s.name;
-                                setState(() => _searchFocused = false);
-                                _centerOnStop(s);
-                              },
-                            ),
-                          ),
-                          ...dddResults.map(
-                            (bus) => ListTile(
-                              dense: true,
-                              leading: Container(
-                                padding: const EdgeInsets.all(6),
-                                decoration: BoxDecoration(
-                                  color: AppColors.ddd,
-                                  shape: BoxShape.circle,
+                        children: _searchResults
+                            .map(
+                              (s) => ListTile(
+                                dense: true,
+                                leading: Icon(s.icon, color: s.color, size: 20),
+                                title: Text(s.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                                subtitle: Row(
+                                  children: [
+                                    Text(s.direction, style: const TextStyle(fontSize: 11)),
+                                    const SizedBox(width: 6),
+                                    _categoryChip(s),
+                                  ],
                                 ),
-                                child: const Icon(Icons.directions_bus, color: Colors.white, size: 12),
+                                onTap: () {
+                                  _searchCtrl.text = s.name;
+                                  setState(() => _searchFocused = false);
+                                  _centerOnStop(s);
+                                },
                               ),
-                              title: Text('Ligne DDD ${bus.code} (${bus.category})', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                              subtitle: Text('Départ : ${bus.departure} ➔ Arrivée : ${bus.arrival}', style: const TextStyle(fontSize: 11)),
-                              onTap: () {
-                                _searchCtrl.text = 'Ligne ${bus.code}';
-                                setState(() => _searchFocused = false);
-                              },
-                            ),
-                          ),
-                        ],
+                            )
+                            .toList(),
                       ),
                     ),
                   ],
