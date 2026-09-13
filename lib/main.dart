@@ -8,6 +8,40 @@ import 'package:geolocator/geolocator.dart';
 void main() => runApp(const DakarBusApp());
 
 // ============================================================
+// MODÈLE ET BASE DE DONNÉES DDD INTÉGRÉS
+// ============================================================
+class DddBusLine {
+  final String code;
+  final String departure;
+  final String arrival;
+  final String category;
+
+  const DddBusLine({
+    required this.code,
+    required this.departure,
+    required this.arrival,
+    required this.category,
+  });
+}
+
+final List<DddBusLine> dddBusDatabase = [
+  const DddBusLine(code: '1', departure: 'Parcelles Assainies', arrival: 'Place Leclerc', category: 'Urbaine'),
+  const DddBusLine(code: '4', departure: 'Liberté 5', arrival: 'Place Leclerc', category: 'Urbaine'),
+  const DddBusLine(code: '7', departure: 'Ouakam', arrival: 'Palais 2', category: 'Urbaine'),
+  const DddBusLine(code: '8', departure: 'Aéroport LSS', arrival: 'Palais 2', category: 'Urbaine'),
+  const DddBusLine(code: '9', departure: 'Liberté 6', arrival: 'Palais 2', category: 'Urbaine'),
+  const DddBusLine(code: '217', departure: 'Thiaroye', arrival: 'Ouakam', category: 'Banlieue'),
+  const DddBusLine(code: '218', departure: 'Thiaroye', arrival: 'Djiolof Chicken Almadie', category: 'Banlieue'),
+  const DddBusLine(code: '219', departure: 'Daroukhane', arrival: 'Ouakam', category: 'Banlieue'),
+  const DddBusLine(code: '220', departure: 'Rufisque', arrival: 'Guédiawaye', category: 'Banlieue'),
+  const DddBusLine(code: '221', departure: 'Gadaye', arrival: 'Almadies', category: 'Banlieue'),
+  const DddBusLine(code: '227', departure: 'Keur Massar', arrival: 'Parcelles Assainies', category: 'Banlieue'),
+  const DddBusLine(code: '401', departure: 'Ouakam', arrival: 'Aéroport Diass (AIBD)', category: 'Express AIBD'),
+  const DddBusLine(code: '402', departure: 'Thiaroye', arrival: 'Aéroport Diass (AIBD)', category: 'Express AIBD'),
+  const DddBusLine(code: '403', departure: 'Parcelles Assainies', arrival: 'Aéroport Diass (AIBD)', category: 'Express AIBD'),
+];
+
+// ============================================================
 // SERVICE DE DÉTECTION DES DEUX SENS (ALLER / RETOUR)
 // ============================================================
 class OppositeStopService {
@@ -26,7 +60,7 @@ class OppositeStopService {
       
       if (distance <= 50.0 && distance < minDistance) {
         final stopName = stop.name.toLowerCase();
-        if (currentName.contains(stopName) || stopName.contains(currentName) || currentName.substring(0, (currentName.length * 0.6).toInt()) == stopName.substring(0, (currentName.length * 0.6).toInt())) {
+        if (currentName.contains(stopName) || stopName.contains(currentName) || currentName.substring(0, (currentName.length * 0.6).toInt()) == stopName.substring(0, (stopName.length * 0.6).toInt())) {
           minDistance = distance;
           bestCandidate = stop;
         }
@@ -1478,6 +1512,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
     return DistanceHelper.haversineMeters(widget.userPosition!, s.location);
   }
 
+  // Recherche combinée des arrêts et des nouvelles lignes DDD
   List<Stop> get _searchResults {
     final q = _searchCtrl.text.trim().toLowerCase();
     if (q.isEmpty) return [];
@@ -1485,6 +1520,17 @@ class _ExplorerPageState extends State<ExplorerPage> {
         .where((s) => s.name.toLowerCase().contains(q) || s.direction.toLowerCase().contains(q))
         .take(8)
         .toList();
+  }
+
+  List<DddBusLine> get _searchDddResults {
+    final q = _searchCtrl.text.trim().toLowerCase();
+    if (q.isEmpty) return [];
+    return dddBusDatabase.where((bus) {
+      return bus.code.toLowerCase().contains(q) ||
+          bus.departure.toLowerCase().contains(q) ||
+          bus.arrival.toLowerCase().contains(q) ||
+          bus.category.toLowerCase().contains(q);
+    }).take(6).toList();
   }
 
   void _centerOnStop(Stop s) => _mapController.move(s.location, 14.5);
@@ -1505,6 +1551,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
   @override
   Widget build(BuildContext context) {
     final stops = _filteredStops;
+    final dddResults = _searchDddResults;
+    final stopResults = _searchResults;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -1733,35 +1781,58 @@ class _ExplorerPageState extends State<ExplorerPage> {
                       ),
                     ),
                   ),
-                  if (_searchFocused && _searchResults.isNotEmpty) ...[
+                  // Affichage des résultats de recherche (Arrêts + Lignes DDD)
+                  if (_searchFocused && (stopResults.isNotEmpty || dddResults.isNotEmpty)) ...[
                     const SizedBox(height: 8),
                     Container(
                       decoration: BoxDecoration(
                         color: AppColors.surface,
                         borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 6, offset: const Offset(0, 3)),
+                        ],
                       ),
                       child: Column(
-                        children: _searchResults
-                            .map(
-                              (s) => ListTile(
-                                dense: true,
-                                leading: Icon(s.icon, color: s.color, size: 20),
-                                title: Text(s.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                                subtitle: Row(
-                                  children: [
-                                    Text(s.direction, style: const TextStyle(fontSize: 11)),
-                                    const SizedBox(width: 6),
-                                    _categoryChip(s),
-                                  ],
-                                ),
-                                onTap: () {
-                                  _searchCtrl.text = s.name;
-                                  setState(() => _searchFocused = false);
-                                  _centerOnStop(s);
-                                },
+                        children: [
+                          ...stopResults.map(
+                            (s) => ListTile(
+                              dense: true,
+                              leading: Icon(s.icon, color: s.color, size: 20),
+                              title: Text(s.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                              subtitle: Row(
+                                children: [
+                                  Text(s.direction, style: const TextStyle(fontSize: 11)),
+                                  const SizedBox(width: 6),
+                                  _categoryChip(s),
+                                ],
                               ),
-                            )
-                            .toList(),
+                              onTap: () {
+                                _searchCtrl.text = s.name;
+                                setState(() => _searchFocused = false);
+                                _centerOnStop(s);
+                              },
+                            ),
+                          ),
+                          ...dddResults.map(
+                            (bus) => ListTile(
+                              dense: true,
+                              leading: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: AppColors.ddd,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.directions_bus, color: Colors.white, size: 12),
+                              ),
+                              title: Text('Ligne DDD ${bus.code} (${bus.category})', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                              subtitle: Text('Départ : ${bus.departure} ➔ Arrivée : ${bus.arrival}', style: const TextStyle(fontSize: 11)),
+                              onTap: () {
+                                _searchCtrl.text = 'Ligne ${bus.code}';
+                                setState(() => _searchFocused = false);
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
