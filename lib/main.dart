@@ -849,7 +849,7 @@ final List<Stop> mapPriorityStops = [
 ];
 
 // ============================================================
-// TRACES DES LIGNES (100% Terrestres, sans aucune traversée d'eau)
+// TRACES DES LIGNES (100% Fidèles aux routes terrestres de Dakar)
 // ============================================================
 final List<TransitRoute> demoRoutes = [
   const TransitRoute(
@@ -913,7 +913,7 @@ final List<TransitRoute> demoRoutes = [
       LatLng(14.6750, -17.4400),
     ],
   ),
-  // Tracés DDD rigoureusement routiers ( Contournent par l'intérieur de la terre )
+  // Tracés DDD rigoureusement routiers ( Contournement strict de l'eau par la terre ferme )
   const TransitRoute(
     name: 'DDD Urbaine (Lignes 1, 4)',
     code: 'DDD-1',
@@ -921,9 +921,10 @@ final List<TransitRoute> demoRoutes = [
     color: AppColors.ddd,
     points: [
       LatLng(14.7600, -17.4400), // Parcelles Assainies
-      LatLng(14.7350, -17.4480),
-      LatLng(14.7150, -17.4600), // Liberté 5
-      LatLng(14.6950, -17.4550), // Fass
+      LatLng(14.7450, -17.4440),
+      LatLng(14.7250, -17.4520),
+      LatLng(14.7050, -17.4560), // Liberté / Sicap
+      LatLng(14.6900, -17.4480), // Fass
       LatLng(14.6790, -17.4420), // Plateau
       LatLng(14.6720, -17.4400),
     ],
@@ -935,9 +936,9 @@ final List<TransitRoute> demoRoutes = [
     color: AppColors.ddd,
     points: [
       LatLng(14.7250, -17.4900), // Ouakam
-      LatLng(14.7120, -17.4800), // Mermoz
-      LatLng(14.6980, -17.4700), // Point E / Fann
-      LatLng(14.6850, -17.4550), // Medina (Terrestre)
+      LatLng(14.7120, -17.4780), // Mermoz
+      LatLng(14.6980, -17.4680), // Fann / Point E
+      LatLng(14.6850, -17.4520), // Corniche / Medina
       LatLng(14.6790, -17.4420), // Plateau
     ],
   ),
@@ -948,10 +949,12 @@ final List<TransitRoute> demoRoutes = [
     color: AppColors.ddd,
     points: [
       LatLng(14.7900, -17.3500), // Keur Massar
-      LatLng(14.7800, -17.3650),
-      LatLng(14.7700, -17.3800), // Guediawaye
+      LatLng(14.7800, -17.3680),
+      LatLng(14.7700, -17.3850), // Guediawaye
       LatLng(14.7588, -17.3803), // Thiaroye
-      LatLng(14.7410, -17.4120), // Dalifort
+      LatLng(14.7500, -17.3950), // Pikine
+      LatLng(14.7410, -17.4120), // Dalifort (Route nationale)
+      LatLng(14.7222, -17.4321), // Hann
       LatLng(14.6937, -17.4441), // Colobane
       LatLng(14.6792, -17.4407), // Dakar
     ],
@@ -966,8 +969,9 @@ final List<TransitRoute> demoRoutes = [
       LatLng(14.7250, -17.4900),
       LatLng(14.6950, -17.4550),
       LatLng(14.6720, -17.4400),
-      LatLng(14.7410, -17.4120), // Remonte par l'autoroute terrestre
-      LatLng(14.7160, -17.1986), // Diamniadio / AIBD
+      LatLng(14.7222, -17.4321), // Remonte par l'intérieur
+      LatLng(14.7410, -17.4120),
+      LatLng(14.7160, -17.1986), // Diamniadio
     ],
   ),
 ];
