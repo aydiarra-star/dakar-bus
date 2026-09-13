@@ -31,7 +31,7 @@ final List<int> _terBase = _buildTerBase();
 class AppColors {
   static const primary = Color(0xFF00695C);
   static const brt = Color(0xFF1976D2);
-  static const ter = Color(0xFF8D4004); // Marron vif pour le TER et les rails
+  static const ter = Color(0xFF8D4004); // Marron vif pour le TER et ses rails
   static const aftu = Color(0xFFEF6C00);
   static const tata = Color(0xFF7B1FA2);
   static const ddd = Color(0xFF0288D1);
@@ -46,7 +46,7 @@ class AppColors {
 }
 
 // ============================================================
-// SERVICE DE DETECTION DES DEUX SENS (ALLER / RETOUR) UNIVERSEL
+// SERVICE DE DETECTION DES DEUX SENS (ALLER / RETOUR)
 // ============================================================
 class OppositeStopService {
   static Stop? findOppositeStop({required Stop currentStop, required List<Stop> allStops}) {
@@ -120,25 +120,37 @@ class TransitRoute {
   const TransitRoute({required this.name, required this.code, required this.type, required this.color, required this.points});
 }
 
+class FavoriteRoute {
+  final String label;
+  final String from;
+  final String to;
+  final IconData icon;
+  const FavoriteRoute({required this.label, required this.from, required this.to, required this.icon});
+}
+
+class TrafficAlert {
+  final String title;
+  final String description;
+  final String time;
+  final Color color;
+  const TrafficAlert({required this.title, required this.description, required this.time, required this.color});
+}
+
 // ============================================================
-// DONNEES DE TOUS LES ARRETTS (TER, BRT, AFTU, Tata, DDD)
+// DONNEES DE TOUS LES ARRETTS ET TRACES
 // ============================================================
 final List<Stop> allStops = [
   // Gare TER Dakar
   Stop(name: 'Gare TER Dakar', direction: 'Terminus Dakar (Arrivée)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 0), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6792, -17.4407), modeLabel: 'TER'),
   Stop(name: 'Gare TER Dakar', direction: 'Dir. Diamniadio (Embarquement)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 3), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6795, -17.4405), modeLabel: 'TER'),
   
-  // Gare TER Hann
-  Stop(name: 'Gare TER Hann', direction: 'Dir. Diamniadio', distanceMeters: 3500, departureMinutesFromMidnight: _shift(_terBase, 9), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7222, -17.4321), modeLabel: 'TER'),
-  Stop(name: 'Gare TER Hann', direction: 'Dir. Dakar', distanceMeters: 3500, departureMinutesFromMidnight: _shift(_terBase, 7), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7220, -17.4323), modeLabel: 'TER'),
-
   // Gare TER Colobane
   Stop(name: 'Gare TER Colobane', direction: 'Dir. Diamniadio', distanceMeters: 1200, departureMinutesFromMidnight: _shift(_terBase, 5), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6937, -17.4441), modeLabel: 'TER'),
   Stop(name: 'Gare TER Colobane', direction: 'Dir. Dakar', distanceMeters: 1200, departureMinutesFromMidnight: _shift(_terBase, 3), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6935, -17.4443), modeLabel: 'TER'),
 
-  // Gare TER Dalifort
-  Stop(name: 'Gare TER Dalifort', direction: 'Dir. Diamniadio', distanceMeters: 5100, departureMinutesFromMidnight: _shift(_terBase, 12), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7410, -17.4120), modeLabel: 'TER'),
-  Stop(name: 'Gare TER Dalifort', direction: 'Dir. Dakar', distanceMeters: 5100, departureMinutesFromMidnight: _shift(_terBase, 10), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7412, -17.4122), modeLabel: 'TER'),
+  // Gare TER Hann
+  Stop(name: 'Gare TER Hann', direction: 'Dir. Diamniadio', distanceMeters: 3500, departureMinutesFromMidnight: _shift(_terBase, 9), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7222, -17.4321), modeLabel: 'TER'),
+  Stop(name: 'Gare TER Hann', direction: 'Dir. Dakar', distanceMeters: 3500, departureMinutesFromMidnight: _shift(_terBase, 7), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7220, -17.4323), modeLabel: 'TER'),
 
   // BRT
   Stop(name: 'BRT Colobane', direction: 'Dir. Guediawaye', distanceMeters: 150, departureMinutesFromMidnight: _shift(_brtBase, 2), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.6950, -17.4420), modeLabel: 'BRT'),
@@ -147,12 +159,12 @@ final List<Stop> allStops = [
   // Bus AFTU, Tata, DDD
   const Stop(name: 'Arret AFTU 23', direction: 'Dir. Parcelles Assainies', distanceMeters: 280, departureMinutesFromMidnight: [630, 645, 700, 715], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: LatLng(14.6900, -17.4460), modeLabel: 'AFTU'),
   const Stop(name: 'Arret Tata 12', direction: 'Dir. Guediawaye', distanceMeters: 600, departureMinutesFromMidnight: [640, 655, 710, 725], icon: Icons.directions_bus_filled, color: AppColors.tata, location: LatLng(14.7200, -17.4700), modeLabel: 'Tata'),
-  const Stop(name: 'Arret DDD 12 (Dakar Dem Dikk)', direction: 'Dir. Ouakam', distanceMeters: 800, departureMinutesFromMidnight: [645, 700, 715, 730], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7250, -17.4900), modeLabel: 'DDD'),
+  const Stop(name: 'Arret DDD 12', direction: 'Dir. Ouakam', distanceMeters: 800, departureMinutesFromMidnight: [645, 700, 715, 730], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7250, -17.4900), modeLabel: 'DDD'),
 ];
 
-final List<Stop> mapPriorityStops = allStops.take(6).toList();
+final List<Stop> mapPriorityStops = allStops;
 
-// Tracés des lignes (TER en Marron Vif)
+// Tracés complets de toutes les lignes sur la carte
 final List<TransitRoute> demoRoutes = [
   TransitRoute(
     name: 'TER', code: 'TER', type: 'TER', color: AppColors.ter,
@@ -160,6 +172,7 @@ final List<TransitRoute> demoRoutes = [
       const LatLng(14.6792, -17.4407), const LatLng(14.6937, -17.4441),
       const LatLng(14.7222, -17.4321), const LatLng(14.7410, -17.4120),
       const LatLng(14.7550, -17.3900), const LatLng(14.7700, -17.3400),
+      const LatLng(14.7750, -17.3100), const LatLng(14.7160, -17.1986),
     ],
   ),
   TransitRoute(
@@ -167,7 +180,20 @@ final List<TransitRoute> demoRoutes = [
     points: [
       const LatLng(14.6720, -17.4400), const LatLng(14.6950, -17.4420),
       const LatLng(14.7050, -17.4400), const LatLng(14.7350, -17.4260),
+      const LatLng(14.7735, -17.3977),
     ],
+  ),
+  TransitRoute(
+    name: 'AFTU', code: '23', type: 'AFTU', color: AppColors.aftu,
+    points: [const LatLng(14.7600, -17.4400), const LatLng(14.6900, -17.4460)],
+  ),
+  TransitRoute(
+    name: 'Tata', code: '12', type: 'TATA', color: AppColors.tata,
+    points: [const LatLng(14.7735, -17.3977), const LatLng(14.6750, -17.4400)],
+  ),
+  TransitRoute(
+    name: 'DDD', code: 'DDD', type: 'DDD', color: AppColors.ddd,
+    points: [const LatLng(14.7350, -17.5100), const LatLng(14.6800, -17.4450)],
   ),
 ];
 
@@ -211,11 +237,11 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
-    const pages = [
-      ExplorerPage(),
-      TripsPage(),
-      AlertsPage(),
-      SettingsPage(),
+    final pages = [
+      const ExplorerPage(),
+      const TripsPage(),
+      const AlertsPage(),
+      const SettingsPage(),
     ];
 
     return Scaffold(
@@ -235,7 +261,7 @@ class _MainShellState extends State<MainShell> {
 }
 
 // ============================================================
-// PAGE EXPLORER
+// PAGE EXPLORER (Avec tracés, filtres et temps d'attente)
 // ============================================================
 class ExplorerPage extends StatefulWidget {
   const ExplorerPage({super.key});
@@ -275,6 +301,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                 ],
               ),
             ),
+            // CARTE INTERACTIVE AVEC TOUS LES TRACES ET MARQUEURS
             SizedBox(
               height: 230,
               child: Stack(
@@ -325,6 +352,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                 ],
               ),
             ),
+            // FILTRES HORIZONTAUX
             Container(
               height: 45,
               color: Colors.white,
@@ -342,6 +370,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                 )).toList(),
               ),
             ),
+            // LISTE DES ARRETS AVEC TEMPS D'ATTENTE EN DIRECT
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.all(12),
@@ -513,7 +542,109 @@ class DualStopDetailPage extends StatelessWidget {
 }
 
 // ============================================================
-// ASSISTANT IA UNIVERSEL & SIGNALEMENTS
+// PAGE TRAJETS (PLANIFICATEUR INTERACTIF)
+// ============================================================
+class TripsPage extends StatefulWidget {
+  const TripsPage({super.key});
+
+  @override
+  State<TripsPage> createState() => _TripsPageState();
+}
+
+class _TripsPageState extends State<TripsPage> {
+  final TextEditingController _fromCtrl = TextEditingController(text: 'Gare TER Dakar');
+  final TextEditingController _toCtrl = TextEditingController(text: 'Gare TER Diamniadio');
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Planificateur de Trajets'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            TextField(controller: _fromCtrl, decoration: const InputDecoration(labelText: 'Départ', prefixIcon: Icon(Icons.my_location))),
+            const SizedBox(height: 12),
+            TextField(controller: _toCtrl, decoration: const InputDecoration(labelText: 'Destination', prefixIcon: Icon(Icons.location_on))),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Recherche d itinéraire en cours... TER Marron Vif opérationnel')),
+                );
+              },
+              icon: const Icon(Icons.search),
+              label: const Text('Calculer l itinéraire'),
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================
+// PAGE ALERTES (INFORMATIONS TRAFIC)
+// ============================================================
+class AlertsPage extends StatelessWidget {
+  const AlertsPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    const alerts = [
+      TrafficAlert(title: 'TER Normal', description: 'Toutes les lignes TER circulent normalement (fréquence 10 min).', time: 'En direct', color: AppColors.success),
+      TrafficAlert(title: 'BRT Fluide', description: 'Trafic régulier sur l ensemble du couloir BRT.', time: 'Il y a 5 min', color: AppColors.brt),
+    ];
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Alertes et Trafic'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: alerts.length,
+        itemBuilder: (ctx, i) {
+          final a = alerts[i];
+          return Card(
+            margin: const EdgeInsets.only(bottom: 12),
+            child: ListTile(
+              leading: Icon(Icons.notifications_active, color: a.color),
+              title: Text(a.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+              subtitle: Text(a.description),
+              trailing: Text(a.time, style: TextStyle(fontSize: 11, color: a.color, fontWeight: FontWeight.bold)),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// ============================================================
+// PAGE REGLAGES (PARAMETRES)
+// ============================================================
+class SettingsPage extends StatelessWidget {
+  const SettingsPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Paramètres et Réglages'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: const [
+          ListTile(leading: Icon(Icons.language), title: Text('Langue'), subtitle: Text('Français')),
+          Divider(),
+          ListTile(leading: Icon(Icons.notifications), title: Text('Notifications trafic'), subtitle: Text('Activées')),
+          Divider(),
+          ListTile(leading: Icon(Icons.info), title: Text('Version de l application'), subtitle: Text('Dakar Bus v2.4.0 (Officiel)')),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================
+// ASSISTANT IA
 // ============================================================
 class AIChatPage extends StatefulWidget {
   const AIChatPage({super.key});
@@ -527,7 +658,7 @@ class _AIChatPageState extends State<AIChatPage> {
   final List<Map<String, String>> _messages = [
     {
       'sender': 'ai',
-      'text': 'Bonjour ! Je suis votre assistant IA Dakar Bus. Je gère tous les réseaux (TER Marron Vif, BRT, AFTU, Tata, DDD). Posez vos questions ou émettez une alerte trafic.'
+      'text': 'Bonjour ! Je suis votre assistant IA Dakar Bus. Posez vos questions sur les horaires TER (Marron Vif), BRT, AFTU, Tata ou DDD.'
     }
   ];
 
@@ -542,21 +673,8 @@ class _AIChatPageState extends State<AIChatPage> {
 
     Future.delayed(const Duration(milliseconds: 600), () {
       if (!mounted) return;
-      String reply = 'Je peux vous renseigner sur tous les arrêts et horaires de Dakar.';
-      final lower = text.toLowerCase();
-
-      if (lower.contains('ter') || lower.contains('train') || lower.contains('marron')) {
-        reply = 'Le TER (lignes Marron Vif) relie Dakar à Diamniadio avec des départs réguliers de 5h30 à 22h.';
-      } else if (lower.contains('brt')) {
-        reply = 'Le BRT relie Petersen à Guédiawaye toutes les 6 minutes.';
-      } else if (lower.contains('tata') || lower.contains('aftu') || lower.contains('dikk') || lower.contains('bus')) {
-        reply = 'Les bus AFTU, Tata et Dakar Dem Dikk desservent tous les axes principaux dans les deux sens.';
-      } else if (lower.contains('alerte') || lower.contains('signal') || lower.contains('trafic') || lower.contains('panne')) {
-        reply = '🚨 Alerte enregistrée et diffusée aux usagers sur l onglet Alertes.';
-      }
-
       setState(() {
-        _messages.add({'sender': 'ai', 'text': reply});
+        _messages.add({'sender': 'ai', 'text': 'Je peux vous renseigner sur tous les réseaux de transport à Dakar !'});
       });
     });
   }
@@ -564,7 +682,7 @@ class _AIChatPageState extends State<AIChatPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Assistant IA & Signalements'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+      appBar: AppBar(title: const Text('Assistant IA Dakar Bus'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
       body: Column(
         children: [
           Expanded(
@@ -599,7 +717,7 @@ class _AIChatPageState extends State<AIChatPage> {
                   child: TextField(
                     controller: _ctrl,
                     onSubmitted: (_) => _send(),
-                    decoration: const InputDecoration(hintText: 'Posez votre question ou signalez un incident...', border: InputBorder.none),
+                    decoration: const InputDecoration(hintText: 'Posez votre question...', border: InputBorder.none),
                   ),
                 ),
                 IconButton(onPressed: _send, icon: const Icon(Icons.send, color: AppColors.primary)),
@@ -610,23 +728,4 @@ class _AIChatPageState extends State<AIChatPage> {
       ),
     );
   }
-}
-
-// Pages annexes
-class TripsPage extends StatelessWidget {
-  const TripsPage({super.key});
-  @override
-  Widget build(BuildContext context) => const Scaffold(body: Center(child: Text('Planificateur de Trajets')));
-}
-
-class AlertsPage extends StatelessWidget {
-  const AlertsPage({super.key});
-  @override
-  Widget build(BuildContext context) => const Scaffold(body: Center(child: Text('Alertes et Signalements Trafic')));
-}
-
-class SettingsPage extends StatelessWidget {
-  const SettingsPage({super.key});
-  @override
-  Widget build(BuildContext context) => const Scaffold(body: Center(child: Text('Paramètres et Réglages')));
 }
