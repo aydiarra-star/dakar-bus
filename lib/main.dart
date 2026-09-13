@@ -849,7 +849,7 @@ final List<Stop> mapPriorityStops = [
 ];
 
 // ============================================================
-// TRACES DES LIGNES (100% Fidèles aux routes terrestres de Dakar)
+// TRACES DES LIGNES (100% Fidèles aux routes terrestres de Dakar - Aucun passage en mer)
 // ============================================================
 final List<TransitRoute> demoRoutes = [
   const TransitRoute(
@@ -913,7 +913,7 @@ final List<TransitRoute> demoRoutes = [
       LatLng(14.6750, -17.4400),
     ],
   ),
-  // Tracés DDD rigoureusement routiers ( Contournement strict de l'eau par la terre ferme )
+  // Tracés DDD rigoureusement routiers ( Contournement strict par la terre ferme )
   const TransitRoute(
     name: 'DDD Urbaine (Lignes 1, 4)',
     code: 'DDD-1',
@@ -952,8 +952,10 @@ final List<TransitRoute> demoRoutes = [
       LatLng(14.7800, -17.3680),
       LatLng(14.7700, -17.3850), // Guediawaye
       LatLng(14.7588, -17.3803), // Thiaroye
-      LatLng(14.7500, -17.3950), // Pikine
-      LatLng(14.7410, -17.4120), // Dalifort (Route nationale)
+      LatLng(14.7520, -17.3860), // Mbaout (contournement terrestre de la baie)
+      LatLng(14.7450, -17.3980), // Vers Mbao (Route Nationale 1)
+      LatLng(14.7300, -17.4100),
+      LatLng(14.7410, -17.4120), // Dalifort
       LatLng(14.7222, -17.4321), // Hann
       LatLng(14.6937, -17.4441), // Colobane
       LatLng(14.6792, -17.4407), // Dakar
@@ -969,7 +971,7 @@ final List<TransitRoute> demoRoutes = [
       LatLng(14.7250, -17.4900),
       LatLng(14.6950, -17.4550),
       LatLng(14.6720, -17.4400),
-      LatLng(14.7222, -17.4321), // Remonte par l'intérieur
+      LatLng(14.7222, -17.4321),
       LatLng(14.7410, -17.4120),
       LatLng(14.7160, -17.1986), // Diamniadio
     ],
