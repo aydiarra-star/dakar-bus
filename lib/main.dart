@@ -50,7 +50,7 @@ class AppColors {
   static const aftu = Color(0xFFEF6C00);
   static const tata = Color(0xFF7B1FA2);
   static const ddd = Color(0xFF0288D1);
-  static const background = Color(0xFF4CAF50); // Fond vert thème détail
+  static const background = Color(0xFF4CAF50);
   static const surface = Color(0xFFFFFFFF);
   static const textPrimary = Color(0xFF1A1A1A);
   static const textSecondary = Color(0xFF757575);
@@ -395,10 +395,10 @@ final List<Stop> terStations = [
     location: const LatLng(14.6792, -17.4407),
     modeLabel: 'TER',
     source: DataSourceInfo.seter,
-    availableLines: ['TER 01'],
+    availableLines: const ['TER 01'],
     oppositeStopId: 'TER_DKR_B',
-    customDepartures: [
-      const DepartureInfo(
+    customDepartures: const [
+      DepartureInfo(
         lineCode: 'TER 01',
         destination: 'vers Diamniadio',
         waitTime: '10 min',
@@ -417,10 +417,10 @@ final List<Stop> terStations = [
     location: const LatLng(14.6792, -17.4405),
     modeLabel: 'TER',
     source: DataSourceInfo.seter,
-    availableLines: ['TER 01'],
+    availableLines: const ['TER 01'],
     oppositeStopId: 'TER_DKR_A',
-    customDepartures: [
-      const DepartureInfo(
+    customDepartures: const [
+      DepartureInfo(
         lineCode: 'TER 01',
         destination: 'vers Terminus Dakar',
         waitTime: 'À quai',
@@ -439,7 +439,7 @@ final List<Stop> terStations = [
     location: const LatLng(14.6937, -17.4441),
     modeLabel: 'TER',
     source: DataSourceInfo.seter,
-    availableLines: ['TER 01'],
+    availableLines: const ['TER 01'],
     oppositeStopId: 'TER_COL_B',
   ),
   Stop(
@@ -453,7 +453,7 @@ final List<Stop> terStations = [
     location: const LatLng(14.6937, -17.4439),
     modeLabel: 'TER',
     source: DataSourceInfo.seter,
-    availableLines: ['TER 01'],
+    availableLines: const ['TER 01'],
     oppositeStopId: 'TER_COL_A',
   ),
   Stop(
@@ -619,7 +619,7 @@ final List<Stop> brtStations = [
     location: const LatLng(14.6720, -17.4400),
     modeLabel: 'BRT',
     source: DataSourceInfo.sunubrt,
-    availableLines: ['B1', 'B2'],
+    availableLines: const ['B1', 'B2'],
     oppositeStopId: 'BRT_PET_B',
   ),
   Stop(
@@ -633,7 +633,7 @@ final List<Stop> brtStations = [
     location: const LatLng(14.6720, -17.4398),
     modeLabel: 'BRT',
     source: DataSourceInfo.sunubrt,
-    availableLines: ['B1', 'B2'],
+    availableLines: const ['B1', 'B2'],
     oppositeStopId: 'BRT_PET_A',
   ),
   Stop(
@@ -647,7 +647,7 @@ final List<Stop> brtStations = [
     location: const LatLng(14.6950, -17.4420),
     modeLabel: 'BRT',
     source: DataSourceInfo.sunubrt,
-    availableLines: ['B1'],
+    availableLines: const ['B1'],
     oppositeStopId: 'BRT_COL_B',
   ),
   Stop(
@@ -661,7 +661,7 @@ final List<Stop> brtStations = [
     location: const LatLng(14.6950, -17.4418),
     modeLabel: 'BRT',
     source: DataSourceInfo.sunubrt,
-    availableLines: ['B1'],
+    availableLines: const ['B1'],
     oppositeStopId: 'BRT_COL_A',
   ),
   Stop(
@@ -733,16 +733,16 @@ final List<Stop> otherBusStations = [
     color: AppColors.aftu,
     location: const LatLng(14.6900, -17.4460),
     modeLabel: 'AFTU',
-    availableLines: ['3121', '4132', '451'],
+    availableLines: const ['3121', '4132', '451'],
     oppositeStopId: 'BUS_SAN_B',
-    customDepartures: [
-      const DepartureInfo(
+    customDepartures: const [
+      DepartureInfo(
         lineCode: '3121',
         destination: 'vers Gare de Boissy-Saint-Léger',
         waitTime: '17 min',
         badgeColor: Color(0xFF1B5E20),
       ),
-      const DepartureInfo(
+      DepartureInfo(
         lineCode: '451',
         destination: 'vers Gare De Boissy-Saint-Lége',
         waitTime: '50 min',
@@ -763,16 +763,16 @@ final List<Stop> otherBusStations = [
     color: AppColors.aftu,
     location: const LatLng(14.6900, -17.4458),
     modeLabel: 'AFTU',
-    availableLines: ['3121', '4132', '451'],
+    availableLines: const ['3121', '4132', '451'],
     oppositeStopId: 'BUS_SAN_A',
-    customDepartures: [
-      const DepartureInfo(
+    customDepartures: const [
+      DepartureInfo(
         lineCode: '451',
         destination: 'vers Servon Eden',
         waitTime: '27 min',
         badgeColor: Color(0xFF0288D1),
       ),
-      const DepartureInfo(
+      DepartureInfo(
         lineCode: '3121',
         destination: 'vers Gare de Verneuil-l\'Étang',
         waitTime: '69 min',
@@ -1502,14 +1502,14 @@ class _MainShellState extends State<MainShell> {
   GpsState _gpsState = GpsState.idle;
   String? _gpsMessage;
 
-  final List<FavoriteRoute> _favorites = [
-    const FavoriteRoute(
+  final List<FavoriteRoute> _favorites = const [
+    FavoriteRoute(
       label: 'Maison',
       from: 'Ma position',
       to: 'Plateau',
       icon: Icons.home_rounded,
     ),
-    const FavoriteRoute(
+    FavoriteRoute(
       label: 'Travail',
       from: 'Ma position',
       to: 'Parcelles Assainies',
@@ -3996,7 +3996,6 @@ class _StopDetailPageState extends State<StopDetailPage> {
     _resolveDirections();
   }
 
-  // 1. Détection automatique du Sens A et du Sens B
   void _resolveDirections() {
     currentSensA = widget.stop;
 
@@ -4020,7 +4019,6 @@ class _StopDetailPageState extends State<StopDetailPage> {
       return matches.first;
     }
 
-    // Fallback dynamique généré si aucun arrêt opposé n'existe en base
     return Stop(
       id: '${target.id}_OPP',
       name: target.name,
@@ -4082,7 +4080,6 @@ class _StopDetailPageState extends State<StopDetailPage> {
       body: SafeArea(
         child: Column(
           children: [
-            // Onglets (Arrêts / Lignes)
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 16.0,
@@ -4140,13 +4137,10 @@ class _StopDetailPageState extends State<StopDetailPage> {
                 ],
               ),
             ),
-
-            // 2. Affichage obligatoire des deux sections
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.all(16.0),
                 children: [
-                  // Section 1 : Arrêt actuel (Sens Aller)
                   StopCardWidget(stop: currentSensA),
 
                   const SizedBox(height: 12),
@@ -4188,7 +4182,6 @@ class _StopDetailPageState extends State<StopDetailPage> {
 
                   const SizedBox(height: 12),
 
-                  // Section 2 : Arrêt opposé (Sens Retour)
                   if (currentSensB != null)
                     StopCardWidget(stop: currentSensB!)
                   else
