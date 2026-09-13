@@ -26,7 +26,7 @@ class OppositeStopService {
       
       if (distance <= 50.0 && distance < minDistance) {
         final stopName = stop.name.toLowerCase();
-        if (currentName.contains(stopName) || stopName.contains(currentName) || currentName.substring(0, (currentName.length * 0.6).toInt()) == stopName.substring(0, (stopName.length * 0.6).toInt())) {
+        if (currentName.contains(stopName) || stopName.contains(stopName) || currentName.substring(0, (currentName.length * 0.6).toInt()) == stopName.substring(0, (stopName.length * 0.6).toInt())) {
           minDistance = distance;
           bestCandidate = stop;
         }
@@ -2224,25 +2224,99 @@ class _TripsPageState extends State<TripsPage> {
 }
 
 // ============================================================
-// ALERTES & REGLAGES
+// ALERTES
 // ============================================================
 class AlertsPage extends StatelessWidget {
   const AlertsPage({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: Text('Page Alertes')));
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text('Alertes et Trafic'),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: const [
+          Card(
+            child: ListTile(
+              leading: Icon(Icons.check_circle, color: AppColors.success),
+              title: Text('TER Normal', style: TextStyle(fontWeight: FontWeight.bold)),
+              subtitle: Text('Trafic fluide sur toutes les gares TER (Marron Vif). Fréquence respectée.'),
+            ),
+          ),
+          SizedBox(height: 10),
+          Card(
+            child: ListTile(
+              leading: Icon(Icons.info, color: AppColors.brt),
+              title: Text('BRT Opérationnel', style: TextStyle(fontWeight: FontWeight.bold)),
+              subtitle: Text('Circulation normale le long du couloir dédié.'),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
+// ============================================================
+// REGLAGES
+// ============================================================
 class SettingsPage extends StatelessWidget {
   final List<FavoriteRoute> favorites;
   final Function(FavoriteRoute) onAdd;
   final Function(int) onRemove;
-  const SettingsPage({super.key, required this.favorites, required this.onAdd, required this.onRemove});
+
+  const SettingsPage({
+    super.key,
+    required this.favorites,
+    required this.onAdd,
+    required this.onRemove,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: Text('Page Reglages')));
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text('Paramètres et Réglages'),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          const ListTile(
+            leading: Icon(Icons.language, color: AppColors.primary),
+            title: Text('Langue de l application'),
+            subtitle: Text('Français'),
+          ),
+          const Divider(),
+          SwitchListTile(
+            secondary: const Icon(Icons.notifications, color: AppColors.primary),
+            title: const Text('Notifications Trafic'),
+            subtitle: const Text('Recevoir les alertes en temps réel'),
+            value: true,
+            onChanged: (val) {},
+          ),
+          const Divider(),
+          const ListTile(
+            leading: Icon(Icons.train, color: AppColors.ter),
+            title: Text('Ligne TER (Marron Vif)'),
+            subtitle: Text('Activée (SETER)'),
+          ),
+          const Divider(),
+          const ListTile(
+            leading: Icon(Icons.info_outline, color: AppColors.primary),
+            title: Text('Version'),
+            subtitle: Text('Dakar Bus v2.5.0 (Officiel)'),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -2397,14 +2471,108 @@ class DualStopDetailPage extends StatelessWidget {
 // ============================================================
 // ASSISTANT IA
 // ============================================================
-class AIChatPage extends StatelessWidget {
+class AIChatPage extends StatefulWidget {
   const AIChatPage({super.key});
+
+  @override
+  State<AIChatPage> createState() => _AIChatPageState();
+}
+
+class _AIChatPageState extends State<AIChatPage> {
+  final TextEditingController _ctrl = TextEditingController();
+  final List<Map<String, String>> _messages = [
+    {
+      'sender': 'ai',
+      'text': 'Bonjour ! Je suis votre assistant IA Dakar Bus. Posez vos questions sur les horaires TER (Marron Vif), BRT, AFTU, Tata ou DDD.'
+    }
+  ];
+
+  void _send() {
+    final text = _ctrl.text.trim();
+    if (text.isEmpty) return;
+
+    setState(() {
+      _messages.add({'sender': 'user', 'text': text});
+      _ctrl.clear();
+    });
+
+    Future.delayed(const Duration(milliseconds: 600), () {
+      if (!mounted) return;
+      setState(() {
+        _messages.add({
+          'sender': 'ai',
+          'text': 'Je peux vous guider vers votre destination. Le réseau TER (Marron Vif) et les bus fonctionnent normalement.'
+        });
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Assistant IA Dakar Bus'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-      body: const Center(child: Text('Assistant IA disponible')),
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text('Assistant IA Dakar Bus'),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: _messages.length,
+              itemBuilder: (ctx, i) {
+                final m = _messages[i];
+                final isUser = m['sender'] == 'user';
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    constraints: const BoxConstraints(maxWidth: 280),
+                    decoration: BoxDecoration(
+                      color: isUser ? AppColors.primary : AppColors.surface,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: Text(
+                      m['text'] ?? '',
+                      style: TextStyle(
+                        color: isUser ? Colors.white : AppColors.textPrimary,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(8),
+            color: AppColors.surface,
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _ctrl,
+                    onSubmitted: (_) => _send(),
+                    decoration: const InputDecoration(
+                      hintText: 'Posez votre question...',
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 8),
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: _send,
+                  icon: const Icon(Icons.send, color: AppColors.primary),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
