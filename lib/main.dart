@@ -1502,14 +1502,15 @@ class _MainShellState extends State<MainShell> {
   GpsState _gpsState = GpsState.idle;
   String? _gpsMessage;
 
-  final List<FavoriteRoute> _favorites = const [
-    FavoriteRoute(
+  // CORRECTION : Suppression du mot-clé const sur la liste modifiable
+  final List<FavoriteRoute> _favorites = [
+    const FavoriteRoute(
       label: 'Maison',
       from: 'Ma position',
       to: 'Plateau',
       icon: Icons.home_rounded,
     ),
-    FavoriteRoute(
+    const FavoriteRoute(
       label: 'Travail',
       from: 'Ma position',
       to: 'Parcelles Assainies',
