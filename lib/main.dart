@@ -74,12 +74,12 @@ final List<int> _brtBase = _generateSchedule(
 final List<int> _terBase = _buildTerBase();
 
 // ============================================================
-// COULEURS (TER mis en Marron Vif exact)
+// COULEURS
 // ============================================================
 class AppColors {
   static const primary = Color(0xFF00695C);
   static const brt = Color(0xFF1976D2);
-  static const ter = Color(0xFF8D4004); // Marron vif pour le TER et les rails
+  static const ter = Color(0xFF8D4004); 
   static const aftu = Color(0xFFEF6C00);
   static const tata = Color(0xFF7B1FA2);
   static const ddd = Color(0xFF0288D1);
@@ -392,7 +392,7 @@ class RouteSearchResult {
 }
 
 // ============================================================
-// DONNEES TER (officiel SETER - Marron Vif)
+// DONNEES TER (officiel SETER)
 // ============================================================
 final List<Stop> terStations = [
   Stop(
@@ -646,7 +646,7 @@ final List<Stop> brtStations = [
 ];
 
 // ============================================================
-// DONNEES AFTU / TATA / DDD (Intégration complète des lignes DDD)
+// DONNEES AFTU / TATA / DDD (Intégration complète)
 // ============================================================
 final List<Stop> otherBusStations = [
   const Stop(
@@ -849,7 +849,7 @@ final List<Stop> mapPriorityStops = [
 ];
 
 // ============================================================
-// TRACES DES LIGNES (TER en Marron Vif)
+// TRACES DES LIGNES (Tracés GPS mis à jour avec les nouveaux DDD)
 // ============================================================
 final List<TransitRoute> demoRoutes = [
   const TransitRoute(
@@ -913,17 +913,55 @@ final List<TransitRoute> demoRoutes = [
       LatLng(14.6750, -17.4400),
     ],
   ),
+  // Tracés GPS des lignes DDD (urbaines, banlieue et express AIBD)
   const TransitRoute(
-    name: 'DDD',
-    code: 'DDD-12',
+    name: 'DDD 1 & 4',
+    code: 'DDD-1',
     type: 'DDD',
     color: AppColors.ddd,
     points: [
-      LatLng(14.7350, -17.5100),
+      LatLng(14.7600, -17.4400),
+      LatLng(14.7300, -17.4450),
+      LatLng(14.7000, -17.4400),
+      LatLng(14.6720, -17.4400),
+    ],
+  ),
+  const TransitRoute(
+    name: 'DDD 7, 8 & 9',
+    code: 'DDD-7',
+    type: 'DDD',
+    color: AppColors.ddd,
+    points: [
       LatLng(14.7250, -17.4900),
-      LatLng(14.7100, -17.4700),
-      LatLng(14.6950, -17.4550),
-      LatLng(14.6800, -17.4450),
+      LatLng(14.7050, -17.4750),
+      LatLng(14.6900, -17.4500),
+      LatLng(14.6720, -17.4400),
+    ],
+  ),
+  const TransitRoute(
+    name: 'DDD Banlieue (217-227)',
+    code: 'DDD-217',
+    type: 'DDD',
+    color: AppColors.ddd,
+    points: [
+      LatLng(14.7900, -17.3500),
+      LatLng(14.7700, -17.3800),
+      LatLng(14.7588, -17.3803),
+      LatLng(14.7410, -17.4120),
+      LatLng(14.6937, -17.4441),
+      LatLng(14.6792, -17.4407),
+    ],
+  ),
+  const TransitRoute(
+    name: 'DDD Express AIBD (401-403)',
+    code: 'DDD-401',
+    type: 'DDD',
+    color: AppColors.ddd,
+    points: [
+      LatLng(14.7600, -17.4400),
+      LatLng(14.7250, -17.4900),
+      LatLng(14.6720, -17.4400),
+      LatLng(14.7160, -17.1986), // Vers Diamniadio / AIBD
     ],
   ),
 ];
@@ -2020,7 +2058,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
 }
 
 // ============================================================
-// CARTE D ARRET OPTIMISEE (AVEC BADGES DE SENS ARRIVÉE / DÉPART)
+// CARTE D ARRET OPTIMISEE
 // ============================================================
 class StopCard extends StatelessWidget {
   final Stop stop;
@@ -2389,7 +2427,7 @@ class AlertsPage extends StatelessWidget {
             child: ListTile(
               leading: Icon(Icons.check_circle, color: AppColors.success),
               title: Text('TER Normal', style: TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text('Trafic fluide sur toutes les gares TER (Marron Vif). Fréquence respectée.'),
+              subtitle: Text('Trafic fluide sur toutes les gares TER. Fréquence respectée.'),
             ),
           ),
           SizedBox(height: 10),
@@ -2449,7 +2487,7 @@ class SettingsPage extends StatelessWidget {
           const Divider(),
           const ListTile(
             leading: Icon(Icons.train, color: AppColors.ter),
-            title: Text('Ligne TER (Marron Vif)'),
+            title: Text('Ligne TER'),
             subtitle: Text('Activée (SETER)'),
           ),
           const Divider(),
@@ -2465,7 +2503,7 @@ class SettingsPage extends StatelessWidget {
 }
 
 // ============================================================
-// VUE : DOUBLE SENS (ALLER / RETOUR) STYLE IDFM
+// VUE : DOUBLE SENS (ALLER / RETOUR)
 // ============================================================
 class DualStopDetailPage extends StatelessWidget {
   final Stop stop;
@@ -2627,7 +2665,7 @@ class _AIChatPageState extends State<AIChatPage> {
   final List<Map<String, String>> _messages = [
     {
       'sender': 'ai',
-      'text': 'Bonjour ! Je suis votre assistant IA Dakar Bus. Posez vos questions sur les horaires TER (Marron Vif), BRT, AFTU, Tata ou DDD.'
+      'text': 'Bonjour ! Je suis votre assistant IA Dakar Bus. Posez vos questions sur les horaires TER, BRT, AFTU, Tata ou DDD.'
     }
   ];
 
@@ -2645,7 +2683,7 @@ class _AIChatPageState extends State<AIChatPage> {
       setState(() {
         _messages.add({
           'sender': 'ai',
-          'text': 'Je peux vous guider vers votre destination. Le réseau TER (Marron Vif) et les bus fonctionnent normalement.'
+          'text': 'Je peux vous guider vers votre destination. Le réseau TER et les bus fonctionnent normalement.'
         });
       });
     });
