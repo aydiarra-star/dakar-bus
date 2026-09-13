@@ -50,7 +50,7 @@ class AppColors {
   static const aftu = Color(0xFFEF6C00);
   static const tata = Color(0xFF7B1FA2);
   static const ddd = Color(0xFF0288D1);
-  static const background = Color(0xFFF8F9FA);
+  static const background = Color(0xFF4CAF50); // Fond vert thème détail
   static const surface = Color(0xFFFFFFFF);
   static const textPrimary = Color(0xFF1A1A1A);
   static const textSecondary = Color(0xFF757575);
@@ -204,7 +204,22 @@ class OfficialBadge extends StatelessWidget {
 // ============================================================
 // MODELES
 // ============================================================
+class DepartureInfo {
+  final String lineCode;
+  final String destination;
+  final String waitTime;
+  final Color badgeColor;
+
+  const DepartureInfo({
+    required this.lineCode,
+    required this.destination,
+    required this.waitTime,
+    required this.badgeColor,
+  });
+}
+
 class Stop {
+  final String id;
   final String name;
   final String direction;
   final double distanceMeters;
@@ -215,8 +230,12 @@ class Stop {
   final DataStatus status;
   final String modeLabel;
   final DataSourceInfo source;
+  final List<String> availableLines;
+  final String? oppositeStopId;
+  final List<DepartureInfo>? customDepartures;
 
   const Stop({
+    required this.id,
     required this.name,
     required this.direction,
     required this.distanceMeters,
@@ -227,6 +246,9 @@ class Stop {
     required this.modeLabel,
     this.status = DataStatus.scheduled,
     this.source = DataSourceInfo.demo,
+    this.availableLines = const [],
+    this.oppositeStopId,
+    this.customDepartures,
   });
 
   int? nextDepartureMinutes() {
@@ -363,6 +385,7 @@ class RouteSearchResult {
 // ============================================================
 final List<Stop> terStations = [
   Stop(
+    id: 'TER_DKR_A',
     name: 'Gare TER Dakar',
     direction: 'Terminus Dakar',
     distanceMeters: 350,
@@ -372,8 +395,41 @@ final List<Stop> terStations = [
     location: const LatLng(14.6792, -17.4407),
     modeLabel: 'TER',
     source: DataSourceInfo.seter,
+    availableLines: ['TER 01'],
+    oppositeStopId: 'TER_DKR_B',
+    customDepartures: [
+      const DepartureInfo(
+        lineCode: 'TER 01',
+        destination: 'vers Diamniadio',
+        waitTime: '10 min',
+        badgeColor: AppColors.ter,
+      ),
+    ],
   ),
   Stop(
+    id: 'TER_DKR_B',
+    name: 'Gare TER Dakar (Retour)',
+    direction: 'Dir. Dakar Terminus',
+    distanceMeters: 350,
+    departureMinutesFromMidnight: _shift(_terBase, 2),
+    icon: Icons.train_rounded,
+    color: AppColors.ter,
+    location: const LatLng(14.6792, -17.4405),
+    modeLabel: 'TER',
+    source: DataSourceInfo.seter,
+    availableLines: ['TER 01'],
+    oppositeStopId: 'TER_DKR_A',
+    customDepartures: [
+      const DepartureInfo(
+        lineCode: 'TER 01',
+        destination: 'vers Terminus Dakar',
+        waitTime: 'À quai',
+        badgeColor: AppColors.ter,
+      ),
+    ],
+  ),
+  Stop(
+    id: 'TER_COL_A',
     name: 'Gare TER Colobane',
     direction: 'Dir. Diamniadio',
     distanceMeters: 1200,
@@ -383,8 +439,25 @@ final List<Stop> terStations = [
     location: const LatLng(14.6937, -17.4441),
     modeLabel: 'TER',
     source: DataSourceInfo.seter,
+    availableLines: ['TER 01'],
+    oppositeStopId: 'TER_COL_B',
   ),
   Stop(
+    id: 'TER_COL_B',
+    name: 'Gare TER Colobane',
+    direction: 'Dir. Dakar Plateau',
+    distanceMeters: 1200,
+    departureMinutesFromMidnight: _shift(_terBase, 7),
+    icon: Icons.train_rounded,
+    color: AppColors.ter,
+    location: const LatLng(14.6937, -17.4439),
+    modeLabel: 'TER',
+    source: DataSourceInfo.seter,
+    availableLines: ['TER 01'],
+    oppositeStopId: 'TER_COL_A',
+  ),
+  Stop(
+    id: 'TER_HANN_A',
     name: 'Gare TER Hann',
     direction: 'Dir. Diamniadio',
     distanceMeters: 3500,
@@ -394,8 +467,23 @@ final List<Stop> terStations = [
     location: const LatLng(14.7222, -17.4321),
     modeLabel: 'TER',
     source: DataSourceInfo.seter,
+    oppositeStopId: 'TER_HANN_B',
   ),
   Stop(
+    id: 'TER_HANN_B',
+    name: 'Gare TER Hann',
+    direction: 'Dir. Dakar',
+    distanceMeters: 3500,
+    departureMinutesFromMidnight: _shift(_terBase, 11),
+    icon: Icons.train_rounded,
+    color: AppColors.ter,
+    location: const LatLng(14.7222, -17.4319),
+    modeLabel: 'TER',
+    source: DataSourceInfo.seter,
+    oppositeStopId: 'TER_HANN_A',
+  ),
+  Stop(
+    id: 'TER_DAL_A',
     name: 'Gare TER Dalifort',
     direction: 'Dir. Diamniadio',
     distanceMeters: 5100,
@@ -407,6 +495,7 @@ final List<Stop> terStations = [
     source: DataSourceInfo.seter,
   ),
   Stop(
+    id: 'TER_BM_A',
     name: 'Gare TER Baux Maraichers',
     direction: 'Dir. Diamniadio',
     distanceMeters: 6300,
@@ -418,6 +507,7 @@ final List<Stop> terStations = [
     source: DataSourceInfo.seter,
   ),
   Stop(
+    id: 'TER_PIK_A',
     name: 'Gare TER Pikine',
     direction: 'Dir. Diamniadio',
     distanceMeters: 7200,
@@ -429,6 +519,7 @@ final List<Stop> terStations = [
     source: DataSourceInfo.seter,
   ),
   Stop(
+    id: 'TER_THI_A',
     name: 'Gare TER Thiaroye',
     direction: 'Dir. Diamniadio',
     distanceMeters: 8100,
@@ -440,6 +531,7 @@ final List<Stop> terStations = [
     source: DataSourceInfo.seter,
   ),
   Stop(
+    id: 'TER_YEU_A',
     name: 'Gare TER Yeumbeul',
     direction: 'Dir. Diamniadio',
     distanceMeters: 11500,
@@ -451,6 +543,7 @@ final List<Stop> terStations = [
     source: DataSourceInfo.seter,
   ),
   Stop(
+    id: 'TER_KMF_A',
     name: 'Gare TER Keur Mbaye Fall',
     direction: 'Dir. Dakar / Diamniadio',
     distanceMeters: 14200,
@@ -462,6 +555,7 @@ final List<Stop> terStations = [
     source: DataSourceInfo.seter,
   ),
   Stop(
+    id: 'TER_PNR_A',
     name: 'Gare TER PNR',
     direction: 'Dir. Diamniadio',
     distanceMeters: 16800,
@@ -473,6 +567,7 @@ final List<Stop> terStations = [
     source: DataSourceInfo.seter,
   ),
   Stop(
+    id: 'TER_RUF_A',
     name: 'Gare TER Rufisque',
     direction: 'Dir. Diamniadio',
     distanceMeters: 22100,
@@ -484,6 +579,7 @@ final List<Stop> terStations = [
     source: DataSourceInfo.seter,
   ),
   Stop(
+    id: 'TER_BAR_A',
     name: 'Gare TER Bargny',
     direction: 'Dir. Diamniadio',
     distanceMeters: 28500,
@@ -495,6 +591,7 @@ final List<Stop> terStations = [
     source: DataSourceInfo.seter,
   ),
   Stop(
+    id: 'TER_DIA_A',
     name: 'Gare TER Diamniadio',
     direction: 'Terminus Diamniadio',
     distanceMeters: 35000,
@@ -512,6 +609,7 @@ final List<Stop> terStations = [
 // ============================================================
 final List<Stop> brtStations = [
   Stop(
+    id: 'BRT_PET_A',
     name: 'PEM Petersen',
     direction: 'Terminus sud BRT',
     distanceMeters: 200,
@@ -521,8 +619,25 @@ final List<Stop> brtStations = [
     location: const LatLng(14.6720, -17.4400),
     modeLabel: 'BRT',
     source: DataSourceInfo.sunubrt,
+    availableLines: ['B1', 'B2'],
+    oppositeStopId: 'BRT_PET_B',
   ),
   Stop(
+    id: 'BRT_PET_B',
+    name: 'PEM Petersen',
+    direction: 'Dir. Guediawaye',
+    distanceMeters: 200,
+    departureMinutesFromMidnight: _shift(_brtBase, 3),
+    icon: Icons.directions_bus_rounded,
+    color: AppColors.brt,
+    location: const LatLng(14.6720, -17.4398),
+    modeLabel: 'BRT',
+    source: DataSourceInfo.sunubrt,
+    availableLines: ['B1', 'B2'],
+    oppositeStopId: 'BRT_PET_A',
+  ),
+  Stop(
+    id: 'BRT_COL_A',
     name: 'BRT Colobane',
     direction: 'Dir. Guediawaye',
     distanceMeters: 150,
@@ -532,8 +647,25 @@ final List<Stop> brtStations = [
     location: const LatLng(14.6950, -17.4420),
     modeLabel: 'BRT',
     source: DataSourceInfo.sunubrt,
+    availableLines: ['B1'],
+    oppositeStopId: 'BRT_COL_B',
   ),
   Stop(
+    id: 'BRT_COL_B',
+    name: 'BRT Colobane',
+    direction: 'Dir. Petersen',
+    distanceMeters: 150,
+    departureMinutesFromMidnight: _shift(_brtBase, 4),
+    icon: Icons.directions_bus_rounded,
+    color: AppColors.brt,
+    location: const LatLng(14.6950, -17.4418),
+    modeLabel: 'BRT',
+    source: DataSourceInfo.sunubrt,
+    availableLines: ['B1'],
+    oppositeStopId: 'BRT_COL_A',
+  ),
+  Stop(
+    id: 'BRT_GD_A',
     name: 'BRT Grand Dakar',
     direction: 'Dir. Guediawaye',
     distanceMeters: 1500,
@@ -543,8 +675,23 @@ final List<Stop> brtStations = [
     location: const LatLng(14.7050, -17.4400),
     modeLabel: 'BRT',
     source: DataSourceInfo.sunubrt,
+    oppositeStopId: 'BRT_GD_B',
   ),
   Stop(
+    id: 'BRT_GD_B',
+    name: 'BRT Grand Dakar',
+    direction: 'Dir. Petersen',
+    distanceMeters: 1500,
+    departureMinutesFromMidnight: _shift(_brtBase, 6),
+    icon: Icons.directions_bus_rounded,
+    color: AppColors.brt,
+    location: const LatLng(14.7050, -17.4398),
+    modeLabel: 'BRT',
+    source: DataSourceInfo.sunubrt,
+    oppositeStopId: 'BRT_GD_A',
+  ),
+  Stop(
+    id: 'BRT_PAR_A',
     name: 'BRT Parcelles',
     direction: 'Dir. Guediawaye',
     distanceMeters: 5000,
@@ -556,6 +703,7 @@ final List<Stop> brtStations = [
     source: DataSourceInfo.sunubrt,
   ),
   Stop(
+    id: 'BRT_GUE_A',
     name: 'PEM Guediawaye',
     direction: 'Terminus nord BRT',
     distanceMeters: 10500,
@@ -572,20 +720,68 @@ final List<Stop> brtStations = [
 // DONNEES AFTU / TATA / DDD (demo)
 // ============================================================
 final List<Stop> otherBusStations = [
-  const Stop(
-    name: 'Arret AFTU 23',
-    direction: 'Dir. Parcelles Assainies',
+  Stop(
+    id: 'BUS_SAN_A',
+    name: 'RN Santeny',
+    direction: 'vers Gare de Boissy-Saint-Léger',
     distanceMeters: 280,
-    departureMinutesFromMidnight: [
+    departureMinutesFromMidnight: const [
       630, 645, 700, 715, 730, 745,
       800, 815, 830, 845, 900, 915,
     ],
     icon: Icons.directions_bus_outlined,
     color: AppColors.aftu,
-    location: LatLng(14.6900, -17.4460),
+    location: const LatLng(14.6900, -17.4460),
     modeLabel: 'AFTU',
+    availableLines: ['3121', '4132', '451'],
+    oppositeStopId: 'BUS_SAN_B',
+    customDepartures: [
+      const DepartureInfo(
+        lineCode: '3121',
+        destination: 'vers Gare de Boissy-Saint-Léger',
+        waitTime: '17 min',
+        badgeColor: Color(0xFF1B5E20),
+      ),
+      const DepartureInfo(
+        lineCode: '451',
+        destination: 'vers Gare De Boissy-Saint-Lége',
+        waitTime: '50 min',
+        badgeColor: Color(0xFF0288D1),
+      ),
+    ],
+  ),
+  Stop(
+    id: 'BUS_SAN_B',
+    name: 'RN Santeny',
+    direction: 'vers Servon Eden',
+    distanceMeters: 280,
+    departureMinutesFromMidnight: const [
+      635, 650, 705, 720, 735, 750,
+      805, 820, 835, 850, 905, 920,
+    ],
+    icon: Icons.directions_bus_outlined,
+    color: AppColors.aftu,
+    location: const LatLng(14.6900, -17.4458),
+    modeLabel: 'AFTU',
+    availableLines: ['3121', '4132', '451'],
+    oppositeStopId: 'BUS_SAN_A',
+    customDepartures: [
+      const DepartureInfo(
+        lineCode: '451',
+        destination: 'vers Servon Eden',
+        waitTime: '27 min',
+        badgeColor: Color(0xFF0288D1),
+      ),
+      const DepartureInfo(
+        lineCode: '3121',
+        destination: 'vers Gare de Verneuil-l\'Étang',
+        waitTime: '69 min',
+        badgeColor: Color(0xFF1B5E20),
+      ),
+    ],
   ),
   const Stop(
+    id: 'BUS_AFTU_10_A',
     name: 'Arret AFTU 10',
     direction: 'Dir. Grand Yoff',
     distanceMeters: 450,
@@ -599,6 +795,7 @@ final List<Stop> otherBusStations = [
     modeLabel: 'AFTU',
   ),
   const Stop(
+    id: 'BUS_TATA_12_A',
     name: 'Arret Tata 12',
     direction: 'Dir. Guediawaye',
     distanceMeters: 600,
@@ -612,6 +809,7 @@ final List<Stop> otherBusStations = [
     modeLabel: 'Tata',
   ),
   const Stop(
+    id: 'BUS_DDD_12_A',
     name: 'Arret DDD 12',
     direction: 'Dir. Ouakam',
     distanceMeters: 800,
@@ -625,6 +823,7 @@ final List<Stop> otherBusStations = [
     modeLabel: 'DDD',
   ),
   const Stop(
+    id: 'BUS_DDD_7_A',
     name: 'Arret DDD 7',
     direction: 'Dir. Plateau',
     distanceMeters: 1200,
@@ -647,12 +846,11 @@ final List<Stop> allStops = [
 
 final List<Stop> mapPriorityStops = [
   terStations[0],
-  terStations[1],
-  terStations[5],
-  terStations[8],
-  terStations[12],
-  brtStations[1],
-  brtStations[4],
+  terStations[2],
+  terStations[7],
+  brtStations[0],
+  brtStations[2],
+  otherBusStations[0],
   otherBusStations[3],
 ];
 
@@ -761,23 +959,18 @@ List<Place> buildPlaceDatabase() {
   final places = <Place>[];
 
   final cities = <List<Object>>[
-    // ============ CENTRE-VILLE / PLATEAU ============
     ['Dakar', const LatLng(14.6928, -17.4467)],
     ['Plateau', const LatLng(14.6720, -17.4400)],
     ['Medina', const LatLng(14.6837, -17.4500)],
     ['Fass', const LatLng(14.6880, -17.4500)],
     ['Gueule Tapee', const LatLng(14.6900, -17.4450)],
     ['Soumbedioune', const LatLng(14.6850, -17.4420)],
-
-    // ============ DAKAR CENTRE-EST ============
     ['Fann', const LatLng(14.6900, -17.4650)],
     ['Point E', const LatLng(14.6950, -17.4600)],
     ['Mermoz', const LatLng(14.7050, -17.4750)],
     ['Sacre-Coeur', const LatLng(14.7100, -17.4700)],
     ['Grand Dakar', const LatLng(14.7000, -17.4550)],
     ['HLM', const LatLng(14.7080, -17.4700)],
-
-    // ============ DAKAR NORD ============
     ['Yoff', const LatLng(14.7550, -17.4750)],
     ['Ngor', const LatLng(14.7550, -17.5000)],
     ['Almadies', const LatLng(14.7350, -17.5100)],
@@ -789,35 +982,25 @@ List<Place> buildPlaceDatabase() {
     ['SICAP Liberte', const LatLng(14.7280, -17.4620)],
     ['Dieuppeul', const LatLng(14.7150, -17.4600)],
     ['Derkle', const LatLng(14.7180, -17.4550)],
-
-    // ============ DAKAR EST / SUD ============
     ['Hann', const LatLng(14.7222, -17.4321)],
     ['Bel-Air', const LatLng(14.7180, -17.4200)],
     ['Front de Terre', const LatLng(14.7100, -17.4400)],
-
-    // ============ PARCELLES / GRAND YOFF ============
     ['Parcelles Assainies', const LatLng(14.7600, -17.4400)],
     ['Grand Medine', const LatLng(14.7650, -17.4500)],
     ['Cite Comico', const LatLng(14.7700, -17.4400)],
     ['Unite 15', const LatLng(14.7620, -17.4380)],
-
-    // ============ PIKINE / GUEDIAWAYE ============
     ['Pikine', const LatLng(14.7550, -17.3900)],
     ['Guediawaye', const LatLng(14.7735, -17.3977)],
     ['Thiaroye', const LatLng(14.7588, -17.3803)],
     ['Guinaw Rail', const LatLng(14.7700, -17.3800)],
     ['Diamaguenne', const LatLng(14.7800, -17.3600)],
     ['Camberene', const LatLng(14.7700, -17.4300)],
-
-    // ============ BANLIEUE NORD-EST ============
     ['Yeumbeul', const LatLng(14.7700, -17.3400)],
     ['Malika', const LatLng(14.7850, -17.3300)],
     ['Keur Massar', const LatLng(14.7900, -17.3500)],
     ['Jaxaay', const LatLng(14.7900, -17.3700)],
     ['Tivaouane Peulh', const LatLng(14.7900, -17.4200)],
     ['Keur Mbaye Fall', const LatLng(14.7750, -17.3100)],
-
-    // ============ BANLIEUE EST ============
     ['Rufisque', const LatLng(14.7157, -17.2703)],
     ['Bargny', const LatLng(14.6900, -17.2200)],
     ['Diamniadio', const LatLng(14.7160, -17.1986)],
@@ -1918,13 +2101,14 @@ class _ExplorerPageState extends State<ExplorerPage> {
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
+                                color: Colors.white,
                               ),
                             ),
                             Text(
                               'TER / BRT / AFTU / Tata / DDD',
                               style: TextStyle(
                                 fontSize: 10,
-                                color: AppColors.textSecondary,
+                                color: Colors.white70,
                               ),
                             ),
                           ],
@@ -2091,7 +2275,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                         style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
+                          color: Colors.white,
                         ),
                       ),
                       const SizedBox(width: 6),
@@ -2104,7 +2288,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                               : 'A proximite',
                           style: const TextStyle(
                             fontSize: 12,
-                            color: AppColors.textSecondary,
+                            color: Colors.white70,
                           ),
                         ),
                       ),
@@ -2116,8 +2300,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.success
-                                .withOpacity(0.12),
+                            color: AppColors.surface,
                             borderRadius:
                                 BorderRadius.circular(4),
                           ),
@@ -2126,7 +2309,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                             style: TextStyle(
                               fontSize: 9,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.success,
+                              color: AppColors.primary,
                             ),
                           ),
                         ),
@@ -2310,7 +2493,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
 }
 
 // ============================================================
-// CARTE D ARRET
+// CARTE D ARRET (LISTE)
 // ============================================================
 class StopCard extends StatelessWidget {
   final Stop stop;
@@ -2579,6 +2762,7 @@ class _TripsPageState extends State<TripsPage> {
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
                 Spacer(),
@@ -2592,7 +2776,7 @@ class _TripsPageState extends State<TripsPage> {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textSecondary,
+                  color: Colors.white70,
                   letterSpacing: 1,
                 ),
               ),
@@ -2768,6 +2952,7 @@ class _TripsPageState extends State<TripsPage> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
               ),
               Spacer(),
@@ -2787,7 +2972,7 @@ class _TripsPageState extends State<TripsPage> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.warning.withOpacity(0.08),
+              color: AppColors.surface,
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Row(
@@ -3245,6 +3430,7 @@ class _AlertsPageState extends State<AlertsPage> {
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
                 const Spacer(),
@@ -3254,7 +3440,7 @@ class _AlertsPageState extends State<AlertsPage> {
                   onPressed: _showAddAlert,
                   icon: const Icon(
                     Icons.add_circle,
-                    color: AppColors.primary,
+                    color: Colors.white,
                     size: 28,
                   ),
                 ),
@@ -3265,7 +3451,7 @@ class _AlertsPageState extends State<AlertsPage> {
               '${_alerts.where((a) => a['active'] == true).length} alerte(s) active(s)',
               style: const TextStyle(
                 fontSize: 13,
-                color: AppColors.textSecondary,
+                color: Colors.white70,
               ),
             ),
             const SizedBox(height: 20),
@@ -3468,6 +3654,7 @@ class _SettingsPageState extends State<SettingsPage> {
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 20),
@@ -3493,8 +3680,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 const Spacer(),
                 TextButton.icon(
                   onPressed: _addFavorite,
-                  icon: const Icon(Icons.add, size: 16),
-                  label: const Text('Ajouter'),
+                  icon: const Icon(Icons.add, size: 16, color: Colors.white),
+                  label: const Text('Ajouter', style: TextStyle(color: Colors.white)),
                 ),
               ],
             ),
@@ -3660,7 +3847,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   const SizedBox(height: 6),
                   const Text(
-                    'Assistant IA + base de 48 lieux + messages d erreur contextuels',
+                    'Assistant IA + vue duale des deux sens de circulation',
                     style: TextStyle(
                       fontSize: 11,
                       color: AppColors.success,
@@ -3686,7 +3873,7 @@ class _SettingsPageState extends State<SettingsPage> {
         style: const TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.bold,
-          color: AppColors.textSecondary,
+          color: Colors.white70,
           letterSpacing: 1,
         ),
       ),
@@ -3788,125 +3975,425 @@ class _SettingsPageState extends State<SettingsPage> {
 }
 
 // ============================================================
-// PAGE DETAIL D'UN ARRET
+// PAGE DETAIL D'UN ARRET (AFFICHAGE ALLER & RETOUR)
 // ============================================================
-class StopDetailPage extends StatelessWidget {
+class StopDetailPage extends StatefulWidget {
   final Stop stop;
 
   const StopDetailPage({super.key, required this.stop});
 
   @override
-  Widget build(BuildContext context) {
-    final next = stop.nextDepartureMinutes();
-    final remaining = stop.remainingMinutes();
-    final timeLabel = stop.nextDepartureLabel();
+  State<StopDetailPage> createState() => _StopDetailPageState();
+}
 
+class _StopDetailPageState extends State<StopDetailPage> {
+  late Stop currentSensA;
+  Stop? currentSensB;
+
+  @override
+  void initState() {
+    super.initState();
+    _resolveDirections();
+  }
+
+  // 1. Détection automatique du Sens A et du Sens B
+  void _resolveDirections() {
+    currentSensA = widget.stop;
+
+    if (currentSensA.oppositeStopId != null) {
+      currentSensB = allStops.firstWhere(
+        (s) => s.id == currentSensA.oppositeStopId,
+        orElse: () => _findNearestOpposite(currentSensA),
+      );
+    } else {
+      currentSensB = _findNearestOpposite(currentSensA);
+    }
+  }
+
+  Stop _findNearestOpposite(Stop target) {
+    final matches = allStops.where((s) =>
+        s.id != target.id &&
+        (s.name.toLowerCase().contains(target.name.toLowerCase()) ||
+            target.name.toLowerCase().contains(s.name.toLowerCase()))).toList();
+
+    if (matches.isNotEmpty) {
+      return matches.first;
+    }
+
+    // Fallback dynamique généré si aucun arrêt opposé n'existe en base
+    return Stop(
+      id: '${target.id}_OPP',
+      name: target.name,
+      direction: 'Sens Retour Oppose',
+      distanceMeters: target.distanceMeters,
+      departureMinutesFromMidnight: target.departureMinutesFromMidnight,
+      icon: target.icon,
+      color: target.color,
+      location: target.location,
+      modeLabel: target.modeLabel,
+      availableLines: target.availableLines,
+      customDepartures: target.customDepartures != null
+          ? target.customDepartures!.map((d) => DepartureInfo(
+                lineCode: d.lineCode,
+                destination: 'vers Direction Inverse',
+                waitTime: d.waitTime,
+                badgeColor: d.badgeColor,
+              )).toList()
+          : null,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF4CAF50),
       appBar: AppBar(
-        title: Text(stop.name),
-        backgroundColor: stop.color,
+        backgroundColor: const Color(0xFF4CAF50),
+        elevation: 0,
         foregroundColor: Colors.white,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: stop.color.withOpacity(0.3)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.horizontal(8, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                currentSensA.modeLabel.toUpperCase(),
+                style: const TextStyle(
+                  color: Color(0xFF1A237E),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: stop.color,
-                      child: Icon(stop.icon, color: Colors.white),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+            const SizedBox(width: 8),
+            Text(
+              currentSensA.modeLabel,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Onglets (Arrêts / Lignes)
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
+                          Icon(Icons.pin_drop, color: Colors.white, size: 18),
+                          SizedBox(width: 8),
                           Text(
-                            stop.name,
-                            style: const TextStyle(
-                              fontSize: 18,
+                            'Arrets',
+                            style: TextStyle(
+                              color: Colors.white,
                               fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            stop.direction,
-                            style: const TextStyle(
-                              color: AppColors.textSecondary,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    DataStatusBadge(status: stop.status),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.search, color: Colors.white, size: 18),
+                          SizedBox(width: 8),
+                          Text(
+                            'Lignes',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // 2. Affichage obligatoire des deux sections
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.all(16.0),
+                children: [
+                  // Section 1 : Arrêt actuel (Sens Aller)
+                  StopCardWidget(stop: currentSensA),
+
+                  const SizedBox(height: 12),
+
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.5),
+                        ),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.workspace_premium_outlined,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                          SizedBox(width: 6),
+                          Text(
+                            'Enlever les pubs',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Section 2 : Arrêt opposé (Sens Retour)
+                  if (currentSensB != null)
+                    StopCardWidget(stop: currentSensB!)
+                  else
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Center(
+                        child: Text(
+                          'Aucun arret oppose trouve pour ce sens',
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================
+// CARTE D'UN SENS D'CIRCULATION (COMPOSANT DETAIL)
+// ============================================================
+class StopCardWidget extends StatelessWidget {
+  final Stop stop;
+
+  const StopCardWidget({super.key, required this.stop});
+
+  String _getModeBadgeLabel(String mode) {
+    if (mode == 'TER') return 'TER';
+    if (mode == 'BRT') return 'BRT';
+    return 'BUS';
+  }
+
+  List<DepartureInfo> _buildDepartures() {
+    if (stop.customDepartures != null && stop.customDepartures!.isNotEmpty) {
+      return stop.customDepartures!;
+    }
+
+    final remaining = stop.remainingMinutes();
+    final timeStr = remaining != null ? TimeHelper.formatRemaining(remaining) : 'Non dispo';
+
+    return [
+      DepartureInfo(
+        lineCode: stop.availableLines.isNotEmpty ? stop.availableLines.first : stop.modeLabel,
+        destination: stop.direction,
+        waitTime: timeStr,
+        badgeColor: stop.color,
+      ),
+    ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final departures = _buildDepartures();
+    final linesLabel = stop.availableLines.isNotEmpty
+        ? stop.availableLines.join(', ')
+        : stop.modeLabel;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: const BoxDecoration(
+                  color: Color(0xFF1A237E),
+                  shape: BoxShape.circle,
+                ),
+                child: Text(
+                  _getModeBadgeLabel(stop.modeLabel),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 9,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      stop.name,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      linesLabel,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
                   ],
                 ),
-                const Divider(height: 24),
-                if (remaining != null && timeLabel != null)
+              ),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.directions_walk,
+                    size: 16,
+                    color: Colors.black54,
+                  ),
+                  const SizedBox(width: 2),
                   Text(
-                    'Prochain depart à $timeLabel (${TimeHelper.formatRemaining(remaining)})',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: stop.color,
-                    ),
-                  )
-                else
-                  const Text(
-                    'Aucun départ proche',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.textSecondary,
+                    '${(stop.distanceMeters / 80).ceil()} min',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
                     ),
                   ),
-              ],
-            ),
+                ],
+              ),
+            ],
           ),
-          const SizedBox(height: 20),
-          const Text(
-            'Horaires de passage',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: stop.departureMinutesFromMidnight.map((m) {
-                final norm = m % (24 * 60);
-                final h = (norm ~/ 60).toString().padLeft(2, '0');
-                final min = (norm % 60).toString().padLeft(2, '0');
-                final isNext = m == next;
-
-                return Chip(
-                  label: Text(
-                    '${h}h$min',
-                    style: TextStyle(
-                      color: isNext ? Colors.white : AppColors.textPrimary,
-                      fontWeight: isNext ? FontWeight.bold : FontWeight.normal,
+          const SizedBox(height: 16),
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: departures.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              final departure = departures[index];
+              return Row(
+                children: [
+                  Container(
+                    width: 45,
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    decoration: BoxDecoration(
+                      color: departure.badgeColor,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Center(
+                      child: Text(
+                        departure.lineCode,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
                     ),
                   ),
-                  backgroundColor: isNext ? stop.color : AppColors.background,
-                );
-              }).toList(),
-            ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      departure.destination,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black87,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.wifi,
+                        size: 14,
+                        color: Colors.amber.shade700,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        departure.waitTime,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -3943,14 +4430,13 @@ class _AIChatPageState extends State<AIChatPage> {
       _msgCtrl.clear();
     });
 
-    // Simulation de réponse
     Future.delayed(const Duration(milliseconds: 500), () {
       if (!mounted) return;
       setState(() {
         _messages.add({
           'sender': 'ai',
           'text':
-              'Pour planifier cet itinéraire, vous pouvez utiliser l\'onglet "Trajets" pour rechercher les correspondances directes en TER ou BRT.'
+              'Pour planifier cet itineraire, vous pouvez utiliser l\'onglet "Trajets" pour rechercher les correspondances directes en TER ou BRT.'
         });
       });
     });
