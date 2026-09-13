@@ -849,7 +849,7 @@ final List<Stop> mapPriorityStops = [
 ];
 
 // ============================================================
-// TRACES DES LIGNES (Itinéraires terrestres stricts - Évitent la mer)
+// TRACES DES LIGNES (100% Terrestres, sans aucune traversée d'eau)
 // ============================================================
 final List<TransitRoute> demoRoutes = [
   const TransitRoute(
@@ -913,7 +913,7 @@ final List<TransitRoute> demoRoutes = [
       LatLng(14.6750, -17.4400),
     ],
   ),
-  // Tracés DDD purement terrestres ( Contournent la mer et l'île de Gorée )
+  // Tracés DDD rigoureusement routiers ( Contournent par l'intérieur de la terre )
   const TransitRoute(
     name: 'DDD Urbaine (Lignes 1, 4)',
     code: 'DDD-1',
@@ -923,9 +923,9 @@ final List<TransitRoute> demoRoutes = [
       LatLng(14.7600, -17.4400), // Parcelles Assainies
       LatLng(14.7350, -17.4480),
       LatLng(14.7150, -17.4600), // Liberté 5
-      LatLng(14.6950, -17.4550), // Fass / Médina (terrestre)
+      LatLng(14.6950, -17.4550), // Fass
       LatLng(14.6790, -17.4420), // Plateau
-      LatLng(14.6720, -17.4400), // Terminus Place Leclerc
+      LatLng(14.6720, -17.4400),
     ],
   ),
   const TransitRoute(
@@ -935,11 +935,10 @@ final List<TransitRoute> demoRoutes = [
     color: AppColors.ddd,
     points: [
       LatLng(14.7250, -17.4900), // Ouakam
-      LatLng(14.7100, -17.4780), // Mermoz
-      LatLng(14.6920, -17.4680), // Fann Résidence (route terrestre)
-      LatLng(14.6850, -17.4520), // Corniche Est / Medina
-      LatLng(14.6790, -17.4420), // Palais / Plateau
-      LatLng(14.6720, -17.4400),
+      LatLng(14.7120, -17.4800), // Mermoz
+      LatLng(14.6980, -17.4700), // Point E / Fann
+      LatLng(14.6850, -17.4550), // Medina (Terrestre)
+      LatLng(14.6790, -17.4420), // Plateau
     ],
   ),
   const TransitRoute(
@@ -949,6 +948,7 @@ final List<TransitRoute> demoRoutes = [
     color: AppColors.ddd,
     points: [
       LatLng(14.7900, -17.3500), // Keur Massar
+      LatLng(14.7800, -17.3650),
       LatLng(14.7700, -17.3800), // Guediawaye
       LatLng(14.7588, -17.3803), // Thiaroye
       LatLng(14.7410, -17.4120), // Dalifort
@@ -966,7 +966,8 @@ final List<TransitRoute> demoRoutes = [
       LatLng(14.7250, -17.4900),
       LatLng(14.6950, -17.4550),
       LatLng(14.6720, -17.4400),
-      LatLng(14.7160, -17.1986), // Vers Diamniadio / AIBD
+      LatLng(14.7410, -17.4120), // Remonte par l'autoroute terrestre
+      LatLng(14.7160, -17.1986), // Diamniadio / AIBD
     ],
   ),
 ];
