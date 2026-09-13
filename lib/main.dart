@@ -849,7 +849,7 @@ final List<Stop> mapPriorityStops = [
 ];
 
 // ============================================================
-// TRACES DES LIGNES (Tracés GPS mis à jour avec les nouveaux DDD)
+// TRACES DES LIGNES (Itinéraires GPS réels sans traverser l'océan)
 // ============================================================
 final List<TransitRoute> demoRoutes = [
   const TransitRoute(
@@ -893,8 +893,8 @@ final List<TransitRoute> demoRoutes = [
     color: AppColors.aftu,
     points: [
       LatLng(14.7600, -17.4400),
-      LatLng(14.7350, -17.4460),
-      LatLng(14.7080, -17.4485),
+      LatLng(14.7450, -17.4430),
+      LatLng(14.7200, -17.4460),
       LatLng(14.6900, -17.4460),
       LatLng(14.6790, -17.4400),
     ],
@@ -906,36 +906,37 @@ final List<TransitRoute> demoRoutes = [
     color: AppColors.tata,
     points: [
       LatLng(14.7735, -17.3977),
-      LatLng(14.7480, -17.4280),
-      LatLng(14.7240, -17.4560),
-      LatLng(14.7080, -17.4700),
-      LatLng(14.6880, -17.4620),
+      LatLng(14.7500, -17.4200),
+      LatLng(14.7250, -17.4500),
+      LatLng(14.7000, -17.4600),
+      LatLng(14.6800, -17.4500),
       LatLng(14.6750, -17.4400),
     ],
   ),
-  // Tracés GPS des lignes DDD (urbaines, banlieue et express AIBD)
+  // Tracés DDD corrigés sur les vraies routes terrestres (Sans traverser la mer)
   const TransitRoute(
-    name: 'DDD 1 & 4',
+    name: 'DDD Urbaine (Lignes 1, 4)',
     code: 'DDD-1',
     type: 'DDD',
     color: AppColors.ddd,
     points: [
-      LatLng(14.7600, -17.4400),
-      LatLng(14.7300, -17.4450),
-      LatLng(14.7000, -17.4400),
-      LatLng(14.6720, -17.4400),
+      LatLng(14.7600, -17.4400), // Parcelles Assainies
+      LatLng(14.7400, -17.4450),
+      LatLng(14.7150, -17.4600), // Liberté 5
+      LatLng(14.6950, -17.4500),
+      LatLng(14.6720, -17.4400), // Place Leclerc / Plateau
     ],
   ),
   const TransitRoute(
-    name: 'DDD 7, 8 & 9',
+    name: 'DDD Côtière (Lignes 7, 8, 9)',
     code: 'DDD-7',
     type: 'DDD',
     color: AppColors.ddd,
     points: [
-      LatLng(14.7250, -17.4900),
-      LatLng(14.7050, -17.4750),
-      LatLng(14.6900, -17.4500),
-      LatLng(14.6720, -17.4400),
+      LatLng(14.7250, -17.4900), // Ouakam
+      LatLng(14.7100, -17.4750), // Mermoz / Fann
+      LatLng(14.6900, -17.4600), 
+      LatLng(14.6790, -17.4450), // Palais / Plateau (par la route terrestre)
     ],
   ),
   const TransitRoute(
@@ -944,12 +945,12 @@ final List<TransitRoute> demoRoutes = [
     type: 'DDD',
     color: AppColors.ddd,
     points: [
-      LatLng(14.7900, -17.3500),
-      LatLng(14.7700, -17.3800),
-      LatLng(14.7588, -17.3803),
-      LatLng(14.7410, -17.4120),
-      LatLng(14.6937, -17.4441),
-      LatLng(14.6792, -17.4407),
+      LatLng(14.7900, -17.3500), // Keur Massar
+      LatLng(14.7700, -17.3800), // Guediawaye
+      LatLng(14.7588, -17.3803), // Thiaroye
+      LatLng(14.7410, -17.4120), // Dalifort
+      LatLng(14.6937, -17.4441), // Colobane
+      LatLng(14.6792, -17.4407), // Dakar
     ],
   ),
   const TransitRoute(
@@ -960,8 +961,9 @@ final List<TransitRoute> demoRoutes = [
     points: [
       LatLng(14.7600, -17.4400),
       LatLng(14.7250, -17.4900),
+      LatLng(14.6900, -17.4500),
       LatLng(14.6720, -17.4400),
-      LatLng(14.7160, -17.1986), // Vers Diamniadio / AIBD
+      LatLng(14.7160, -17.1986), // Vers Diamniadio et AIBD via l'autoroute
     ],
   ),
 ];
