@@ -26,7 +26,7 @@ class OppositeStopService {
       
       if (distance <= 50.0 && distance < minDistance) {
         final stopName = stop.name.toLowerCase();
-        if (currentName.contains(stopName) || stopName.contains(stopName) || currentName.substring(0, (currentName.length * 0.6).toInt()) == stopName.substring(0, (stopName.length * 0.6).toInt())) {
+        if (currentName.contains(stopName) || stopName.contains(currentName) || currentName.substring(0, (currentName.length * 0.6).toInt()) == stopName.substring(0, (stopName.length * 0.6).toInt())) {
           minDistance = distance;
           bestCandidate = stop;
         }
@@ -1905,7 +1905,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
 }
 
 // ============================================================
-// CARTE D ARRET
+// CARTE D ARRET OPTIMISEE (AVEC BADGES DE SENS ARRIVÉE / DÉPART)
 // ============================================================
 class StopCard extends StatelessWidget {
   final Stop stop;
@@ -1969,41 +1969,70 @@ class StopCard extends StatelessWidget {
       );
     }
 
-    return Material(
-      color: AppColors.surface,
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: stop)),
-        ),
+    final bool isArrival = stop.direction.toLowerCase().contains('arrivée') || stop.direction.toLowerCase().contains('terminus');
+    final Color badgeColor = isArrival ? Colors.orange : Colors.green;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(14),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Row(
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(color: stop.color, shape: BoxShape.circle),
-                child: Icon(stop.icon, color: Colors.white, size: 20),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(stop.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 2),
-                    Text('${stop.direction} . ${DistanceHelper.format(distanceMeters)}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                    const SizedBox(height: 4),
-                    DataStatusBadge(status: stop.status, compact: true),
-                  ],
+        border: Border.all(color: badgeColor.withOpacity(0.3), width: 1.2),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 4, offset: const Offset(0, 2)),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: stop)),
+          ),
+          borderRadius: BorderRadius.circular(14),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(color: stop.color, shape: BoxShape.circle),
+                  child: Icon(stop.icon, color: Colors.white, size: 20),
                 ),
-              ),
-              const SizedBox(width: 8),
-              timeWidget,
-            ],
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(stop.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: badgeColor.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              isArrival ? 'Arrivée' : 'Départ',
+                              style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: badgeColor),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text('${stop.direction} . ${DistanceHelper.format(distanceMeters)}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                      const SizedBox(height: 4),
+                      DataStatusBadge(status: stop.status, compact: true),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                timeWidget,
+              ],
+            ),
           ),
         ),
       ),
