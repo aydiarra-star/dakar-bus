@@ -216,7 +216,7 @@ class _MainShellState extends State<MainShell> {
         selectedIndex: _currentIndex,
         onDestinationSelected: (i) => setState(() => _currentIndex = i),
         backgroundColor: AppColors.surface,
-        indicatorColor: AppColors.primary.withValues(alpha: 0.15),
+        indicatorColor: AppColors.primary.withOpacity(0.15),
         destinations: const [
           NavigationDestination(
               icon: Icon(Icons.home_outlined),
@@ -240,7 +240,7 @@ class _MainShellState extends State<MainShell> {
   }
 }
 
-// ------------------- PAGE DÉTAIL EN DOUBLE SENS (EXIGENCE MANDATÉE) -------------------
+// ------------------- PAGE DÉTAIL EN DOUBLE SENS -------------------
 class StopDetailPage extends StatelessWidget {
   final Stop stop;
   const StopDetailPage({super.key, required this.stop});
@@ -256,7 +256,6 @@ class StopDetailPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // En-tête Réseau
           Row(
             children: [
               Chip(
@@ -379,7 +378,7 @@ class _HomePageState extends State<HomePage> {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.12),
+                    color: AppColors.primary.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(Icons.directions_bus, color: AppColors.primary, size: 26),
@@ -424,7 +423,7 @@ class _HomePageState extends State<HomePage> {
                     child: FilterChip(
                       selected: isSelected,
                       label: Text(cat),
-                      selectedColor: AppColors.primary.withValues(alpha: 0.2),
+                      selectedColor: AppColors.primary.withOpacity(0.2),
                       onSelected: (_) => setState(() => _selectedCategory = cat),
                     ),
                   );
