@@ -101,11 +101,11 @@ final List<int> _brtBase = _generateSchedule(from: 360, to: 1260, step: 6);
 final List<int> _terBase = _buildTerBase();
 
 // ============================================================
-// COULEURS
+// COULEURS (BRT mis en vert)
 // ============================================================
 class AppColors {
   static const primary = Color(0xFF00695C);
-  static const brt = Color(0xFF1976D2);
+  static const brt = Color(0xFF2E7D32); // BRT en Vert
   static const ter = Color(0xFF8D4004); 
   static const aftu = Color(0xFFEF6C00);
   static const tata = Color(0xFF7B1FA2);
@@ -383,7 +383,7 @@ final List<TransitRoute> demoRoutes = [
     ],
   ),
   const TransitRoute(
-    name: 'BRT', code: 'B1', type: 'BRT', color: AppColors.brt,
+    name: 'BRT', code: 'B1', type: 'BRT', color: AppColors.brt, // Vert
     points: [
       LatLng(14.6720, -17.4400), LatLng(14.6950, -17.4420), LatLng(14.7050, -17.4400),
       LatLng(14.7220, -17.4330), LatLng(14.7350, -17.4260), LatLng(14.7520, -17.4100),
@@ -883,7 +883,7 @@ class AlertsPage extends StatelessWidget {
 }
 
 // ============================================================
-// RÉGLAGES / PARAMÈTRES (Enrichi avec les nouveaux éléments)
+// RÉGLAGES / PARAMÈTRES (Sans Réservations)
 // ============================================================
 class SettingsPage extends StatelessWidget {
   final List<FavoriteRoute> favorites;
@@ -959,12 +959,6 @@ class SettingsPage extends StatelessWidget {
             color: Colors.indigo.shade400,
             title: 'Mes offres',
             onTap: () => _showMsg(context, 'Mes offres'),
-          ),
-          _buildSettingItem(
-            icon: Icons.shopping_cart_rounded,
-            color: Colors.blue.shade800,
-            title: 'Mes Réservations',
-            onTap: () => _showMsg(context, 'Mes Réservations'),
           ),
           _buildSettingItem(
             icon: Icons.star_rounded,
