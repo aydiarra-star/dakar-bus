@@ -688,7 +688,7 @@ final List<Stop> otherBusStations = [
     location: LatLng(14.7200, -17.4700),
     modeLabel: 'Tata',
   ),
-  // Nouveaux bus DDD intégrés
+  // Bus DDD intégrés
   const Stop(
     name: 'Ligne DDD 1',
     direction: 'Parcelles Assainies ➔ Place Leclerc',
@@ -849,7 +849,7 @@ final List<Stop> mapPriorityStops = [
 ];
 
 // ============================================================
-// TRACES DES LIGNES (Itinéraires GPS réels sans traverser l'océan)
+// TRACES DES LIGNES (Itinéraires terrestres stricts - Évitent la mer)
 // ============================================================
 final List<TransitRoute> demoRoutes = [
   const TransitRoute(
@@ -913,7 +913,7 @@ final List<TransitRoute> demoRoutes = [
       LatLng(14.6750, -17.4400),
     ],
   ),
-  // Tracés DDD corrigés sur les vraies routes terrestres (Sans traverser la mer)
+  // Tracés DDD purement terrestres ( Contournent la mer et l'île de Gorée )
   const TransitRoute(
     name: 'DDD Urbaine (Lignes 1, 4)',
     code: 'DDD-1',
@@ -921,10 +921,11 @@ final List<TransitRoute> demoRoutes = [
     color: AppColors.ddd,
     points: [
       LatLng(14.7600, -17.4400), // Parcelles Assainies
-      LatLng(14.7400, -17.4450),
+      LatLng(14.7350, -17.4480),
       LatLng(14.7150, -17.4600), // Liberté 5
-      LatLng(14.6950, -17.4500),
-      LatLng(14.6720, -17.4400), // Place Leclerc / Plateau
+      LatLng(14.6950, -17.4550), // Fass / Médina (terrestre)
+      LatLng(14.6790, -17.4420), // Plateau
+      LatLng(14.6720, -17.4400), // Terminus Place Leclerc
     ],
   ),
   const TransitRoute(
@@ -934,9 +935,11 @@ final List<TransitRoute> demoRoutes = [
     color: AppColors.ddd,
     points: [
       LatLng(14.7250, -17.4900), // Ouakam
-      LatLng(14.7100, -17.4750), // Mermoz / Fann
-      LatLng(14.6900, -17.4600), 
-      LatLng(14.6790, -17.4450), // Palais / Plateau (par la route terrestre)
+      LatLng(14.7100, -17.4780), // Mermoz
+      LatLng(14.6920, -17.4680), // Fann Résidence (route terrestre)
+      LatLng(14.6850, -17.4520), // Corniche Est / Medina
+      LatLng(14.6790, -17.4420), // Palais / Plateau
+      LatLng(14.6720, -17.4400),
     ],
   ),
   const TransitRoute(
@@ -961,9 +964,9 @@ final List<TransitRoute> demoRoutes = [
     points: [
       LatLng(14.7600, -17.4400),
       LatLng(14.7250, -17.4900),
-      LatLng(14.6900, -17.4500),
+      LatLng(14.6950, -17.4550),
       LatLng(14.6720, -17.4400),
-      LatLng(14.7160, -17.1986), // Vers Diamniadio et AIBD via l'autoroute
+      LatLng(14.7160, -17.1986), // Vers Diamniadio / AIBD
     ],
   ),
 ];
