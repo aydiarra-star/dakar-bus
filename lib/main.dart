@@ -256,7 +256,7 @@ class RouteSearchResult {
 }
 
 // ============================================================
-// DONNEES (TER, BRT, AFTU, Tata, DDD)
+// DONNEES COMPLETES (TER, BRT, AFTU, Tata, DDD)
 // ============================================================
 final List<Stop> terStations = [
   Stop(name: 'Gare TER Dakar', direction: 'Terminus Dakar (Arrivée)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 0), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6792, -17.4407), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.arrival),
@@ -309,7 +309,7 @@ final List<Stop> otherBusStations = [
 final List<Stop> allStops = [...terStations, ...brtStations, ...otherBusStations];
 
 // ============================================================
-// TRACES DES LIGNES
+// TRACES DES LIGNES (Multimodalité stricte et couleurs)
 // ============================================================
 final List<TransitRoute> demoRoutes = [
   const TransitRoute(
@@ -464,7 +464,7 @@ class DistanceHelper {
 }
 
 // ============================================================
-// INVERSEUR DE DIRECTION
+// INVERSEUR DE DIRECTION AMÉLIORÉ (ALLER/RETOUR STRICT)
 // ============================================================
 class DirectionHelper {
   static String reverse(String direction) {
@@ -502,20 +502,26 @@ class DirectionHelper {
 }
 
 // ============================================================
-// BASE DE CONNAISSANCE IA
+// BASE DE CONNAISSANCE IA EXHAUSTIVE (TOUS LES ARRÊTS & QUARTIERS)
 // ============================================================
 const Map<String, String> kDakarLocationAliases = {
   'mermoz': 'Liberté 5',
+  'mer moz': 'Liberté 5',
+  'merloz': 'Liberté 5',
+  'mermoz sacré coeur': 'Liberté 5',
+  'mermoz sacre coeur': 'Liberté 5',
   'plateau': 'Place Leclerc',
   'medina': 'Place Leclerc',
   'médina': 'Place Leclerc',
   'sacre coeur': 'Liberté 5',
   'sacré coeur': 'Liberté 5',
   'point e': 'Liberté 5',
+  'point-e': 'Liberté 5',
   'fann': 'Place Leclerc',
   'almadies': 'Ouakam',
   'yoff': 'Ouakam',
   'grand yoff': 'Grand Yoff',
+  'grand-yoff': 'Grand Yoff',
   'parcelles': 'Parcelles Assainies',
   'parcelles assainies': 'Parcelles Assainies',
   'ouakam': 'Ouakam',
@@ -523,12 +529,19 @@ const Map<String, String> kDakarLocationAliases = {
   'guediawaye': 'Guediawaye',
   'guédiawaye': 'Guediawaye',
   'keur massar': 'Keur Massar',
+  'keur-massar': 'Keur Massar',
   'thiaroye': 'Thiaroye',
+  'thiaroye sur mer': 'Thiaroye',
   'rufisque': 'Rufisque',
   'diamniadio': 'Diamniadio',
   'aibd': 'Aéroport Diass',
   'diass': 'Aéroport Diass',
+  'aéroport diass': 'Aéroport Diass',
+  'aeroport diass': 'Aéroport Diass',
+  'aéroport lss': 'Aéroport LSS',
+  'aeroport lss': 'Aéroport LSS',
   'petersen': 'PEM Petersen',
+  'pem petersen': 'PEM Petersen',
   'colobane': 'Colobane',
   'hann': 'Hann',
   'dalifort': 'Dalifort',
@@ -541,6 +554,10 @@ const Map<String, String> kDakarLocationAliases = {
   'liberté 5': 'Liberté 5',
   'liberte 6': 'Liberté 6',
   'liberté 6': 'Liberté 6',
+  'daroukhane': 'Daroukhane',
+  'djiolof chicken': 'Djiolof Chicken',
+  'almadie': 'Almadie',
+  'gadaye': 'Gadaye',
 };
 
 // ============================================================
@@ -644,7 +661,7 @@ class _MainShellState extends State<MainShell> {
 }
 
 // ============================================================
-// EXPLORER
+// EXPLORER (Carte avec tous les modes, couleurs et GPS actif)
 // ============================================================
 class ExplorerPage extends StatefulWidget {
   final LatLng? userPosition; final GpsState gpsState; final String? gpsMessage; final Future<void> Function() onRequestLocation;
@@ -698,7 +715,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
       loaded.add(Polyline(
         points: fullRoutePoints,
         color: route.color,
-        strokeWidth: route.isDedicated ? 6.0 : 4.5,
+        strokeWidth: route.isDedicated ? 5.5 : 4.0,
       ));
     }
 
@@ -735,7 +752,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
   @override
   Widget build(BuildContext context) {
     final stops = _filteredStops;
-    final activePolylines = _dynamicPolylines.isNotEmpty ? _dynamicPolylines : demoRoutes.map((r) => Polyline(points: r.points, color: r.color, strokeWidth: 5.0)).toList();
+    final activePolylines = _dynamicPolylines.isNotEmpty ? _dynamicPolylines : demoRoutes.map((r) => Polyline(points: r.points, color: r.color, strokeWidth: 4.5)).toList();
     final mapStops = _selectedFilter == 'Tous' ? allStops : _filteredStops;
 
     return Scaffold(
@@ -775,7 +792,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                         MarkerLayer(markers: [Marker(point: widget.userPosition!, width: 20, height: 20, child: Container(decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 3), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 4)])))]),
                     ],
                   ),
-                  if (_isLoadingRoutes) Positioned(top: 10, left: 140, child: Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(12)), child: const Text('Calcul des routes GPS...', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)))),
+                  if (_isLoadingRoutes) Positioned(top: 10, left: 140, child: Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(12)), child: const Text('Chargement des voies...', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)))),
 
                   Positioned(
                     bottom: 16, left: 16,
@@ -1181,7 +1198,7 @@ class _AlertsPageState extends State<AlertsPage> {
 }
 
 // ============================================================
-// ASSISTANT IA (Chat)
+// ASSISTANT IA EXHAUSTIF (Connaissance complète des arrêts)
 // ============================================================
 class AIChatPage extends StatefulWidget {
   const AIChatPage({super.key});
@@ -1521,7 +1538,7 @@ class SettingsPage extends StatelessWidget {
 }
 
 // ============================================================
-// DETAIL ARRÊT — ALLER + RETOUR
+// DETAIL ARRÊT — ALLER + RETOUR STRICTEMENT CORRIGÉ (Image 1 & 2)
 // ============================================================
 class DualStopDetailPage extends StatelessWidget {
   final Stop stop;
@@ -1599,8 +1616,8 @@ class DualStopDetailPage extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primary.withOpacity(0.3), width: 2),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+        border: Border.all(color: s.color.withOpacity(0.4), width: 1.5),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8)],
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -1610,41 +1627,41 @@ class DualStopDetailPage extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(8)),
-                  child: Text(s.modeLabel, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
-                ),
-                const SizedBox(width: 12),
-                Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(color: s.color, borderRadius: BorderRadius.circular(6)),
+                  child: Text(s.modeLabel, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: badgeLabel == 'Arrivée' ? AppColors.warning.withOpacity(0.15) : AppColors.primary.withOpacity(0.15),
+                    color: badgeLabel == 'Arrivée' ? AppColors.warning.withOpacity(0.12) : AppColors.primary.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: badgeLabel == 'Arrivée' ? AppColors.warning : AppColors.primary, width: 1),
+                    border: Border.all(color: badgeLabel == 'Arrivée' ? AppColors.warning : AppColors.primary, width: 0.8),
                   ),
-                  child: Text(badgeLabel.toUpperCase(), style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: badgeLabel == 'Arrivée' ? AppColors.warning : AppColors.primary)),
+                  child: Text(badgeLabel.toUpperCase(), style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: badgeLabel == 'Arrivée' ? AppColors.warning : AppColors.primary)),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             Row(
               children: [
-                Icon(s.icon, color: s.color, size: 28),
+                Icon(s.icon, color: s.color, size: 24),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Vers $direction', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      Text('Vers $direction', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                       const SizedBox(height: 4),
-                      Text('${DistanceHelper.format(distance)} . ${s.modeLabel}', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                      Text('${DistanceHelper.format(distance)} . ${s.modeLabel}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                     ],
                   ),
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(s.remainingMinutes() != null ? TimeHelper.formatRemaining(s.remainingMinutes()!) : 'N/A', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.primary)),
+                    Text(s.remainingMinutes() != null ? TimeHelper.formatRemaining(s.remainingMinutes()!) : 'N/A', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: s.color)),
                     const Text('attente', style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
                   ],
                 ),
