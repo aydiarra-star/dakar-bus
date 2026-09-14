@@ -1,4 +1,4 @@
-import 'dart:async';
+Import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -40,7 +40,7 @@ class RoutingService {
 }
 
 // ============================================================
-// SERVICE DE DÉTECTION DES DEUX SENS
+// SERVICE DE DÉTECTION DES DEUX SENS (CORRIGÉ)
 // ============================================================
 class OppositeStopService {
   static Stop? findOppositeStop({required Stop currentStop, required List<Stop> allStops}) {
@@ -49,20 +49,23 @@ class OppositeStopService {
     final currentName = currentStop.name.toLowerCase();
 
     for (final stop in allStops) {
+      // Éviter de retourner le même arrêt
       if (stop.name == currentStop.name && stop.direction == currentStop.direction) continue;
+      
       final double distance = DistanceHelper.haversineMeters(currentStop.location, stop.location);
+      // On cherche un arrêt très proche (moins de 50 mètres) avec un nom similaire
       if (distance <= 50.0 && distance < minDistance) {
         final stopName = stop.name.toLowerCase();
-        if (currentName.contains(stopName) || stopName.contains(currentName)) {
+        if (currentName.contains(stopName) || stopName.contains(currentName) || 
+            currentName.substring(0, (currentName.length * 0.6).toInt()) == stopName.substring(0, (stopName.length * 0.6).toInt())) {
           minDistance = distance;
           bestCandidate = stop;
         }
       }
     }
-    return bestCandidate ?? allStops.firstWhere(
-      (s) => s.modeLabel == currentStop.modeLabel && s.direction != currentStop.direction,
-      orElse: () => currentStop,
-    );
+    
+    // Si aucun arrêt opposé n'est trouvé à proximité, on retourne null
+    return bestCandidate;
   }
 }
 
@@ -84,15 +87,12 @@ final List<int> _terBase = _buildTerBase();
 // COULEURS & THEME
 // ============================================================
 class AppColors {
-  static const primary = Color(0xFF00695C); // Vert principal de l'app (utilisé pour l'UI)
-  
-  // Couleurs spécifiques aux modes de transport
+  static const primary = Color(0xFF00695C);
+  static const brt = Color(0xFF00C853); // Vert vif
   static const ter = Color(0xFF8D4004); // Marron
-  static const brt = Color(0xFF00C853); // Vert vif pour le BRT (NOUVEAU)
   static const aftu = Color(0xFFEF6C00); // Orange
   static const tata = Color(0xFF7B1FA2); // Violet
-  static const ddd = Color(0xFF0288D1); // Bleu pour les DDD (NOUVEAU)
-  
+  static const ddd = Color(0xFF0288D1); // Bleu
   static const background = Color(0xFFF8F9FA);
   static const surface = Color(0xFFFFFFFF);
   static const textPrimary = Color(0xFF1A1A1A);
@@ -211,7 +211,7 @@ class RouteSearchResult {
 }
 
 // ============================================================
-// DONNEES (TER, BRT, AFTU, Tata, DDD)
+// DONNEES (TER, BRT, AFTU, Tata, DDD) - Mise à jour complète
 // ============================================================
 final List<Stop> terStations = [
   Stop(name: 'Gare TER Dakar', direction: 'Terminus Dakar (Arrivée)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 0), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6792, -17.4407), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.arrival),
@@ -242,9 +242,12 @@ final List<Stop> brtStations = [
 ];
 
 final List<Stop> otherBusStations = [
+  // AFTU
   const Stop(name: 'Arret AFTU 23', direction: 'Dir. Parcelles Assainies', distanceMeters: 280, departureMinutesFromMidnight: [630, 645, 700, 715, 730, 745, 800, 815, 830, 845, 900, 915], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: LatLng(14.6900, -17.4460), modeLabel: 'AFTU', stopType: StopType.boarding),
   const Stop(name: 'Arret AFTU 10', direction: 'Dir. Grand Yoff', distanceMeters: 450, departureMinutesFromMidnight: [635, 650, 705, 720, 735, 750, 805, 820, 835, 850, 905, 920], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: LatLng(14.7200, -17.4600), modeLabel: 'AFTU', stopType: StopType.boarding),
+  // Tata
   const Stop(name: 'Arret Tata 12', direction: 'Dir. Guediawaye', distanceMeters: 600, departureMinutesFromMidnight: [640, 655, 710, 725, 740, 755, 810, 825, 840, 855, 910, 925], icon: Icons.directions_bus_filled, color: AppColors.tata, location: LatLng(14.7200, -17.4700), modeLabel: 'Tata', stopType: StopType.boarding),
+  // DDD
   const Stop(name: 'Ligne DDD 1', direction: 'Parcelles Assainies ➔ Place Leclerc', distanceMeters: 350, departureMinutesFromMidnight: [360, 420, 480, 540, 600, 660, 720, 780, 840, 900, 960], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7600, -17.4400), modeLabel: 'DDD', stopType: StopType.boarding),
   const Stop(name: 'Ligne DDD 4', direction: 'Liberté 5 ➔ Place Leclerc', distanceMeters: 420, departureMinutesFromMidnight: [370, 430, 490, 550, 610, 670, 730, 790, 850, 910, 970], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7150, -17.4600), modeLabel: 'DDD', stopType: StopType.boarding),
   const Stop(name: 'Ligne DDD 7', direction: 'Ouakam ➔ Palais 2', distanceMeters: 500, departureMinutesFromMidnight: [380, 440, 500, 560, 620, 680, 740, 800, 860, 920, 980], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7250, -17.4900), modeLabel: 'DDD', stopType: StopType.boarding),
@@ -264,9 +267,10 @@ final List<Stop> otherBusStations = [
 final List<Stop> allStops = [...terStations, ...brtStations, ...otherBusStations];
 
 // ============================================================
-// TRACES DES LIGNES (Mise à jour des couleurs)
+// TRACES DES LIGNES (Tracés complets pour tous les modes)
 // ============================================================
 final List<TransitRoute> demoRoutes = [
+  // TER (Marron)
   const TransitRoute(
     name: 'TER', code: 'TER', type: 'TER', color: AppColors.ter,
     points: [
@@ -276,34 +280,54 @@ final List<TransitRoute> demoRoutes = [
       LatLng(14.6900, -17.2200), LatLng(14.7160, -17.1986),
     ],
   ),
+  // BRT (Vert)
   const TransitRoute(
-    name: 'BRT', code: 'B1', type: 'BRT', color: AppColors.brt, // Vert
+    name: 'BRT', code: 'B1', type: 'BRT', color: AppColors.brt,
     points: [
       LatLng(14.6720, -17.4400), LatLng(14.6950, -17.4420), LatLng(14.7050, -17.4400),
       LatLng(14.7220, -17.4330), LatLng(14.7350, -17.4260), LatLng(14.7520, -17.4100),
       LatLng(14.7735, -17.3977),
     ],
   ),
+  // AFTU (Orange)
   const TransitRoute(
-    name: 'AFTU', code: '23', type: 'AFTU', color: AppColors.aftu, // Orange
+    name: 'AFTU', code: '23', type: 'AFTU', color: AppColors.aftu,
     points: [
       LatLng(14.7600, -17.4400), LatLng(14.7450, -17.4430), LatLng(14.7200, -17.4460),
       LatLng(14.6900, -17.4460), LatLng(14.6790, -17.4400),
     ],
   ),
+  // Tata (Violet)
   const TransitRoute(
-    name: 'Tata', code: '12', type: 'TATA', color: AppColors.tata, // Violet
+    name: 'Tata', code: '12', type: 'TATA', color: AppColors.tata,
     points: [
       LatLng(14.7735, -17.3977), LatLng(14.7500, -17.4200), LatLng(14.7250, -17.4500),
       LatLng(14.7000, -17.4600), LatLng(14.6800, -17.4500), LatLng(14.6750, -17.4400),
     ],
   ),
+  // DDD (Bleu) - Lignes urbaines et de banlieue
   const TransitRoute(
-    name: 'DDD Urbaine', code: 'DDD-1', type: 'DDD', color: AppColors.ddd, // Bleu
+    name: 'DDD Urbaine', code: 'DDD-1', type: 'DDD', color: AppColors.ddd,
     points: [
       LatLng(14.7600, -17.4400), LatLng(14.7450, -17.4440), LatLng(14.7250, -17.4520),
       LatLng(14.7050, -17.4560), LatLng(14.6900, -17.4480), LatLng(14.6790, -17.4420),
       LatLng(14.6720, -17.4400),
+    ],
+  ),
+  const TransitRoute(
+    name: 'DDD Côtière', code: 'DDD-7', type: 'DDD', color: AppColors.ddd,
+    points: [
+      LatLng(14.7250, -17.4900), LatLng(14.7120, -17.4780), LatLng(14.6980, -17.4680),
+      LatLng(14.6850, -17.4520), LatLng(14.6790, -17.4420),
+    ],
+  ),
+  const TransitRoute(
+    name: 'DDD Banlieue', code: 'DDD-217', type: 'DDD', color: AppColors.ddd,
+    points: [
+      LatLng(14.7900, -17.3500), LatLng(14.7800, -17.3680), LatLng(14.7700, -17.3850),
+      LatLng(14.7588, -17.3803), LatLng(14.7620, -17.3750), LatLng(14.7520, -17.3900),
+      LatLng(14.7410, -17.4120), LatLng(14.7222, -17.4321), LatLng(14.6937, -17.4441),
+      LatLng(14.6792, -17.4407),
     ],
   ),
 ];
@@ -1037,7 +1061,7 @@ class _AlertsPageState extends State<AlertsPage> {
 }
 
 // ============================================================
-// ASSISTANT IA (Chat)
+// ASSISTANT IA (Chat) - Mise à jour pour connaître tous les arrêts
 // ============================================================
 class AIChatPage extends StatefulWidget {
   const AIChatPage({super.key});
@@ -1065,6 +1089,15 @@ class _AIChatPageState extends State<AIChatPage> {
 
   String _getAIResponse(String query) {
     final q = query.toLowerCase();
+    
+    // 1. Vérifier si l'utilisateur demande un lieu spécifique (ex: "Mermoz")
+    for (final stop in allStops) {
+      if (q.contains(stop.name.toLowerCase())) {
+        return '${stop.name} est desservi par la ligne ${stop.modeLabel}. La direction est "${stop.direction}". Le prochain départ est estimé dans ${stop.remainingMinutes() ?? "quelques"} minutes.';
+      }
+    }
+    
+    // 2. Réponses basées sur des mots-clés généraux
     if (q.contains('ter') || q.contains('diamniadio') || q.contains('train')) {
       return 'Le prochain TER en direction de Diamniadio part de la Gare de Dakar. Il est actuellement programmé dans quelques minutes. Vous pouvez consulter l\'onglet "Explorer" pour voir le temps d\'attente exact en temps réel.';
     } else if (q.contains('brt')) {
@@ -1135,7 +1168,7 @@ class _AIChatPageState extends State<AIChatPage> {
 }
 
 // ============================================================
-// REGLAGES & DETAILS
+// REGLAGES & DETAILS (CORRIGÉ POUR ALLER/RETOUR)
 // ============================================================
 class SettingsPage extends StatelessWidget {
   final List<FavoriteRoute> favorites;
@@ -1157,7 +1190,7 @@ class SettingsPage extends StatelessWidget {
             decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
             child: Column(
               children: [
-                ListTile(leading: const Icon(Icons.info_outline, color: AppColors.primary), title: const Text('Version de l\'application'), subtitle: const Text('Dakar Bus v3.0.0 (GPS Validé)'), trailing: const Icon(Icons.chevron_right)),
+                ListTile(leading: const Icon(Icons.info_outline, color: AppColors.primary), title: const Text('Version de l\'application'), subtitle: const Text('Dakar Bus v3.1.0 (GPS & IA)'), trailing: const Icon(Icons.chevron_right)),
                 const Divider(height: 1),
                 ListTile(leading: const Icon(Icons.language, color: AppColors.primary), title: const Text('Langue'), subtitle: const Text('Français'), trailing: const Icon(Icons.chevron_right)),
                 const Divider(height: 1),
@@ -1179,20 +1212,35 @@ class DualStopDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 1. Trouver l'arrêt opposé (deuxième voie) en utilisant le service
     final opposite = OppositeStopService.findOppositeStop(currentStop: stop, allStops: allStops);
-    final isArrival = stop.stopType == StopType.arrival;
-    final oppositeDirection = isArrival ? stop.direction.replaceAll('Arrivée', 'Embarquement') : stop.direction.replaceAll('Embarquement', 'Arrivée');
+    
+    // 2. Préparer les libellés de direction pour l'affichage
+    // On utilise les données réelles de l'arrêt opposé s'il existe
+    String oppositeDirection = "Direction inconnue";
+    double oppositeDistance = 0;
+    if (opposite != null) {
+      oppositeDirection = opposite.direction;
+      oppositeDistance = opposite.distanceMeters;
+    }
 
     return Scaffold(
       appBar: AppBar(title: Text(stop.name), backgroundColor: stop.color, foregroundColor: Colors.white),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _buildStopCard(stop, stop.direction, stop.distanceMeters, isArrival ? 'Arrivée' : 'Départ'),
+          // Carte de l'arrêt actuel (Voie 1)
+          _buildStopCard(stop, stop.direction, stop.distanceMeters, stop.stopType),
+          
           const SizedBox(height: 16),
+          
+          // Carte de l'arrêt opposé (Voie 2) - Affichage comme sur l'image d'exemple
           if (opposite != null)
-            _buildStopCard(opposite, oppositeDirection, opposite.distanceMeters, isArrival ? 'Départ' : 'Arrivée'),
+            _buildStopCard(opposite, oppositeDirection, oppositeDistance, opposite.stopType),
+            
           const SizedBox(height: 24),
+          
+          // Informations supplémentaires
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider)),
@@ -1211,12 +1259,24 @@ class DualStopDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildStopCard(Stop s, String direction, double distance, String badgeLabel) {
+  // Widget pour afficher une carte d'arrêt (Voie 1 ou Voie 2)
+  Widget _buildStopCard(Stop s, String direction, double distance, StopType type) {
+    // Déterminer le badge en fonction du type d'arrêt
+    String badgeLabel = '';
+    Color badgeColor = AppColors.primary;
+    switch (type) {
+      case StopType.arrival: badgeLabel = 'ARRIVÉE'; badgeColor = AppColors.warning; break;
+      case StopType.departure: badgeLabel = 'DÉPART'; badgeColor = AppColors.primary; break;
+      case StopType.boarding: badgeLabel = 'EMBARQUEMENT'; badgeColor = AppColors.brt; break;
+      case StopType.terminus: badgeLabel = 'TERMINUS'; badgeColor = AppColors.ter; break;
+      case StopType.correspondence: badgeLabel = 'CORRESP.'; badgeColor = AppColors.tata; break;
+    }
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface, 
         borderRadius: BorderRadius.circular(16), 
-        border: Border.all(color: AppColors.primary.withOpacity(0.3), width: 2),
+        border: Border.all(color: AppColors.primary.withOpacity(0.3), width: 2), // Bordure verte vive
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)]
       ),
       child: Padding(
@@ -1226,20 +1286,35 @@ class DualStopDetailPage extends StatelessWidget {
           children: [
             Row(
               children: [
+                // Badge de la ligne (ex: DDD, TER)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(8)),
-                  child: Text(s.modeLabel, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary, 
+                    borderRadius: BorderRadius.circular(8)
+                  ),
+                  child: Text(
+                    s.modeLabel,
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
                 ),
                 const SizedBox(width: 12),
+                // Badge Arrivée/Départ/Embarquement
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: badgeLabel == 'Arrivée' ? AppColors.warning.withOpacity(0.15) : AppColors.primary.withOpacity(0.15),
+                    color: badgeColor.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: badgeLabel == 'Arrivée' ? AppColors.warning : AppColors.primary, width: 1),
+                    border: Border.all(color: badgeColor, width: 1),
                   ),
-                  child: Text(badgeLabel.toUpperCase(), style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: badgeLabel == 'Arrivée' ? AppColors.warning : AppColors.primary)),
+                  child: Text(
+                    badgeLabel,
+                    style: TextStyle(
+                      fontSize: 10, 
+                      fontWeight: FontWeight.bold, 
+                      color: badgeColor
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -1252,16 +1327,20 @@ class DualStopDetailPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Vers $direction', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      Text(direction, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                       const SizedBox(height: 4),
                       Text('${DistanceHelper.format(distance)} . ${s.modeLabel}', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                     ],
                   ),
                 ),
+                // Temps d'attente (comme sur l'image)
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(s.remainingMinutes() != null ? TimeHelper.formatRemaining(s.remainingMinutes()!) : 'N/A', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.primary)),
+                    Text(
+                      s.remainingMinutes() != null ? TimeHelper.formatRemaining(s.remainingMinutes()!) : 'N/A',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.primary),
+                    ),
                     const Text('attente', style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
                   ],
                 ),
@@ -1276,7 +1355,13 @@ class DualStopDetailPage extends StatelessWidget {
   Widget _buildInfoRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(children: [Text(label, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)), const Spacer(), Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold))]),
+      child: Row(
+        children: [
+          Text(label, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+          const Spacer(),
+          Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+        ],
+      ),
     );
   }
 
