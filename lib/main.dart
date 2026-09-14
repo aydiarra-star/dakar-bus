@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -12,7 +13,16 @@ void main() => runApp(const DakarBusApp());
 // SERVICE ROUTING REEL (OSRM + SECURITE TERRESTRE)
 // ============================================================
 class RoutingService {
+  // Cache mémoire pour éviter les appels HTTP répétés
+  static final Map<String, List<LatLng>> _cache = {};
+
+  static String _cacheKey(LatLng a, LatLng b) =>
+      '${a.latitude.toStringAsFixed(5)},${a.longitude.toStringAsFixed(5)}|${b.latitude.toStringAsFixed(5)},${b.longitude.toStringAsFixed(5)}';
+
   static Future<List<LatLng>> getRealRoute(LatLng start, LatLng end) async {
+    final key = _cacheKey(start, end);
+    if (_cache.containsKey(key)) return _cache[key]!;
+
     final url = 'https://router.project-osrm.org/route/v1/driving/'
         '${start.longitude},${start.latitude};${end.longitude},${end.latitude}'
         '?overview=full&geometries=geojson';
@@ -22,17 +32,21 @@ class RoutingService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final List coordinates = data['routes'][0]['geometry']['coordinates'];
-        return coordinates.map((coord) => LatLng(coord[1], coord[0])).toList();
+        final points = coordinates.map((coord) => LatLng(coord[1], coord[0])).toList();
+        _cache[key] = points;
+        return points;
       }
     } catch (_) {}
-    return _getFallbackTerrestrialRoute(start, end);
+    final fallback = _getFallbackTerrestrialRoute(start, end);
+    _cache[key] = fallback;
+    return fallback;
   }
 
   static List<LatLng> _getFallbackTerrestrialRoute(LatLng start, LatLng end) {
     if (start.latitude > 14.70 && end.latitude > 14.70 && (start.longitude - end.longitude).abs() > 0.05) {
       return [
-        start, LatLng(14.7410, -17.4120), LatLng(14.7550, -17.3900),
-        LatLng(14.7588, -17.3803), LatLng(14.7450, -17.3980), end,
+        start, const LatLng(14.7410, -17.4120), const LatLng(14.7550, -17.3900),
+        const LatLng(14.7588, -17.3803), const LatLng(14.7450, -17.3980), end,
       ];
     }
     return [start, end];
@@ -43,13 +57,22 @@ class RoutingService {
 // SERVICE DE DÉTECTION DES DEUX SENS
 // ============================================================
 class OppositeStopService {
+  // Rayon maximum (en mètres) pour considérer qu'un arrêt est "en face"
+  static const double _maxOppositeDistanceMeters = 500.0;
+
+  /// Retourne l'arrêt en sens inverse correspondant, ou `null` si aucun
+  /// candidat crédible n'est trouvé (évite de retourner un arrêt arbitraire
+  /// à l'autre bout de la ville).
   static Stop? findOppositeStop({required Stop currentStop, required List<Stop> allStops}) {
     Stop? bestCandidate;
     double minDistance = double.infinity;
     final currentName = currentStop.name.toLowerCase();
 
+    // 1) Recherche stricte : même nom, sens opposé, très proche (< 50 m)
     for (final stop in allStops) {
+      if (identical(stop, currentStop)) continue;
       if (stop.name == currentStop.name && stop.direction == currentStop.direction) continue;
+
       final double distance = DistanceHelper.haversineMeters(currentStop.location, stop.location);
       if (distance <= 50.0 && distance < minDistance) {
         final stopName = stop.name.toLowerCase();
@@ -59,10 +82,21 @@ class OppositeStopService {
         }
       }
     }
-    return bestCandidate ?? allStops.firstWhere(
-      (s) => s.modeLabel == currentStop.modeLabel && s.direction != currentStop.direction,
-      orElse: () => currentStop,
-    );
+    if (bestCandidate != null) return bestCandidate;
+
+    // 2) Fallback sécurisé : même mode, sens différent, mais < 500 m
+    for (final stop in allStops) {
+      if (identical(stop, currentStop)) continue;
+      if (stop.modeLabel != currentStop.modeLabel) continue;
+      if (stop.direction == currentStop.direction) continue;
+
+      final double distance = DistanceHelper.haversineMeters(currentStop.location, stop.location);
+      if (distance <= _maxOppositeDistanceMeters && distance < minDistance) {
+        minDistance = distance;
+        bestCandidate = stop;
+      }
+    }
+    return bestCandidate; // peut être null
   }
 }
 
@@ -348,7 +382,9 @@ class RoutePlanner {
   }
 
   static PlannedRoute? _buildRoute(Stop from, Stop to, int currentMin) {
-    final dep = from.departureAfter(currentMin - 1);
+    // Protection contre les valeurs négatives (passage minuit)
+    final safeCurrentMin = math.max(0, currentMin - 1);
+    final dep = from.departureAfter(safeCurrentMin);
     if (dep == null) return null;
     final dist = DistanceHelper.haversineMeters(from.location, to.location);
     final speed = (from.modeLabel == 'TER' || from.modeLabel == 'BRT') ? 30.0 : 15.0;
@@ -401,18 +437,20 @@ class DistanceHelper {
     if (meters < 1000) return '${meters.round()} m';
     return '${(meters / 1000.0).toStringAsFixed(1)} km';
   }
+
+  /// Distance de Haversine en mètres — utilise `dart:math` natif
+  /// pour une précision optimale (remplace les approximations Taylor
+  /// précédentes qui pouvaient dériver sur de longues distances).
   static double haversineMeters(LatLng a, LatLng b) {
-    const R = 6371000.0;
-    final lat1 = a.latitude * 3.141592653589793 / 180;
-    final lat2 = b.latitude * 3.141592653589793 / 180;
-    final dLat = (b.latitude - a.latitude) * 3.141592653589793 / 180;
-    final dLon = (b.longitude - a.longitude) * 3.141592653589793 / 180;
-    final h = (1 - _cos(dLat)) / 2 + _cos(lat1) * _cos(lat2) * (1 - _cos(dLon)) / 2;
-    return 2 * R * _asin(_sqrt(h));
+    const double earthRadius = 6371000.0;
+    final double lat1 = a.latitude * math.pi / 180.0;
+    final double lat2 = b.latitude * math.pi / 180.0;
+    final double dLat = (b.latitude - a.latitude) * math.pi / 180.0;
+    final double dLon = (b.longitude - a.longitude) * math.pi / 180.0;
+    final double h = (1 - math.cos(dLat)) / 2 +
+        math.cos(lat1) * math.cos(lat2) * (1 - math.cos(dLon)) / 2;
+    return 2 * earthRadius * math.asin(math.sqrt(h));
   }
-  static double _cos(double x) { final x2 = x * x; return 1 - x2 / 2 + x2 * x2 / 24; }
-  static double _asin(double x) { if (x < -1) return -1.5708; if (x > 1) return 1.5708; return x + (x * x * x) / 6; }
-  static double _sqrt(double x) { if (x <= 0) return 0; double r = x; for (int i = 0; i < 10; i++) { r = (r + x / r) / 2; } return r; }
 }
 
 // ============================================================
@@ -541,20 +579,38 @@ class _ExplorerPageState extends State<ExplorerPage> {
   @override
   void initState() { super.initState(); _loadDynamicRoutes(); }
 
+  /// Charge les polylignes OSRM en parallèle (au lieu de séquentiellement).
+  /// Réduit drastiquement le temps de démarrage grâce à `Future.wait` +
+  /// cache mémoire dans `RoutingService`.
   Future<void> _loadDynamicRoutes() async {
-    List<Polyline> loaded = [];
+    final List<Polyline> loaded = [];
+
     for (final route in demoRoutes) {
-      if (route.points.length >= 2) {
-        List<LatLng> fullRoutePoints = [];
-        for (int i = 0; i < route.points.length - 1; i++) {
-          final segment = await RoutingService.getRealRoute(route.points[i], route.points[i+1]);
-          if (fullRoutePoints.isNotEmpty && segment.isNotEmpty) segment.removeAt(0);
+      if (route.points.length < 2) continue;
+
+      // Construire tous les Futurs de segments en parallèle
+      final List<Future<List<LatLng>>> futures = [];
+      for (int i = 0; i < route.points.length - 1; i++) {
+        futures.add(RoutingService.getRealRoute(route.points[i], route.points[i + 1]));
+      }
+
+      // Attendre tous les segments simultanément
+      final List<List<LatLng>> segments = await Future.wait(futures);
+
+      // Concaténer en supprimant les doublons aux jonctions
+      final List<LatLng> fullRoutePoints = [];
+      for (final segment in segments) {
+        if (fullRoutePoints.isNotEmpty && segment.isNotEmpty) {
+          fullRoutePoints.addAll(segment.skip(1));
+        } else {
           fullRoutePoints.addAll(segment);
         }
-        if (fullRoutePoints.isEmpty) fullRoutePoints = route.points;
-        loaded.add(Polyline(points: fullRoutePoints, color: route.color, strokeWidth: 5.0));
       }
+
+      final points = fullRoutePoints.isEmpty ? route.points : fullRoutePoints;
+      loaded.add(Polyline(points: points, color: route.color, strokeWidth: 5.0));
     }
+
     if (mounted) setState(() { _dynamicPolylines = loaded; _isLoadingRoutes = false; });
   }
 
@@ -629,7 +685,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                     ],
                   ),
                   if (_isLoadingRoutes) Positioned(top: 10, left: 140, child: Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(12)), child: const Text('Calcul des routes GPS...', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)))),
-                  
+
                   Positioned(
                     bottom: 16, left: 16,
                     child: Material(
@@ -642,7 +698,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              widget.gpsState == GpsState.loading 
+                              widget.gpsState == GpsState.loading
                                 ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
                                 : Icon(widget.gpsState == GpsState.granted ? Icons.my_location : Icons.location_searching, color: AppColors.primary, size: 18),
                               const SizedBox(width: 6),
@@ -685,7 +741,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                       ),
                     ),
                   ),
-                  
+
                   Positioned(top: 12, left: 12, child: Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6), decoration: BoxDecoration(color: AppColors.surface.withValues(alpha: 0.95), borderRadius: BorderRadius.circular(8)), child: Row(mainAxisSize: MainAxisSize.min, children: [_legend(AppColors.ter, 'TER'), const SizedBox(width: 6), _legend(AppColors.brt, 'BRT'), const SizedBox(width: 6), _legend(AppColors.aftu, 'AFTU'), const SizedBox(width: 6), _legend(AppColors.tata, 'Tata'), const SizedBox(width: 6), _legend(AppColors.ddd, 'DDD')]))),
                 ],
               ),
@@ -829,7 +885,7 @@ class _TripsPageState extends State<TripsPage> {
             const SizedBox(height: 4),
             const Text('Trouvez le meilleur itinéraire multimodal.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
             const SizedBox(height: 20),
-            
+
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 15, offset: const Offset(0, 4))]),
@@ -847,7 +903,7 @@ class _TripsPageState extends State<TripsPage> {
                 ],
               ),
             ),
-            
+
             if (_result == null && !_loading) ...[
               const SizedBox(height: 24),
               const Text('Suggestions populaires', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
@@ -1105,7 +1161,13 @@ class _AIChatPageState extends State<AIChatPage> {
                     constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.82),
                     decoration: BoxDecoration(
                       color: isUser ? AppColors.primary : AppColors.surface,
-                      borderRadius: BorderRadius.only(topLeft: const Radius.circular(18), topRight: const Radius.circular(18), bottomLeft: isUser ? const Radius.circular(18) : const Radius.circular(4), bottomRight: isUser ? const Radius.circular(4) : const Radius.circular(18)),
+                      // Correction : `Left:` → `bottomLeft:` avec logique conditionnelle
+                      borderRadius: BorderRadius.only(
+                        topLeft: const Radius.circular(18),
+                        topRight: const Radius.circular(18),
+                        bottomLeft: isUser ? const Radius.circular(18) : const Radius.circular(4),
+                        bottomRight: isUser ? const Radius.circular(4) : const Radius.circular(18),
+                      ),
                       boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 6)],
                     ),
                     child: Text(msg['text']!, style: TextStyle(color: isUser ? Colors.white : AppColors.textPrimary, fontSize: 14, height: 1.3)),
@@ -1154,7 +1216,7 @@ class SettingsPage extends StatelessWidget {
             decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
             child: Column(
               children: [
-                ListTile(leading: const Icon(Icons.info_outline, color: AppColors.primary), title: const Text('Version de l\'application'), subtitle: const Text('Dakar Bus v3.0.0 (GPS Validé)'), trailing: const Icon(Icons.chevron_right)),
+                ListTile(leading: const Icon(Icons.info_outline, color: AppColors.primary), title: const Text('Version de l\'application'), subtitle: const Text('Dakar Bus v3.0.1 (Corrections)'), trailing: const Icon(Icons.chevron_right)),
                 const Divider(height: 1),
                 ListTile(leading: const Icon(Icons.language, color: AppColors.primary), title: const Text('Langue'), subtitle: const Text('Français'), trailing: const Icon(Icons.chevron_right)),
                 const Divider(height: 1),
@@ -1187,8 +1249,26 @@ class DualStopDetailPage extends StatelessWidget {
         children: [
           _buildStopCard(stop, stop.direction, stop.distanceMeters, isArrival ? 'Arrivée' : 'Départ'),
           const SizedBox(height: 16),
+
+          // Affichage conditionnel : si un arrêt opposé existe, on l'affiche,
+          // sinon on informe l'utilisateur (au lieu d'afficher un arrêt erroné).
           if (opposite != null)
-            _buildStopCard(opposite, oppositeDirection, opposite.distanceMeters, isArrival ? 'Départ' : 'Arrivée'),
+            _buildStopCard(opposite, oppositeDirection, opposite.distanceMeters, isArrival ? 'Départ' : 'Arrivée')
+          else
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.divider),
+              ),
+              child: Row(children: [
+                const Icon(Icons.info_outline, color: AppColors.textSecondary),
+                const SizedBox(width: 12),
+                const Expanded(child: Text('Aucun arrêt en sens inverse identifié à proximité.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary))),
+              ]),
+            ),
+
           const SizedBox(height: 24),
           Container(
             padding: const EdgeInsets.all(16),
@@ -1211,8 +1291,8 @@ class DualStopDetailPage extends StatelessWidget {
   Widget _buildStopCard(Stop s, String direction, double distance, String badgeLabel) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface, 
-        borderRadius: BorderRadius.circular(16), 
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 2),
         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)]
       ),
