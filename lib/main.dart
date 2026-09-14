@@ -148,15 +148,23 @@ class OfficialBadge extends StatelessWidget {
 }
 
 // ============================================================
-// MODELES
+// MODELES (Amélioration : ajout de stopType)
 // ============================================================
+enum StopType { arrival, departure, boarding, terminus, correspondence }
+
 class Stop {
   final String name; final String direction; final double distanceMeters;
   final List<int> departureMinutesFromMidnight; final IconData icon;
   final Color color; final LatLng location; final DataStatus status;
   final String modeLabel; final DataSourceInfo source;
+  final StopType stopType; // <-- Nouveau champ
 
-  const Stop({required this.name, required this.direction, required this.distanceMeters, required this.departureMinutesFromMidnight, required this.icon, required this.color, required this.location, required this.modeLabel, this.status = DataStatus.scheduled, this.source = DataSourceInfo.demo});
+  const Stop({
+    required this.name, required this.direction, required this.distanceMeters,
+    required this.departureMinutesFromMidnight, required this.icon, required this.color,
+    required this.location, required this.modeLabel, this.status = DataStatus.scheduled,
+    this.source = DataSourceInfo.demo, this.stopType = StopType.departure,
+  });
 
   int? nextDepartureMinutes() {
     final now = DateTime.now(); final currentMin = now.hour * 60 + now.minute;
@@ -200,54 +208,56 @@ class RouteSearchResult {
 }
 
 // ============================================================
-// DONNEES
+// DONNEES (TER, BRT, AFTU, Tata, DDD) - Mise à jour avec StopType
 // ============================================================
 final List<Stop> terStations = [
-  Stop(name: 'Gare TER Dakar', direction: 'Terminus Dakar (Arrivée)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 0), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6792, -17.4407), modeLabel: 'TER', source: DataSourceInfo.seter),
-  Stop(name: 'Gare TER Dakar', direction: 'Dir. Diamniadio (Embarquement)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 3), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6795, -17.4405), modeLabel: 'TER', source: DataSourceInfo.seter),
-  Stop(name: 'Gare TER Colobane', direction: 'Dir. Diamniadio', distanceMeters: 1200, departureMinutesFromMidnight: _shift(_terBase, 5), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6937, -17.4441), modeLabel: 'TER', source: DataSourceInfo.seter),
-  Stop(name: 'Gare TER Colobane', direction: 'Dir. Dakar', distanceMeters: 1200, departureMinutesFromMidnight: _shift(_terBase, 3), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6935, -17.4443), modeLabel: 'TER', source: DataSourceInfo.seter),
-  Stop(name: 'Gare TER Hann', direction: 'Dir. Diamniadio', distanceMeters: 3500, departureMinutesFromMidnight: _shift(_terBase, 9), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7222, -17.4321), modeLabel: 'TER', source: DataSourceInfo.seter),
-  Stop(name: 'Gare TER Hann', direction: 'Dir. Dakar', distanceMeters: 3500, departureMinutesFromMidnight: _shift(_terBase, 7), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7220, -17.4323), modeLabel: 'TER', source: DataSourceInfo.seter),
-  Stop(name: 'Gare TER Dalifort', direction: 'Dir. Diamniadio', distanceMeters: 5100, departureMinutesFromMidnight: _shift(_terBase, 12), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7410, -17.4120), modeLabel: 'TER', source: DataSourceInfo.seter),
-  Stop(name: 'Gare TER Dalifort', direction: 'Dir. Dakar', distanceMeters: 5100, departureMinutesFromMidnight: _shift(_terBase, 10), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7412, -17.4122), modeLabel: 'TER', source: DataSourceInfo.seter),
-  Stop(name: 'Gare TER Baux Maraichers', direction: 'Dir. Diamniadio', distanceMeters: 6300, departureMinutesFromMidnight: _shift(_terBase, 14), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7470, -17.4010), modeLabel: 'TER', source: DataSourceInfo.seter),
-  Stop(name: 'Gare TER Pikine', direction: 'Dir. Diamniadio', distanceMeters: 7200, departureMinutesFromMidnight: _shift(_terBase, 17), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7550, -17.3900), modeLabel: 'TER', source: DataSourceInfo.seter),
-  Stop(name: 'Gare TER Thiaroye', direction: 'Dir. Diamniadio', distanceMeters: 8100, departureMinutesFromMidnight: _shift(_terBase, 20), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7588, -17.3803), modeLabel: 'TER', source: DataSourceInfo.seter),
-  Stop(name: 'Gare TER Yeumbeul', direction: 'Dir. Diamniadio', distanceMeters: 11500, departureMinutesFromMidnight: _shift(_terBase, 24), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7700, -17.3400), modeLabel: 'TER', source: DataSourceInfo.seter),
-  Stop(name: 'Gare TER Keur Mbaye Fall', direction: 'Dir. Dakar / Diamniadio', distanceMeters: 14200, departureMinutesFromMidnight: _shift(_terBase, 27), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7750, -17.3100), modeLabel: 'TER', source: DataSourceInfo.seter),
-  Stop(name: 'Gare TER PNR', direction: 'Dir. Diamniadio', distanceMeters: 16800, departureMinutesFromMidnight: _shift(_terBase, 30), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7500, -17.2900), modeLabel: 'TER', source: DataSourceInfo.seter),
-  Stop(name: 'Gare TER Rufisque', direction: 'Dir. Diamniadio', distanceMeters: 22100, departureMinutesFromMidnight: _shift(_terBase, 36), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7157, -17.2703), modeLabel: 'TER', source: DataSourceInfo.seter),
-  Stop(name: 'Gare TER Bargny', direction: 'Dir. Diamniadio', distanceMeters: 28500, departureMinutesFromMidnight: _shift(_terBase, 42), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6900, -17.2200), modeLabel: 'TER', source: DataSourceInfo.seter),
-  Stop(name: 'Gare TER Diamniadio', direction: 'Terminus Diamniadio', distanceMeters: 35000, departureMinutesFromMidnight: _shift(_terBase, 50), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7160, -17.1986), modeLabel: 'TER', source: DataSourceInfo.seter),
+  // Arrivées
+  Stop(name: 'Gare TER Dakar', direction: 'Terminus Dakar (Arrivée)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 0), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6792, -17.4407), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.arrival),
+  // Départs / Embarquement
+  Stop(name: 'Gare TER Dakar', direction: 'Dir. Diamniadio (Embarquement)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 3), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6795, -17.4405), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
+  Stop(name: 'Gare TER Colobane', direction: 'Dir. Diamniadio', distanceMeters: 1200, departureMinutesFromMidnight: _shift(_terBase, 5), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6937, -17.4441), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
+  Stop(name: 'Gare TER Colobane', direction: 'Dir. Dakar', distanceMeters: 1200, departureMinutesFromMidnight: _shift(_terBase, 3), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6935, -17.4443), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
+  Stop(name: 'Gare TER Hann', direction: 'Dir. Diamniadio', distanceMeters: 3500, departureMinutesFromMidnight: _shift(_terBase, 9), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7222, -17.4321), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
+  Stop(name: 'Gare TER Hann', direction: 'Dir. Dakar', distanceMeters: 3500, departureMinutesFromMidnight: _shift(_terBase, 7), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7220, -17.4323), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
+  Stop(name: 'Gare TER Dalifort', direction: 'Dir. Diamniadio', distanceMeters: 5100, departureMinutesFromMidnight: _shift(_terBase, 12), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7410, -17.4120), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
+  Stop(name: 'Gare TER Dalifort', direction: 'Dir. Dakar', distanceMeters: 5100, departureMinutesFromMidnight: _shift(_terBase, 10), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7412, -17.4122), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
+  Stop(name: 'Gare TER Baux Maraichers', direction: 'Dir. Diamniadio', distanceMeters: 6300, departureMinutesFromMidnight: _shift(_terBase, 14), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7470, -17.4010), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
+  Stop(name: 'Gare TER Pikine', direction: 'Dir. Diamniadio', distanceMeters: 7200, departureMinutesFromMidnight: _shift(_terBase, 17), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7550, -17.3900), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
+  Stop(name: 'Gare TER Thiaroye', direction: 'Dir. Diamniadio', distanceMeters: 8100, departureMinutesFromMidnight: _shift(_terBase, 20), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7588, -17.3803), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
+  Stop(name: 'Gare TER Yeumbeul', direction: 'Dir. Diamniadio', distanceMeters: 11500, departureMinutesFromMidnight: _shift(_terBase, 24), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7700, -17.3400), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
+  Stop(name: 'Gare TER Keur Mbaye Fall', direction: 'Dir. Dakar / Diamniadio', distanceMeters: 14200, departureMinutesFromMidnight: _shift(_terBase, 27), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7750, -17.3100), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.correspondence),
+  Stop(name: 'Gare TER PNR', direction: 'Dir. Diamniadio', distanceMeters: 16800, departureMinutesFromMidnight: _shift(_terBase, 30), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7500, -17.2900), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
+  Stop(name: 'Gare TER Rufisque', direction: 'Dir. Diamniadio', distanceMeters: 22100, departureMinutesFromMidnight: _shift(_terBase, 36), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7157, -17.2703), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
+  Stop(name: 'Gare TER Bargny', direction: 'Dir. Diamniadio', distanceMeters: 28500, departureMinutesFromMidnight: _shift(_terBase, 42), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6900, -17.2200), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
+  Stop(name: 'Gare TER Diamniadio', direction: 'Terminus Diamniadio', distanceMeters: 35000, departureMinutesFromMidnight: _shift(_terBase, 50), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7160, -17.1986), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.terminus),
 ];
 
 final List<Stop> brtStations = [
-  Stop(name: 'PEM Petersen', direction: 'Terminus sud BRT', distanceMeters: 200, departureMinutesFromMidnight: _shift(_brtBase, 0), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.6720, -17.4400), modeLabel: 'BRT', source: DataSourceInfo.sunubrt),
-  Stop(name: 'BRT Colobane', direction: 'Dir. Guediawaye', distanceMeters: 150, departureMinutesFromMidnight: _shift(_brtBase, 2), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.6950, -17.4420), modeLabel: 'BRT', source: DataSourceInfo.sunubrt),
-  Stop(name: 'BRT Grand Dakar', direction: 'Dir. Guediawaye', distanceMeters: 1500, departureMinutesFromMidnight: _shift(_brtBase, 4), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.7050, -17.4400), modeLabel: 'BRT', source: DataSourceInfo.sunubrt),
-  Stop(name: 'BRT Parcelles', direction: 'Dir. Guediawaye', distanceMeters: 5000, departureMinutesFromMidnight: _shift(_brtBase, 6), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.7350, -17.4260), modeLabel: 'BRT', source: DataSourceInfo.sunubrt),
-  Stop(name: 'PEM Guediawaye', direction: 'Terminus nord BRT', distanceMeters: 10500, departureMinutesFromMidnight: _shift(_brtBase, 8), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.7735, -17.3977), modeLabel: 'BRT', source: DataSourceInfo.sunubrt),
+  Stop(name: 'PEM Petersen', direction: 'Terminus sud BRT', distanceMeters: 200, departureMinutesFromMidnight: _shift(_brtBase, 0), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.6720, -17.4400), modeLabel: 'BRT', source: DataSourceInfo.sunubrt, stopType: StopType.terminus),
+  Stop(name: 'BRT Colobane', direction: 'Dir. Guediawaye', distanceMeters: 150, departureMinutesFromMidnight: _shift(_brtBase, 2), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.6950, -17.4420), modeLabel: 'BRT', source: DataSourceInfo.sunubrt, stopType: StopType.boarding),
+  Stop(name: 'BRT Grand Dakar', direction: 'Dir. Guediawaye', distanceMeters: 1500, departureMinutesFromMidnight: _shift(_brtBase, 4), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.7050, -17.4400), modeLabel: 'BRT', source: DataSourceInfo.sunubrt, stopType: StopType.boarding),
+  Stop(name: 'BRT Parcelles', direction: 'Dir. Guediawaye', distanceMeters: 5000, departureMinutesFromMidnight: _shift(_brtBase, 6), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.7350, -17.4260), modeLabel: 'BRT', source: DataSourceInfo.sunubrt, stopType: StopType.boarding),
+  Stop(name: 'PEM Guediawaye', direction: 'Terminus nord BRT', distanceMeters: 10500, departureMinutesFromMidnight: _shift(_brtBase, 8), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.7735, -17.3977), modeLabel: 'BRT', source: DataSourceInfo.sunubrt, stopType: StopType.terminus),
 ];
 
 final List<Stop> otherBusStations = [
-  const Stop(name: 'Arret AFTU 23', direction: 'Dir. Parcelles Assainies', distanceMeters: 280, departureMinutesFromMidnight: [630, 645, 700, 715, 730, 745, 800, 815, 830, 845, 900, 915], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: LatLng(14.6900, -17.4460), modeLabel: 'AFTU'),
-  const Stop(name: 'Arret AFTU 10', direction: 'Dir. Grand Yoff', distanceMeters: 450, departureMinutesFromMidnight: [635, 650, 705, 720, 735, 750, 805, 820, 835, 850, 905, 920], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: LatLng(14.7200, -17.4600), modeLabel: 'AFTU'),
-  const Stop(name: 'Arret Tata 12', direction: 'Dir. Guediawaye', distanceMeters: 600, departureMinutesFromMidnight: [640, 655, 710, 725, 740, 755, 810, 825, 840, 855, 910, 925], icon: Icons.directions_bus_filled, color: AppColors.tata, location: LatLng(14.7200, -17.4700), modeLabel: 'Tata'),
-  const Stop(name: 'Ligne DDD 1', direction: 'Parcelles Assainies ➔ Place Leclerc', distanceMeters: 350, departureMinutesFromMidnight: [360, 420, 480, 540, 600, 660, 720, 780, 840, 900, 960], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7600, -17.4400), modeLabel: 'DDD'),
-  const Stop(name: 'Ligne DDD 4', direction: 'Liberté 5 ➔ Place Leclerc', distanceMeters: 420, departureMinutesFromMidnight: [370, 430, 490, 550, 610, 670, 730, 790, 850, 910, 970], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7150, -17.4600), modeLabel: 'DDD'),
-  const Stop(name: 'Ligne DDD 7', direction: 'Ouakam ➔ Palais 2', distanceMeters: 500, departureMinutesFromMidnight: [380, 440, 500, 560, 620, 680, 740, 800, 860, 920, 980], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7250, -17.4900), modeLabel: 'DDD'),
-  const Stop(name: 'Ligne DDD 8', direction: 'Aéroport LSS ➔ Palais 2', distanceMeters: 600, departureMinutesFromMidnight: [390, 450, 510, 570, 630, 690, 750, 810, 870, 930], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7550, -17.4750), modeLabel: 'DDD'),
-  const Stop(name: 'Ligne DDD 9', direction: 'Liberté 6 ➔ Palais 2', distanceMeters: 650, departureMinutesFromMidnight: [400, 460, 520, 580, 640, 700, 760, 820, 880, 940], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7250, -17.4650), modeLabel: 'DDD'),
-  const Stop(name: 'Ligne DDD 217', direction: 'Thiaroye ➔ Ouakam', distanceMeters: 850, departureMinutesFromMidnight: [360, 440, 520, 600, 680, 760, 840, 920], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7588, -17.3803), modeLabel: 'DDD'),
-  const Stop(name: 'Ligne DDD 218', direction: 'Thiaroye ➔ Djiolof Chicken Almadie', distanceMeters: 900, departureMinutesFromMidnight: [370, 450, 530, 610, 690, 770, 850, 930], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7588, -17.3803), modeLabel: 'DDD'),
-  const Stop(name: 'Ligne DDD 219', direction: 'Daroukhane ➔ Ouakam', distanceMeters: 950, departureMinutesFromMidnight: [380, 460, 540, 620, 700, 780, 860, 940], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7200, -17.4900), modeLabel: 'DDD'),
-  const Stop(name: 'Ligne DDD 220', direction: 'Rufisque ➔ Guédiawaye', distanceMeters: 1100, departureMinutesFromMidnight: [390, 470, 550, 630, 710, 790, 870, 950], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7157, -17.2703), modeLabel: 'DDD'),
-  const Stop(name: 'Ligne DDD 221', direction: 'Gadaye ➔ Almadies', distanceMeters: 1200, departureMinutesFromMidnight: [400, 480, 560, 640, 720, 800, 880, 960], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7700, -17.4300), modeLabel: 'DDD'),
-  const Stop(name: 'Ligne DDD 227', direction: 'Keur Massar ➔ Parcelles Assainies', distanceMeters: 1300, departureMinutesFromMidnight: [410, 490, 570, 650, 730, 810, 890, 970], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7900, -17.3500), modeLabel: 'DDD'),
-  const Stop(name: 'Ligne DDD 401', direction: 'Ouakam ➔ Aéroport Diass (AIBD)', distanceMeters: 2500, departureMinutesFromMidnight: [420, 540, 660, 780, 900], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7250, -17.4900), modeLabel: 'DDD'),
-  const Stop(name: 'Ligne DDD 402', direction: 'Thiaroye ➔ Aéroport Diass (AIBD)', distanceMeters: 2600, departureMinutesFromMidnight: [430, 550, 670, 790, 910], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7588, -17.3803), modeLabel: 'DDD'),
-  const Stop(name: 'Ligne DDD 403', direction: 'Parcelles Assainies ➔ Aéroport Diass (AIBD)', distanceMeters: 2700, departureMinutesFromMidnight: [440, 560, 680, 800, 920], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7600, -17.4400), modeLabel: 'DDD'),
+  const Stop(name: 'Arret AFTU 23', direction: 'Dir. Parcelles Assainies', distanceMeters: 280, departureMinutesFromMidnight: [630, 645, 700, 715, 730, 745, 800, 815, 830, 845, 900, 915], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: LatLng(14.6900, -17.4460), modeLabel: 'AFTU', stopType: StopType.boarding),
+  const Stop(name: 'Arret AFTU 10', direction: 'Dir. Grand Yoff', distanceMeters: 450, departureMinutesFromMidnight: [635, 650, 705, 720, 735, 750, 805, 820, 835, 850, 905, 920], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: LatLng(14.7200, -17.4600), modeLabel: 'AFTU', stopType: StopType.boarding),
+  const Stop(name: 'Arret Tata 12', direction: 'Dir. Guediawaye', distanceMeters: 600, departureMinutesFromMidnight: [640, 655, 710, 725, 740, 755, 810, 825, 840, 855, 910, 925], icon: Icons.directions_bus_filled, color: AppColors.tata, location: LatLng(14.7200, -17.4700), modeLabel: 'Tata', stopType: StopType.boarding),
+  const Stop(name: 'Ligne DDD 1', direction: 'Parcelles Assainies ➔ Place Leclerc', distanceMeters: 350, departureMinutesFromMidnight: [360, 420, 480, 540, 600, 660, 720, 780, 840, 900, 960], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7600, -17.4400), modeLabel: 'DDD', stopType: StopType.boarding),
+  const Stop(name: 'Ligne DDD 4', direction: 'Liberté 5 ➔ Place Leclerc', distanceMeters: 420, departureMinutesFromMidnight: [370, 430, 490, 550, 610, 670, 730, 790, 850, 910, 970], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7150, -17.4600), modeLabel: 'DDD', stopType: StopType.boarding),
+  const Stop(name: 'Ligne DDD 7', direction: 'Ouakam ➔ Palais 2', distanceMeters: 500, departureMinutesFromMidnight: [380, 440, 500, 560, 620, 680, 740, 800, 860, 920, 980], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7250, -17.4900), modeLabel: 'DDD', stopType: StopType.boarding),
+  const Stop(name: 'Ligne DDD 8', direction: 'Aéroport LSS ➔ Palais 2', distanceMeters: 600, departureMinutesFromMidnight: [390, 450, 510, 570, 630, 690, 750, 810, 870, 930], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7550, -17.4750), modeLabel: 'DDD', stopType: StopType.boarding),
+  const Stop(name: 'Ligne DDD 9', direction: 'Liberté 6 ➔ Palais 2', distanceMeters: 650, departureMinutesFromMidnight: [400, 460, 520, 580, 640, 700, 760, 820, 880, 940], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7250, -17.4650), modeLabel: 'DDD', stopType: StopType.boarding),
+  const Stop(name: 'Ligne DDD 217', direction: 'Thiaroye ➔ Ouakam', distanceMeters: 850, departureMinutesFromMidnight: [360, 440, 520, 600, 680, 760, 840, 920], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7588, -17.3803), modeLabel: 'DDD', stopType: StopType.boarding),
+  const Stop(name: 'Ligne DDD 218', direction: 'Thiaroye ➔ Djiolof Chicken Almadie', distanceMeters: 900, departureMinutesFromMidnight: [370, 450, 530, 610, 690, 770, 850, 930], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7588, -17.3803), modeLabel: 'DDD', stopType: StopType.boarding),
+  const Stop(name: 'Ligne DDD 219', direction: 'Daroukhane ➔ Ouakam', distanceMeters: 950, departureMinutesFromMidnight: [380, 460, 540, 620, 700, 780, 860, 940], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7200, -17.4900), modeLabel: 'DDD', stopType: StopType.boarding),
+  const Stop(name: 'Ligne DDD 220', direction: 'Rufisque ➔ Guédiawaye', distanceMeters: 1100, departureMinutesFromMidnight: [390, 470, 550, 630, 710, 790, 870, 950], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7157, -17.2703), modeLabel: 'DDD', stopType: StopType.boarding),
+  const Stop(name: 'Ligne DDD 221', direction: 'Gadaye ➔ Almadies', distanceMeters: 1200, departureMinutesFromMidnight: [400, 480, 560, 640, 720, 800, 880, 960], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7700, -17.4300), modeLabel: 'DDD', stopType: StopType.boarding),
+  const Stop(name: 'Ligne DDD 227', direction: 'Keur Massar ➔ Parcelles Assainies', distanceMeters: 1300, departureMinutesFromMidnight: [410, 490, 570, 650, 730, 810, 890, 970], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7900, -17.3500), modeLabel: 'DDD', stopType: StopType.boarding),
+  const Stop(name: 'Ligne DDD 401', direction: 'Ouakam ➔ Aéroport Diass (AIBD)', distanceMeters: 2500, departureMinutesFromMidnight: [420, 540, 660, 780, 900], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7250, -17.4900), modeLabel: 'DDD', stopType: StopType.boarding),
+  const Stop(name: 'Ligne DDD 402', direction: 'Thiaroye ➔ Aéroport Diass (AIBD)', distanceMeters: 2600, departureMinutesFromMidnight: [430, 550, 670, 790, 910], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7588, -17.3803), modeLabel: 'DDD', stopType: StopType.boarding),
+  const Stop(name: 'Ligne DDD 403', direction: 'Parcelles Assainies ➔ Aéroport Diass (AIBD)', distanceMeters: 2700, departureMinutesFromMidnight: [440, 560, 680, 800, 920], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7600, -17.4400), modeLabel: 'DDD', stopType: StopType.boarding),
 ];
 
 final List<Stop> allStops = [...terStations, ...brtStations, ...otherBusStations];
@@ -600,7 +610,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                       PolylineLayer(polylines: activePolylines),
                       MarkerLayer(
                         markers: mapStops.map((s) => Marker(
-                          point: s.location, width: 22, height: 22,
+                          point: s.location, width: 24, height: 24,
                           child: GestureDetector(
                             onTap: () { _centerOnStop(s); Navigator.push(context, MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: s))); },
                             child: Container(
@@ -609,7 +619,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                                 border: Border.all(color: Colors.white, width: 2),
                                 boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.25), blurRadius: 3)],
                               ),
-                              child: Icon(s.icon, color: Colors.white, size: 11),
+                              child: Icon(s.icon, color: Colors.white, size: 12),
                             ),
                           ),
                         )).toList(),
@@ -620,13 +630,10 @@ class _ExplorerPageState extends State<ExplorerPage> {
                   ),
                   if (_isLoadingRoutes) Positioned(top: 10, left: 140, child: Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(12)), child: const Text('Calcul des routes GPS...', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)))),
                   
-                  // BOUTON GPS AMÉLIORÉ (En bas à gauche)
                   Positioned(
                     bottom: 16, left: 16,
                     child: Material(
-                      elevation: 4,
-                      borderRadius: BorderRadius.circular(24),
-                      color: AppColors.surface,
+                      elevation: 4, borderRadius: BorderRadius.circular(24), color: AppColors.surface,
                       child: InkWell(
                         onTap: widget.gpsState == GpsState.granted ? () { if (widget.userPosition != null) _mapController.move(widget.userPosition!, 14.5); } : () => widget.onRequestLocation(),
                         borderRadius: BorderRadius.circular(24),
@@ -639,10 +646,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                                 ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
                                 : Icon(widget.gpsState == GpsState.granted ? Icons.my_location : Icons.location_searching, color: AppColors.primary, size: 18),
                               const SizedBox(width: 6),
-                              Text(
-                                widget.gpsState == GpsState.granted ? 'Ma position' : 'Activer GPS',
-                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primary),
-                              ),
+                              Text(widget.gpsState == GpsState.granted ? 'Ma position' : 'Activer GPS', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primary)),
                             ],
                           ),
                         ),
@@ -650,29 +654,20 @@ class _ExplorerPageState extends State<ExplorerPage> {
                     ),
                   ),
 
-                  // BOUTON ASSISTANT IA
                   Positioned(
                     bottom: 16, right: 16,
                     child: ElevatedButton.icon(
                       onPressed: _openAI,
                       icon: const Icon(Icons.auto_awesome, size: 16),
                       label: const Text('Assistant IA', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary, foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                        elevation: 4,
-                      ),
+                      style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)), elevation: 4),
                     ),
                   ),
 
-                  // BOUTON ZOOM / TAILLE AMÉLIORÉ (En haut à droite)
                   Positioned(
                     top: 12, right: 12,
                     child: Material(
-                      elevation: 4,
-                      borderRadius: BorderRadius.circular(24),
-                      color: AppColors.surface,
+                      elevation: 4, borderRadius: BorderRadius.circular(24), color: AppColors.surface,
                       child: InkWell(
                         onTap: () => setState(() => _mapHeight = _mapHeight == 260 ? 340 : (_mapHeight == 340 ? 160 : 260)),
                         borderRadius: BorderRadius.circular(24),
@@ -691,7 +686,6 @@ class _ExplorerPageState extends State<ExplorerPage> {
                     ),
                   ),
                   
-                  // LÉGENDE
                   Positioned(top: 12, left: 12, child: Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6), decoration: BoxDecoration(color: AppColors.surface.withOpacity(0.95), borderRadius: BorderRadius.circular(8)), child: Row(mainAxisSize: MainAxisSize.min, children: [_legend(AppColors.ter, 'TER'), const SizedBox(width: 6), _legend(AppColors.brt, 'BRT'), const SizedBox(width: 6), _legend(AppColors.aftu, 'AFTU'), const SizedBox(width: 6), _legend(AppColors.tata, 'Tata'), const SizedBox(width: 6), _legend(AppColors.ddd, 'DDD')]))),
                 ],
               ),
@@ -738,11 +732,12 @@ class _ExplorerPageState extends State<ExplorerPage> {
 }
 
 // ============================================================
-// CARTE D ARRET
+// CARTE D ARRET (Améliorée avec StopType)
 // ============================================================
 class StopCard extends StatelessWidget {
   final Stop stop; final double distanceMeters;
   const StopCard({super.key, required this.stop, required this.distanceMeters});
+
   @override
   Widget build(BuildContext context) {
     final remaining = stop.remainingMinutes();
@@ -754,19 +749,50 @@ class StopCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6)]),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: stop))),
-        leading: CircleAvatar(backgroundColor: stop.color, radius: 22, child: Icon(stop.icon, color: Colors.white, size: 20)),
-        title: Text(stop.name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
-        subtitle: Padding(padding: const EdgeInsets.only(top: 4), child: Text('${stop.direction} . ${DistanceHelper.format(distanceMeters)}', style: const TextStyle(fontSize: 12))),
+        leading: CircleAvatar(backgroundColor: stop.color, radius: 24, child: Icon(stop.icon, color: Colors.white, size: 22)),
+        title: Row(
+          children: [
+            Expanded(child: Text(stop.name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold))),
+            _buildStopTypeBadge(stop.stopType),
+          ],
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(stop.direction, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+              const SizedBox(height: 2),
+              Text('${DistanceHelper.format(distanceMeters)} . ${stop.modeLabel}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+            ],
+          ),
+        ),
         trailing: timeWidget,
       ),
+    );
+  }
+
+  Widget _buildStopTypeBadge(StopType type) {
+    Color color; String label;
+    switch (type) {
+      case StopType.arrival: color = AppColors.warning; label = 'ARRIVÉE'; break;
+      case StopType.departure: color = AppColors.primary; label = 'DÉPART'; break;
+      case StopType.boarding: color = AppColors.brt; label = 'EMBARQUEMENT'; break;
+      case StopType.terminus: color = AppColors.ter; label = 'TERMINUS'; break;
+      case StopType.correspondence: color = AppColors.tata; label = 'CORRESP.'; break;
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(4), border: Border.all(color: color.withOpacity(0.4), width: 0.8)),
+      child: Text(label, style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: color)),
     );
   }
 }
 
 // ============================================================
-// TRAJETS (Refonte complète et attractive)
+// TRAJETS
 // ============================================================
 class TripsPage extends StatefulWidget {
   final List<FavoriteRoute> favorites;
@@ -804,14 +830,9 @@ class _TripsPageState extends State<TripsPage> {
             const Text('Trouvez le meilleur itinéraire multimodal.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
             const SizedBox(height: 20),
             
-            // Formulaire de recherche
             Container(
               padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColors.surface, 
-                borderRadius: BorderRadius.circular(20), 
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, 4))]
-              ),
+              decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, 4))]),
               child: Column(
                 children: [
                   _buildInputField(controller: _fromCtrl, label: 'Départ', icon: Icons.my_location, color: AppColors.primary),
@@ -820,22 +841,13 @@ class _TripsPageState extends State<TripsPage> {
                   const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: _loading ? null : _search,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary, 
-                      foregroundColor: Colors.white, 
-                      minimumSize: const Size(double.infinity, 52), 
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      elevation: 2,
-                    ),
-                    child: _loading 
-                      ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5)) 
-                      : const Text('Rechercher', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 52), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)), elevation: 2),
+                    child: _loading ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5)) : const Text('Rechercher', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
             ),
             
-            // Suggestions rapides
             if (_result == null && !_loading) ...[
               const SizedBox(height: 24),
               const Text('Suggestions populaires', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
@@ -851,29 +863,14 @@ class _TripsPageState extends State<TripsPage> {
               ),
             ],
 
-            // Résultats
             if (_result != null) ...[
               const SizedBox(height: 24),
-              Row(children: [
-                const Text('Itinéraires proposés', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                const Spacer(),
-                Text('${_result!.routes.length} résultat(s)', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-              ]),
+              Row(children: [const Text('Itinéraires proposés', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), const Spacer(), Text('${_result!.routes.length} résultat(s)', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))]),
               const SizedBox(height: 12),
               if (_result!.hasRoutes)
                 ..._result!.routes.map((r) => _buildRouteCard(r))
               else
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
-                  child: Column(
-                    children: [
-                      const Icon(Icons.error_outline, color: AppColors.warning, size: 40),
-                      const SizedBox(height: 10),
-                      Text(_result!.errorMessage ?? 'Aucun trajet trouvé', textAlign: TextAlign.center, style: const TextStyle(fontSize: 14, color: AppColors.textSecondary)),
-                    ],
-                  ),
-                ),
+                Container(padding: const EdgeInsets.all(20), decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)), child: Column(children: [const Icon(Icons.error_outline, color: AppColors.warning, size: 40), const SizedBox(height: 10), Text(_result!.errorMessage ?? 'Aucun trajet trouvé', textAlign: TextAlign.center, style: const TextStyle(fontSize: 14, color: AppColors.textSecondary))])),
             ],
           ],
         ),
@@ -885,13 +882,10 @@ class _TripsPageState extends State<TripsPage> {
     return TextField(
       controller: controller,
       decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, color: color, size: 22),
+        labelText: label, prefixIcon: Icon(icon, color: color, size: 22),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.divider)),
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: color, width: 2)),
-        filled: true,
-        fillColor: AppColors.background,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        filled: true, fillColor: AppColors.background, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
     );
   }
@@ -899,16 +893,7 @@ class _TripsPageState extends State<TripsPage> {
   Widget _suggestionChip(String label, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.divider),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4)],
-        ),
-        child: Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
-      ),
+      child: Container(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10), decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.divider), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4)]), child: Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500))),
     );
   }
 
@@ -924,29 +909,10 @@ class _TripsPageState extends State<TripsPage> {
           children: [
             Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: r.segments.first.color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
-                  child: Icon(r.segments.first.icon, color: r.segments.first.color, size: 22),
-                ),
+                Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: r.segments.first.color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Icon(r.segments.first.icon, color: r.segments.first.color, size: 22)),
                 const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('${r.fromName} ➔ ${r.toName}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                      const SizedBox(height: 2),
-                      Text('${r.transferCount} correspondance(s) . ${r.segments.length} étape(s)', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                    ],
-                  ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('${r.totalMinutes} min', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 18)),
-                    const Text('Durée totale', style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
-                  ],
-                ),
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('${r.fromName} ➔ ${r.toName}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)), const SizedBox(height: 2), Text('${r.transferCount} correspondance(s) . ${r.segments.length} étape(s)', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))])),
+                Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Text('${r.totalMinutes} min', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 18)), const Text('Durée totale', style: TextStyle(fontSize: 10, color: AppColors.textSecondary))]),
               ],
             ),
             const SizedBox(height: 16),
@@ -959,34 +925,18 @@ class _TripsPageState extends State<TripsPage> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Column(
-                      children: [
-                        Container(width: 10, height: 10, decoration: BoxDecoration(color: s.color, shape: BoxShape.circle)),
-                        if (!isLast) Expanded(child: Container(width: 2, color: AppColors.divider)),
-                      ],
-                    ),
+                    Column(children: [Container(width: 10, height: 10, decoration: BoxDecoration(color: s.color, shape: BoxShape.circle)), if (!isLast) Expanded(child: Container(width: 2, color: AppColors.divider))]),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Padding(
                         padding: EdgeInsets.only(bottom: isLast ? 0 : 16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(s.icon, size: 14, color: s.color),
-                                const SizedBox(width: 6),
-                                Text(s.modeLabel, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: s.color)),
-                                const Spacer(),
-                                Text(s.departureTime ?? '', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Text('${s.from} ➔ ${s.to}', style: const TextStyle(fontSize: 12)),
-                            const SizedBox(height: 2),
-                            Text('Durée: ${s.durationMinutes} min', style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
-                          ],
-                        ),
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Row(children: [Icon(s.icon, size: 14, color: s.color), const SizedBox(width: 6), Text(s.modeLabel, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: s.color)), const Spacer(), Text(s.departureTime ?? '', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold))]),
+                          const SizedBox(height: 4),
+                          Text('${s.from} ➔ ${s.to}', style: const TextStyle(fontSize: 12)),
+                          const SizedBox(height: 2),
+                          Text('Durée: ${s.durationMinutes} min', style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                        ]),
                       ),
                     ),
                   ],
@@ -1045,36 +995,17 @@ class _AlertsPageState extends State<AlertsPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.3), width: 1.5),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)],
-      ),
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: color.withOpacity(0.3), width: 1.5), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)]),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: alert['color'].withOpacity(0.1), shape: BoxShape.circle),
-            child: Icon(alert['icon'], color: alert['color'], size: 22),
-          ),
+          Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: alert['color'].withOpacity(0.1), shape: BoxShape.circle), child: Icon(alert['icon'], color: alert['color'], size: 22)),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Text(alert['type'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: alert['color'])),
-                    const Spacer(),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
-                      child: Text(alert['time'], style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.bold)),
-                    ),
-                  ],
-                ),
+                Row(children: [Text(alert['type'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: alert['color'])), const Spacer(), Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Text(alert['time'], style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.bold)))]),
                 const SizedBox(height: 6),
                 Text(alert['message'], style: const TextStyle(fontSize: 13, height: 1.4, color: AppColors.textPrimary)),
               ],
@@ -1088,35 +1019,14 @@ class _AlertsPageState extends State<AlertsPage> {
   Widget _buildAIAssistantSection() {
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [AppColors.primary.withOpacity(0.08), AppColors.primary.withOpacity(0.02)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
-      ),
+      decoration: BoxDecoration(gradient: LinearGradient(colors: [AppColors.primary.withOpacity(0.08), AppColors.primary.withOpacity(0.02)], begin: Alignment.topLeft, end: Alignment.bottomRight), borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.primary.withOpacity(0.2))),
       child: Column(
         children: [
-          Row(
-            children: [
-              Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.15), shape: BoxShape.circle), child: const Icon(Icons.auto_awesome, color: AppColors.primary, size: 24)),
-              const SizedBox(width: 14),
-              const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Assistant IA', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary)), Text('Posez vos questions en direct', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))])),
-            ],
-          ),
+          Row(children: [Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.15), shape: BoxShape.circle), child: const Icon(Icons.auto_awesome, color: AppColors.primary, size: 24)), const SizedBox(width: 14), const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Assistant IA', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary)), Text('Posez vos questions en direct', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))]))]),
           const SizedBox(height: 16),
-          const Text(
-            'L\'IA analyse le réseau en temps réel pour vous informer sur les horaires, les perturbations et vous guider dans vos correspondances.',
-            style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.4),
-          ),
+          const Text('L\'IA analyse le réseau en temps réel pour vous informer sur les horaires, les perturbations et vous guider dans vos correspondances.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.4)),
           const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AIChatPage())),
-              icon: const Icon(Icons.chat_bubble_outline, size: 20),
-              label: const Text('Discuter avec l\'IA', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
-            ),
-          ),
+          SizedBox(width: double.infinity, child: ElevatedButton.icon(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AIChatPage())), icon: const Icon(Icons.chat_bubble_outline, size: 20), label: const Text('Discuter avec l\'IA', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))))),
         ],
       ),
     );
@@ -1195,11 +1105,7 @@ class _AIChatPageState extends State<AIChatPage> {
                     constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.82),
                     decoration: BoxDecoration(
                       color: isUser ? AppColors.primary : AppColors.surface,
-                      borderRadius: BorderRadius.only(
-                        topLeft: const Radius.circular(18), topRight: const Radius.circular(18),
-                        bottomLeft: isUser ? const Radius.circular(18) : const Radius.circular(4),
-                        bottomRight: isUser ? const Radius.circular(4) : const Radius.circular(18),
-                      ),
+                      borderRadius: BorderRadius.only(topLeft: const Radius.circular(18), topRight: const Radius.circular(18), bottomLeft: isUser ? const Radius.circular(18) : const Radius.circular(4), bottomRight: isUser ? const Radius.circular(4) : const Radius.circular(18)),
                       boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 6)],
                     ),
                     child: Text(msg['text']!, style: TextStyle(color: isUser ? Colors.white : AppColors.textPrimary, fontSize: 14, height: 1.3)),
@@ -1213,23 +1119,9 @@ class _AIChatPageState extends State<AIChatPage> {
             decoration: BoxDecoration(color: AppColors.surface, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)]),
             child: Row(
               children: [
-                Expanded(
-                  child: TextField(
-                    controller: _msgCtrl,
-                    onSubmitted: (_) => _sendMessage(),
-                    decoration: InputDecoration(
-                      hintText: 'Posez votre question...',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none),
-                      filled: true, fillColor: AppColors.background,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                    ),
-                  ),
-                ),
+                Expanded(child: TextField(controller: _msgCtrl, onSubmitted: (_) => _sendMessage(), decoration: InputDecoration(hintText: 'Posez votre question...', border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none), filled: true, fillColor: AppColors.background, contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12)))),
                 const SizedBox(width: 8),
-                CircleAvatar(
-                  backgroundColor: AppColors.primary, radius: 22,
-                  child: IconButton(icon: const Icon(Icons.send, color: Colors.white, size: 20), onPressed: _sendMessage),
-                ),
+                CircleAvatar(backgroundColor: AppColors.primary, radius: 22, child: IconButton(icon: const Icon(Icons.send, color: Colors.white, size: 20), onPressed: _sendMessage)),
               ],
             ),
           ),
@@ -1262,7 +1154,7 @@ class SettingsPage extends StatelessWidget {
             decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
             child: Column(
               children: [
-                ListTile(leading: const Icon(Icons.info_outline, color: AppColors.primary), title: const Text('Version de l\'application'), subtitle: const Text('Dakar Bus v2.8.0 (GPS Validé)'), trailing: const Icon(Icons.chevron_right)),
+                ListTile(leading: const Icon(Icons.info_outline, color: AppColors.primary), title: const Text('Version de l\'application'), subtitle: const Text('Dakar Bus v2.9.0 (GPS Validé)'), trailing: const Icon(Icons.chevron_right)),
                 const Divider(height: 1),
                 ListTile(leading: const Icon(Icons.language, color: AppColors.primary), title: const Text('Langue'), subtitle: const Text('Français'), trailing: const Icon(Icons.chevron_right)),
                 const Divider(height: 1),
