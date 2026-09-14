@@ -84,12 +84,15 @@ final List<int> _terBase = _buildTerBase();
 // COULEURS & THEME
 // ============================================================
 class AppColors {
-  static const primary = Color(0xFF00695C);
-  static const brt = Color(0xFF1976D2);
-  static const ter = Color(0xFF8D4004);
-  static const aftu = Color(0xFFEF6C00);
-  static const tata = Color(0xFF7B1FA2);
-  static const ddd = Color(0xFF0288D1);
+  static const primary = Color(0xFF00695C); // Vert principal de l'app (utilisé pour l'UI)
+  
+  // Couleurs spécifiques aux modes de transport
+  static const ter = Color(0xFF8D4004); // Marron
+  static const brt = Color(0xFF00C853); // Vert vif pour le BRT (NOUVEAU)
+  static const aftu = Color(0xFFEF6C00); // Orange
+  static const tata = Color(0xFF7B1FA2); // Violet
+  static const ddd = Color(0xFF0288D1); // Bleu pour les DDD (NOUVEAU)
+  
   static const background = Color(0xFFF8F9FA);
   static const surface = Color(0xFFFFFFFF);
   static const textPrimary = Color(0xFF1A1A1A);
@@ -261,7 +264,7 @@ final List<Stop> otherBusStations = [
 final List<Stop> allStops = [...terStations, ...brtStations, ...otherBusStations];
 
 // ============================================================
-// TRACES DES LIGNES
+// TRACES DES LIGNES (Mise à jour des couleurs)
 // ============================================================
 final List<TransitRoute> demoRoutes = [
   const TransitRoute(
@@ -274,7 +277,7 @@ final List<TransitRoute> demoRoutes = [
     ],
   ),
   const TransitRoute(
-    name: 'BRT', code: 'B1', type: 'BRT', color: AppColors.brt,
+    name: 'BRT', code: 'B1', type: 'BRT', color: AppColors.brt, // Vert
     points: [
       LatLng(14.6720, -17.4400), LatLng(14.6950, -17.4420), LatLng(14.7050, -17.4400),
       LatLng(14.7220, -17.4330), LatLng(14.7350, -17.4260), LatLng(14.7520, -17.4100),
@@ -282,21 +285,21 @@ final List<TransitRoute> demoRoutes = [
     ],
   ),
   const TransitRoute(
-    name: 'AFTU', code: '23', type: 'AFTU', color: AppColors.aftu,
+    name: 'AFTU', code: '23', type: 'AFTU', color: AppColors.aftu, // Orange
     points: [
       LatLng(14.7600, -17.4400), LatLng(14.7450, -17.4430), LatLng(14.7200, -17.4460),
       LatLng(14.6900, -17.4460), LatLng(14.6790, -17.4400),
     ],
   ),
   const TransitRoute(
-    name: 'Tata', code: '12', type: 'TATA', color: AppColors.tata,
+    name: 'Tata', code: '12', type: 'TATA', color: AppColors.tata, // Violet
     points: [
       LatLng(14.7735, -17.3977), LatLng(14.7500, -17.4200), LatLng(14.7250, -17.4500),
       LatLng(14.7000, -17.4600), LatLng(14.6800, -17.4500), LatLng(14.6750, -17.4400),
     ],
   ),
   const TransitRoute(
-    name: 'DDD Urbaine', code: 'DDD-1', type: 'DDD', color: AppColors.ddd,
+    name: 'DDD Urbaine', code: 'DDD-1', type: 'DDD', color: AppColors.ddd, // Bleu
     points: [
       LatLng(14.7600, -17.4400), LatLng(14.7450, -17.4440), LatLng(14.7250, -17.4520),
       LatLng(14.7050, -17.4560), LatLng(14.6900, -17.4480), LatLng(14.6790, -17.4420),
