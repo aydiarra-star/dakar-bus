@@ -58,9 +58,6 @@ class RoutingService {
 class OppositeStopService {
   static const double _maxOppositeDistanceMeters = 500.0;
 
-  /// Recherche un arrêt physique en sens inverse. Retourne `null` si aucun
-  /// candidat crédible n'existe — dans ce cas, [DualStopDetailPage]
-  /// génère automatiquement un sens inverse virtuel.
   static Stop? findOppositeStop({required Stop currentStop, required List<Stop> allStops}) {
     Stop? bestCandidate;
     double minDistance = double.infinity;
@@ -81,7 +78,6 @@ class OppositeStopService {
     }
     if (bestCandidate != null) return bestCandidate;
 
-    // Fallback : même mode, sens différent, < 500 m
     for (final stop in allStops) {
       if (identical(stop, currentStop)) continue;
       if (stop.modeLabel != currentStop.modeLabel) continue;
@@ -197,7 +193,6 @@ class Stop {
     this.source = DataSourceInfo.demo, this.stopType = StopType.departure,
   });
 
-  /// Copie modifiée d'un Stop — utile pour générer un sens inverse virtuel.
   Stop copyWith({
     String? name, String? direction, double? distanceMeters,
     List<int>? departureMinutesFromMidnight, IconData? icon, Color? color,
@@ -232,7 +227,6 @@ class TransitRoute {
   final String name; final String code; final String type; final Color color; final List<LatLng> points;
   const TransitRoute({required this.name, required this.code, required this.type, required this.color, required this.points});
 
-  /// Indique si la ligne suit une infrastructure dédiée (rail/voie BRT).
   bool get isDedicated => type == 'TER' || type == 'BRT';
 }
 
@@ -315,7 +309,7 @@ final List<Stop> otherBusStations = [
 final List<Stop> allStops = [...terStations, ...brtStations, ...otherBusStations];
 
 // ============================================================
-// TRACES DES LIGNES (voies strictes par mode)
+// TRACES DES LIGNES
 // ============================================================
 final List<TransitRoute> demoRoutes = [
   const TransitRoute(
@@ -470,11 +464,9 @@ class DistanceHelper {
 }
 
 // ============================================================
-// INVERSEUR DE DIRECTION (pour sens inverse virtuel)
+// INVERSEUR DE DIRECTION
 // ============================================================
 class DirectionHelper {
-  /// Retourne la direction inverse d'un libellé donné.
-  /// Ex: 'Parcelles Assainies ➔ Place Leclerc' → 'Place Leclerc ➔ Parcelles Assainies'
   static String reverse(String direction) {
     if (direction.contains('➔')) {
       final parts = direction.split('➔').map((s) => s.trim()).toList();
@@ -510,7 +502,7 @@ class DirectionHelper {
 }
 
 // ============================================================
-// BASE DE CONNAISSANCE IA — alias de quartiers de Dakar
+// BASE DE CONNAISSANCE IA
 // ============================================================
 const Map<String, String> kDakarLocationAliases = {
   'mermoz': 'Liberté 5',
@@ -535,7 +527,6 @@ const Map<String, String> kDakarLocationAliases = {
   'ouakam': 'Ouakam',
   'pikine': 'Pikine',
   'guediawaye': 'Guediawaye',
-  'guédiawaye': 'Guediawaye',
   'guédiawaye': 'Guediawaye',
   'keur massar': 'Keur Massar',
   'keur-massar': 'Keur Massar',
@@ -629,7 +620,7 @@ class _MainShellState extends State<MainShell> {
         setState(() { _gpsState = GpsState.denied; _gpsMessage = 'Permission GPS refusée.'; }); return;
       }
       final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high, timeLimit: Duration(seconds: 10)),
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
       );
       setState(() { _userPosition = LatLng(position.latitude, position.longitude); _gpsState = GpsState.granted; _gpsMessage = null; });
     } catch (_) { setState(() { _gpsState = GpsState.error; _gpsMessage = 'Erreur GPS.'; }); }
@@ -695,11 +686,6 @@ class _ExplorerPageState extends State<ExplorerPage> {
   @override
   void initState() { super.initState(); _loadDynamicRoutes(); }
 
-  /// Charge les polylignes sur la carte :
-  /// - TER et BRT : infrastructure dédiée → on utilise directement les
-  ///   points définis (voie ferrée / voie réservée BRT) SANS OSRM,
-  ///   car ces modes ne suivent PAS les routes carrossables.
-  /// - AFTU / Tata / DDD : modes routiers → OSRM pour un tracé réaliste.
   Future<void> _loadDynamicRoutes() async {
     final List<Polyline> loaded = [];
 
@@ -709,10 +695,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
       List<LatLng> fullRoutePoints = [];
 
       if (route.isDedicated) {
-        // Voie strictement réservée (rail TER / couloir BRT)
         fullRoutePoints = List<LatLng>.from(route.points);
       } else {
-        // Mode routier : on suit les rues avec OSRM (parallélisé)
         final List<Future<List<LatLng>>> futures = [];
         for (int i = 0; i < route.points.length - 1; i++) {
           futures.add(RoutingService.getRealRoute(route.points[i], route.points[i + 1]));
@@ -1214,7 +1198,7 @@ class _AlertsPageState extends State<AlertsPage> {
 }
 
 // ============================================================
-// ASSISTANT IA (Chat) — OMNISCIENT DU RÉSEAU DAKAR BUS
+// ASSISTANT IA (Chat) — OMNISCIENT
 // ============================================================
 class AIChatPage extends StatefulWidget {
   const AIChatPage({super.key});
@@ -1248,24 +1232,19 @@ class _AIChatPageState extends State<AIChatPage> {
     });
   }
 
-  // ============================================================
-  // MOTEUR DE COMPRÉHENSION + RÉPONSE
-  // ============================================================
   String _getAIResponse(String query) {
     final q = query.toLowerCase().trim();
 
-    // 1) Salutations
-    if (RegExp(r'\b(bonjour|salut|bonsoir|hello|coucou|salam|nanga def)\b').hasMatch(q) && q.length < 25) {
+    if (RegExp(r"\b(bonjour|salut|bonsoir|hello|coucou|salam|nanga def)\b").hasMatch(q) && q.length < 25) {
       return 'Bonjour ! 😊 Où souhaitez-vous vous rendre aujourd\'hui ? Je peux vous guider vers n\'importe quel arrêt du réseau (TER, BRT, AFTU, Tata, DDD).';
     }
 
-    // 2) Détection d'intention : "je veux aller à X" / "comment rejoindre X" / "bus pour X"
     final intentPatterns = [
-      RegExp(r'(?:je veux|j\'aimerais|j aimerais|je souhaiterais|je voudrais|je cherche à|peux[- ]tu me dire comment)\s+(?:aller|me rendre|rejoindre|atteindre)\s+(?:à|au|aux|en|vers|jusqu\'?à)?\s*(.+)'),
-      RegExp(r'(?:comment|comment faire pour)\s+(?:aller|me rendre|rejoindre|atteindre)\s+(?:à|au|aux|en|vers|jusqu\'?à)?\s*(.+)'),
-      RegExp(r'(?:bus|car|ter|brt|transport|trajet|itinéraire|route|chemin|ligne)\s+(?:pour|vers|jusqu\'?à|à)\s+(.+)'),
-      RegExp(r'(?:aller|direction|vers)\s+(?:à|au|aux|en|vers)?\s*(.+)'),
-      RegExp(r'(?:je suis à|je pars de|je viens de|départ de)\s+(.+)'),
+      RegExp(r"(?:je veux|j'aimerais|j aimerais|je souhaiterais|je voudrais|je cherche à|peux[- ]tu me dire comment)\s+(?:aller|me rendre|rejoindre|atteindre)\s+(?:à|au|aux|en|vers|jusqu'?à)?\s*(.+)"),
+      RegExp(r"(?:comment|comment faire pour)\s+(?:aller|me rendre|rejoindre|atteindre)\s+(?:à|au|aux|en|vers|jusqu'?à)?\s*(.+)"),
+      RegExp(r"(?:bus|car|ter|brt|transport|trajet|itinéraire|route|chemin|ligne)\s+(?:pour|vers|jusqu'?à|à)\s+(.+)"),
+      RegExp(r"(?:aller|direction|vers)\s+(?:à|au|aux|en|vers)?\s*(.+)"),
+      RegExp(r"(?:je suis à|je pars de|je viens de|départ de)\s+(.+)"),
     ];
 
     for (final pattern in intentPatterns) {
@@ -1279,8 +1258,7 @@ class _AIChatPageState extends State<AIChatPage> {
       }
     }
 
-    // 3) Questions sur les perturbations
-    if (RegExp(r'\b(retard|perturbation|probleme|problème|panne|travaux|perturbé|perturbe)\b').hasMatch(q)) {
+    if (RegExp(r"\b(retard|perturbation|probleme|problème|panne|travaux|perturbé|perturbe)\b").hasMatch(q)) {
       return '📡 État du réseau en temps réel :\n\n'
           '🟤 TER : léger retard de 10 min sur Dakar ↔ Diamniadio\n'
           '🔵 BRT : trafic fluide (fréquence 6 min)\n'
@@ -1289,34 +1267,29 @@ class _AIChatPageState extends State<AIChatPage> {
           'Consultez l\'onglet "Alertes" pour plus de détails.';
     }
 
-    // 4) Questions sur TER
-    if (RegExp(r'\b(ter|train)\b').hasMatch(q)) {
+    if (RegExp(r"\b(ter|train)\b").hasMatch(q)) {
       final terStops = allStops.where((s) => s.modeLabel == 'TER').toList();
       return '🚆 Le TER (Train Express Régional) dessert ${terStops.length} gares, de Gare Dakar à Gare Diamniadio en passant par Colobane, Hann, Dalifort, Pikine, Thiaroye, Yeumbeul, Keur Mbaye Fall, PNR, Rufisque et Bargny.\n\n'
           'Fréquence : toutes les 10 min en semaine, 20 min le dimanche.\n'
           'Consultez l\'onglet "Explorer" avec le filtre TER pour voir les prochains départs.';
     }
 
-    // 5) Questions sur BRT
-    if (RegExp(r'\bbrt\b').hasMatch(q)) {
+    if (RegExp(r"\bbrt\b").hasMatch(q)) {
       return '🚌 Le BRT (Bus Rapid Transit) relie PEM Petersen à PEM Guédiawaye via Colobane, Grand Dakar et Parcelles.\n\n'
           'Fréquence : toutes les 6 minutes.\n'
           'Voie dédiée : le BRT circule sur son propre couloir réservé, d\'où sa rapidité.';
     }
 
-    // 6) Questions sur une ligne DDD spécifique
-    final ligneMatch = RegExp(r'ligne\s+(\d+)').firstMatch(q);
+    final ligneMatch = RegExp(r"ligne\s+(\d+)").firstMatch(q);
     if (ligneMatch != null) {
       return _respondLigneInfo(ligneMatch.group(1)!);
     }
 
-    // 7) Recherche directe d'un nom d'arrêt dans la base
     final stop = _findStopFuzzy(q);
     if (stop != null) {
       return _respondStopInfo(stop);
     }
 
-    // 8) Fallback avec exemple
     return '🤔 Je n\'ai pas bien saisi votre demande.\n\n'
         'Voici ce que je sais faire :\n'
         '• Vous indiquer un itinéraire : "Je veux aller à Keur Massar"\n'
@@ -1326,20 +1299,14 @@ class _AIChatPageState extends State<AIChatPage> {
         'Essayez par exemple : "Comment rejoindre Mermoz ?"';
   }
 
-  // Nettoie la destination extraite (retire ponctuation finale, etc.)
   String _cleanLocationQuery(String s) {
-    return s.replaceAll(RegExp(r'[?!.,;:]+$'), '').trim();
+    return s.replaceAll(RegExp(r"[?!.,;:]+$"), '').trim();
   }
 
-  // ============================================================
-  // RÉPONSES SPÉCIALISÉES
-  // ============================================================
   String _respondToRouteQuery(String destination, {String? originalQuery}) {
-    // 1) Chercher un arrêt correspondant (exact → alias → fuzzy)
     final stop = _findStopFuzzy(destination);
 
     if (stop == null) {
-      // Aucun arrêt trouvé : on propose les arrêts les plus proches du mot
       final suggestions = _suggestClosestStops(destination);
       return '📍 Je n\'ai pas trouvé "$destination" directement dans mon réseau.\n\n'
           'Voici des arrêts qui pourraient correspondre :\n'
@@ -1347,7 +1314,6 @@ class _AIChatPageState extends State<AIChatPage> {
           'Reformulez par exemple : "Je veux aller à ${suggestions.isNotEmpty ? suggestions.first.name : 'Keur Massar'}".';
     }
 
-    // 2) Calculer un itinéraire depuis la gare principale de Dakar
     final fromStop = allStops.firstWhere((s) => s.name.toLowerCase().contains('gare ter dakar'));
     final result = RoutePlanner.plan(fromQuery: fromStop.name, toQuery: stop.name);
 
@@ -1367,7 +1333,6 @@ class _AIChatPageState extends State<AIChatPage> {
           '💡 Astuce : ouvrez l\'onglet "Trajets" pour affiner depuis votre position exacte.';
     }
 
-    // 3) Pas d'itinéraire calculable : on donne les infos de l'arrêt
     return _respondStopInfo(stop);
   }
 
@@ -1399,25 +1364,19 @@ class _AIChatPageState extends State<AIChatPage> {
         'Consultez l\'onglet "Explorer" (filtre DDD) pour suivre en temps réel.';
   }
 
-  // ============================================================
-  // RECHERCHE FLOUE D'UN ARRÊT
-  // ============================================================
   Stop? _findStopFuzzy(String query) {
     final q = query.trim().toLowerCase();
     if (q.isEmpty) return null;
 
-    // 1) Correspondance exacte
     for (final s in allStops) {
       if (s.name.toLowerCase() == q) return s;
     }
 
-    // 2) Sous-chaîne directe (query dans nom, ou nom dans query)
     for (final s in allStops) {
       final n = s.name.toLowerCase();
       if (n.contains(q) || q.contains(n)) return s;
     }
 
-    // 3) Alias Dakar (Mermoz, Plateau, Sacré-Cœur, etc.)
     for (final entry in kDakarLocationAliases.entries) {
       if (q.contains(entry.key) || entry.key.contains(q)) {
         final target = entry.value.toLowerCase();
@@ -1427,8 +1386,7 @@ class _AIChatPageState extends State<AIChatPage> {
       }
     }
 
-    // 4) Recherche par mots significatifs (> 4 lettres)
-    final words = q.split(RegExp(r'\s+')).where((w) => w.length >= 4).toList();
+    final words = q.split(RegExp(r"\s+")).where((w) => w.length >= 4).toList();
     for (final word in words) {
       for (final s in allStops) {
         if (s.name.toLowerCase().contains(word)) return s;
@@ -1443,9 +1401,8 @@ class _AIChatPageState extends State<AIChatPage> {
       }
     }
 
-    // 5) Recherche par distance de Levenshtein (tolérance fautes de frappe)
     Stop? best;
-    int bestDist = 5; // seuil max
+    int bestDist = 5;
     for (final s in allStops) {
       final d = _levenshtein(q, s.name.toLowerCase());
       if (d < bestDist) { bestDist = d; best = s; }
@@ -1542,7 +1499,7 @@ class _AIChatPageState extends State<AIChatPage> {
 }
 
 // ============================================================
-// REGLAGES & DETAILS
+// REGLAGES
 // ============================================================
 class SettingsPage extends StatelessWidget {
   final List<FavoriteRoute> favorites;
@@ -1564,7 +1521,7 @@ class SettingsPage extends StatelessWidget {
             decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
             child: Column(
               children: [
-                ListTile(leading: const Icon(Icons.info_outline, color: AppColors.primary), title: const Text('Version de l\'application'), subtitle: const Text('Dakar Bus v3.1.0 (Voies + IA)'), trailing: const Icon(Icons.chevron_right)),
+                ListTile(leading: const Icon(Icons.info_outline, color: AppColors.primary), title: const Text('Version de l\'application'), subtitle: const Text('Dakar Bus v3.1.1 (Web OK)'), trailing: const Icon(Icons.chevron_right)),
                 const Divider(height: 1),
                 ListTile(leading: const Icon(Icons.language, color: AppColors.primary), title: const Text('Langue'), subtitle: const Text('Français'), trailing: const Icon(Icons.chevron_right)),
                 const Divider(height: 1),
@@ -1581,7 +1538,7 @@ class SettingsPage extends StatelessWidget {
 }
 
 // ============================================================
-// DETAIL ARRÊT — AFFICHE ALLER + RETOUR (réels ou virtuels)
+// DETAIL ARRÊT — ALLER + RETOUR
 // ============================================================
 class DualStopDetailPage extends StatelessWidget {
   final Stop stop;
@@ -1589,12 +1546,7 @@ class DualStopDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 1) Chercher un arrêt PHYSIQUE en sens inverse
     final realOpposite = OppositeStopService.findOppositeStop(currentStop: stop, allStops: allStops);
-
-    // 2) Si aucun n'existe (cas fréquent pour les DDD), créer un sens inverse VIRTUEL
-    //    en inversant le libellé de direction. Cela garantit l'affichage "aller/retour"
-    //    demandé par l'utilisateur, même quand la donnée n'est pas dupliquée.
     final opposite = realOpposite ?? _buildVirtualOpposite(stop);
     final bool isVirtual = realOpposite == null;
 
@@ -1607,12 +1559,8 @@ class DualStopDetailPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Carte du sens actuel
           _buildStopCard(stop, stop.direction, stop.distanceMeters, currentBadge),
-
           const SizedBox(height: 16),
-
-          // Carte du sens inverse (réel ou virtuel)
           _buildStopCard(opposite, opposite.direction, opposite.distanceMeters, oppositeBadge),
 
           if (isVirtual) ...[
@@ -1636,8 +1584,6 @@ class DualStopDetailPage extends StatelessWidget {
           ],
 
           const SizedBox(height: 24),
-
-          // Bloc d'infos
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider)),
@@ -1658,8 +1604,6 @@ class DualStopDetailPage extends StatelessWidget {
     );
   }
 
-  /// Construit un arrêt virtuel en sens inverse : mêmes coordonnées, même mode,
-  /// même couleur, mais direction inversée et type opposé.
   Stop _buildVirtualOpposite(Stop s) {
     return s.copyWith(
       direction: DirectionHelper.reverse(s.direction),
