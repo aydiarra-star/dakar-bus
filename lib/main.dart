@@ -27,7 +27,7 @@ class RoutingService {
         '?overview=full&geometries=geojson';
 
     try {
-      final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 3));
+      final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 4));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final List coordinates = data['routes'][0]['geometry']['coordinates'];
@@ -1139,10 +1139,10 @@ class CommunityAlertsPage extends StatefulWidget {
   const CommunityAlertsPage({super.key});
 
   @override
-  State<CommunityAlertsPageState> createState() => _CommunityAlertsPageState();
+  State<CommunityAlertsPage> createState() => CommunityAlertsPageState();
 }
 
-class _CommunityAlertsPageState extends State<CommunityAlertsPage> {
+class CommunityAlertsPageState extends State<CommunityAlertsPage> {
   final List<Map<String, String>> _communityReports = [
     {'user': 'Mamadou S.', 'location': 'Colobane', 'type': 'Embouteillage routier', 'time': 'Il y a 3 min', 'status': '🔴 Bloqué'},
     {'user': 'Aïssatou N.', 'location': 'Mermoz (DDD)', 'type': 'Bus DDD fluide et climatisé', 'time': 'Il y a 6 min', 'status': '🟢 Fluide'},
