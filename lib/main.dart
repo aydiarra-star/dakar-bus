@@ -108,15 +108,15 @@ final List<int> _brtBase = _generateSchedule(from: 360, to: 1260, step: 6);
 final List<int> _terBase = _buildTerBase();
 
 // ============================================================
-// COULEURS & THEME
+// COULEURS & THEME (DISTINCTES PAR MOBILITE)
 // ============================================================
 class AppColors {
   static const primary = Color(0xFF00695C);
-  static const brt = Color(0xFF1976D2);
-  static const ter = Color(0xFF8D4004);
-  static const aftu = Color(0xFFEF6C00);
-  static const tata = Color(0xFF7B1FA2);
-  static const ddd = Color(0xFF0288D1);
+  static const ter = Color(0xFF8D4004);     // Marron TER
+  static const brt = Color(0xFF2E7D32);     // Vert BRT (Distinct des Tata)
+  static const aftu = Color(0xFFEF6C00);    // Orange AFTU
+  static const tata = Color(0xFF7B1FA2);    // Violet Tata
+  static const ddd = Color(0xFF0288D1);     // Bleu clair DDD
   static const background = Color(0xFFF8F9FA);
   static const surface = Color(0xFFFFFFFF);
   static const textPrimary = Color(0xFF1A1A1A);
@@ -256,7 +256,7 @@ class RouteSearchResult {
 }
 
 // ============================================================
-// DONNEES (TER, BRT, AFTU, Tata, DDD)
+// DONNEES (TER, BRT en VERT, AFTU, Tata, DDD)
 // ============================================================
 final List<Stop> terStations = [
   Stop(name: 'Gare TER Dakar', direction: 'Terminus Dakar (Arrivée)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 0), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6792, -17.4407), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.arrival),
@@ -309,7 +309,7 @@ final List<Stop> otherBusStations = [
 final List<Stop> allStops = [...terStations, ...brtStations, ...otherBusStations];
 
 // ============================================================
-// TRACES DES LIGNES
+// TRACES DES LIGNES (AVEC LEUR COULEUR RESPECTIVE)
 // ============================================================
 final List<TransitRoute> demoRoutes = [
   const TransitRoute(
@@ -322,7 +322,7 @@ final List<TransitRoute> demoRoutes = [
     ],
   ),
   const TransitRoute(
-    name: 'BRT', code: 'B1', type: 'BRT', color: AppColors.brt,
+    name: 'BRT', code: 'B1', type: 'BRT', color: AppColors.brt, // En VERT
     points: [
       LatLng(14.6720, -17.4400), LatLng(14.6950, -17.4420), LatLng(14.7050, -17.4400),
       LatLng(14.7220, -17.4330), LatLng(14.7350, -17.4260), LatLng(14.7520, -17.4100),
@@ -330,21 +330,21 @@ final List<TransitRoute> demoRoutes = [
     ],
   ),
   const TransitRoute(
-    name: 'AFTU', code: '23', type: 'AFTU', color: AppColors.aftu,
+    name: 'AFTU', code: '23', type: 'AFTU', color: AppColors.aftu, // En ORANGE
     points: [
       LatLng(14.7600, -17.4400), LatLng(14.7450, -17.4430), LatLng(14.7200, -17.4460),
       LatLng(14.6900, -17.4460), LatLng(14.6790, -17.4400),
     ],
   ),
   const TransitRoute(
-    name: 'Tata', code: '12', type: 'TATA', color: AppColors.tata,
+    name: 'Tata', code: '12', type: 'TATA', color: AppColors.tata, // En VIOLET
     points: [
       LatLng(14.7735, -17.3977), LatLng(14.7500, -17.4200), LatLng(14.7250, -17.4500),
       LatLng(14.7000, -17.4600), LatLng(14.6800, -17.4500), LatLng(14.6750, -17.4400),
     ],
   ),
   const TransitRoute(
-    name: 'DDD Urbaine', code: 'DDD-1', type: 'DDD', color: AppColors.ddd,
+    name: 'DDD Urbaine', code: 'DDD-1', type: 'DDD', color: AppColors.ddd, // En BLEU CLAIR
     points: [
       LatLng(14.7600, -17.4400), LatLng(14.7450, -17.4440), LatLng(14.7250, -17.4520),
       LatLng(14.7050, -17.4560), LatLng(14.6900, -17.4480), LatLng(14.6790, -17.4420),
@@ -1223,9 +1223,9 @@ class _AIChatPageState extends State<AIChatPage> {
     if (q.contains('retard') || q.contains('perturbation') || q.contains('probleme') || q.contains('panne') || q.contains('travaux')) {
       return '📡 État du réseau en temps réel :\n\n'
           '🟤 TER : léger retard de 10 min sur Dakar - Diamniadio\n'
-          '🔵 BRT : trafic fluide (fréquence 6 min)\n'
-          '🟠 DDD 217 : déviation à Thiaroye (travaux en cours)\n'
-          '🟢 AFTU 23 : trafic normal\n\n'
+          '🟢 BRT : trafic fluide (fréquence 6 min)\n'
+          '🔵 DDD 217 : déviation à Thiaroye (travaux en cours)\n'
+          '🟠 AFTU 23 : trafic normal\n\n'
           'Consultez l\'onglet "Alertes" pour plus de détails.';
     }
 
@@ -1528,7 +1528,7 @@ class DualStopDetailPage extends StatelessWidget {
                 children: [
                   const Text('Distance', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                   const SizedBox(height: 2),
-                  Text(DistanceHelper.format(distance), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                  Text(DistanceHelper.format(distance), style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
                 ],
               ),
             ],
