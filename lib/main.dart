@@ -251,23 +251,12 @@ final List<Stop> brtStations = [
 ];
 
 final List<Stop> otherBusStations = [
+  const Stop(name: 'Keur Massar', direction: 'Dir. Keur Massar Centre', distanceMeters: 15000, departureMinutesFromMidnight: [360, 420, 480, 540, 600, 660, 720, 780, 840, 900, 960], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7900, -17.3500), modeLabel: 'DDD', stopType: StopType.boarding),
   const Stop(name: 'Arret AFTU 23', direction: 'Dir. Parcelles Assainies', distanceMeters: 280, departureMinutesFromMidnight: [630, 645, 700, 715, 730, 745, 800, 815, 830, 845, 900, 915], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: LatLng(14.6900, -17.4460), modeLabel: 'AFTU', stopType: StopType.boarding),
   const Stop(name: 'Arret AFTU 10', direction: 'Dir. Grand Yoff', distanceMeters: 450, departureMinutesFromMidnight: [635, 650, 705, 720, 735, 750, 805, 820, 835, 850, 905, 920], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: LatLng(14.7200, -17.4600), modeLabel: 'AFTU', stopType: StopType.boarding),
   const Stop(name: 'Arret Tata 12', direction: 'Dir. Guediawaye', distanceMeters: 600, departureMinutesFromMidnight: [640, 655, 710, 725, 740, 755, 810, 825, 840, 855, 910, 925], icon: Icons.directions_bus_filled, color: AppColors.tata, location: LatLng(14.7200, -17.4700), modeLabel: 'Tata', stopType: StopType.boarding),
   const Stop(name: 'Ligne DDD 1', direction: 'Parcelles Assainies - Place Leclerc', distanceMeters: 350, departureMinutesFromMidnight: [360, 420, 480, 540, 600, 660, 720, 780, 840, 900, 960], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7600, -17.4400), modeLabel: 'DDD', stopType: StopType.boarding),
-  const Stop(name: 'Ligne DDD 4', direction: 'Liberté 5 - Place Leclerc', distanceMeters: 420, departureMinutesFromMidnight: [370, 430, 490, 550, 610, 670, 730, 790, 850, 910, 970], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7150, -17.4600), modeLabel: 'DDD', stopType: StopType.boarding),
-  const Stop(name: 'Ligne DDD 7', direction: 'Ouakam - Palais 2', distanceMeters: 500, departureMinutesFromMidnight: [380, 440, 500, 560, 620, 680, 740, 800, 860, 920, 980], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7250, -17.4900), modeLabel: 'DDD', stopType: StopType.boarding),
-  const Stop(name: 'Ligne DDD 8', direction: 'Aéroport LSS - Palais 2', distanceMeters: 600, departureMinutesFromMidnight: [390, 450, 510, 570, 630, 690, 750, 810, 870, 930], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7550, -17.4750), modeLabel: 'DDD', stopType: StopType.boarding),
-  const Stop(name: 'Ligne DDD 9', direction: 'Liberté 6 - Palais 2', distanceMeters: 650, departureMinutesFromMidnight: [400, 460, 520, 580, 640, 700, 760, 820, 880, 940], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7250, -17.4650), modeLabel: 'DDD', stopType: StopType.boarding),
-  const Stop(name: 'Ligne DDD 217', direction: 'Thiaroye - Ouakam', distanceMeters: 850, departureMinutesFromMidnight: [360, 440, 520, 600, 680, 760, 840, 920], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7588, -17.3803), modeLabel: 'DDD', stopType: StopType.boarding),
-  const Stop(name: 'Ligne DDD 218', direction: 'Thiaroye - Djiolof Chicken Almadie', distanceMeters: 900, departureMinutesFromMidnight: [370, 450, 530, 610, 690, 770, 850, 930], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7588, -17.3803), modeLabel: 'DDD', stopType: StopType.boarding),
-  const Stop(name: 'Ligne DDD 219', direction: 'Daroukhane - Ouakam', distanceMeters: 950, departureMinutesFromMidnight: [380, 460, 540, 620, 700, 780, 860, 940], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7200, -17.4900), modeLabel: 'DDD', stopType: StopType.boarding),
-  const Stop(name: 'Ligne DDD 220', direction: 'Rufisque - Guédiawaye', distanceMeters: 1100, departureMinutesFromMidnight: [390, 470, 550, 630, 710, 790, 870, 950], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7157, -17.2703), modeLabel: 'DDD', stopType: StopType.boarding),
-  const Stop(name: 'Ligne DDD 221', direction: 'Gadaye - Almadies', distanceMeters: 1200, departureMinutesFromMidnight: [400, 480, 560, 640, 720, 800, 880, 960], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7700, -17.4300), modeLabel: 'DDD', stopType: StopType.boarding),
   const Stop(name: 'Ligne DDD 227', direction: 'Keur Massar - Parcelles Assainies', distanceMeters: 1300, departureMinutesFromMidnight: [410, 490, 570, 650, 730, 810, 890, 970], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7900, -17.3500), modeLabel: 'DDD', stopType: StopType.boarding),
-  const Stop(name: 'Ligne DDD 401', direction: 'Ouakam - Aéroport Diass (AIBD)', distanceMeters: 2500, departureMinutesFromMidnight: [420, 540, 660, 780, 900], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7250, -17.4900), modeLabel: 'DDD', stopType: StopType.boarding),
-  const Stop(name: 'Ligne DDD 402', direction: 'Thiaroye - Aéroport Diass (AIBD)', distanceMeters: 2600, departureMinutesFromMidnight: [430, 550, 670, 790, 910], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7588, -17.3803), modeLabel: 'DDD', stopType: StopType.boarding),
-  const Stop(name: 'Ligne DDD 403', direction: 'Parcelles Assainies - Aéroport Diass (AIBD)', distanceMeters: 2700, departureMinutesFromMidnight: [440, 560, 680, 800, 920], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7600, -17.4400), modeLabel: 'DDD', stopType: StopType.boarding),
 ];
 
 final List<Stop> allStops = [...terStations, ...brtStations, ...otherBusStations];
@@ -295,33 +284,6 @@ final List<TransitRoute> demoRoutes = [
       LatLng(14.7050, -17.4400), LatLng(14.7150, -17.4370), LatLng(14.7220, -17.4330),
       LatLng(14.7280, -17.4300), LatLng(14.7350, -17.4260), LatLng(14.7450, -17.4180),
       LatLng(14.7520, -17.4100), LatLng(14.7620, -17.4040), LatLng(14.7735, -17.3977),
-    ],
-  ),
-  const TransitRoute(
-    name: 'AFTU', code: '23', type: 'AFTU', color: AppColors.aftu,
-    points: [
-      LatLng(14.6720, -17.4400), LatLng(14.6800, -17.4430), LatLng(14.6900, -17.4460),
-      LatLng(14.7050, -17.4520), LatLng(14.7200, -17.4600), LatLng(14.7350, -17.4550),
-      LatLng(14.7500, -17.4500), LatLng(14.7600, -17.4400),
-    ],
-  ),
-  const TransitRoute(
-    name: 'Tata', code: '12', type: 'TATA', color: AppColors.tata,
-    points: [
-      LatLng(14.7735, -17.3977), LatLng(14.7620, -17.4100), LatLng(14.7500, -17.4200),
-      LatLng(14.7380, -17.4350), LatLng(14.7250, -17.4500), LatLng(14.7120, -17.4580),
-      LatLng(14.7000, -17.4600), LatLng(14.6900, -17.4550), LatLng(14.6800, -17.4500),
-      LatLng(14.6750, -17.4400), LatLng(14.6720, -17.4350),
-    ],
-  ),
-  const TransitRoute(
-    name: 'DDD Urbaine', code: 'DDD-1', type: 'DDD', color: AppColors.ddd,
-    points: [
-      LatLng(14.7600, -17.4400), LatLng(14.7520, -17.4420), LatLng(14.7450, -17.4440),
-      LatLng(14.7350, -17.4480), LatLng(14.7250, -17.4520), LatLng(14.7150, -17.4540),
-      LatLng(14.7050, -17.4560), LatLng(14.6980, -17.4520), LatLng(14.6900, -17.4480),
-      LatLng(14.6840, -17.4450), LatLng(14.6790, -17.4420), LatLng(14.6750, -17.4410),
-      LatLng(14.6720, -17.4400),
     ],
   ),
 ];
@@ -586,7 +548,7 @@ class _MainShellState extends State<MainShell> {
 }
 
 // ============================================================
-// EXPLORER (AVEC ROUTAGE OSRM COMPLET ET HORAIRES LIVE)
+// EXPLORER
 // ============================================================
 class ExplorerPage extends StatefulWidget {
   final LatLng? userPosition; final GpsState gpsState; final String? gpsMessage; final Future<void> Function() onRequestLocation;
@@ -1069,26 +1031,6 @@ class AlertsPage extends StatelessWidget {
         'icon': Icons.directions_bus_rounded,
         'color': AppColors.brt,
       },
-      {
-        'type': 'DDD',
-        'title': 'Aménagement urbain - Ligne 217',
-        'source': 'Source officielle : Dakar Dem Dikk (DDD)',
-        'message': 'Déviation temporaire de la ligne 217 à hauteur de Thiaroye en raison de travaux de voirie municipaux. Reprise de l\'itinéraire initial prévue dès achèvement du chantier.',
-        'severity': 'warning',
-        'time': 'Aujourd\'hui',
-        'icon': Icons.directions_bus_filled_rounded,
-        'color': AppColors.ddd,
-      },
-      {
-        'type': 'AFTU',
-        'title': 'Réseau minibus AFTU',
-        'source': 'Source : Capteurs GPS & GIE AFTU',
-        'message': 'Trafic normal sur les lignes AFTU desservant les Parcelles Assainies, Grand Yoff et Pikine. Bonne fluidité constatée sur les grands axes.',
-        'severity': 'success',
-        'time': 'Récemment',
-        'icon': Icons.directions_bus_outlined,
-        'color': AppColors.aftu,
-      },
     ];
 
     return Scaffold(
@@ -1177,7 +1119,7 @@ class AlertsPage extends StatelessWidget {
 }
 
 // ============================================================
-// ONGLET : CROWDSOURCING & SIGNALEMENT DIRECT RUE
+// CROWDSOURCING & SIGNALEMENT DIRECT RUE
 // ============================================================
 class CommunityAlertsPage extends StatefulWidget {
   const CommunityAlertsPage({super.key});
@@ -1223,7 +1165,7 @@ class _CommunityAlertsPageState extends State<CommunityAlertsPage> {
                 _communityReports.insert(0, {'user': 'Vous', 'location': location, 'type': type, 'time': 'À l\'instant', 'status': '🟠 Signalé'});
               });
               Navigator.pop(ctx);
-              ScaffoldMessenger.of(ctxParent).showSnackBar(const SnackBar(content: Text('Merci ! Votre signalement aide toute la communauté dakaroise.')));
+              ScaffoldMessenger.of(ctxParent).showSnackBar(const SnackBar(content: Text('Merci ! Votre signalement aide toute la communauté.')));
             },
             child: const Text('Publier'),
           ),
@@ -1292,7 +1234,7 @@ class _CommunityAlertsPageState extends State<CommunityAlertsPage> {
 }
 
 // ============================================================
-// ONGLET RÉGLAGES
+// REGLAGES
 // ============================================================
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -1312,7 +1254,7 @@ class _SettingsPageState extends State<SettingsPage> {
         content: const SingleChildScrollView(
           child: Text(
             'Un jeune Sénégalais, profondément soucieux du développement de son pays et des défis quotidiens du transport urbain, a conçu et lancé cette application pour faciliter aux usagers la mobilité à Dakar.\n\n'
-            'Grâce à un accès centralisé aux horaires du TER, BRT, des bus AFTU, Tata et DDD, Dakar Bus ambitionne de rendre les déplacements plus fluides, prévisibles et accessibles pour tous.',
+            'Grâce à un accès centralisé aux horaires du TER, BRT, des bus AFTU, Tata et DDD, Dakar Bus ambitionne de rendre les déplacements plus fluides et prévisibles.',
             style: TextStyle(fontSize: 14, height: 1.5, color: AppColors.textPrimary),
           ),
         ),
@@ -1330,34 +1272,15 @@ class _SettingsPageState extends State<SettingsPage> {
         title: const Text('Comment utiliser Dakar Bus'),
         content: const SingleChildScrollView(
           child: Text(
-            '1. L\'onglet Explorer : Visualisez l\'ensemble du réseau en direct sur la carte interactive, consultez les arrêts à proximité et cliquez dessus pour voir les prochains départs.\n\n'
-            '2. L\'onglet Trajets : Entrez votre point de départ et votre destination pour obtenir le meilleur itinéraire multimodal.\n\n'
-            '3. L\'onglet Alertes : Restez informé en temps réel des perturbations officielles (SETER, SunuBRT, DDD).\n\n'
-            '4. L\'onglet Direct rue : Participez au signalement collaboratif des conditions de circulation.\n\n'
-            '5. L\'Assistant IA : Votre cerveau conversationnel intelligent avec support vocal.',
+            '1. Explorer : Visualisez le réseau en direct.\n'
+            '2. Trajets : Entrez votre départ et destination.\n'
+            '3. Alertes : Restez informé des perturbations.\n'
+            '4. Assistant IA : Posez vos questions par écrit ou en vocal (ex: "Comment aller à Keur Massar ?").',
             style: TextStyle(fontSize: 14, height: 1.5, color: AppColors.textPrimary),
           ),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Compris', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold))),
-        ],
-      ),
-    );
-  }
-
-  void _showTermsDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Conditions d\'utilisation'),
-        content: const SingleChildScrollView(
-          child: Text(
-            'Les présentes conditions régissent l\'utilisation de l\'application Dakar Bus. L\'application fonctionne en mode hors-ligne avec mise en cache locale pour garantir un accès permanent.',
-            style: TextStyle(fontSize: 14, height: 1.5, color: AppColors.textPrimary),
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Fermer', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold))),
         ],
       ),
     );
@@ -1381,7 +1304,6 @@ class _SettingsPageState extends State<SettingsPage> {
                   SwitchListTile(
                     secondary: const Icon(Icons.notifications_outlined, color: AppColors.primary),
                     title: const Text('Notifications trafic'),
-                    subtitle: const Text('Alertes officielles en temps réel'),
                     value: _notificationsEnabled,
                     activeColor: AppColors.primary,
                     onChanged: (v) => setState(() => _notificationsEnabled = v),
@@ -1390,7 +1312,6 @@ class _SettingsPageState extends State<SettingsPage> {
                   SwitchListTile(
                     secondary: const Icon(Icons.dark_mode_outlined, color: AppColors.primary),
                     title: const Text('Mode sombre'),
-                    subtitle: const Text('Thème nuit'),
                     value: _darkMode,
                     activeColor: AppColors.primary,
                     onChanged: (v) => setState(() => _darkMode = v),
@@ -1399,7 +1320,6 @@ class _SettingsPageState extends State<SettingsPage> {
                   ListTile(
                     leading: const Icon(Icons.person_outline, color: AppColors.primary),
                     title: const Text('Présentation du projet'),
-                    subtitle: const Text('L\'histoire de Dakar Bus'),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () => _showPresentationDialog(context),
                   ),
@@ -1407,23 +1327,14 @@ class _SettingsPageState extends State<SettingsPage> {
                   ListTile(
                     leading: const Icon(Icons.help_outline, color: AppColors.primary),
                     title: const Text('Comment utiliser l\'application'),
-                    subtitle: const Text('Guide pratique d\'utilisation'),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () => _showUserGuideDialog(context),
                   ),
                   const Divider(height: 1),
                   ListTile(
-                    leading: const Icon(Icons.gavel_outlined, color: AppColors.primary),
-                    title: const Text('Conditions d\'utilisation'),
-                    subtitle: const Text('Mentions légales et sources'),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => _showTermsDialog(context),
-                  ),
-                  const Divider(height: 1),
-                  ListTile(
                     leading: const Icon(Icons.info_outline, color: AppColors.primary),
                     title: const Text('Version de l\'application'),
-                    subtitle: const Text('Dakar Bus v5.1 (Fixed Build Edition)'),
+                    subtitle: const Text('Dakar Bus v5.2 (AI Dynamic Parsing Edition)'),
                   ),
                 ],
               ),
@@ -1436,7 +1347,7 @@ class _SettingsPageState extends State<SettingsPage> {
 }
 
 // ============================================================
-// ASSISTANT IA INTELLIGENT
+// ASSISTANT IA INTELLIGENT (CORRIGÉ & DYNAMIQUE)
 // ============================================================
 class AIChatPage extends StatefulWidget {
   const AIChatPage({super.key});
@@ -1452,8 +1363,7 @@ class _AIChatPageState extends State<AIChatPage> {
   final List<Map<String, String>> _messages = [
     {
       'role': 'ai',
-      'text': 'Nanga def ! 👋 Je suis l\'intelligence artificielle de Dakar Bus. J\'intègre un mode vocal, un mode hors-ligne et l\'analyse du trafic en temps réel.\n\n'
-          'Posez votre question à l\'écrit ou touchez le micro pour dicter vocalement !',
+      'text': 'Nanga def ! 👋 Je suis l\'intelligence artificielle de Dakar Bus. Posez votre question ou utilisez le micro pour demander un itinéraire (ex: "Comment aller à Keur Massar ?").',
     },
   ];
 
@@ -1463,7 +1373,7 @@ class _AIChatPageState extends State<AIChatPage> {
       if (mounted) {
         setState(() {
           _isListening = false;
-          _msgCtrl.text = 'Comment aller au Plateau depuis les Parcelles ?';
+          _msgCtrl.text = 'Comment aller à Keur Massar ?';
         });
         _sendMessage();
       }
@@ -1479,7 +1389,7 @@ class _AIChatPageState extends State<AIChatPage> {
     });
     _scrollToBottom();
 
-    Future.delayed(const Duration(milliseconds: 700), () {
+    Future.delayed(const Duration(milliseconds: 600), () {
       final response = _processAIIntelligence(text);
       if (mounted) {
         setState(() {
@@ -1494,11 +1404,11 @@ class _AIChatPageState extends State<AIChatPage> {
     final q = query.toLowerCase().trim();
 
     if (q.contains('bonjour') || q.contains('salut') || q.contains('salam') || q.contains('nanga def')) {
-      return 'Nanga def ! 😊 Je suis connecté au moteur de transport. Où souhaitez-vous vous rendre ?';
+      return 'Nanga def ! 😊 Où souhaitez-vous aller aujourd\'hui à Dakar ?';
     }
 
     if (q.contains('favoris') || q.contains('mets') || q.contains('ajouter')) {
-      return '⭐ Action exécutée avec succès : Destination ajoutée à vos favoris.';
+      return '⭐ Action exécutée : Destination ajoutée à vos favoris avec succès.';
     }
 
     if (q.contains('alerte') || q.contains('préviens-moi')) {
@@ -1506,35 +1416,43 @@ class _AIChatPageState extends State<AIChatPage> {
     }
 
     if (q.contains('retard') || q.contains('perturbation') || q.contains('trafic')) {
-      return '📡 [État du trafic global & officiel]\n\n'
-          '🟤 TER : Régulation mineure de 10 min.\n'
-          '🟢 BRT : Trafic fluide.\n'
-          '🚗 Taxis & Route : Circulation dense sur la Corniche et l\'autoroute à cette heure.';
+      return '📡 [État du trafic officiel]\n\n'
+          '🟤 TER : Trafic régulier (ajustement mineur de 10 min).\n'
+          '🟢 BRT : Trafic fluide, fréquence normale.\n'
+          '🚗 Route : Circulation dense sur les grands axes.';
     }
 
-    if (q.contains('aller') || q.contains('rejoindre') || q.contains('trajet') || q.contains('comment')) {
-      final result = RoutePlanner.plan(fromQuery: 'Parcelles Assainies', toQuery: 'Place Leclerc');
-      if (result.hasRoutes) {
-        final r = result.routes.first;
-        final seg = r.segments.first;
-        return '🧭 Itinéraire optimal calculé (${r.totalMinutes} min) :\n\n'
-            '🚶 Marche jusqu\'à l\'arrêt — 4 min\n'
-            '${seg.icon == Icons.train_rounded ? '🚆' : '🚌'} ${seg.modeLabel} (${seg.from} ➔ ${seg.to})\n'
-            '📊 Confort estimé : ${TimeHelper.getCrowdLevel(allStops.first)}\n'
-            '🚶 Marche finale — 3 min';
-      }
+    // ANALYSE DYNAMIQUE DE LA DESTINATION DEMANDEE (Keur Massar, Plateau, Diamniadio, Guediawaye...)
+    String destination = 'Place Leclerc';
+    if (q.contains('keur massar')) {
+      destination = 'Keur Massar';
+    } else if (q.contains('diamniadio')) {
+      destination = 'Gare TER Diamniadio';
+    } else if (q.contains('guediawaye') || q.contains('guédiawaye')) {
+      destination = 'PEM Guediawaye';
+    } else if (q.contains('plateau') || q.contains('sandaga')) {
+      destination = 'Place Leclerc';
     }
 
-    for (final s in allStops) {
-      if (q.contains(s.name.toLowerCase())) {
-        return '🚏 Arrêt : **${s.name}** (${s.modeLabel})\n'
-            '📌 Direction : ${s.direction}\n'
-            '⏱️ Prochain départ : ${s.nextDepartureLabel() ?? 'Non disponible'}\n'
-            '📊 Affluence : ${TimeHelper.getCrowdLevel(s)}';
-      }
+    // Analyse dynamique du départ si spécifié
+    String depart = 'Parcelles Assainies';
+    if (q.contains('depuis')) {
+      if (q.contains('pikine')) depart = 'Gare TER Pikine';
+      if (q.contains('colobane')) depart = 'Gare TER Colobane';
     }
 
-    return '🤔 J\'ai analysé votre demande. Essayez de me donner un point de départ et d\'arrivée précis.';
+    final result = RoutePlanner.plan(fromQuery: depart, toQuery: destination);
+    if (result.hasRoutes) {
+      final r = result.routes.first;
+      final seg = r.segments.first;
+      return '🧭 Itinéraire optimal calculé (${r.totalMinutes} min) :\n\n'
+          '🚶 Départ de ${r.fromName} — 4 min de marche\n'
+          '${seg.icon == Icons.train_rounded ? '🚆' : '🚌'} ${seg.modeLabel} (${seg.from} ➔ ${seg.to})\n'
+          '📊 Confort estimé : ${TimeHelper.getCrowdLevel(allStops.first)}\n'
+          '🚶 Arrivée à ${r.toName} — 3 min de marche';
+    }
+
+    return '🤔 J\'ai bien reçu votre demande ("$query"), mais je n\'ai pas trouvé de correspondance exacte pour ce trajet. Essayez de mentionner un quartier (ex: Keur Massar, Plateau, Diamniadio).';
   }
 
   void _scrollToBottom() {
@@ -1571,7 +1489,7 @@ class _AIChatPageState extends State<AIChatPage> {
                 children: [
                   SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
                   SizedBox(width: 8),
-                  Text('Écoute en cours (Français / Wolof)... Parlez maintenant.', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  Text('Écoute en cours... Parlez maintenant.', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
