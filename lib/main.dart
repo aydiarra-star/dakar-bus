@@ -31,7 +31,7 @@ class RoutingService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final List coordinates = data['routes'][0]['geometry']['coordinates'];
-        final points = coordinates.map((coord) => LatLng(coord[1], coord[0])).toList();
+        final points = coordinates.map<LatLng>((coord) => LatLng(coord[1], coord[0])).toList();
         _cache[key] = points;
         return points;
       }
@@ -379,7 +379,7 @@ class RoutePlanner {
     }
 
     if (candidates.isEmpty) {
-      return RouteSearchResult(errorMessage: 'Aucun itinéraire trouvé entre ${fromStop.name} et ${toStop.name}.');
+      return RouteSearchResult(errorMessage: 'Aucun itineraire trouve entre ${fromStop.name} et ${toStop.name}.');
     }
 
     candidates.sort((a, b) => a.totalMinutes.compareTo(b.totalMinutes));
@@ -593,14 +593,16 @@ class _MainShellState extends State<MainShell> {
   Future<void> _requestLocation() async {
     setState(() { _gpsState = GpsState.loading; _gpsMessage = null; });
     try {
-      if (!await Geolocator.isLocationServiceEnabled()) { setState(() { _gpsState = GpsState.serviceDisabled; _gpsMessage = 'GPS désactivé.'; }); return; }
+      if (!await Geolocator.isLocationServiceEnabled()) { setState(() { _gpsState = GpsState.serviceDisabled; _gpsMessage = 'GPS desactive.'; }); return; }
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
-        setState(() { _gpsState = GpsState.denied; _gpsMessage = 'Permission GPS refusée.'; }); return;
+        setState(() { _gpsState = GpsState.denied; _gpsMessage = 'Permission GPS refusee.'; }); return;
       }
+      // CORRECTION WEB GEOLOCATOR (compatible dart2js / webassembly)
       final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high, timeLimit: Duration(seconds: 10)),
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 10),
       );
       setState(() { _userPosition = LatLng(position.latitude, position.longitude); _gpsState = GpsState.granted; _gpsMessage = null; });
     } catch (_) { setState(() { _gpsState = GpsState.error; _gpsMessage = 'Erreur GPS.'; }); }
@@ -822,7 +824,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                             children: [
                               Icon(_mapHeight == 160 ? Icons.expand_more : Icons.expand_less, color: AppColors.primary, size: 18),
                               const SizedBox(width: 4),
-                              Text(_mapHeight == 160 ? 'Agrandir' : 'Réduire', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                              Text(_mapHeight == 160 ? 'Agrandir' : 'Reduire', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primary)),
                             ],
                           ),
                         ),
@@ -853,7 +855,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                   const SizedBox(height: 12),
                   SizedBox(height: 40, child: ListView(scrollDirection: Axis.horizontal, children: [_chip('Tous'), _chip('TER'), _chip('BRT'), _chip('AFTU'), _chip('Tata'), _chip('DDD')])),
                   const SizedBox(height: 16),
-                  Row(children: [Text('${stops.length} arrêts', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)), const SizedBox(width: 8), const Text('à proximité', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))]),
+                  Row(children: [Text('${stops.length} arrets', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)), const SizedBox(width: 8), const Text('a proximite', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))]),
                   const SizedBox(height: 10),
                   ...stops.map((s) => Padding(padding: const EdgeInsets.only(bottom: 12), child: GestureDetector(onTap: () => _centerOnStop(s), child: StopCard(stop: s, distanceMeters: _distanceTo(s))))),
                 ],
