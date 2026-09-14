@@ -599,7 +599,6 @@ class _MainShellState extends State<MainShell> {
       if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
         setState(() { _gpsState = GpsState.denied; _gpsMessage = 'Permission GPS refusee.'; }); return;
       }
-      // CORRECTION WEB GEOLOCATOR (compatible dart2js / webassembly)
       final position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
         timeLimit: const Duration(seconds: 10),
@@ -1217,30 +1216,11 @@ class _AIChatPageState extends State<AIChatPage> {
   String _getAIResponse(String query) {
     final q = query.toLowerCase().trim();
 
-    if (RegExp(r'\b(bonjour|salut|bonsoir|hello|coucou|salam|nanga def)\b').hasMatch(q) && q.length < 25) {
+    if (q.contains('bonjour') || q.contains('salut') || q.contains('bonsoir') || q.contains('salam') || q.contains('nanga def')) {
       return 'Bonjour ! 😊 Où souhaitez-vous vous rendre aujourd\'hui ? Je peux vous guider vers n\'importe quel arrêt du réseau (TER, BRT, AFTU, Tata, DDD).';
     }
 
-    final intentPatterns = [
-      RegExp(r'(?:je veux|j\'aimerais|j aimerais|je souhaiterais|je voudrais|je cherche à|peux[- ]tu me dire comment)\s+(?:aller|me rendre|rejoindre|atteindre)\s+(?:à|au|aux|en|vers|jusqu\'?à)?\s*(.+)'),
-      RegExp(r'(?:comment|comment faire pour)\s+(?:aller|me rendre|rejoindre|atteindre)\s+(?:à|au|aux|en|vers|jusqu\'?à)?\s*(.+)'),
-      RegExp(r'(?:bus|car|ter|brt|transport|trajet|itinéraire|route|chemin|ligne)\s+(?:pour|vers|jusqu\'?à|à)\s+(.+)'),
-      RegExp(r'(?:aller|direction|vers)\s+(?:à|au|aux|en|vers)?\s*(.+)'),
-      RegExp(r'(?:je suis à|je pars de|je viens de|départ de)\s+(.+)'),
-    ];
-
-    for (final pattern in intentPatterns) {
-      final match = pattern.firstMatch(q);
-      if (match != null) {
-        final rawDest = match.group(1)?.trim() ?? '';
-        final dest = _cleanLocationQuery(rawDest);
-        if (dest.isNotEmpty) {
-          return _respondToRouteQuery(dest);
-        }
-      }
-    }
-
-    if (RegExp(r'\b(retard|perturbation|probleme|problème|panne|travaux|perturbé|perturbe)\b').hasMatch(q)) {
+    if (q.contains('retard') || q.contains('perturbation') || q.contains('probleme') || q.contains('panne') || q.contains('travaux')) {
       return '📡 État du réseau en temps réel :\n\n'
           '🟤 TER : léger retard de 10 min sur Dakar - Diamniadio\n'
           '🔵 BRT : trafic fluide (fréquence 6 min)\n'
@@ -1249,19 +1229,27 @@ class _AIChatPageState extends State<AIChatPage> {
           'Consultez l\'onglet "Alertes" pour plus de détails.';
     }
 
-    if (RegExp(r'\b(ter|train)\b').hasMatch(q)) {
+    if (q.contains('ter') || q.contains('train')) {
       final terStops = allStops.where((s) => s.modeLabel == 'TER').toList();
       return '🚆 Le TER dessert ${terStops.length} gares, de Dakar à Diamniadio.\n\n'
           'Fréquence : toutes les 10 min en semaine, 20 min le dimanche.';
     }
 
-    if (RegExp(r'\bbrt\b').hasMatch(q)) {
+    if (q.contains('brt')) {
       return '🚌 Le BRT relie PEM Petersen à PEM Guédiawaye via Colobane, Grand Dakar et Parcelles (fréquence : toutes les 6 min).';
     }
 
-    final ligneMatch = RegExp(r'ligne\s+(\d+)').firstMatch(q);
-    if (ligneMatch != null) {
-      return _respondLigneInfo(ligneMatch.group(1)!);
+    if (q.contains('aller') || q.contains('rendre') || q.contains('rejoindre') || q.contains('bus') || q.contains('trajet')) {
+      for (final entry in kDakarLocationAliases.entries) {
+        if (q.contains(entry.key)) {
+          return _respondToRouteQuery(entry.value);
+        }
+      }
+      for (final s in allStops) {
+        if (q.contains(s.name.toLowerCase())) {
+          return _respondStopInfo(s);
+        }
+      }
     }
 
     final stop = _findStopFuzzy(q);
@@ -1272,17 +1260,11 @@ class _AIChatPageState extends State<AIChatPage> {
     return '🤔 Je n\'ai pas bien saisi votre demande. Essayez par exemple : "Comment rejoindre Mermoz ?"';
   }
 
-  String _cleanLocationQuery(String s) {
-    return s.replaceAll(RegExp(r'[?!.,;:]+$'), '').trim();
-  }
-
   String _respondToRouteQuery(String destination) {
     final stop = _findStopFuzzy(destination);
 
     if (stop == null) {
-      final suggestions = _suggestClosestStops(destination);
-      return '📍 Je n\'ai pas trouvé "$destination".\n\n'
-          'Suggestions :\n${suggestions.map((s) => '• ${s.name} (${s.modeLabel})').join('\n')}';
+      return '📍 Je n\'ai pas trouvé "$destination".';
     }
 
     final fromStop = allStops.firstWhere((s) => s.name.toLowerCase().contains('gare ter dakar'));
@@ -1308,13 +1290,6 @@ class _AIChatPageState extends State<AIChatPage> {
     return '🚏 Arrêt : **${stop.name}**\n📌 Direction : ${stop.direction}\n⏱️ Prochain départ : $nextLabel';
   }
 
-  String _respondLigneInfo(String numero) {
-    final matching = allStops.where((s) => s.modeLabel == 'DDD' && s.name.toLowerCase().contains('ddd $numero')).toList();
-    if (matching.isEmpty) return 'Ligne DDD $numero introuvable.';
-    final stop = matching.first;
-    return '🚌 **${stop.name}**\n📍 Parcours : ${stop.direction}';
-  }
-
   Stop? _findStopFuzzy(String query) {
     final q = query.trim().toLowerCase();
     if (q.isEmpty) return null;
@@ -1332,10 +1307,6 @@ class _AIChatPageState extends State<AIChatPage> {
       }
     }
     return null;
-  }
-
-  List<Stop> _suggestClosestStops(String query) {
-    return allStops.take(3).toList();
   }
 
   void _scrollToBottom() {
