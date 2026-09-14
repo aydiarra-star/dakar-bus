@@ -84,7 +84,7 @@ final List<int> _terBase = _buildTerBase();
 // COULEURS & THEME
 // ============================================================
 class AppColors {
-  static const primary = Color(0xFF00695C);
+  static const primary = Color(0xFF00695C); // Vert vif pour l'application
   static const brt = Color(0xFF1976D2);
   static const ter = Color(0xFF8D4004);
   static const aftu = Color(0xFFEF6C00);
@@ -148,7 +148,7 @@ class OfficialBadge extends StatelessWidget {
 }
 
 // ============================================================
-// MODELES (Amélioration : ajout de stopType)
+// MODELES
 // ============================================================
 enum StopType { arrival, departure, boarding, terminus, correspondence }
 
@@ -157,7 +157,7 @@ class Stop {
   final List<int> departureMinutesFromMidnight; final IconData icon;
   final Color color; final LatLng location; final DataStatus status;
   final String modeLabel; final DataSourceInfo source;
-  final StopType stopType; // <-- Nouveau champ
+  final StopType stopType;
 
   const Stop({
     required this.name, required this.direction, required this.distanceMeters,
@@ -208,12 +208,10 @@ class RouteSearchResult {
 }
 
 // ============================================================
-// DONNEES (TER, BRT, AFTU, Tata, DDD) - Mise à jour avec StopType
+// DONNEES (TER, BRT, AFTU, Tata, DDD)
 // ============================================================
 final List<Stop> terStations = [
-  // Arrivées
   Stop(name: 'Gare TER Dakar', direction: 'Terminus Dakar (Arrivée)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 0), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6792, -17.4407), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.arrival),
-  // Départs / Embarquement
   Stop(name: 'Gare TER Dakar', direction: 'Dir. Diamniadio (Embarquement)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 3), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6795, -17.4405), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
   Stop(name: 'Gare TER Colobane', direction: 'Dir. Diamniadio', distanceMeters: 1200, departureMinutesFromMidnight: _shift(_terBase, 5), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6937, -17.4441), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
   Stop(name: 'Gare TER Colobane', direction: 'Dir. Dakar', distanceMeters: 1200, departureMinutesFromMidnight: _shift(_terBase, 3), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6935, -17.4443), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
@@ -732,7 +730,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
 }
 
 // ============================================================
-// CARTE D ARRET (Améliorée avec StopType)
+// CARTE D ARRET
 // ============================================================
 class StopCard extends StatelessWidget {
   final Stop stop; final double distanceMeters;
@@ -1070,7 +1068,7 @@ class _AIChatPageState extends State<AIChatPage> {
       return 'Pour vous rendre à Keur Massar, je vous recommande de prendre le TER jusqu\'à la gare de Thiaroye, puis de prendre une ligne DDD (217, 218 ou 227). Le temps de trajet estimé est d\'environ 45 minutes.';
     } else if (q.contains('retard') || q.contains('perturbation') || q.contains('probleme')) {
       return 'Il y a actuellement un léger retard de 10 minutes sur la ligne TER Dakar-Diamniadio. Le trafic est normal sur le reste du réseau.';
-    } else if (q.contains('bonjour') || q.contains('salut')) {
+    } else if (q.contains('bonjour') bottom || q.contains('salut')) {
       return 'Bonjour ! Comment puis-je vous aider dans vos déplacements à Dakar aujourd\'hui ?';
     } else {
       return 'Je ne suis pas sûr de comprendre. Vous pouvez me demander des informations sur les lignes (TER, BRT, AFTU, Tata, DDD), les horaires, ou les perturbations en cours.';
@@ -1105,7 +1103,7 @@ class _AIChatPageState extends State<AIChatPage> {
                     constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.82),
                     decoration: BoxDecoration(
                       color: isUser ? AppColors.primary : AppColors.surface,
-                      borderRadius: BorderRadius.only(topLeft: const Radius.circular(18), topRight: const Radius.circular(18), bottomLeft: isUser ? const Radius.circular(18) : const Radius.circular(4), bottomRight: isUser ? const Radius.circular(4) : const Radius.circular(18)),
+                      borderRadius: BorderRadius.only(topLeft: const Radius.circular(18), topRight: const Radius.circular(18),Left: isUser ? const Radius.circular(18) : const Radius.circular(4), bottomRight: isUser ? const Radius.circular(4) : const Radius.circular(18)),
                       boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 6)],
                     ),
                     child: Text(msg['text']!, style: TextStyle(color: isUser ? Colors.white : AppColors.textPrimary, fontSize: 14, height: 1.3)),
@@ -1132,7 +1130,7 @@ class _AIChatPageState extends State<AIChatPage> {
 }
 
 // ============================================================
-// REGLAGES & DETAILS
+// REGLAGES & DETAILS (Mise à jour pour les deux voies)
 // ============================================================
 class SettingsPage extends StatelessWidget {
   final List<FavoriteRoute> favorites;
@@ -1154,7 +1152,7 @@ class SettingsPage extends StatelessWidget {
             decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
             child: Column(
               children: [
-                ListTile(leading: const Icon(Icons.info_outline, color: AppColors.primary), title: const Text('Version de l\'application'), subtitle: const Text('Dakar Bus v2.9.0 (GPS Validé)'), trailing: const Icon(Icons.chevron_right)),
+                ListTile(leading: const Icon(Icons.info_outline, color: AppColors.primary), title: const Text('Version de l\'application'), subtitle: const Text('Dakar Bus v3.0.0 (GPS Validé)'), trailing: const Icon(Icons.chevron_right)),
                 const Divider(height: 1),
                 ListTile(leading: const Icon(Icons.language, color: AppColors.primary), title: const Text('Langue'), subtitle: const Text('Français'), trailing: const Icon(Icons.chevron_right)),
                 const Divider(height: 1),
@@ -1176,27 +1174,151 @@ class DualStopDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Trouver l'arrêt opposé (deuxième voie)
     final opposite = OppositeStopService.findOppositeStop(currentStop: stop, allStops: allStops);
+    
+    // Simuler les directions opposées pour l'affichage comme sur l'image
+    // Exemple : Si l'arrêt est "Gare TER Dakar" (Arrivée), l'opposé est "Gare TER Dakar" (Embarquement)
+    final isArrival = stop.stopType == StopType.arrival;
+    final oppositeDirection = isArrival ? stop.direction.replaceAll('Arrivée', 'Embarquement') : stop.direction.replaceAll('Embarquement', 'Arrivée');
+
     return Scaffold(
       appBar: AppBar(title: Text(stop.name), backgroundColor: stop.color, foregroundColor: Colors.white),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text('Sens : ${stop.direction}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          // Carte de l'arrêt actuel (Voie 1)
+          _buildStopCard(stop, stop.direction, stop.distanceMeters, isArrival ? 'Arrivée' : 'Départ'),
+          
           const SizedBox(height: 16),
+          
+          // Carte de l'arrêt opposé (Voie 2) - Affichage comme sur l'image d'exemple
           if (opposite != null)
-            Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              child: ListTile(
-                contentPadding: const EdgeInsets.all(16),
-                leading: CircleAvatar(backgroundColor: opposite.color, child: Icon(opposite.icon, color: Colors.white)),
-                title: Text('Arrêt opposé : ${opposite.name}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Text(opposite.direction),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-              ),
+            _buildStopCard(opposite, oppositeDirection, opposite.distanceMeters, isArrival ? 'Départ' : 'Arrivée'),
+            
+          const SizedBox(height: 24),
+          
+          // Informations supplémentaires
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider)),
+            child: Column(
+              children: [
+                Row(children: [const Icon(Icons.info_outline, color: AppColors.primary), const SizedBox(width: 10), Text('Informations sur l\'arrêt', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))]),
+                const SizedBox(height: 12),
+                _buildInfoRow('Mode', stop.modeLabel),
+                _buildInfoRow('Type', _getStopTypeLabel(stop.stopType)),
+                _buildInfoRow('Distance', DistanceHelper.format(stop.distanceMeters)),
+              ],
             ),
+          ),
         ],
       ),
     );
+  }
+
+  // Widget pour afficher une carte d'arrêt (Voie 1 ou Voie 2)
+  Widget _buildStopCard(Stop s, String direction, double distance, String badgeLabel) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface, 
+        borderRadius: BorderRadius.circular(16), 
+        border: Border.all(color: AppColors.primary.withOpacity(0.3), width: 2), // Bordure verte vive
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)]
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                // Badge de la ligne (ex: 148)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary, 
+                    borderRadius: BorderRadius.circular(8)
+                  ),
+                  child: Text(
+                    s.modeLabel == 'TER' ? 'TER' : (s.modeLabel == 'BRT' ? 'BRT' : (s.modeLabel == 'DDD' ? 'DDD' : s.modeLabel)),
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // Badge Arrivée/Départ
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: badgeLabel == 'Arrivée' ? AppColors.warning.withOpacity(0.15) : AppColors.primary.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: badgeLabel == 'Arrivée' ? AppColors.warning : AppColors.primary, width: 1),
+                  ),
+                  child: Text(
+                    badgeLabel.toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 10, 
+                      fontWeight: FontWeight.bold, 
+                      color: badgeLabel == 'Arrivée' ? AppColors.warning : AppColors.primary
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Icon(s.icon, color: s.color, size: 28),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Vers $direction', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      const SizedBox(height: 4),
+                      Text('${DistanceHelper.format(distance)} . ${s.modeLabel}', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                    ],
+                  ),
+                ),
+                // Temps d'attente (comme sur l'image)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      s.remainingMinutes() != null ? TimeHelper.formatRemaining(s.remainingMinutes()!) : 'N/A',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.primary),
+                    ),
+                    const Text('attente', style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Text(label, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+          const Spacer(),
+          Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+  String _getStopTypeLabel(StopType type) {
+    switch (type) {
+      case StopType.arrival: return 'Arrivée';
+      case StopType.departure: return 'Départ';
+      case StopType.boarding: return 'Embarquement';
+      case StopType.terminus: return 'Terminus';
+      case StopType.correspondence: return 'Correspondance';
+    }
   }
 }
