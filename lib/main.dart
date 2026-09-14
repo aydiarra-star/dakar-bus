@@ -58,6 +58,9 @@ class RoutingService {
 class OppositeStopService {
   static const double _maxOppositeDistanceMeters = 500.0;
 
+  /// Recherche un arrêt physique en sens inverse. Retourne `null` si aucun
+  /// candidat crédible n'existe — dans ce cas, [DualStopDetailPage]
+  /// génère automatiquement un sens inverse virtuel.
   static Stop? findOppositeStop({required Stop currentStop, required List<Stop> allStops}) {
     Stop? bestCandidate;
     double minDistance = double.infinity;
@@ -78,6 +81,7 @@ class OppositeStopService {
     }
     if (bestCandidate != null) return bestCandidate;
 
+    // Fallback : même mode, sens différent, < 500 m
     for (final stop in allStops) {
       if (identical(stop, currentStop)) continue;
       if (stop.modeLabel != currentStop.modeLabel) continue;
@@ -153,7 +157,7 @@ class DataStatusBadge extends StatelessWidget {
     }
     return Container(
       padding: EdgeInsets.symmetric(horizontal: compact ? 6 : 8, vertical: compact ? 2 : 4),
-      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(6), border: Border.all(color: color.withOpacity(0.3), width: 0.8)),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6), border: Border.all(color: color.withValues(alpha: 0.3), width: 0.8)),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         if (dotOnly) Container(width: 6, height: 6, decoration: BoxDecoration(color: color, shape: BoxShape.circle))
         else if (icon != null) Icon(icon, size: compact ? 10 : 12, color: color),
@@ -169,7 +173,7 @@ class OfficialBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-    decoration: BoxDecoration(color: AppColors.success.withOpacity(0.12), borderRadius: BorderRadius.circular(4), border: Border.all(color: AppColors.success.withOpacity(0.35), width: 0.8)),
+    decoration: BoxDecoration(color: AppColors.success.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(4), border: Border.all(color: AppColors.success.withValues(alpha: 0.35), width: 0.8)),
     child: const Text('OFFICIEL', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppColors.success, letterSpacing: 0.5)),
   );
 }
@@ -193,6 +197,7 @@ class Stop {
     this.source = DataSourceInfo.demo, this.stopType = StopType.departure,
   });
 
+  /// Copie modifiée d'un Stop — utile pour générer un sens inverse virtuel.
   Stop copyWith({
     String? name, String? direction, double? distanceMeters,
     List<int>? departureMinutesFromMidnight, IconData? icon, Color? color,
@@ -227,6 +232,7 @@ class TransitRoute {
   final String name; final String code; final String type; final Color color; final List<LatLng> points;
   const TransitRoute({required this.name, required this.code, required this.type, required this.color, required this.points});
 
+  /// Indique si la ligne suit une infrastructure dédiée (rail/voie BRT).
   bool get isDedicated => type == 'TER' || type == 'BRT';
 }
 
@@ -256,7 +262,7 @@ class RouteSearchResult {
 }
 
 // ============================================================
-// DONNEES COMPLETES (TER, BRT, AFTU, Tata, DDD)
+// DONNEES (TER, BRT, AFTU, Tata, DDD)
 // ============================================================
 final List<Stop> terStations = [
   Stop(name: 'Gare TER Dakar', direction: 'Terminus Dakar (Arrivée)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 0), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6792, -17.4407), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.arrival),
@@ -309,7 +315,7 @@ final List<Stop> otherBusStations = [
 final List<Stop> allStops = [...terStations, ...brtStations, ...otherBusStations];
 
 // ============================================================
-// TRACES DES LIGNES (Multimodalité stricte et couleurs)
+// TRACES DES LIGNES (voies strictes par mode)
 // ============================================================
 final List<TransitRoute> demoRoutes = [
   const TransitRoute(
@@ -464,9 +470,11 @@ class DistanceHelper {
 }
 
 // ============================================================
-// INVERSEUR DE DIRECTION AMÉLIORÉ (ALLER/RETOUR STRICT)
+// INVERSEUR DE DIRECTION (pour sens inverse virtuel)
 // ============================================================
 class DirectionHelper {
+  /// Retourne la direction inverse d'un libellé donné.
+  /// Ex: 'Parcelles Assainies ➔ Place Leclerc' → 'Place Leclerc ➔ Parcelles Assainies'
   static String reverse(String direction) {
     if (direction.contains('➔')) {
       final parts = direction.split('➔').map((s) => s.trim()).toList();
@@ -502,7 +510,7 @@ class DirectionHelper {
 }
 
 // ============================================================
-// BASE DE CONNAISSANCE IA EXHAUSTIVE (TOUS LES ARRÊTS & QUARTIERS)
+// BASE DE CONNAISSANCE IA — alias de quartiers de Dakar
 // ============================================================
 const Map<String, String> kDakarLocationAliases = {
   'mermoz': 'Liberté 5',
@@ -527,6 +535,7 @@ const Map<String, String> kDakarLocationAliases = {
   'ouakam': 'Ouakam',
   'pikine': 'Pikine',
   'guediawaye': 'Guediawaye',
+  'guédiawaye': 'Guediawaye',
   'guédiawaye': 'Guediawaye',
   'keur massar': 'Keur Massar',
   'keur-massar': 'Keur Massar',
@@ -619,7 +628,9 @@ class _MainShellState extends State<MainShell> {
       if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
         setState(() { _gpsState = GpsState.denied; _gpsMessage = 'Permission GPS refusée.'; }); return;
       }
-      final position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high, timeLimit: Duration(seconds: 10)),
+      );
       setState(() { _userPosition = LatLng(position.latitude, position.longitude); _gpsState = GpsState.granted; _gpsMessage = null; });
     } catch (_) { setState(() { _gpsState = GpsState.error; _gpsMessage = 'Erreur GPS.'; }); }
   }
@@ -636,7 +647,7 @@ class _MainShellState extends State<MainShell> {
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: pages),
       bottomNavigationBar: Container(
-        decoration: BoxDecoration(color: AppColors.surface, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, -2))]),
+        decoration: BoxDecoration(color: AppColors.surface, boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 8, offset: const Offset(0, -2))]),
         child: SafeArea(
           top: false,
           minimum: const EdgeInsets.only(bottom: 4),
@@ -644,7 +655,7 @@ class _MainShellState extends State<MainShell> {
             selectedIndex: _currentIndex,
             onDestinationSelected: (i) => setState(() => _currentIndex = i),
             backgroundColor: AppColors.surface,
-            indicatorColor: AppColors.primary.withOpacity(0.15),
+            indicatorColor: AppColors.primary.withValues(alpha: 0.15),
             labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
             height: 68,
             destinations: const [
@@ -661,7 +672,7 @@ class _MainShellState extends State<MainShell> {
 }
 
 // ============================================================
-// EXPLORER (Carte avec tous les modes, couleurs et GPS actif)
+// EXPLORER
 // ============================================================
 class ExplorerPage extends StatefulWidget {
   final LatLng? userPosition; final GpsState gpsState; final String? gpsMessage; final Future<void> Function() onRequestLocation;
@@ -684,6 +695,11 @@ class _ExplorerPageState extends State<ExplorerPage> {
   @override
   void initState() { super.initState(); _loadDynamicRoutes(); }
 
+  /// Charge les polylignes sur la carte :
+  /// - TER et BRT : infrastructure dédiée → on utilise directement les
+  ///   points définis (voie ferrée / voie réservée BRT) SANS OSRM,
+  ///   car ces modes ne suivent PAS les routes carrossables.
+  /// - AFTU / Tata / DDD : modes routiers → OSRM pour un tracé réaliste.
   Future<void> _loadDynamicRoutes() async {
     final List<Polyline> loaded = [];
 
@@ -693,8 +709,10 @@ class _ExplorerPageState extends State<ExplorerPage> {
       List<LatLng> fullRoutePoints = [];
 
       if (route.isDedicated) {
+        // Voie strictement réservée (rail TER / couloir BRT)
         fullRoutePoints = List<LatLng>.from(route.points);
       } else {
+        // Mode routier : on suit les rues avec OSRM (parallélisé)
         final List<Future<List<LatLng>>> futures = [];
         for (int i = 0; i < route.points.length - 1; i++) {
           futures.add(RoutingService.getRealRoute(route.points[i], route.points[i + 1]));
@@ -707,15 +725,13 @@ class _ExplorerPageState extends State<ExplorerPage> {
             fullRoutePoints.addAll(segment);
           }
         }
-        if (fullRoutePoints.isEmpty) {
-          fullRoutePoints = List<LatLng>.from(route.points);
-        }
+        if (fullRoutePoints.isEmpty) fullRoutePoints = List<LatLng>.from(route.points);
       }
 
       loaded.add(Polyline(
         points: fullRoutePoints,
         color: route.color,
-        strokeWidth: route.isDedicated ? 5.5 : 4.0,
+        strokeWidth: route.isDedicated ? 6.0 : 4.5,
       ));
     }
 
@@ -752,7 +768,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
   @override
   Widget build(BuildContext context) {
     final stops = _filteredStops;
-    final activePolylines = _dynamicPolylines.isNotEmpty ? _dynamicPolylines : demoRoutes.map((r) => Polyline(points: r.points, color: r.color, strokeWidth: 4.5)).toList();
+    final activePolylines = _dynamicPolylines.isNotEmpty ? _dynamicPolylines : demoRoutes.map((r) => Polyline(points: r.points, color: r.color, strokeWidth: 5.0)).toList();
     final mapStops = _selectedFilter == 'Tous' ? allStops : _filteredStops;
 
     return Scaffold(
@@ -781,7 +797,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                               decoration: BoxDecoration(
                                 color: s.color, shape: BoxShape.circle,
                                 border: Border.all(color: Colors.white, width: 2),
-                                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.25), blurRadius: 3)],
+                                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.25), blurRadius: 3)],
                               ),
                               child: Icon(s.icon, color: Colors.white, size: 12),
                             ),
@@ -789,10 +805,10 @@ class _ExplorerPageState extends State<ExplorerPage> {
                         )).toList(),
                       ),
                       if (widget.userPosition != null)
-                        MarkerLayer(markers: [Marker(point: widget.userPosition!, width: 20, height: 20, child: Container(decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 3), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 4)])))]),
+                        MarkerLayer(markers: [Marker(point: widget.userPosition!, width: 20, height: 20, child: Container(decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 3), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 4)])))]),
                     ],
                   ),
-                  if (_isLoadingRoutes) Positioned(top: 10, left: 140, child: Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(12)), child: const Text('Chargement des voies...', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)))),
+                  if (_isLoadingRoutes) Positioned(top: 10, left: 140, child: Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(12)), child: const Text('Calcul des routes GPS...', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)))),
 
                   Positioned(
                     bottom: 16, left: 16,
@@ -850,7 +866,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                     ),
                   ),
 
-                  Positioned(top: 12, left: 12, child: Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6), decoration: BoxDecoration(color: AppColors.surface.withOpacity(0.95), borderRadius: BorderRadius.circular(8)), child: Row(mainAxisSize: MainAxisSize.min, children: [_legend(AppColors.ter, 'TER'), const SizedBox(width: 6), _legend(AppColors.brt, 'BRT'), const SizedBox(width: 6), _legend(AppColors.aftu, 'AFTU'), const SizedBox(width: 6), _legend(AppColors.tata, 'Tata'), const SizedBox(width: 6), _legend(AppColors.ddd, 'DDD')]))),
+                  Positioned(top: 12, left: 12, child: Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6), decoration: BoxDecoration(color: AppColors.surface.withValues(alpha: 0.95), borderRadius: BorderRadius.circular(8)), child: Row(mainAxisSize: MainAxisSize.min, children: [_legend(AppColors.ter, 'TER'), const SizedBox(width: 6), _legend(AppColors.brt, 'BRT'), const SizedBox(width: 6), _legend(AppColors.aftu, 'AFTU'), const SizedBox(width: 6), _legend(AppColors.tata, 'Tata'), const SizedBox(width: 6), _legend(AppColors.ddd, 'DDD')]))),
                 ],
               ),
             ),
@@ -859,13 +875,13 @@ class _ExplorerPageState extends State<ExplorerPage> {
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
                 children: [
                   Row(children: [
-                    Container(width: 40, height: 40, decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.12), borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.directions_bus, color: AppColors.primary, size: 22)),
+                    Container(width: 40, height: 40, decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.directions_bus, color: AppColors.primary, size: 22)),
                     const SizedBox(width: 12),
                     const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Dakar Bus', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)), Text('TER / BRT / AFTU / Tata / DDD', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))])),
                     const OfficialBadge(),
                   ]),
                   const SizedBox(height: 14),
-                  Container(decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)]), child: TextField(controller: _searchCtrl, onChanged: (_) => setState(() => _searchFocused = true), decoration: InputDecoration(hintText: 'Ou voulez-vous aller ?', prefixIcon: const Icon(Icons.search, color: AppColors.primary, size: 22), suffixIcon: _searchFocused ? IconButton(icon: const Icon(Icons.close, size: 20), onPressed: () { _searchCtrl.clear(); setState(() => _searchFocused = false); }) : null, border: InputBorder.none, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14)))),
+                  Container(decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 8)]), child: TextField(controller: _searchCtrl, onChanged: (_) => setState(() => _searchFocused = true), decoration: InputDecoration(hintText: 'Ou voulez-vous aller ?', prefixIcon: const Icon(Icons.search, color: AppColors.primary, size: 22), suffixIcon: _searchFocused ? IconButton(icon: const Icon(Icons.close, size: 20), onPressed: () { _searchCtrl.clear(); setState(() => _searchFocused = false); }) : null, border: InputBorder.none, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14)))),
                   if (_searchFocused && _searchResults.isNotEmpty) ...[
                     const SizedBox(height: 8),
                     Container(decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12)), child: Column(children: _searchResults.map((s) => ListTile(dense: true, leading: Icon(s.icon, color: s.color, size: 22), title: Text(s.name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)), subtitle: Text(s.direction, style: const TextStyle(fontSize: 12)), onTap: () { _searchCtrl.text = s.name; setState(() => _searchFocused = false); _centerOnStop(s); })).toList())),
@@ -889,7 +905,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
 
   Widget _chip(String label) {
     final color = _colorFor(label); final sel = _selectedFilter == label;
-    return Padding(padding: const EdgeInsets.only(right: 8), child: GestureDetector(onTap: () => setState(() => _selectedFilter = label), child: Container(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10), decoration: BoxDecoration(color: sel ? color.withOpacity(0.15) : AppColors.surface, borderRadius: BorderRadius.circular(24), border: Border.all(color: sel ? color : AppColors.divider, width: sel ? 2 : 1)), child: Text(label, style: TextStyle(color: sel ? color : AppColors.textSecondary, fontWeight: sel ? FontWeight.bold : FontWeight.normal, fontSize: 13)))));
+    return Padding(padding: const EdgeInsets.only(right: 8), child: GestureDetector(onTap: () => setState(() => _selectedFilter = label), child: Container(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10), decoration: BoxDecoration(color: sel ? color.withValues(alpha: 0.15) : AppColors.surface, borderRadius: BorderRadius.circular(24), border: Border.all(color: sel ? color : AppColors.divider, width: sel ? 2 : 1)), child: Text(label, style: TextStyle(color: sel ? color : AppColors.textSecondary, fontWeight: sel ? FontWeight.bold : FontWeight.normal, fontSize: 13)))));
   }
 
   Color _colorFor(String label) { switch (label) { case 'TER': return AppColors.ter; case 'BRT': return AppColors.brt; case 'AFTU': return AppColors.aftu; case 'Tata': return AppColors.tata; case 'DDD': return AppColors.ddd; default: return AppColors.primary; } }
@@ -911,7 +927,7 @@ class StopCard extends StatelessWidget {
     else { timeWidget = Text(TimeHelper.formatRemaining(remaining), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.success)); }
 
     return Container(
-      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6)]),
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 6)]),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: stop))),
@@ -949,7 +965,7 @@ class StopCard extends StatelessWidget {
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(4), border: Border.all(color: color.withOpacity(0.4), width: 0.8)),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4), border: Border.all(color: color.withValues(alpha: 0.4), width: 0.8)),
       child: Text(label, style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: color)),
     );
   }
@@ -996,7 +1012,7 @@ class _TripsPageState extends State<TripsPage> {
 
             Container(
               padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, 4))]),
+              decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 15, offset: const Offset(0, 4))]),
               child: Column(
                 children: [
                   _buildInputField(controller: _fromCtrl, label: 'Départ', icon: Icons.my_location, color: AppColors.primary),
@@ -1057,7 +1073,7 @@ class _TripsPageState extends State<TripsPage> {
   Widget _suggestionChip(String label, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10), decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.divider), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4)]), child: Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500))),
+      child: Container(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10), decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.divider), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 4)]), child: Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500))),
     );
   }
 
@@ -1073,7 +1089,7 @@ class _TripsPageState extends State<TripsPage> {
           children: [
             Row(
               children: [
-                Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: r.segments.first.color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Icon(r.segments.first.icon, color: r.segments.first.color, size: 22)),
+                Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: r.segments.first.color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)), child: Icon(r.segments.first.icon, color: r.segments.first.color, size: 22)),
                 const SizedBox(width: 12),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('${r.fromName} ➔ ${r.toName}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)), const SizedBox(height: 2), Text('${r.transferCount} correspondance(s) . ${r.segments.length} étape(s)', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))])),
                 Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Text('${r.totalMinutes} min', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 18)), const Text('Durée totale', style: TextStyle(fontSize: 10, color: AppColors.textSecondary))]),
@@ -1159,17 +1175,17 @@ class _AlertsPageState extends State<AlertsPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: color.withOpacity(0.3), width: 1.5), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)]),
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: color.withValues(alpha: 0.3), width: 1.5), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 8)]),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: alert['color'].withOpacity(0.1), shape: BoxShape.circle), child: Icon(alert['icon'], color: alert['color'], size: 22)),
+          Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: alert['color'].withValues(alpha: 0.1), shape: BoxShape.circle), child: Icon(alert['icon'], color: alert['color'], size: 22)),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(children: [Text(alert['type'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: alert['color'])), const Spacer(), Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Text(alert['time'], style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.bold)))]),
+                Row(children: [Text(alert['type'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: alert['color'])), const Spacer(), Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)), child: Text(alert['time'], style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.bold)))]),
                 const SizedBox(height: 6),
                 Text(alert['message'], style: const TextStyle(fontSize: 13, height: 1.4, color: AppColors.textPrimary)),
               ],
@@ -1183,10 +1199,10 @@ class _AlertsPageState extends State<AlertsPage> {
   Widget _buildAIAssistantSection() {
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(gradient: LinearGradient(colors: [AppColors.primary.withOpacity(0.08), AppColors.primary.withOpacity(0.02)], begin: Alignment.topLeft, end: Alignment.bottomRight), borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.primary.withOpacity(0.2))),
+      decoration: BoxDecoration(gradient: LinearGradient(colors: [AppColors.primary.withValues(alpha: 0.08), AppColors.primary.withValues(alpha: 0.02)], begin: Alignment.topLeft, end: Alignment.bottomRight), borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.primary.withValues(alpha: 0.2))),
       child: Column(
         children: [
-          Row(children: [Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.15), shape: BoxShape.circle), child: const Icon(Icons.auto_awesome, color: AppColors.primary, size: 24)), const SizedBox(width: 14), const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Assistant IA', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary)), Text('Posez vos questions en direct', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))]))]),
+          Row(children: [Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.15), shape: BoxShape.circle), child: const Icon(Icons.auto_awesome, color: AppColors.primary, size: 24)), const SizedBox(width: 14), const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Assistant IA', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary)), Text('Posez vos questions en direct', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))]))]),
           const SizedBox(height: 16),
           const Text('L\'IA analyse le réseau en temps réel pour vous informer sur les horaires, les perturbations et vous guider dans vos correspondances.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.4)),
           const SizedBox(height: 16),
@@ -1198,7 +1214,7 @@ class _AlertsPageState extends State<AlertsPage> {
 }
 
 // ============================================================
-// ASSISTANT IA EXHAUSTIF (Connaissance complète des arrêts)
+// ASSISTANT IA (Chat) — OMNISCIENT DU RÉSEAU DAKAR BUS
 // ============================================================
 class AIChatPage extends StatefulWidget {
   const AIChatPage({super.key});
@@ -1232,19 +1248,24 @@ class _AIChatPageState extends State<AIChatPage> {
     });
   }
 
+  // ============================================================
+  // MOTEUR DE COMPRÉHENSION + RÉPONSE
+  // ============================================================
   String _getAIResponse(String query) {
     final q = query.toLowerCase().trim();
 
-    if (RegExp(r"\b(bonjour|salut|bonsoir|hello|coucou|salam|nanga def)\b").hasMatch(q) && q.length < 25) {
+    // 1) Salutations
+    if (RegExp(r'\b(bonjour|salut|bonsoir|hello|coucou|salam|nanga def)\b').hasMatch(q) && q.length < 25) {
       return 'Bonjour ! 😊 Où souhaitez-vous vous rendre aujourd\'hui ? Je peux vous guider vers n\'importe quel arrêt du réseau (TER, BRT, AFTU, Tata, DDD).';
     }
 
+    // 2) Détection d'intention : "je veux aller à X" / "comment rejoindre X" / "bus pour X"
     final intentPatterns = [
-      RegExp(r"(?:je veux|j'aimerais|j aimerais|je souhaiterais|je voudrais|je cherche à|peux[- ]tu me dire comment)\s+(?:aller|me rendre|rejoindre|atteindre)\s+(?:à|au|aux|en|vers|jusqu'?à)?\s*(.+)"),
-      RegExp(r"(?:comment|comment faire pour)\s+(?:aller|me rendre|rejoindre|atteindre)\s+(?:à|au|aux|en|vers|jusqu'?à)?\s*(.+)"),
-      RegExp(r"(?:bus|car|ter|brt|transport|trajet|itinéraire|chemin|ligne)\s+(?:pour|vers|jusqu'?à|à)\s+(.+)"),
-      RegExp(r"(?:aller|direction|vers)\s+(?:à|au|aux|en|vers)?\s*(.+)"),
-      RegExp(r"(?:je suis à|je pars de|je viens de|départ de)\s+(.+)"),
+      RegExp(r'(?:je veux|j\'aimerais|j aimerais|je souhaiterais|je voudrais|je cherche à|peux[- ]tu me dire comment)\s+(?:aller|me rendre|rejoindre|atteindre)\s+(?:à|au|aux|en|vers|jusqu\'?à)?\s*(.+)'),
+      RegExp(r'(?:comment|comment faire pour)\s+(?:aller|me rendre|rejoindre|atteindre)\s+(?:à|au|aux|en|vers|jusqu\'?à)?\s*(.+)'),
+      RegExp(r'(?:bus|car|ter|brt|transport|trajet|itinéraire|route|chemin|ligne)\s+(?:pour|vers|jusqu\'?à|à)\s+(.+)'),
+      RegExp(r'(?:aller|direction|vers)\s+(?:à|au|aux|en|vers)?\s*(.+)'),
+      RegExp(r'(?:je suis à|je pars de|je viens de|départ de)\s+(.+)'),
     ];
 
     for (final pattern in intentPatterns) {
@@ -1258,7 +1279,8 @@ class _AIChatPageState extends State<AIChatPage> {
       }
     }
 
-    if (RegExp(r"\b(retard|perturbation|probleme|problème|panne|travaux|perturbé|perturbe)\b").hasMatch(q)) {
+    // 3) Questions sur les perturbations
+    if (RegExp(r'\b(retard|perturbation|probleme|problème|panne|travaux|perturbé|perturbe)\b').hasMatch(q)) {
       return '📡 État du réseau en temps réel :\n\n'
           '🟤 TER : léger retard de 10 min sur Dakar ↔ Diamniadio\n'
           '🔵 BRT : trafic fluide (fréquence 6 min)\n'
@@ -1267,29 +1289,34 @@ class _AIChatPageState extends State<AIChatPage> {
           'Consultez l\'onglet "Alertes" pour plus de détails.';
     }
 
-    if (RegExp(r"\b(ter|train)\b").hasMatch(q)) {
+    // 4) Questions sur TER
+    if (RegExp(r'\b(ter|train)\b').hasMatch(q)) {
       final terStops = allStops.where((s) => s.modeLabel == 'TER').toList();
       return '🚆 Le TER (Train Express Régional) dessert ${terStops.length} gares, de Gare Dakar à Gare Diamniadio en passant par Colobane, Hann, Dalifort, Pikine, Thiaroye, Yeumbeul, Keur Mbaye Fall, PNR, Rufisque et Bargny.\n\n'
           'Fréquence : toutes les 10 min en semaine, 20 min le dimanche.\n'
           'Consultez l\'onglet "Explorer" avec le filtre TER pour voir les prochains départs.';
     }
 
-    if (RegExp(r"\bbrt\b").hasMatch(q)) {
+    // 5) Questions sur BRT
+    if (RegExp(r'\bbrt\b').hasMatch(q)) {
       return '🚌 Le BRT (Bus Rapid Transit) relie PEM Petersen à PEM Guédiawaye via Colobane, Grand Dakar et Parcelles.\n\n'
           'Fréquence : toutes les 6 minutes.\n'
           'Voie dédiée : le BRT circule sur son propre couloir réservé, d\'où sa rapidité.';
     }
 
-    final ligneMatch = RegExp(r"ligne\s+(\d+)").firstMatch(q);
+    // 6) Questions sur une ligne DDD spécifique
+    final ligneMatch = RegExp(r'ligne\s+(\d+)').firstMatch(q);
     if (ligneMatch != null) {
       return _respondLigneInfo(ligneMatch.group(1)!);
     }
 
+    // 7) Recherche directe d'un nom d'arrêt dans la base
     final stop = _findStopFuzzy(q);
     if (stop != null) {
       return _respondStopInfo(stop);
     }
 
+    // 8) Fallback avec exemple
     return '🤔 Je n\'ai pas bien saisi votre demande.\n\n'
         'Voici ce que je sais faire :\n'
         '• Vous indiquer un itinéraire : "Je veux aller à Keur Massar"\n'
@@ -1299,14 +1326,20 @@ class _AIChatPageState extends State<AIChatPage> {
         'Essayez par exemple : "Comment rejoindre Mermoz ?"';
   }
 
+  // Nettoie la destination extraite (retire ponctuation finale, etc.)
   String _cleanLocationQuery(String s) {
-    return s.replaceAll(RegExp(r"[?!.,;:]+$"), '').trim();
+    return s.replaceAll(RegExp(r'[?!.,;:]+$'), '').trim();
   }
 
+  // ============================================================
+  // RÉPONSES SPÉCIALISÉES
+  // ============================================================
   String _respondToRouteQuery(String destination, {String? originalQuery}) {
+    // 1) Chercher un arrêt correspondant (exact → alias → fuzzy)
     final stop = _findStopFuzzy(destination);
 
     if (stop == null) {
+      // Aucun arrêt trouvé : on propose les arrêts les plus proches du mot
       final suggestions = _suggestClosestStops(destination);
       return '📍 Je n\'ai pas trouvé "$destination" directement dans mon réseau.\n\n'
           'Voici des arrêts qui pourraient correspondre :\n'
@@ -1314,6 +1347,7 @@ class _AIChatPageState extends State<AIChatPage> {
           'Reformulez par exemple : "Je veux aller à ${suggestions.isNotEmpty ? suggestions.first.name : 'Keur Massar'}".';
     }
 
+    // 2) Calculer un itinéraire depuis la gare principale de Dakar
     final fromStop = allStops.firstWhere((s) => s.name.toLowerCase().contains('gare ter dakar'));
     final result = RoutePlanner.plan(fromQuery: fromStop.name, toQuery: stop.name);
 
@@ -1333,6 +1367,7 @@ class _AIChatPageState extends State<AIChatPage> {
           '💡 Astuce : ouvrez l\'onglet "Trajets" pour affiner depuis votre position exacte.';
     }
 
+    // 3) Pas d'itinéraire calculable : on donne les infos de l'arrêt
     return _respondStopInfo(stop);
   }
 
@@ -1364,19 +1399,25 @@ class _AIChatPageState extends State<AIChatPage> {
         'Consultez l\'onglet "Explorer" (filtre DDD) pour suivre en temps réel.';
   }
 
+  // ============================================================
+  // RECHERCHE FLOUE D'UN ARRÊT
+  // ============================================================
   Stop? _findStopFuzzy(String query) {
     final q = query.trim().toLowerCase();
     if (q.isEmpty) return null;
 
+    // 1) Correspondance exacte
     for (final s in allStops) {
       if (s.name.toLowerCase() == q) return s;
     }
 
+    // 2) Sous-chaîne directe (query dans nom, ou nom dans query)
     for (final s in allStops) {
       final n = s.name.toLowerCase();
       if (n.contains(q) || q.contains(n)) return s;
     }
 
+    // 3) Alias Dakar (Mermoz, Plateau, Sacré-Cœur, etc.)
     for (final entry in kDakarLocationAliases.entries) {
       if (q.contains(entry.key) || entry.key.contains(q)) {
         final target = entry.value.toLowerCase();
@@ -1386,7 +1427,8 @@ class _AIChatPageState extends State<AIChatPage> {
       }
     }
 
-    final words = q.split(RegExp(r"\s+")).where((w) => w.length >= 4).toList();
+    // 4) Recherche par mots significatifs (> 4 lettres)
+    final words = q.split(RegExp(r'\s+')).where((w) => w.length >= 4).toList();
     for (final word in words) {
       for (final s in allStops) {
         if (s.name.toLowerCase().contains(word)) return s;
@@ -1401,8 +1443,9 @@ class _AIChatPageState extends State<AIChatPage> {
       }
     }
 
+    // 5) Recherche par distance de Levenshtein (tolérance fautes de frappe)
     Stop? best;
-    int bestDist = 5;
+    int bestDist = 5; // seuil max
     for (final s in allStops) {
       final d = _levenshtein(q, s.name.toLowerCase());
       if (d < bestDist) { bestDist = d; best = s; }
@@ -1473,7 +1516,7 @@ class _AIChatPageState extends State<AIChatPage> {
                         bottomLeft: isUser ? const Radius.circular(18) : const Radius.circular(4),
                         bottomRight: isUser ? const Radius.circular(4) : const Radius.circular(18),
                       ),
-                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 6)],
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 6)],
                     ),
                     child: Text(msg['text']!, style: TextStyle(color: isUser ? Colors.white : AppColors.textPrimary, fontSize: 14, height: 1.4)),
                   ),
@@ -1483,7 +1526,7 @@ class _AIChatPageState extends State<AIChatPage> {
           ),
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: AppColors.surface, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)]),
+            decoration: BoxDecoration(color: AppColors.surface, boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)]),
             child: Row(
               children: [
                 Expanded(child: TextField(controller: _msgCtrl, onSubmitted: (_) => _sendMessage(), decoration: InputDecoration(hintText: 'Posez votre question...', border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none), filled: true, fillColor: AppColors.background, contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12)))),
@@ -1499,7 +1542,7 @@ class _AIChatPageState extends State<AIChatPage> {
 }
 
 // ============================================================
-// REGLAGES
+// REGLAGES & DETAILS
 // ============================================================
 class SettingsPage extends StatelessWidget {
   final List<FavoriteRoute> favorites;
@@ -1521,7 +1564,7 @@ class SettingsPage extends StatelessWidget {
             decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
             child: Column(
               children: [
-                ListTile(leading: const Icon(Icons.info_outline, color: AppColors.primary), title: const Text('Version de l\'application'), subtitle: const Text('Dakar Bus v3.1.2 (Compat Max)'), trailing: const Icon(Icons.chevron_right)),
+                ListTile(leading: const Icon(Icons.info_outline, color: AppColors.primary), title: const Text('Version de l\'application'), subtitle: const Text('Dakar Bus v3.1.0 (Voies + IA)'), trailing: const Icon(Icons.chevron_right)),
                 const Divider(height: 1),
                 ListTile(leading: const Icon(Icons.language, color: AppColors.primary), title: const Text('Langue'), subtitle: const Text('Français'), trailing: const Icon(Icons.chevron_right)),
                 const Divider(height: 1),
@@ -1538,7 +1581,7 @@ class SettingsPage extends StatelessWidget {
 }
 
 // ============================================================
-// DETAIL ARRÊT — ALLER + RETOUR STRICTEMENT CORRIGÉ (Image 1 & 2)
+// DETAIL ARRÊT — AFFICHE ALLER + RETOUR (réels ou virtuels)
 // ============================================================
 class DualStopDetailPage extends StatelessWidget {
   final Stop stop;
@@ -1546,7 +1589,12 @@ class DualStopDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 1) Chercher un arrêt PHYSIQUE en sens inverse
     final realOpposite = OppositeStopService.findOppositeStop(currentStop: stop, allStops: allStops);
+
+    // 2) Si aucun n'existe (cas fréquent pour les DDD), créer un sens inverse VIRTUEL
+    //    en inversant le libellé de direction. Cela garantit l'affichage "aller/retour"
+    //    demandé par l'utilisateur, même quand la donnée n'est pas dupliquée.
     final opposite = realOpposite ?? _buildVirtualOpposite(stop);
     final bool isVirtual = realOpposite == null;
 
@@ -1559,8 +1607,12 @@ class DualStopDetailPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // Carte du sens actuel
           _buildStopCard(stop, stop.direction, stop.distanceMeters, currentBadge),
+
           const SizedBox(height: 16),
+
+          // Carte du sens inverse (réel ou virtuel)
           _buildStopCard(opposite, opposite.direction, opposite.distanceMeters, oppositeBadge),
 
           if (isVirtual) ...[
@@ -1568,9 +1620,9 @@ class DualStopDetailPage extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: AppColors.warning.withOpacity(0.08),
+                color: AppColors.warning.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.warning.withOpacity(0.3)),
+                border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
               ),
               child: Row(children: [
                 const Icon(Icons.info_outline, size: 16, color: AppColors.warning),
@@ -1584,6 +1636,8 @@ class DualStopDetailPage extends StatelessWidget {
           ],
 
           const SizedBox(height: 24),
+
+          // Bloc d'infos
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider)),
@@ -1604,6 +1658,8 @@ class DualStopDetailPage extends StatelessWidget {
     );
   }
 
+  /// Construit un arrêt virtuel en sens inverse : mêmes coordonnées, même mode,
+  /// même couleur, mais direction inversée et type opposé.
   Stop _buildVirtualOpposite(Stop s) {
     return s.copyWith(
       direction: DirectionHelper.reverse(s.direction),
@@ -1616,8 +1672,8 @@ class DualStopDetailPage extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: s.color.withOpacity(0.4), width: 1.5),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8)],
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 2),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -1627,41 +1683,41 @@ class DualStopDetailPage extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: s.color, borderRadius: BorderRadius.circular(6)),
-                  child: Text(s.modeLabel, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(8)),
+                  child: Text(s.modeLabel, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: badgeLabel == 'Arrivée' ? AppColors.warning.withOpacity(0.12) : AppColors.primary.withOpacity(0.12),
+                    color: badgeLabel == 'Arrivée' ? AppColors.warning.withValues(alpha: 0.15) : AppColors.primary.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: badgeLabel == 'Arrivée' ? AppColors.warning : AppColors.primary, width: 0.8),
+                    border: Border.all(color: badgeLabel == 'Arrivée' ? AppColors.warning : AppColors.primary, width: 1),
                   ),
-                  child: Text(badgeLabel.toUpperCase(), style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: badgeLabel == 'Arrivée' ? AppColors.warning : AppColors.primary)),
+                  child: Text(badgeLabel.toUpperCase(), style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: badgeLabel == 'Arrivée' ? AppColors.warning : AppColors.primary)),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Row(
               children: [
-                Icon(s.icon, color: s.color, size: 24),
+                Icon(s.icon, color: s.color, size: 28),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Vers $direction', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                      Text('Vers $direction', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                       const SizedBox(height: 4),
-                      Text('${DistanceHelper.format(distance)} . ${s.modeLabel}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                      Text('${DistanceHelper.format(distance)} . ${s.modeLabel}', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                     ],
                   ),
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(s.remainingMinutes() != null ? TimeHelper.formatRemaining(s.remainingMinutes()!) : 'N/A', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: s.color)),
+                    Text(s.remainingMinutes() != null ? TimeHelper.formatRemaining(s.remainingMinutes()!) : 'N/A', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.primary)),
                     const Text('attente', style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
                   ],
                 ),
