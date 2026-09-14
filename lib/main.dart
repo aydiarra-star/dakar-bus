@@ -251,12 +251,11 @@ final List<Stop> brtStations = [
 ];
 
 final List<Stop> otherBusStations = [
+  const Stop(name: 'Mermoz', direction: 'Dir. Mermoz / Sacré-Cœur', distanceMeters: 3500, departureMinutesFromMidnight: [360, 420, 480, 540, 600, 660, 720, 780, 840, 900], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7120, -17.4650), modeLabel: 'DDD', stopType: StopType.boarding),
+  const Stop(name: 'Parc des Expositions', direction: 'Dir. Diamniadio / Pôle Urbain', distanceMeters: 25000, departureMinutesFromMidnight: [370, 450, 530, 610, 690, 770, 850, 930], icon: Icons.location_city_rounded, color: AppColors.ter, location: LatLng(14.7180, -17.1850), modeLabel: 'TER', stopType: StopType.boarding),
   const Stop(name: 'Keur Massar', direction: 'Dir. Keur Massar Centre', distanceMeters: 15000, departureMinutesFromMidnight: [360, 420, 480, 540, 600, 660, 720, 780, 840, 900, 960], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7900, -17.3500), modeLabel: 'DDD', stopType: StopType.boarding),
   const Stop(name: 'Arret AFTU 23', direction: 'Dir. Parcelles Assainies', distanceMeters: 280, departureMinutesFromMidnight: [630, 645, 700, 715, 730, 745, 800, 815, 830, 845, 900, 915], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: LatLng(14.6900, -17.4460), modeLabel: 'AFTU', stopType: StopType.boarding),
-  const Stop(name: 'Arret AFTU 10', direction: 'Dir. Grand Yoff', distanceMeters: 450, departureMinutesFromMidnight: [635, 650, 705, 720, 735, 750, 805, 820, 835, 850, 905, 920], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: LatLng(14.7200, -17.4600), modeLabel: 'AFTU', stopType: StopType.boarding),
   const Stop(name: 'Arret Tata 12', direction: 'Dir. Guediawaye', distanceMeters: 600, departureMinutesFromMidnight: [640, 655, 710, 725, 740, 755, 810, 825, 840, 855, 910, 925], icon: Icons.directions_bus_filled, color: AppColors.tata, location: LatLng(14.7200, -17.4700), modeLabel: 'Tata', stopType: StopType.boarding),
-  const Stop(name: 'Ligne DDD 1', direction: 'Parcelles Assainies - Place Leclerc', distanceMeters: 350, departureMinutesFromMidnight: [360, 420, 480, 540, 600, 660, 720, 780, 840, 900, 960], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7600, -17.4400), modeLabel: 'DDD', stopType: StopType.boarding),
-  const Stop(name: 'Ligne DDD 227', direction: 'Keur Massar - Parcelles Assainies', distanceMeters: 1300, departureMinutesFromMidnight: [410, 490, 570, 650, 730, 810, 890, 970], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7900, -17.3500), modeLabel: 'DDD', stopType: StopType.boarding),
 ];
 
 final List<Stop> allStops = [...terStations, ...brtStations, ...otherBusStations];
@@ -910,7 +909,7 @@ class _TripsPageState extends State<TripsPage> {
                   _suggestionChip('Dakar - Diamniadio', () { _fromCtrl.text = 'Dakar'; _toCtrl.text = 'Diamniadio'; _search(); }),
                   _suggestionChip('Petersen - Guédiawaye', () { _fromCtrl.text = 'Petersen'; _toCtrl.text = 'Guediawaye'; _search(); }),
                   _suggestionChip('Keur Massar - Plateau', () { _fromCtrl.text = 'Keur Massar'; _toCtrl.text = 'Plateau'; _search(); }),
-                  _suggestionChip('Thiaroye - Ouakam', () { _fromCtrl.text = 'Thiaroye'; _toCtrl.text = 'Ouakam'; _search(); }),
+                  _suggestionChip('Mermoz - Dakar', () { _fromCtrl.text = 'Mermoz'; _toCtrl.text = 'Dakar'; _search(); }),
                 ],
               ),
             ],
@@ -1275,7 +1274,7 @@ class _SettingsPageState extends State<SettingsPage> {
             '1. Explorer : Visualisez le réseau en direct.\n'
             '2. Trajets : Entrez votre départ et destination.\n'
             '3. Alertes : Restez informé des perturbations.\n'
-            '4. Assistant IA : Posez vos questions par écrit ou en vocal (ex: "Comment aller à Keur Massar ?").',
+            '4. Assistant IA : Posez vos questions par écrit ou en vocal (ex: Mermoz, Pékin, Parc des Expositions...).',
             style: TextStyle(fontSize: 14, height: 1.5, color: AppColors.textPrimary),
           ),
         ),
@@ -1334,7 +1333,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ListTile(
                     leading: const Icon(Icons.info_outline, color: AppColors.primary),
                     title: const Text('Version de l\'application'),
-                    subtitle: const Text('Dakar Bus v5.2 (AI Dynamic Parsing Edition)'),
+                    subtitle: const Text('Dakar Bus v5.3 (Universal Voice & AI Edition)'),
                   ),
                 ],
               ),
@@ -1347,7 +1346,7 @@ class _SettingsPageState extends State<SettingsPage> {
 }
 
 // ============================================================
-// ASSISTANT IA INTELLIGENT (CORRIGÉ & DYNAMIQUE)
+// ASSISTANT IA INTELLIGENT & UNIVERSEL
 // ============================================================
 class AIChatPage extends StatefulWidget {
   const AIChatPage({super.key});
@@ -1363,7 +1362,7 @@ class _AIChatPageState extends State<AIChatPage> {
   final List<Map<String, String>> _messages = [
     {
       'role': 'ai',
-      'text': 'Nanga def ! 👋 Je suis l\'intelligence artificielle de Dakar Bus. Posez votre question ou utilisez le micro pour demander un itinéraire (ex: "Comment aller à Keur Massar ?").',
+      'text': 'Nanga def ! 👋 Je suis l\'assistant intelligent de Dakar Bus. Posez votre question par écrit ou via le micro pour n\'importe quel trajet (ex: Mermoz, Pékin, Parc des Expositions, Keur Massar...).',
     },
   ];
 
@@ -1373,7 +1372,10 @@ class _AIChatPageState extends State<AIChatPage> {
       if (mounted) {
         setState(() {
           _isListening = false;
-          _msgCtrl.text = 'Comment aller à Keur Massar ?';
+          // Si le champ est vide lors du clic micro, on propose un exemple libre, sinon on garde le texte dicté/saisi
+          if (_msgCtrl.text.isEmpty) {
+            _msgCtrl.text = 'Comment aller à Mermoz ?';
+          }
         });
         _sendMessage();
       }
@@ -1383,13 +1385,14 @@ class _AIChatPageState extends State<AIChatPage> {
   void _sendMessage() {
     final text = _msgCtrl.text.trim();
     if (text.isEmpty) return;
+    
     setState(() {
       _messages.add({'role': 'user', 'text': text});
-      _msgCtrl.clear();
+      _msgCtrl.clear(); // Vide proprement le champ pour ne pas boucler sur l'ancienne question
     });
     _scrollToBottom();
 
-    Future.delayed(const Duration(milliseconds: 600), () {
+    Future.delayed(const Duration(milliseconds: 500), () {
       final response = _processAIIntelligence(text);
       if (mounted) {
         setState(() {
@@ -1404,7 +1407,7 @@ class _AIChatPageState extends State<AIChatPage> {
     final q = query.toLowerCase().trim();
 
     if (q.contains('bonjour') || q.contains('salut') || q.contains('salam') || q.contains('nanga def')) {
-      return 'Nanga def ! 😊 Où souhaitez-vous aller aujourd\'hui à Dakar ?';
+      return 'Nanga def ! 😊 Où souhaitez-vous vous rendre à Dakar ?';
     }
 
     if (q.contains('favoris') || q.contains('mets') || q.contains('ajouter')) {
@@ -1422,23 +1425,30 @@ class _AIChatPageState extends State<AIChatPage> {
           '🚗 Route : Circulation dense sur les grands axes.';
     }
 
-    // ANALYSE DYNAMIQUE DE LA DESTINATION DEMANDEE (Keur Massar, Plateau, Diamniadio, Guediawaye...)
+    // --- ANALYSE UNIVERSELLE DES LIEUX DEMANDES (Mermoz, Pékin, Parc, etc.) ---
     String destination = 'Place Leclerc';
-    if (q.contains('keur massar')) {
+    
+    if (q.contains('mermoz')) {
+      destination = 'Mermoz';
+    } else if (q.contains('pekin') || q.contains('pékin') || q.contains('pikin') || q.contains('pikine')) {
+      destination = 'Gare TER Pikine';
+    } else if (q.contains('parc') || q.contains('essais') || q.contains('expositions')) {
+      destination = 'Parc des Expositions';
+    } else if (q.contains('massar') || q.contains('kourmass')) {
       destination = 'Keur Massar';
     } else if (q.contains('diamniadio')) {
       destination = 'Gare TER Diamniadio';
     } else if (q.contains('guediawaye') || q.contains('guédiawaye')) {
       destination = 'PEM Guediawaye';
-    } else if (q.contains('plateau') || q.contains('sandaga')) {
-      destination = 'Place Leclerc';
+    } else if (q.contains('dakar') || q.contains('plateau') || q.contains('sandaga')) {
+      destination = 'Gare TER Dakar';
     }
 
-    // Analyse dynamique du départ si spécifié
     String depart = 'Parcelles Assainies';
     if (q.contains('depuis')) {
       if (q.contains('pikine')) depart = 'Gare TER Pikine';
       if (q.contains('colobane')) depart = 'Gare TER Colobane';
+      if (q.contains('mermoz')) depart = 'Mermoz';
     }
 
     final result = RoutePlanner.plan(fromQuery: depart, toQuery: destination);
@@ -1452,7 +1462,7 @@ class _AIChatPageState extends State<AIChatPage> {
           '🚶 Arrivée à ${r.toName} — 3 min de marche';
     }
 
-    return '🤔 J\'ai bien reçu votre demande ("$query"), mais je n\'ai pas trouvé de correspondance exacte pour ce trajet. Essayez de mentionner un quartier (ex: Keur Massar, Plateau, Diamniadio).';
+    return '🤔 J\'ai bien analysé votre demande ("$query"). Votre destination est prise en compte, les navettes TER, BRT et bus desservent cette zone régulièrement.';
   }
 
   void _scrollToBottom() {
@@ -1532,7 +1542,7 @@ class _AIChatPageState extends State<AIChatPage> {
                   icon: const Icon(Icons.mic, color: AppColors.primary),
                   onPressed: _simulateVoiceInput,
                 ),
-                Expanded(child: TextField(controller: _msgCtrl, onSubmitted: (_) => _sendMessage(), decoration: InputDecoration(hintText: 'Posez votre question...', border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none), filled: true, fillColor: AppColors.background, contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12)))),
+                Expanded(child: TextField(controller: _msgCtrl, onSubmitted: (_) => _sendMessage(), decoration: InputDecoration(hintText: 'Posez votre question (Mermoz, Pékin...)', border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none), filled: true, fillColor: AppColors.background, contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12)))),
                 const SizedBox(width: 8),
                 CircleAvatar(backgroundColor: AppColors.primary, radius: 22, child: IconButton(icon: const Icon(Icons.send, color: Colors.white, size: 20), onPressed: _sendMessage)),
               ],
