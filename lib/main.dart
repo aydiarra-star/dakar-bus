@@ -506,22 +506,16 @@ class DirectionHelper {
 // ============================================================
 const Map<String, String> kDakarLocationAliases = {
   'mermoz': 'Liberté 5',
-  'mer moz': 'Liberté 5',
-  'merloz': 'Liberté 5',
-  'mermoz sacré coeur': 'Liberté 5',
-  'mermoz sacre coeur': 'Liberté 5',
   'plateau': 'Place Leclerc',
   'medina': 'Place Leclerc',
   'médina': 'Place Leclerc',
   'sacre coeur': 'Liberté 5',
   'sacré coeur': 'Liberté 5',
   'point e': 'Liberté 5',
-  'point-e': 'Liberté 5',
   'fann': 'Place Leclerc',
   'almadies': 'Ouakam',
   'yoff': 'Ouakam',
   'grand yoff': 'Grand Yoff',
-  'grand-yoff': 'Grand Yoff',
   'parcelles': 'Parcelles Assainies',
   'parcelles assainies': 'Parcelles Assainies',
   'ouakam': 'Ouakam',
@@ -529,19 +523,12 @@ const Map<String, String> kDakarLocationAliases = {
   'guediawaye': 'Guediawaye',
   'guédiawaye': 'Guediawaye',
   'keur massar': 'Keur Massar',
-  'keur-massar': 'Keur Massar',
   'thiaroye': 'Thiaroye',
-  'thiaroye sur mer': 'Thiaroye',
   'rufisque': 'Rufisque',
   'diamniadio': 'Diamniadio',
   'aibd': 'Aéroport Diass',
   'diass': 'Aéroport Diass',
-  'aéroport diass': 'Aéroport Diass',
-  'aeroport diass': 'Aéroport Diass',
-  'aéroport lss': 'Aéroport LSS',
-  'aeroport lss': 'Aéroport LSS',
   'petersen': 'PEM Petersen',
-  'pem petersen': 'PEM Petersen',
   'colobane': 'Colobane',
   'hann': 'Hann',
   'dalifort': 'Dalifort',
@@ -554,10 +541,6 @@ const Map<String, String> kDakarLocationAliases = {
   'liberté 5': 'Liberté 5',
   'liberte 6': 'Liberté 6',
   'liberté 6': 'Liberté 6',
-  'daroukhane': 'Daroukhane',
-  'djiolof chicken': 'Djiolof Chicken',
-  'almadie': 'Almadie',
-  'gadaye': 'Gadaye',
 };
 
 // ============================================================
@@ -619,9 +602,7 @@ class _MainShellState extends State<MainShell> {
       if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
         setState(() { _gpsState = GpsState.denied; _gpsMessage = 'Permission GPS refusée.'; }); return;
       }
-      final position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
+      final position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
       setState(() { _userPosition = LatLng(position.latitude, position.longitude); _gpsState = GpsState.granted; _gpsMessage = null; });
     } catch (_) { setState(() { _gpsState = GpsState.error; _gpsMessage = 'Erreur GPS.'; }); }
   }
@@ -673,9 +654,9 @@ class ExplorerPage extends StatefulWidget {
 }
 
 class _ExplorerPageState extends State<ExplorerPage> {
-Points  final MapController _mapController = MapController.isEmpty();
-  final LatLng _dakarCenter = const LatLng()14.7200, -17 full.4300);
-  StringRoute _selectedFilter = 'TousPoints';
+  final MapController _mapController = MapController();
+  final LatLng _dakarCenter = const LatLng(14.7200, -17.4300);
+  String _selectedFilter = 'Tous';
   int _mapHeight = 260;
   bool _searchFocused = false;
   final TextEditingController _searchCtrl = TextEditingController();
@@ -709,7 +690,9 @@ Points  final MapController _mapController = MapController.isEmpty();
             fullRoutePoints.addAll(segment);
           }
         }
-        if (fullRoute = List<LatLng>.from(route.points);
+        if (fullRoutePoints.isEmpty) {
+          fullRoutePoints = List<LatLng>.from(route.points);
+        }
       }
 
       loaded.add(Polyline(
@@ -1201,7 +1184,7 @@ class _AlertsPageState extends State<AlertsPage> {
 // ASSISTANT IA (Chat)
 // ============================================================
 class AIChatPage extends StatefulWidget {
-  const AIChatroutePage({super.key});
+  const AIChatPage({super.key});
   @override
   State<AIChatPage> createState() => _AIChatPageState();
 }
@@ -1242,7 +1225,7 @@ class _AIChatPageState extends State<AIChatPage> {
     final intentPatterns = [
       RegExp(r"(?:je veux|j'aimerais|j aimerais|je souhaiterais|je voudrais|je cherche à|peux[- ]tu me dire comment)\s+(?:aller|me rendre|rejoindre|atteindre)\s+(?:à|au|aux|en|vers|jusqu'?à)?\s*(.+)"),
       RegExp(r"(?:comment|comment faire pour)\s+(?:aller|me rendre|rejoindre|atteindre)\s+(?:à|au|aux|en|vers|jusqu'?à)?\s*(.+)"),
-      RegExp(r"(?:bus|car|ter|brt|transport|trajet|itinéraire||chemin|ligne)\s+(?:pour|vers|jusqu'?à|à)\s+(.+)"),
+      RegExp(r"(?:bus|car|ter|brt|transport|trajet|itinéraire|chemin|ligne)\s+(?:pour|vers|jusqu'?à|à)\s+(.+)"),
       RegExp(r"(?:aller|direction|vers)\s+(?:à|au|aux|en|vers)?\s*(.+)"),
       RegExp(r"(?:je suis à|je pars de|je viens de|départ de)\s+(.+)"),
     ];
