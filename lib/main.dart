@@ -53,7 +53,7 @@ class RoutingService {
 }
 
 // ============================================================
-// SERVICE DE DÉTECTION DES DEUX SENS
+// SERVICE DE DETECTION DES DEUX SENS
 // ============================================================
 class OppositeStopService {
   static const double _maxOppositeDistanceMeters = 500.0;
@@ -921,8 +921,8 @@ class StopCard extends StatelessWidget {
   Widget _buildStopTypeBadge(StopType type) {
     Color color; String label;
     switch (type) {
-      case StopType.arrival: color = AppColors.warning; label = 'ARRIVÉE'; break;
-      case StopType.departure: color = AppColors.primary; label = 'DÉPART'; break;
+      case StopType.arrival: color = AppColors.warning; label = 'ARRIVEE'; break;
+      case StopType.departure: color = AppColors.primary; label = 'DEPART'; break;
       case StopType.boarding: color = AppColors.brt; label = 'EMBARQUEMENT'; break;
       case StopType.terminus: color = AppColors.ter; label = 'TERMINUS'; break;
       case StopType.correspondence: color = AppColors.tata; label = 'CORRESP.'; break;
@@ -971,7 +971,7 @@ class _TripsPageState extends State<TripsPage> {
           children: [
             const Text('Planifier un trajet', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
-            const Text('Trouvez le meilleur itinéraire multimodal.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+            const Text('Trouvez le meilleur itineraire multimodal.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
             const SizedBox(height: 20),
 
             Container(
@@ -979,7 +979,7 @@ class _TripsPageState extends State<TripsPage> {
               decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, 4))]),
               child: Column(
                 children: [
-                  _buildInputField(controller: _fromCtrl, label: 'Départ', icon: Icons.my_location, color: AppColors.primary),
+                  _buildInputField(controller: _fromCtrl, label: 'Depart', icon: Icons.my_location, color: AppColors.primary),
                   const SizedBox(height: 12),
                   _buildInputField(controller: _toCtrl, label: 'Destination', icon: Icons.location_on, color: AppColors.ter),
                   const SizedBox(height: 20),
@@ -1000,7 +1000,7 @@ class _TripsPageState extends State<TripsPage> {
                 spacing: 10, runSpacing: 10,
                 children: [
                   _suggestionChip('Dakar - Diamniadio', () { _fromCtrl.text = 'Dakar'; _toCtrl.text = 'Diamniadio'; _search(); }),
-                  _suggestionChip('Petersen - Guédiawaye', () { _fromCtrl.text = 'Petersen'; _toCtrl.text = 'Guediawaye'; _search(); }),
+                  _suggestionChip('Petersen - Guediawaye', () { _fromCtrl.text = 'Petersen'; _toCtrl.text = 'Guediawaye'; _search(); }),
                   _suggestionChip('Keur Massar - Plateau', () { _fromCtrl.text = 'Keur Massar'; _toCtrl.text = 'Plateau'; _search(); }),
                   _suggestionChip('Thiaroye - Ouakam', () { _fromCtrl.text = 'Thiaroye'; _toCtrl.text = 'Ouakam'; _search(); }),
                 ],
@@ -1009,12 +1009,12 @@ class _TripsPageState extends State<TripsPage> {
 
             if (_result != null) ...[
               const SizedBox(height: 24),
-              Row(children: [const Text('Itinéraires proposés', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), const Spacer(), Text('${_result!.routes.length} résultat(s)', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))]),
+              Row(children: [const Text('Itineraires proposes', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), const Spacer(), Text('${_result!.routes.length} resultat(s)', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))]),
               const SizedBox(height: 12),
               if (_result!.hasRoutes)
                 ..._result!.routes.map((r) => _buildRouteCard(r))
               else
-                Container(padding: const EdgeInsets.all(20), decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)), child: Column(children: [const Icon(Icons.error_outline, color: AppColors.warning, size: 40), const SizedBox(height: 10), Text(_result!.errorMessage ?? 'Aucun trajet trouvé', textAlign: TextAlign.center, style: const TextStyle(fontSize: 14, color: AppColors.textSecondary))])),
+                Container(padding: const EdgeInsets.all(20), decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)), child: Column(children: [const Icon(Icons.error_outline, color: AppColors.warning, size: 40), const SizedBox(height: 10), Text(_result!.errorMessage ?? 'Aucun trajet trouve', textAlign: TextAlign.center, style: const TextStyle(fontSize: 14, color: AppColors.textSecondary))])),
             ],
           ],
         ),
@@ -1055,8 +1055,8 @@ class _TripsPageState extends State<TripsPage> {
               children: [
                 Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: r.segments.first.color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Icon(r.segments.first.icon, color: r.segments.first.color, size: 22)),
                 const SizedBox(width: 12),
-                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('${r.fromName} - ${r.toName}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)), const SizedBox(height: 2), Text('${r.transferCount} correspondance(s) . ${r.segments.length} étape(s)', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))])),
-                Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Text('${r.totalMinutes} min', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 18)), const Text('Durée totale', style: TextStyle(fontSize: 10, color: AppColors.textSecondary))]),
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('${r.fromName} - ${r.toName}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)), const SizedBox(height: 2), Text('${r.transferCount} correspondance(s) . ${r.segments.length} etape(s)', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))])),
+                Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Text('${r.totalMinutes} min', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 18)), const Text('Duree totale', style: TextStyle(fontSize: 10, color: AppColors.textSecondary))]),
               ],
             ),
             const SizedBox(height: 16),
@@ -1079,7 +1079,7 @@ class _TripsPageState extends State<TripsPage> {
                           const SizedBox(height: 4),
                           Text('${s.from} - ${s.to}', style: const TextStyle(fontSize: 12)),
                           const SizedBox(height: 2),
-                          Text('Durée: ${s.durationMinutes} min', style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                          Text('Duree: ${s.durationMinutes} min', style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
                         ]),
                       ),
                     ),
@@ -1105,9 +1105,9 @@ class AlertsPage extends StatefulWidget {
 
 class _AlertsPageState extends State<AlertsPage> {
   final List<Map<String, dynamic>> _alerts = [
-    {'type': 'TER', 'message': 'Retard de 10 min sur la ligne Dakar-Diamniadio suite à un incident technique.', 'severity': 'warning', 'time': 'Il y a 5 min', 'icon': Icons.train_rounded, 'color': AppColors.ter},
-    {'type': 'BRT', 'message': 'Trafic fluide sur l\'ensemble du réseau BRT.', 'severity': 'success', 'time': 'Il y a 12 min', 'icon': Icons.directions_bus_rounded, 'color': AppColors.brt},
-    {'type': 'DDD', 'message': 'Déviation de la ligne 217 à Thiaroye en raison de travaux.', 'severity': 'warning', 'time': 'Il y a 30 min', 'icon': Icons.directions_bus_filled_rounded, 'color': AppColors.ddd},
+    {'type': 'TER', 'message': 'Retard de 10 min sur la ligne Dakar-Diamniadio suite a un incident technique.', 'severity': 'warning', 'time': 'Il y a 5 min', 'icon': Icons.train_rounded, 'color': AppColors.ter},
+    {'type': 'BRT', 'message': 'Trafic fluide sur l\'ensemble du reseau BRT.', 'severity': 'success', 'time': 'Il y a 12 min', 'icon': Icons.directions_bus_rounded, 'color': AppColors.brt},
+    {'type': 'DDD', 'message': 'Deviation de la ligne 217 a Thiaroye en raison de travaux.', 'severity': 'warning', 'time': 'Il y a 30 min', 'icon': Icons.directions_bus_filled_rounded, 'color': AppColors.ddd},
     {'type': 'AFTU', 'message': 'Reprise normale du trafic sur la ligne 23.', 'severity': 'success', 'time': 'Il y a 1 h', 'icon': Icons.directions_bus_outlined, 'color': AppColors.aftu},
   ];
 
@@ -1122,7 +1122,7 @@ class _AlertsPageState extends State<AlertsPage> {
           children: [
             const Text('Alertes trafic', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
-            const Text('Informations en temps réel sur l\'état du réseau.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+            const Text('Informations en temps reel sur l\'etat du reseau.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
             const SizedBox(height: 20),
             ..._alerts.map((alert) => _buildAlertCard(alert)),
             const SizedBox(height: 24),
@@ -1168,7 +1168,7 @@ class _AlertsPageState extends State<AlertsPage> {
         children: [
           Row(children: [Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.15), shape: BoxShape.circle), child: const Icon(Icons.auto_awesome, color: AppColors.primary, size: 24)), const SizedBox(width: 14), const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Assistant IA', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary)), Text('Posez vos questions en direct', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))]))]),
           const SizedBox(height: 16),
-          const Text('L\'IA analyse le réseau en temps réel pour vous informer sur les horaires, les perturbations et vous guider dans vos correspondances.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.4)),
+          const Text('L\'IA analyse le reseau en temps reel pour vous informer sur les horaires, les perturbations et vous guider dans vos correspondances.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.4)),
           const SizedBox(height: 16),
           SizedBox(width: double.infinity, child: ElevatedButton.icon(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AIChatPage())), icon: const Icon(Icons.chat_bubble_outline, size: 20), label: const Text('Discuter avec l\'IA', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))))),
         ],
@@ -1412,7 +1412,7 @@ class SettingsPage extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const Text('Paramètres et Réglages', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          const Text('Parametres et Reglages', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
           const SizedBox(height: 20),
           Container(
             decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
@@ -1420,9 +1420,9 @@ class SettingsPage extends StatelessWidget {
               children: [
                 ListTile(leading: const Icon(Icons.info_outline, color: AppColors.primary), title: const Text('Version de l\'application'), subtitle: const Text('Dakar Bus v3.1.0'), trailing: const Icon(Icons.chevron_right)),
                 const Divider(height: 1),
-                ListTile(leading: const Icon(Icons.language, color: AppColors.primary), title: const Text('Langue'), subtitle: const Text('Français'), trailing: const Icon(Icons.chevron_right)),
+                ListTile(leading: const Icon(Icons.language, color: AppColors.primary), title: const Text('Langue'), subtitle: const Text('Francais'), trailing: const Icon(Icons.chevron_right)),
                 const Divider(height: 1),
-                ListTile(leading: const Icon(Icons.notifications_outlined, color: AppColors.primary), title: const Text('Notifications'), subtitle: const Text('Activées'), trailing: const Icon(Icons.chevron_right)),
+                ListTile(leading: const Icon(Icons.notifications_outlined, color: AppColors.primary), title: const Text('Notifications'), subtitle: const Text('Activees'), trailing: const Icon(Icons.chevron_right)),
               ],
             ),
           ),
@@ -1433,7 +1433,7 @@ class SettingsPage extends StatelessWidget {
 }
 
 // ============================================================
-// DETAIL ARRÊT — ALLER / RETOUR
+// DETAIL ARRET — ALLER / RETOUR
 // ============================================================
 class DualStopDetailPage extends StatelessWidget {
   final Stop stop;
@@ -1446,8 +1446,8 @@ class DualStopDetailPage extends StatelessWidget {
     final bool isVirtual = realOpposite == null;
 
     final isArrival = stop.stopType == StopType.arrival;
-    final currentBadge = isArrival ? 'Arrivée' : 'Départ';
-    final oppositeBadge = isArrival ? 'Départ' : 'Arrivée';
+    final currentBadge = isArrival ? 'Arrivee' : 'Depart';
+    final oppositeBadge = isArrival ? 'Depart' : 'Arrivee';
 
     return Scaffold(
       appBar: AppBar(title: Text(stop.name), backgroundColor: stop.color, foregroundColor: Colors.white),
@@ -1470,7 +1470,7 @@ class DualStopDetailPage extends StatelessWidget {
                 Icon(Icons.info_outline, size: 16, color: AppColors.warning),
                 SizedBox(width: 8),
                 Expanded(child: Text(
-                  'Sens inverse affiché par déduction.',
+                  'Sens inverse affiche par deduction.',
                   style: TextStyle(fontSize: 11, color: AppColors.warning, fontStyle: FontStyle.italic),
                 )),
               ]),
@@ -1482,7 +1482,7 @@ class DualStopDetailPage extends StatelessWidget {
             decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider)),
             child: Column(
               children: [
-                const Row(children: [Icon(Icons.info_outline, color: AppColors.primary), SizedBox(width: 10), Text('Informations sur l\'arrêt', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))]),
+                const Row(children: [Icon(Icons.info_outline, color: AppColors.primary), SizedBox(width: 10), Text('Informations sur l\'arret', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))]),
                 const SizedBox(height: 12),
                 _buildInfoRow('Mode', stop.modeLabel),
                 _buildInfoRow('Type', _getStopTypeLabel(stop.stopType)),
@@ -1545,7 +1545,7 @@ class DualStopDetailPage extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Prochain départ', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                  const Text('Prochain depart', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                   const SizedBox(height: 2),
                   Text(nextTimeStr, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: s.color)),
                 ],
@@ -1580,8 +1580,8 @@ class DualStopDetailPage extends StatelessWidget {
 
   String _getStopTypeLabel(StopType type) {
     switch (type) {
-      case StopType.arrival: return 'Arrivée';
-      case StopType.departure: return 'Départ';
+      case StopType.arrival: return 'Arrivee';
+      case StopType.departure: return 'Depart';
       case StopType.boarding: return 'Embarquement';
       case StopType.terminus: return 'Terminus';
       case StopType.correspondence: return 'Correspondance';
