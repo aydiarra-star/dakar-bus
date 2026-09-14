@@ -108,15 +108,15 @@ final List<int> _brtBase = _generateSchedule(from: 360, to: 1260, step: 6);
 final List<int> _terBase = _buildTerBase();
 
 // ============================================================
-// COULEURS & THEME (DISTINCTES PAR MOBILITE)
+// COULEURS & THEME (TATA EN BLEU, BRT EN VERT, ETC.)
 // ============================================================
 class AppColors {
   static const primary = Color(0xFF00695C);
   static const ter = Color(0xFF8D4004);     // Marron TER
-  static const brt = Color(0xFF2E7D32);     // Vert BRT (Distinct des Tata)
+  static const brt = Color(0xFF2E7D32);     // Vert BRT
   static const aftu = Color(0xFFEF6C00);    // Orange AFTU
-  static const tata = Color(0xFF7B1FA2);    // Violet Tata
-  static const ddd = Color(0xFF0288D1);     // Bleu clair DDD
+  static const tata = Color(0xFF1976D2);    // Bleu Tata (Demandé en bleu)
+  static const ddd = Color(0xFF00ACC1);     // Cyan DDD
   static const background = Color(0xFFF8F9FA);
   static const surface = Color(0xFFFFFFFF);
   static const textPrimary = Color(0xFF1A1A1A);
@@ -256,7 +256,7 @@ class RouteSearchResult {
 }
 
 // ============================================================
-// DONNEES (TER, BRT en VERT, AFTU, Tata, DDD)
+// DONNEES DES STATIONS AVEC LEUR COULEUR EXACTE
 // ============================================================
 final List<Stop> terStations = [
   Stop(name: 'Gare TER Dakar', direction: 'Terminus Dakar (Arrivée)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 0), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6792, -17.4407), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.arrival),
@@ -309,7 +309,7 @@ final List<Stop> otherBusStations = [
 final List<Stop> allStops = [...terStations, ...brtStations, ...otherBusStations];
 
 // ============================================================
-// TRACES DES LIGNES (AVEC LEUR COULEUR RESPECTIVE)
+// TRACES DES LIGNES (CHAQUE ITINÉRAIRE A SA COULEUR EXACTE)
 // ============================================================
 final List<TransitRoute> demoRoutes = [
   const TransitRoute(
@@ -322,7 +322,7 @@ final List<TransitRoute> demoRoutes = [
     ],
   ),
   const TransitRoute(
-    name: 'BRT', code: 'B1', type: 'BRT', color: AppColors.brt, // En VERT
+    name: 'BRT', code: 'B1', type: 'BRT', color: AppColors.brt, // Vert
     points: [
       LatLng(14.6720, -17.4400), LatLng(14.6950, -17.4420), LatLng(14.7050, -17.4400),
       LatLng(14.7220, -17.4330), LatLng(14.7350, -17.4260), LatLng(14.7520, -17.4100),
@@ -330,21 +330,21 @@ final List<TransitRoute> demoRoutes = [
     ],
   ),
   const TransitRoute(
-    name: 'AFTU', code: '23', type: 'AFTU', color: AppColors.aftu, // En ORANGE
+    name: 'AFTU', code: '23', type: 'AFTU', color: AppColors.aftu, // Orange
     points: [
       LatLng(14.7600, -17.4400), LatLng(14.7450, -17.4430), LatLng(14.7200, -17.4460),
       LatLng(14.6900, -17.4460), LatLng(14.6790, -17.4400),
     ],
   ),
   const TransitRoute(
-    name: 'Tata', code: '12', type: 'TATA', color: AppColors.tata, // En VIOLET
+    name: 'Tata', code: '12', type: 'TATA', color: AppColors.tata, // BLEU (Identique aux arrêts Tata)
     points: [
       LatLng(14.7735, -17.3977), LatLng(14.7500, -17.4200), LatLng(14.7250, -17.4500),
       LatLng(14.7000, -17.4600), LatLng(14.6800, -17.4500), LatLng(14.6750, -17.4400),
     ],
   ),
   const TransitRoute(
-    name: 'DDD Urbaine', code: 'DDD-1', type: 'DDD', color: AppColors.ddd, // En BLEU CLAIR
+    name: 'DDD Urbaine', code: 'DDD-1', type: 'DDD', color: AppColors.ddd, // Cyan
     points: [
       LatLng(14.7600, -17.4400), LatLng(14.7450, -17.4440), LatLng(14.7250, -17.4520),
       LatLng(14.7050, -17.4560), LatLng(14.6900, -17.4480), LatLng(14.6790, -17.4420),
