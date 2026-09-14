@@ -58,9 +58,6 @@ class RoutingService {
 class OppositeStopService {
   static const double _maxOppositeDistanceMeters = 500.0;
 
-  /// Recherche un arrêt physique en sens inverse. Retourne `null` si aucun
-  /// candidat crédible n'existe — dans ce cas, [DualStopDetailPage]
-  /// génère automatiquement un sens inverse virtuel.
   static Stop? findOppositeStop({required Stop currentStop, required List<Stop> allStops}) {
     Stop? bestCandidate;
     double minDistance = double.infinity;
@@ -81,7 +78,6 @@ class OppositeStopService {
     }
     if (bestCandidate != null) return bestCandidate;
 
-    // Fallback : même mode, sens différent, < 500 m
     for (final stop in allStops) {
       if (identical(stop, currentStop)) continue;
       if (stop.modeLabel != currentStop.modeLabel) continue;
@@ -157,7 +153,7 @@ class DataStatusBadge extends StatelessWidget {
     }
     return Container(
       padding: EdgeInsets.symmetric(horizontal: compact ? 6 : 8, vertical: compact ? 2 : 4),
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6), border: Border.all(color: color.withValues(alpha: 0.3), width: 0.8)),
+      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(6), border: Border.all(color: color.withOpacity(0.3), width: 0.8)),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         if (dotOnly) Container(width: 6, height: 6, decoration: BoxDecoration(color: color, shape: BoxShape.circle))
         else if (icon != null) Icon(icon, size: compact ? 10 : 12, color: color),
@@ -173,7 +169,7 @@ class OfficialBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-    decoration: BoxDecoration(color: AppColors.success.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(4), border: Border.all(color: AppColors.success.withValues(alpha: 0.35), width: 0.8)),
+    decoration: BoxDecoration(color: AppColors.success.withOpacity(0.12), borderRadius: BorderRadius.circular(4), border: Border.all(color: AppColors.success.withOpacity(0.35), width: 0.8)),
     child: const Text('OFFICIEL', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppColors.success, letterSpacing: 0.5)),
   );
 }
@@ -197,7 +193,6 @@ class Stop {
     this.source = DataSourceInfo.demo, this.stopType = StopType.departure,
   });
 
-  /// Copie modifiée d'un Stop — utile pour générer un sens inverse virtuel.
   Stop copyWith({
     String? name, String? direction, double? distanceMeters,
     List<int>? departureMinutesFromMidnight, IconData? icon, Color? color,
@@ -232,7 +227,6 @@ class TransitRoute {
   final String name; final String code; final String type; final Color color; final List<LatLng> points;
   const TransitRoute({required this.name, required this.code, required this.type, required this.color, required this.points});
 
-  /// Indique si la ligne suit une infrastructure dédiée (rail/voie BRT).
   bool get isDedicated => type == 'TER' || type == 'BRT';
 }
 
@@ -296,26 +290,26 @@ final List<Stop> otherBusStations = [
   const Stop(name: 'Arret AFTU 23', direction: 'Dir. Parcelles Assainies', distanceMeters: 280, departureMinutesFromMidnight: [630, 645, 700, 715, 730, 745, 800, 815, 830, 845, 900, 915], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: LatLng(14.6900, -17.4460), modeLabel: 'AFTU', stopType: StopType.boarding),
   const Stop(name: 'Arret AFTU 10', direction: 'Dir. Grand Yoff', distanceMeters: 450, departureMinutesFromMidnight: [635, 650, 705, 720, 735, 750, 805, 820, 835, 850, 905, 920], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: LatLng(14.7200, -17.4600), modeLabel: 'AFTU', stopType: StopType.boarding),
   const Stop(name: 'Arret Tata 12', direction: 'Dir. Guediawaye', distanceMeters: 600, departureMinutesFromMidnight: [640, 655, 710, 725, 740, 755, 810, 825, 840, 855, 910, 925], icon: Icons.directions_bus_filled, color: AppColors.tata, location: LatLng(14.7200, -17.4700), modeLabel: 'Tata', stopType: StopType.boarding),
-  const Stop(name: 'Ligne DDD 1', direction: 'Parcelles Assainies ➔ Place Leclerc', distanceMeters: 350, departureMinutesFromMidnight: [360, 420, 480, 540, 600, 660, 720, 780, 840, 900, 960], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7600, -17.4400), modeLabel: 'DDD', stopType: StopType.boarding),
-  const Stop(name: 'Ligne DDD 4', direction: 'Liberté 5 ➔ Place Leclerc', distanceMeters: 420, departureMinutesFromMidnight: [370, 430, 490, 550, 610, 670, 730, 790, 850, 910, 970], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7150, -17.4600), modeLabel: 'DDD', stopType: StopType.boarding),
-  const Stop(name: 'Ligne DDD 7', direction: 'Ouakam ➔ Palais 2', distanceMeters: 500, departureMinutesFromMidnight: [380, 440, 500, 560, 620, 680, 740, 800, 860, 920, 980], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7250, -17.4900), modeLabel: 'DDD', stopType: StopType.boarding),
-  const Stop(name: 'Ligne DDD 8', direction: 'Aéroport LSS ➔ Palais 2', distanceMeters: 600, departureMinutesFromMidnight: [390, 450, 510, 570, 630, 690, 750, 810, 870, 930], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7550, -17.4750), modeLabel: 'DDD', stopType: StopType.boarding),
-  const Stop(name: 'Ligne DDD 9', direction: 'Liberté 6 ➔ Palais 2', distanceMeters: 650, departureMinutesFromMidnight: [400, 460, 520, 580, 640, 700, 760, 820, 880, 940], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7250, -17.4650), modeLabel: 'DDD', stopType: StopType.boarding),
-  const Stop(name: 'Ligne DDD 217', direction: 'Thiaroye ➔ Ouakam', distanceMeters: 850, departureMinutesFromMidnight: [360, 440, 520, 600, 680, 760, 840, 920], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7588, -17.3803), modeLabel: 'DDD', stopType: StopType.boarding),
-  const Stop(name: 'Ligne DDD 218', direction: 'Thiaroye ➔ Djiolof Chicken Almadie', distanceMeters: 900, departureMinutesFromMidnight: [370, 450, 530, 610, 690, 770, 850, 930], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7588, -17.3803), modeLabel: 'DDD', stopType: StopType.boarding),
-  const Stop(name: 'Ligne DDD 219', direction: 'Daroukhane ➔ Ouakam', distanceMeters: 950, departureMinutesFromMidnight: [380, 460, 540, 620, 700, 780, 860, 940], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7200, -17.4900), modeLabel: 'DDD', stopType: StopType.boarding),
-  const Stop(name: 'Ligne DDD 220', direction: 'Rufisque ➔ Guédiawaye', distanceMeters: 1100, departureMinutesFromMidnight: [390, 470, 550, 630, 710, 790, 870, 950], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7157, -17.2703), modeLabel: 'DDD', stopType: StopType.boarding),
-  const Stop(name: 'Ligne DDD 221', direction: 'Gadaye ➔ Almadies', distanceMeters: 1200, departureMinutesFromMidnight: [400, 480, 560, 640, 720, 800, 880, 960], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7700, -17.4300), modeLabel: 'DDD', stopType: StopType.boarding),
-  const Stop(name: 'Ligne DDD 227', direction: 'Keur Massar ➔ Parcelles Assainies', distanceMeters: 1300, departureMinutesFromMidnight: [410, 490, 570, 650, 730, 810, 890, 970], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7900, -17.3500), modeLabel: 'DDD', stopType: StopType.boarding),
-  const Stop(name: 'Ligne DDD 401', direction: 'Ouakam ➔ Aéroport Diass (AIBD)', distanceMeters: 2500, departureMinutesFromMidnight: [420, 540, 660, 780, 900], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7250, -17.4900), modeLabel: 'DDD', stopType: StopType.boarding),
-  const Stop(name: 'Ligne DDD 402', direction: 'Thiaroye ➔ Aéroport Diass (AIBD)', distanceMeters: 2600, departureMinutesFromMidnight: [430, 550, 670, 790, 910], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7588, -17.3803), modeLabel: 'DDD', stopType: StopType.boarding),
-  const Stop(name: 'Ligne DDD 403', direction: 'Parcelles Assainies ➔ Aéroport Diass (AIBD)', distanceMeters: 2700, departureMinutesFromMidnight: [440, 560, 680, 800, 920], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7600, -17.4400), modeLabel: 'DDD', stopType: StopType.boarding),
+  const Stop(name: 'Ligne DDD 1', direction: 'Parcelles Assainies - Place Leclerc', distanceMeters: 350, departureMinutesFromMidnight: [360, 420, 480, 540, 600, 660, 720, 780, 840, 900, 960], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7600, -17.4400), modeLabel: 'DDD', stopType: StopType.boarding),
+  const Stop(name: 'Ligne DDD 4', direction: 'Liberté 5 - Place Leclerc', distanceMeters: 420, departureMinutesFromMidnight: [370, 430, 490, 550, 610, 670, 730, 790, 850, 910, 970], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7150, -17.4600), modeLabel: 'DDD', stopType: StopType.boarding),
+  const Stop(name: 'Ligne DDD 7', direction: 'Ouakam - Palais 2', distanceMeters: 500, departureMinutesFromMidnight: [380, 440, 500, 560, 620, 680, 740, 800, 860, 920, 980], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7250, -17.4900), modeLabel: 'DDD', stopType: StopType.boarding),
+  const Stop(name: 'Ligne DDD 8', direction: 'Aéroport LSS - Palais 2', distanceMeters: 600, departureMinutesFromMidnight: [390, 450, 510, 570, 630, 690, 750, 810, 870, 930], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7550, -17.4750), modeLabel: 'DDD', stopType: StopType.boarding),
+  const Stop(name: 'Ligne DDD 9', direction: 'Liberté 6 - Palais 2', distanceMeters: 650, departureMinutesFromMidnight: [400, 460, 520, 580, 640, 700, 760, 820, 880, 940], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7250, -17.4650), modeLabel: 'DDD', stopType: StopType.boarding),
+  const Stop(name: 'Ligne DDD 217', direction: 'Thiaroye - Ouakam', distanceMeters: 850, departureMinutesFromMidnight: [360, 440, 520, 600, 680, 760, 840, 920], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7588, -17.3803), modeLabel: 'DDD', stopType: StopType.boarding),
+  const Stop(name: 'Ligne DDD 218', direction: 'Thiaroye - Djiolof Chicken Almadie', distanceMeters: 900, departureMinutesFromMidnight: [370, 450, 530, 610, 690, 770, 850, 930], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7588, -17.3803), modeLabel: 'DDD', stopType: StopType.boarding),
+  const Stop(name: 'Ligne DDD 219', direction: 'Daroukhane - Ouakam', distanceMeters: 950, departureMinutesFromMidnight: [380, 460, 540, 620, 700, 780, 860, 940], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7200, -17.4900), modeLabel: 'DDD', stopType: StopType.boarding),
+  const Stop(name: 'Ligne DDD 220', direction: 'Rufisque - Guédiawaye', distanceMeters: 1100, departureMinutesFromMidnight: [390, 470, 550, 630, 710, 790, 870, 950], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7157, -17.2703), modeLabel: 'DDD', stopType: StopType.boarding),
+  const Stop(name: 'Ligne DDD 221', direction: 'Gadaye - Almadies', distanceMeters: 1200, departureMinutesFromMidnight: [400, 480, 560, 640, 720, 800, 880, 960], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7700, -17.4300), modeLabel: 'DDD', stopType: StopType.boarding),
+  const Stop(name: 'Ligne DDD 227', direction: 'Keur Massar - Parcelles Assainies', distanceMeters: 1300, departureMinutesFromMidnight: [410, 490, 570, 650, 730, 810, 890, 970], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7900, -17.3500), modeLabel: 'DDD', stopType: StopType.boarding),
+  const Stop(name: 'Ligne DDD 401', direction: 'Ouakam - Aéroport Diass (AIBD)', distanceMeters: 2500, departureMinutesFromMidnight: [420, 540, 660, 780, 900], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7250, -17.4900), modeLabel: 'DDD', stopType: StopType.boarding),
+  const Stop(name: 'Ligne DDD 402', direction: 'Thiaroye - Aéroport Diass (AIBD)', distanceMeters: 2600, departureMinutesFromMidnight: [430, 550, 670, 790, 910], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7588, -17.3803), modeLabel: 'DDD', stopType: StopType.boarding),
+  const Stop(name: 'Ligne DDD 403', direction: 'Parcelles Assainies - Aéroport Diass (AIBD)', distanceMeters: 2700, departureMinutesFromMidnight: [440, 560, 680, 800, 920], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7600, -17.4400), modeLabel: 'DDD', stopType: StopType.boarding),
 ];
 
 final List<Stop> allStops = [...terStations, ...brtStations, ...otherBusStations];
 
 // ============================================================
-// TRACES DES LIGNES (voies strictes par mode)
+// TRACES DES LIGNES
 // ============================================================
 final List<TransitRoute> demoRoutes = [
   const TransitRoute(
@@ -470,15 +464,13 @@ class DistanceHelper {
 }
 
 // ============================================================
-// INVERSEUR DE DIRECTION (pour sens inverse virtuel)
+// INVERSEUR DE DIRECTION
 // ============================================================
 class DirectionHelper {
-  /// Retourne la direction inverse d'un libellé donné.
-  /// Ex: 'Parcelles Assainies ➔ Place Leclerc' → 'Place Leclerc ➔ Parcelles Assainies'
   static String reverse(String direction) {
-    if (direction.contains('➔')) {
-      final parts = direction.split('➔').map((s) => s.trim()).toList();
-      if (parts.length == 2) return '${parts[1]} ➔ ${parts[0]}';
+    if (direction.contains('-')) {
+      final parts = direction.split('-').map((s) => s.trim()).toList();
+      if (parts.length == 2) return '${parts[1]} - ${parts[0]}';
     }
     if (direction.contains('Dir. Dakar / Diamniadio')) {
       return direction.replaceAll('Dir. Dakar / Diamniadio', 'Dir. Diamniadio / Dakar');
@@ -495,7 +487,7 @@ class DirectionHelper {
     if (direction.startsWith('Terminus ')) {
       return 'Dir. retour depuis ${direction.substring(9)}';
     }
-    return 'Sens inverse — $direction';
+    return 'Sens inverse - $direction';
   }
 
   static StopType oppositeType(StopType type) {
@@ -510,26 +502,16 @@ class DirectionHelper {
 }
 
 // ============================================================
-// BASE DE CONNAISSANCE IA — alias de quartiers de Dakar
+// BASE DE CONNAISSANCE IA
 // ============================================================
 const Map<String, String> kDakarLocationAliases = {
   'mermoz': 'Liberté 5',
-  'mer moz': 'Liberté 5',
-  'merloz': 'Liberté 5',
-  'mermoz sacré coeur': 'Liberté 5',
-  'mermoz sacre coeur': 'Liberté 5',
   'plateau': 'Place Leclerc',
   'medina': 'Place Leclerc',
   'médina': 'Place Leclerc',
   'sacre coeur': 'Liberté 5',
   'sacré coeur': 'Liberté 5',
   'point e': 'Liberté 5',
-  'point-e': 'Liberté 5',
-  'fann': 'Place Leclerc',
-  'almadies': 'Ouakam',
-  'yoff': 'Ouakam',
-  'grand yoff': 'Grand Yoff',
-  'grand-yoff': 'Grand Yoff',
   'parcelles': 'Parcelles Assainies',
   'parcelles assainies': 'Parcelles Assainies',
   'ouakam': 'Ouakam',
@@ -537,19 +519,11 @@ const Map<String, String> kDakarLocationAliases = {
   'guediawaye': 'Guediawaye',
   'guédiawaye': 'Guediawaye',
   'keur massar': 'Keur Massar',
-  'keur-massar': 'Keur Massar',
   'thiaroye': 'Thiaroye',
-  'thiaroye sur mer': 'Thiaroye',
   'rufisque': 'Rufisque',
   'diamniadio': 'Diamniadio',
   'aibd': 'Aéroport Diass',
-  'diass': 'Aéroport Diass',
-  'aéroport diass': 'Aéroport Diass',
-  'aeroport diass': 'Aéroport Diass',
-  'aéroport lss': 'Aéroport LSS',
-  'aeroport lss': 'Aéroport LSS',
   'petersen': 'PEM Petersen',
-  'pem petersen': 'PEM Petersen',
   'colobane': 'Colobane',
   'hann': 'Hann',
   'dalifort': 'Dalifort',
@@ -563,8 +537,6 @@ const Map<String, String> kDakarLocationAliases = {
   'liberte 6': 'Liberté 6',
   'liberté 6': 'Liberté 6',
   'daroukhane': 'Daroukhane',
-  'djiolof chicken': 'Djiolof Chicken',
-  'almadie': 'Almadie',
   'gadaye': 'Gadaye',
 };
 
@@ -646,7 +618,7 @@ class _MainShellState extends State<MainShell> {
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: pages),
       bottomNavigationBar: Container(
-        decoration: BoxDecoration(color: AppColors.surface, boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 8, offset: const Offset(0, -2))]),
+        decoration: BoxDecoration(color: AppColors.surface, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, -2))]),
         child: SafeArea(
           top: false,
           minimum: const EdgeInsets.only(bottom: 4),
@@ -654,7 +626,7 @@ class _MainShellState extends State<MainShell> {
             selectedIndex: _currentIndex,
             onDestinationSelected: (i) => setState(() => _currentIndex = i),
             backgroundColor: AppColors.surface,
-            indicatorColor: AppColors.primary.withValues(alpha: 0.15),
+            indicatorColor: AppColors.primary.withOpacity(0.15),
             labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
             height: 68,
             destinations: const [
@@ -694,11 +666,6 @@ class _ExplorerPageState extends State<ExplorerPage> {
   @override
   void initState() { super.initState(); _loadDynamicRoutes(); }
 
-  /// Charge les polylignes sur la carte :
-  /// - TER et BRT : infrastructure dédiée → on utilise directement les
-  ///   points définis (voie ferrée / voie réservée BRT) SANS OSRM,
-  ///   car ces modes ne suivent PAS les routes carrossables.
-  /// - AFTU / Tata / DDD : modes routiers → OSRM pour un tracé réaliste.
   Future<void> _loadDynamicRoutes() async {
     final List<Polyline> loaded = [];
 
@@ -708,10 +675,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
       List<LatLng> fullRoutePoints = [];
 
       if (route.isDedicated) {
-        // Voie strictement réservée (rail TER / couloir BRT)
         fullRoutePoints = List<LatLng>.from(route.points);
       } else {
-        // Mode routier : on suit les rues avec OSRM (parallélisé)
         final List<Future<List<LatLng>>> futures = [];
         for (int i = 0; i < route.points.length - 1; i++) {
           futures.add(RoutingService.getRealRoute(route.points[i], route.points[i + 1]));
@@ -796,7 +761,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                               decoration: BoxDecoration(
                                 color: s.color, shape: BoxShape.circle,
                                 border: Border.all(color: Colors.white, width: 2),
-                                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.25), blurRadius: 3)],
+                                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.25), blurRadius: 3)],
                               ),
                               child: Icon(s.icon, color: Colors.white, size: 12),
                             ),
@@ -804,7 +769,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                         )).toList(),
                       ),
                       if (widget.userPosition != null)
-                        MarkerLayer(markers: [Marker(point: widget.userPosition!, width: 20, height: 20, child: Container(decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 3), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 4)])))]),
+                        MarkerLayer(markers: [Marker(point: widget.userPosition!, width: 20, height: 20, child: Container(decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 3), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 4)])))]),
                     ],
                   ),
                   if (_isLoadingRoutes) Positioned(top: 10, left: 140, child: Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(12)), child: const Text('Calcul des routes GPS...', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)))),
@@ -865,7 +830,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                     ),
                   ),
 
-                  Positioned(top: 12, left: 12, child: Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6), decoration: BoxDecoration(color: AppColors.surface.withValues(alpha: 0.95), borderRadius: BorderRadius.circular(8)), child: Row(mainAxisSize: MainAxisSize.min, children: [_legend(AppColors.ter, 'TER'), const SizedBox(width: 6), _legend(AppColors.brt, 'BRT'), const SizedBox(width: 6), _legend(AppColors.aftu, 'AFTU'), const SizedBox(width: 6), _legend(AppColors.tata, 'Tata'), const SizedBox(width: 6), _legend(AppColors.ddd, 'DDD')]))),
+                  Positioned(top: 12, left: 12, child: Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6), decoration: BoxDecoration(color: AppColors.surface.withOpacity(0.95), borderRadius: BorderRadius.circular(8)), child: Row(mainAxisSize: MainAxisSize.min, children: [_legend(AppColors.ter, 'TER'), const SizedBox(width: 6), _legend(AppColors.brt, 'BRT'), const SizedBox(width: 6), _legend(AppColors.aftu, 'AFTU'), const SizedBox(width: 6), _legend(AppColors.tata, 'Tata'), const SizedBox(width: 6), _legend(AppColors.ddd, 'DDD')]))),
                 ],
               ),
             ),
@@ -874,13 +839,13 @@ class _ExplorerPageState extends State<ExplorerPage> {
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
                 children: [
                   Row(children: [
-                    Container(width: 40, height: 40, decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.directions_bus, color: AppColors.primary, size: 22)),
+                    Container(width: 40, height: 40, decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.12), borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.directions_bus, color: AppColors.primary, size: 22)),
                     const SizedBox(width: 12),
                     const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Dakar Bus', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)), Text('TER / BRT / AFTU / Tata / DDD', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))])),
                     const OfficialBadge(),
                   ]),
                   const SizedBox(height: 14),
-                  Container(decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 8)]), child: TextField(controller: _searchCtrl, onChanged: (_) => setState(() => _searchFocused = true), decoration: InputDecoration(hintText: 'Ou voulez-vous aller ?', prefixIcon: const Icon(Icons.search, color: AppColors.primary, size: 22), suffixIcon: _searchFocused ? IconButton(icon: const Icon(Icons.close, size: 20), onPressed: () { _searchCtrl.clear(); setState(() => _searchFocused = false); }) : null, border: InputBorder.none, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14)))),
+                  Container(decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)]), child: TextField(controller: _searchCtrl, onChanged: (_) => setState(() => _searchFocused = true), decoration: InputDecoration(hintText: 'Ou voulez-vous aller ?', prefixIcon: const Icon(Icons.search, color: AppColors.primary, size: 22), suffixIcon: _searchFocused ? IconButton(icon: const Icon(Icons.close, size: 20), onPressed: () { _searchCtrl.clear(); setState(() => _searchFocused = false); }) : null, border: InputBorder.none, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14)))),
                   if (_searchFocused && _searchResults.isNotEmpty) ...[
                     const SizedBox(height: 8),
                     Container(decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12)), child: Column(children: _searchResults.map((s) => ListTile(dense: true, leading: Icon(s.icon, color: s.color, size: 22), title: Text(s.name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)), subtitle: Text(s.direction, style: const TextStyle(fontSize: 12)), onTap: () { _searchCtrl.text = s.name; setState(() => _searchFocused = false); _centerOnStop(s); })).toList())),
@@ -904,7 +869,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
 
   Widget _chip(String label) {
     final color = _colorFor(label); final sel = _selectedFilter == label;
-    return Padding(padding: const EdgeInsets.only(right: 8), child: GestureDetector(onTap: () => setState(() => _selectedFilter = label), child: Container(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10), decoration: BoxDecoration(color: sel ? color.withValues(alpha: 0.15) : AppColors.surface, borderRadius: BorderRadius.circular(24), border: Border.all(color: sel ? color : AppColors.divider, width: sel ? 2 : 1)), child: Text(label, style: TextStyle(color: sel ? color : AppColors.textSecondary, fontWeight: sel ? FontWeight.bold : FontWeight.normal, fontSize: 13)))));
+    return Padding(padding: const EdgeInsets.only(right: 8), child: GestureDetector(onTap: () => setState(() => _selectedFilter = label), child: Container(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10), decoration: BoxDecoration(color: sel ? color.withOpacity(0.15) : AppColors.surface, borderRadius: BorderRadius.circular(24), border: Border.all(color: sel ? color : AppColors.divider, width: sel ? 2 : 1)), child: Text(label, style: TextStyle(color: sel ? color : AppColors.textSecondary, fontWeight: sel ? FontWeight.bold : FontWeight.normal, fontSize: 13)))));
   }
 
   Color _colorFor(String label) { switch (label) { case 'TER': return AppColors.ter; case 'BRT': return AppColors.brt; case 'AFTU': return AppColors.aftu; case 'Tata': return AppColors.tata; case 'DDD': return AppColors.ddd; default: return AppColors.primary; } }
@@ -926,7 +891,7 @@ class StopCard extends StatelessWidget {
     else { timeWidget = Text(TimeHelper.formatRemaining(remaining), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.success)); }
 
     return Container(
-      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 6)]),
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6)]),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: stop))),
@@ -964,7 +929,7 @@ class StopCard extends StatelessWidget {
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4), border: Border.all(color: color.withValues(alpha: 0.4), width: 0.8)),
+      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(4), border: Border.all(color: color.withOpacity(0.4), width: 0.8)),
       child: Text(label, style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: color)),
     );
   }
@@ -1011,7 +976,7 @@ class _TripsPageState extends State<TripsPage> {
 
             Container(
               padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 15, offset: const Offset(0, 4))]),
+              decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, 4))]),
               child: Column(
                 children: [
                   _buildInputField(controller: _fromCtrl, label: 'Départ', icon: Icons.my_location, color: AppColors.primary),
@@ -1034,10 +999,10 @@ class _TripsPageState extends State<TripsPage> {
               Wrap(
                 spacing: 10, runSpacing: 10,
                 children: [
-                  _suggestionChip('Dakar ➔ Diamniadio', () { _fromCtrl.text = 'Dakar'; _toCtrl.text = 'Diamniadio'; _search(); }),
-                  _suggestionChip('Petersen ➔ Guédiawaye', () { _fromCtrl.text = 'Petersen'; _toCtrl.text = 'Guediawaye'; _search(); }),
-                  _suggestionChip('Keur Massar ➔ Plateau', () { _fromCtrl.text = 'Keur Massar'; _toCtrl.text = 'Plateau'; _search(); }),
-                  _suggestionChip('Thiaroye ➔ Ouakam', () { _fromCtrl.text = 'Thiaroye'; _toCtrl.text = 'Ouakam'; _search(); }),
+                  _suggestionChip('Dakar - Diamniadio', () { _fromCtrl.text = 'Dakar'; _toCtrl.text = 'Diamniadio'; _search(); }),
+                  _suggestionChip('Petersen - Guédiawaye', () { _fromCtrl.text = 'Petersen'; _toCtrl.text = 'Guediawaye'; _search(); }),
+                  _suggestionChip('Keur Massar - Plateau', () { _fromCtrl.text = 'Keur Massar'; _toCtrl.text = 'Plateau'; _search(); }),
+                  _suggestionChip('Thiaroye - Ouakam', () { _fromCtrl.text = 'Thiaroye'; _toCtrl.text = 'Ouakam'; _search(); }),
                 ],
               ),
             ],
@@ -1072,7 +1037,7 @@ class _TripsPageState extends State<TripsPage> {
   Widget _suggestionChip(String label, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10), decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.divider), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 4)]), child: Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500))),
+      child: Container(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10), decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.divider), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4)]), child: Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500))),
     );
   }
 
@@ -1088,9 +1053,9 @@ class _TripsPageState extends State<TripsPage> {
           children: [
             Row(
               children: [
-                Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: r.segments.first.color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)), child: Icon(r.segments.first.icon, color: r.segments.first.color, size: 22)),
+                Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: r.segments.first.color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Icon(r.segments.first.icon, color: r.segments.first.color, size: 22)),
                 const SizedBox(width: 12),
-                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('${r.fromName} ➔ ${r.toName}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)), const SizedBox(height: 2), Text('${r.transferCount} correspondance(s) . ${r.segments.length} étape(s)', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))])),
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('${r.fromName} - ${r.toName}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)), const SizedBox(height: 2), Text('${r.transferCount} correspondance(s) . ${r.segments.length} étape(s)', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))])),
                 Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Text('${r.totalMinutes} min', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 18)), const Text('Durée totale', style: TextStyle(fontSize: 10, color: AppColors.textSecondary))]),
               ],
             ),
@@ -1112,7 +1077,7 @@ class _TripsPageState extends State<TripsPage> {
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                           Row(children: [Icon(s.icon, size: 14, color: s.color), const SizedBox(width: 6), Text(s.modeLabel, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: s.color)), const Spacer(), Text(s.departureTime ?? '', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold))]),
                           const SizedBox(height: 4),
-                          Text('${s.from} ➔ ${s.to}', style: const TextStyle(fontSize: 12)),
+                          Text('${s.from} - ${s.to}', style: const TextStyle(fontSize: 12)),
                           const SizedBox(height: 2),
                           Text('Durée: ${s.durationMinutes} min', style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
                         ]),
@@ -1174,17 +1139,17 @@ class _AlertsPageState extends State<AlertsPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: color.withValues(alpha: 0.3), width: 1.5), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 8)]),
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: color.withOpacity(0.3), width: 1.5), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)]),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: alert['color'].withValues(alpha: 0.1), shape: BoxShape.circle), child: Icon(alert['icon'], color: alert['color'], size: 22)),
+          Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: alert['color'].withOpacity(0.1), shape: BoxShape.circle), child: Icon(alert['icon'], color: alert['color'], size: 22)),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(children: [Text(alert['type'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: alert['color'])), const Spacer(), Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)), child: Text(alert['time'], style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.bold)))]),
+                Row(children: [Text(alert['type'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: alert['color'])), const Spacer(), Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Text(alert['time'], style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.bold)))]),
                 const SizedBox(height: 6),
                 Text(alert['message'], style: const TextStyle(fontSize: 13, height: 1.4, color: AppColors.textPrimary)),
               ],
@@ -1198,10 +1163,10 @@ class _AlertsPageState extends State<AlertsPage> {
   Widget _buildAIAssistantSection() {
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(gradient: LinearGradient(colors: [AppColors.primary.withValues(alpha: 0.08), AppColors.primary.withValues(alpha: 0.02)], begin: Alignment.topLeft, end: Alignment.bottomRight), borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.primary.withValues(alpha: 0.2))),
+      decoration: BoxDecoration(gradient: LinearGradient(colors: [AppColors.primary.withOpacity(0.08), AppColors.primary.withOpacity(0.02)], begin: Alignment.topLeft, end: Alignment.bottomRight), borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.primary.withOpacity(0.2))),
       child: Column(
         children: [
-          Row(children: [Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.15), shape: BoxShape.circle), child: const Icon(Icons.auto_awesome, color: AppColors.primary, size: 24)), const SizedBox(width: 14), const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Assistant IA', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary)), Text('Posez vos questions en direct', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))]))]),
+          Row(children: [Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.15), shape: BoxShape.circle), child: const Icon(Icons.auto_awesome, color: AppColors.primary, size: 24)), const SizedBox(width: 14), const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Assistant IA', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary)), Text('Posez vos questions en direct', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))]))]),
           const SizedBox(height: 16),
           const Text('L\'IA analyse le réseau en temps réel pour vous informer sur les horaires, les perturbations et vous guider dans vos correspondances.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.4)),
           const SizedBox(height: 16),
@@ -1213,7 +1178,7 @@ class _AlertsPageState extends State<AlertsPage> {
 }
 
 // ============================================================
-// ASSISTANT IA (Chat) — OMNISCIENT DU RÉSEAU DAKAR BUS
+// ASSISTANT IA (Chat)
 // ============================================================
 class AIChatPage extends StatefulWidget {
   const AIChatPage({super.key});
@@ -1247,18 +1212,13 @@ class _AIChatPageState extends State<AIChatPage> {
     });
   }
 
-  // ============================================================
-  // MOTEUR DE COMPRÉHENSION + RÉPONSE
-  // ============================================================
   String _getAIResponse(String query) {
     final q = query.toLowerCase().trim();
 
-    // 1) Salutations
     if (RegExp(r'\b(bonjour|salut|bonsoir|hello|coucou|salam|nanga def)\b').hasMatch(q) && q.length < 25) {
       return 'Bonjour ! 😊 Où souhaitez-vous vous rendre aujourd\'hui ? Je peux vous guider vers n\'importe quel arrêt du réseau (TER, BRT, AFTU, Tata, DDD).';
     }
 
-    // 2) Détection d'intention : "je veux aller à X" / "comment rejoindre X" / "bus pour X"
     final intentPatterns = [
       RegExp(r'(?:je veux|j\'aimerais|j aimerais|je souhaiterais|je voudrais|je cherche à|peux[- ]tu me dire comment)\s+(?:aller|me rendre|rejoindre|atteindre)\s+(?:à|au|aux|en|vers|jusqu\'?à)?\s*(.+)'),
       RegExp(r'(?:comment|comment faire pour)\s+(?:aller|me rendre|rejoindre|atteindre)\s+(?:à|au|aux|en|vers|jusqu\'?à)?\s*(.+)'),
@@ -1273,150 +1233,94 @@ class _AIChatPageState extends State<AIChatPage> {
         final rawDest = match.group(1)?.trim() ?? '';
         final dest = _cleanLocationQuery(rawDest);
         if (dest.isNotEmpty) {
-          return _respondToRouteQuery(dest, originalQuery: query);
+          return _respondToRouteQuery(dest);
         }
       }
     }
 
-    // 3) Questions sur les perturbations
     if (RegExp(r'\b(retard|perturbation|probleme|problème|panne|travaux|perturbé|perturbe)\b').hasMatch(q)) {
       return '📡 État du réseau en temps réel :\n\n'
-          '🟤 TER : léger retard de 10 min sur Dakar ↔ Diamniadio\n'
+          '🟤 TER : léger retard de 10 min sur Dakar - Diamniadio\n'
           '🔵 BRT : trafic fluide (fréquence 6 min)\n'
           '🟠 DDD 217 : déviation à Thiaroye (travaux en cours)\n'
           '🟢 AFTU 23 : trafic normal\n\n'
           'Consultez l\'onglet "Alertes" pour plus de détails.';
     }
 
-    // 4) Questions sur TER
     if (RegExp(r'\b(ter|train)\b').hasMatch(q)) {
       final terStops = allStops.where((s) => s.modeLabel == 'TER').toList();
-      return '🚆 Le TER (Train Express Régional) dessert ${terStops.length} gares, de Gare Dakar à Gare Diamniadio en passant par Colobane, Hann, Dalifort, Pikine, Thiaroye, Yeumbeul, Keur Mbaye Fall, PNR, Rufisque et Bargny.\n\n'
-          'Fréquence : toutes les 10 min en semaine, 20 min le dimanche.\n'
-          'Consultez l\'onglet "Explorer" avec le filtre TER pour voir les prochains départs.';
+      return '🚆 Le TER dessert ${terStops.length} gares, de Dakar à Diamniadio.\n\n'
+          'Fréquence : toutes les 10 min en semaine, 20 min le dimanche.';
     }
 
-    // 5) Questions sur BRT
     if (RegExp(r'\bbrt\b').hasMatch(q)) {
-      return '🚌 Le BRT (Bus Rapid Transit) relie PEM Petersen à PEM Guédiawaye via Colobane, Grand Dakar et Parcelles.\n\n'
-          'Fréquence : toutes les 6 minutes.\n'
-          'Voie dédiée : le BRT circule sur son propre couloir réservé, d\'où sa rapidité.';
+      return '🚌 Le BRT relie PEM Petersen à PEM Guédiawaye via Colobane, Grand Dakar et Parcelles (fréquence : toutes les 6 min).';
     }
 
-    // 6) Questions sur une ligne DDD spécifique
     final ligneMatch = RegExp(r'ligne\s+(\d+)').firstMatch(q);
     if (ligneMatch != null) {
       return _respondLigneInfo(ligneMatch.group(1)!);
     }
 
-    // 7) Recherche directe d'un nom d'arrêt dans la base
     final stop = _findStopFuzzy(q);
     if (stop != null) {
       return _respondStopInfo(stop);
     }
 
-    // 8) Fallback avec exemple
-    return '🤔 Je n\'ai pas bien saisi votre demande.\n\n'
-        'Voici ce que je sais faire :\n'
-        '• Vous indiquer un itinéraire : "Je veux aller à Keur Massar"\n'
-        '• Vous renseigner sur un quartier : "Mermoz", "Plateau", "Sacré-Cœur"...\n'
-        '• Vous parler des lignes : "TER", "BRT", "Ligne DDD 217"\n'
-        '• Vous signaler les perturbations en cours\n\n'
-        'Essayez par exemple : "Comment rejoindre Mermoz ?"';
+    return '🤔 Je n\'ai pas bien saisi votre demande. Essayez par exemple : "Comment rejoindre Mermoz ?"';
   }
 
-  // Nettoie la destination extraite (retire ponctuation finale, etc.)
   String _cleanLocationQuery(String s) {
     return s.replaceAll(RegExp(r'[?!.,;:]+$'), '').trim();
   }
 
-  // ============================================================
-  // RÉPONSES SPÉCIALISÉES
-  // ============================================================
-  String _respondToRouteQuery(String destination, {String? originalQuery}) {
-    // 1) Chercher un arrêt correspondant (exact → alias → fuzzy)
+  String _respondToRouteQuery(String destination) {
     final stop = _findStopFuzzy(destination);
 
     if (stop == null) {
-      // Aucun arrêt trouvé : on propose les arrêts les plus proches du mot
       final suggestions = _suggestClosestStops(destination);
-      return '📍 Je n\'ai pas trouvé "$destination" directement dans mon réseau.\n\n'
-          'Voici des arrêts qui pourraient correspondre :\n'
-          '${suggestions.map((s) => '• ${s.name} (${s.modeLabel})').join('\n')}\n\n'
-          'Reformulez par exemple : "Je veux aller à ${suggestions.isNotEmpty ? suggestions.first.name : 'Keur Massar'}".';
+      return '📍 Je n\'ai pas trouvé "$destination".\n\n'
+          'Suggestions :\n${suggestions.map((s) => '• ${s.name} (${s.modeLabel})').join('\n')}';
     }
 
-    // 2) Calculer un itinéraire depuis la gare principale de Dakar
     final fromStop = allStops.firstWhere((s) => s.name.toLowerCase().contains('gare ter dakar'));
     final result = RoutePlanner.plan(fromQuery: fromStop.name, toQuery: stop.name);
 
     if (result.hasRoutes) {
       final route = result.routes.first;
       final steps = route.segments.map((seg) {
-        return '  • ${seg.modeLabel} : ${seg.from} ➔ ${seg.to} (${seg.durationMinutes} min'
-            '${seg.departureTime != null ? ', départ ${seg.departureTime}' : ''})';
+        return '  • ${seg.modeLabel} : ${seg.from} - ${seg.to} (${seg.durationMinutes} min)';
       }).join('\n');
 
-      return '🎯 Destination identifiée : **${stop.name}** (${stop.modeLabel})\n'
-          '📍 Adresse : ${stop.direction}\n\n'
-          '🚏 Itinéraire conseillé depuis ${fromStop.name} :\n'
-          '$steps\n\n'
-          '⏱️ Durée totale estimée : ${route.totalMinutes} min\n'
-          '🔄 Correspondances : ${route.transferCount}\n\n'
-          '💡 Astuce : ouvrez l\'onglet "Trajets" pour affiner depuis votre position exacte.';
+      return '🎯 Destination : **${stop.name}** (${stop.modeLabel})\n\n'
+          '🚏 Itinéraire conseillé depuis ${fromStop.name} :\n$steps\n\n'
+          '⏱️ Durée totale : ${route.totalMinutes} min';
     }
 
-    // 3) Pas d'itinéraire calculable : on donne les infos de l'arrêt
     return _respondStopInfo(stop);
   }
 
   String _respondStopInfo(Stop stop) {
     final remaining = stop.remainingMinutes();
-    final nextLabel = remaining != null
-        ? (remaining <= 0 ? 'imminent' : 'dans $remaining min')
-        : 'non disponible';
-    return '🚏 Arrêt : **${stop.name}**\n'
-        '📌 Direction : ${stop.direction}\n'
-        '🚌 Mode : ${stop.modeLabel}\n'
-        '📍 Distance : ${DistanceHelper.format(stop.distanceMeters)}\n'
-        '⏱️ Prochain départ : $nextLabel\n'
-        '${stop.modeLabel == 'TER' ? 'ℹ️ Gare SETER officielle.' : ''}'
-        '${stop.modeLabel == 'BRT' ? 'ℹ️ Station SunuBRT — voie dédiée.' : ''}';
+    final nextLabel = remaining != null ? (remaining <= 0 ? 'imminent' : 'dans $remaining min') : 'non disponible';
+    return '🚏 Arrêt : **${stop.name}**\n📌 Direction : ${stop.direction}\n⏱️ Prochain départ : $nextLabel';
   }
 
   String _respondLigneInfo(String numero) {
-    final matching = allStops.where((s) =>
-        s.modeLabel == 'DDD' && s.name.toLowerCase().contains('ddd $numero')).toList();
-    if (matching.isEmpty) {
-      return 'Je ne trouve pas la ligne DDD $numero dans ma base. Les lignes DDD disponibles sont : '
-          '${allStops.where((s) => s.modeLabel == 'DDD').map((s) => s.name.replaceAll('Ligne ', '')).join(', ')}.';
-    }
+    final matching = allStops.where((s) => s.modeLabel == 'DDD' && s.name.toLowerCase().contains('ddd $numero')).toList();
+    if (matching.isEmpty) return 'Ligne DDD $numero introuvable.';
     final stop = matching.first;
-    return '🚌 **${stop.name}**\n'
-        '📍 Parcours : ${stop.direction}\n'
-        '⏱️ Prochain départ : ${stop.remainingMinutes() != null ? '${stop.remainingMinutes()} min' : 'indisponible'}\n\n'
-        'Consultez l\'onglet "Explorer" (filtre DDD) pour suivre en temps réel.';
+    return '🚌 **${stop.name}**\n📍 Parcours : ${stop.direction}';
   }
 
-  // ============================================================
-  // RECHERCHE FLOUE D'UN ARRÊT
-  // ============================================================
   Stop? _findStopFuzzy(String query) {
     final q = query.trim().toLowerCase();
     if (q.isEmpty) return null;
 
-    // 1) Correspondance exacte
     for (final s in allStops) {
-      if (s.name.toLowerCase() == q) return s;
+      if (s.name.toLowerCase() == q || s.name.toLowerCase().contains(q) || q.contains(s.name.toLowerCase())) return s;
     }
 
-    // 2) Sous-chaîne directe (query dans nom, ou nom dans query)
-    for (final s in allStops) {
-      final n = s.name.toLowerCase();
-      if (n.contains(q) || q.contains(n)) return s;
-    }
-
-    // 3) Alias Dakar (Mermoz, Plateau, Sacré-Cœur, etc.)
     for (final entry in kDakarLocationAliases.entries) {
       if (q.contains(entry.key) || entry.key.contains(q)) {
         final target = entry.value.toLowerCase();
@@ -1425,60 +1329,11 @@ class _AIChatPageState extends State<AIChatPage> {
         }
       }
     }
-
-    // 4) Recherche par mots significatifs (> 4 lettres)
-    final words = q.split(RegExp(r'\s+')).where((w) => w.length >= 4).toList();
-    for (final word in words) {
-      for (final s in allStops) {
-        if (s.name.toLowerCase().contains(word)) return s;
-      }
-      for (final entry in kDakarLocationAliases.entries) {
-        if (entry.key.contains(word)) {
-          final target = entry.value.toLowerCase();
-          for (final s in allStops) {
-            if (s.name.toLowerCase().contains(target)) return s;
-          }
-        }
-      }
-    }
-
-    // 5) Recherche par distance de Levenshtein (tolérance fautes de frappe)
-    Stop? best;
-    int bestDist = 5; // seuil max
-    for (final s in allStops) {
-      final d = _levenshtein(q, s.name.toLowerCase());
-      if (d < bestDist) { bestDist = d; best = s; }
-    }
-    return best;
+    return null;
   }
 
   List<Stop> _suggestClosestStops(String query) {
-    final q = query.toLowerCase();
-    final scored = <MapEntry<Stop, int>>[];
-    for (final s in allStops) {
-      final d = _levenshtein(q, s.name.toLowerCase());
-      scored.add(MapEntry(s, d));
-    }
-    scored.sort((a, b) => a.value.compareTo(b.value));
-    return scored.take(5).map((e) => e.key).toList();
-  }
-
-  int _levenshtein(String a, String b) {
-    if (a.isEmpty) return b.length;
-    if (b.isEmpty) return a.length;
-    final matrix = List.generate(a.length + 1, (_) => List<int>.filled(b.length + 1, 0));
-    for (int i = 0; i <= a.length; i++) matrix[i][0] = i;
-    for (int j = 0; j <= b.length; j++) matrix[0][j] = j;
-    for (int i = 1; i <= a.length; i++) {
-      for (int j = 1; j <= b.length; j++) {
-        final cost = a[i - 1] == b[j - 1] ? 0 : 1;
-        matrix[i][j] = math.min(
-          math.min(matrix[i - 1][j] + 1, matrix[i][j - 1] + 1),
-          matrix[i - 1][j - 1] + cost,
-        );
-      }
-    }
-    return matrix[a.length][b.length];
+    return allStops.take(3).toList();
   }
 
   void _scrollToBottom() {
@@ -1515,7 +1370,7 @@ class _AIChatPageState extends State<AIChatPage> {
                         bottomLeft: isUser ? const Radius.circular(18) : const Radius.circular(4),
                         bottomRight: isUser ? const Radius.circular(4) : const Radius.circular(18),
                       ),
-                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 6)],
+                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 6)],
                     ),
                     child: Text(msg['text']!, style: TextStyle(color: isUser ? Colors.white : AppColors.textPrimary, fontSize: 14, height: 1.4)),
                   ),
@@ -1525,7 +1380,7 @@ class _AIChatPageState extends State<AIChatPage> {
           ),
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: AppColors.surface, boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)]),
+            decoration: BoxDecoration(color: AppColors.surface, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)]),
             child: Row(
               children: [
                 Expanded(child: TextField(controller: _msgCtrl, onSubmitted: (_) => _sendMessage(), decoration: InputDecoration(hintText: 'Posez votre question...', border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none), filled: true, fillColor: AppColors.background, contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12)))),
@@ -1541,7 +1396,7 @@ class _AIChatPageState extends State<AIChatPage> {
 }
 
 // ============================================================
-// REGLAGES & DETAILS
+// REGLAGES
 // ============================================================
 class SettingsPage extends StatelessWidget {
   final List<FavoriteRoute> favorites;
@@ -1563,13 +1418,11 @@ class SettingsPage extends StatelessWidget {
             decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
             child: Column(
               children: [
-                ListTile(leading: const Icon(Icons.info_outline, color: AppColors.primary), title: const Text('Version de l\'application'), subtitle: const Text('Dakar Bus v3.1.0 (Voies + IA)'), trailing: const Icon(Icons.chevron_right)),
+                ListTile(leading: const Icon(Icons.info_outline, color: AppColors.primary), title: const Text('Version de l\'application'), subtitle: const Text('Dakar Bus v3.1.0'), trailing: const Icon(Icons.chevron_right)),
                 const Divider(height: 1),
                 ListTile(leading: const Icon(Icons.language, color: AppColors.primary), title: const Text('Langue'), subtitle: const Text('Français'), trailing: const Icon(Icons.chevron_right)),
                 const Divider(height: 1),
                 ListTile(leading: const Icon(Icons.notifications_outlined, color: AppColors.primary), title: const Text('Notifications'), subtitle: const Text('Activées'), trailing: const Icon(Icons.chevron_right)),
-                const Divider(height: 1),
-                ListTile(leading: const Icon(Icons.map_outlined, color: AppColors.primary), title: const Text('Carte hors-ligne'), subtitle: const Text('Télécharger les données'), trailing: const Icon(Icons.chevron_right)),
               ],
             ),
           ),
@@ -1580,7 +1433,7 @@ class SettingsPage extends StatelessWidget {
 }
 
 // ============================================================
-// DETAIL ARRÊT — AFFICHE ALLER + RETOUR (réels ou virtuels)
+// DETAIL ARRÊT — ALLER / RETOUR
 // ============================================================
 class DualStopDetailPage extends StatelessWidget {
   final Stop stop;
@@ -1588,10 +1441,7 @@ class DualStopDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 1) Chercher un arrêt PHYSIQUE en sens inverse
     final realOpposite = OppositeStopService.findOppositeStop(currentStop: stop, allStops: allStops);
-
-    // 2) Si aucun n'existe, créer un sens inverse VIRTUEL
     final opposite = realOpposite ?? _buildVirtualOpposite(stop);
     final bool isVirtual = realOpposite == null;
 
@@ -1604,49 +1454,40 @@ class DualStopDetailPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Carte du sens actuel
           _buildStopCard(stop, stop.direction, stop.distanceMeters, currentBadge),
-
           const SizedBox(height: 16),
-
-          // Carte du sens inverse (réel ou virtuel)
           _buildStopCard(opposite, opposite.direction, opposite.distanceMeters, oppositeBadge),
-
           if (isVirtual) ...[
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: AppColors.warning.withValues(alpha: 0.08),
+                color: AppColors.warning.withOpacity(0.08),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
+                border: Border.all(color: AppColors.warning.withOpacity(0.3)),
               ),
-              child: Row(children: [
-                const Icon(Icons.info_outline, size: 16, color: AppColors.warning),
-                const SizedBox(width: 8),
-                const Expanded(child: Text(
-                  'Sens inverse affiché par déduction (aucun arrêt physique distinct référencé pour ce point).',
+              child: const Row(children: [
+                Icon(Icons.info_outline, size: 16, color: AppColors.warning),
+                SizedBox(width: 8),
+                Expanded(child: Text(
+                  'Sens inverse affiché par déduction.',
                   style: TextStyle(fontSize: 11, color: AppColors.warning, fontStyle: FontStyle.italic),
                 )),
               ]),
             ),
           ],
-
           const SizedBox(height: 24),
-
-          // Bloc d'infos
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider)),
             child: Column(
               children: [
-                Row(children: [const Icon(Icons.info_outline, color: AppColors.primary), const SizedBox(width: 10), const Text('Informations sur l\'arrêt', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))]),
+                const Row(children: [Icon(Icons.info_outline, color: AppColors.primary), SizedBox(width: 10), Text('Informations sur l\'arrêt', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))]),
                 const SizedBox(height: 12),
                 _buildInfoRow('Mode', stop.modeLabel),
                 _buildInfoRow('Type', _getStopTypeLabel(stop.stopType)),
                 _buildInfoRow('Distance', DistanceHelper.format(stop.distanceMeters)),
                 _buildInfoRow('Source', stop.source.label),
-                _buildInfoRow('Statut', stop.status == DataStatus.live ? 'Temps réel' : (stop.status == DataStatus.scheduled ? 'Programmé' : 'Indisponible')),
               ],
             ),
           ),
@@ -1655,7 +1496,6 @@ class DualStopDetailPage extends StatelessWidget {
     );
   }
 
-  /// Génère un arrêt virtuel en sens inverse à partir de l'arrêt d'origine
   Stop _buildVirtualOpposite(Stop original) {
     return original.copyWith(
       direction: DirectionHelper.reverse(original.direction),
@@ -1676,8 +1516,8 @@ class DualStopDetailPage extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: s.color.withValues(alpha: 0.3), width: 1.5),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8)],
+        border: Border.all(color: s.color.withOpacity(0.3), width: 1.5),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8)],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1689,7 +1529,7 @@ class DualStopDetailPage extends StatelessWidget {
               Expanded(child: Text(s.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(color: s.color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
+                decoration: BoxDecoration(color: s.color.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
                 child: Text(badgeText, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: s.color)),
               ),
             ],
