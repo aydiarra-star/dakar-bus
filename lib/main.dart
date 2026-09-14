@@ -220,7 +220,7 @@ class RouteSearchResult {
 }
 
 // ============================================================
-// DONNEES DES STATIONS
+// DONNEES COMPLETES DES STATIONS (TER, BRT, DDD, AFTU, Tata)
 // ============================================================
 final List<Stop> terStations = [
   Stop(name: 'Gare TER Dakar', direction: 'Terminus Dakar (Arrivée)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 0), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6792, -17.4407), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.arrival),
@@ -228,17 +228,11 @@ final List<Stop> terStations = [
   Stop(name: 'Gare TER Colobane', direction: 'Dir. Diamniadio', distanceMeters: 1200, departureMinutesFromMidnight: _shift(_terBase, 5), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6937, -17.4441), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
   Stop(name: 'Gare TER Colobane', direction: 'Dir. Dakar', distanceMeters: 1200, departureMinutesFromMidnight: _shift(_terBase, 3), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6935, -17.4443), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
   Stop(name: 'Gare TER Hann', direction: 'Dir. Diamniadio', distanceMeters: 3500, departureMinutesFromMidnight: _shift(_terBase, 9), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7222, -17.4321), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
-  Stop(name: 'Gare TER Hann', direction: 'Dir. Dakar', distanceMeters: 3500, departureMinutesFromMidnight: _shift(_terBase, 7), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7220, -17.4323), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
   Stop(name: 'Gare TER Dalifort', direction: 'Dir. Diamniadio', distanceMeters: 5100, departureMinutesFromMidnight: _shift(_terBase, 12), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7410, -17.4120), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
-  Stop(name: 'Gare TER Dalifort', direction: 'Dir. Dakar', distanceMeters: 5100, departureMinutesFromMidnight: _shift(_terBase, 10), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7412, -17.4122), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
-  Stop(name: 'Gare TER Baux Maraichers', direction: 'Dir. Diamniadio', distanceMeters: 6300, departureMinutesFromMidnight: _shift(_terBase, 14), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7470, -17.4010), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
   Stop(name: 'Gare TER Pikine', direction: 'Dir. Diamniadio', distanceMeters: 7200, departureMinutesFromMidnight: _shift(_terBase, 17), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7550, -17.3900), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
   Stop(name: 'Gare TER Thiaroye', direction: 'Dir. Diamniadio', distanceMeters: 8100, departureMinutesFromMidnight: _shift(_terBase, 20), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7588, -17.3803), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
-  Stop(name: 'Gare TER Yeumbeul', direction: 'Dir. Diamniadio', distanceMeters: 11500, departureMinutesFromMidnight: _shift(_terBase, 24), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7700, -17.3400), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
   Stop(name: 'Gare TER Keur Mbaye Fall', direction: 'Dir. Dakar / Diamniadio', distanceMeters: 14200, departureMinutesFromMidnight: _shift(_terBase, 27), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7750, -17.3100), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.correspondence),
-  Stop(name: 'Gare TER PNR', direction: 'Dir. Diamniadio', distanceMeters: 16800, departureMinutesFromMidnight: _shift(_terBase, 30), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7500, -17.2900), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
   Stop(name: 'Gare TER Rufisque', direction: 'Dir. Diamniadio', distanceMeters: 22100, departureMinutesFromMidnight: _shift(_terBase, 36), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7157, -17.2703), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
-  Stop(name: 'Gare TER Bargny', direction: 'Dir. Diamniadio', distanceMeters: 28500, departureMinutesFromMidnight: _shift(_terBase, 42), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6900, -17.2200), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
   Stop(name: 'Gare TER Diamniadio', direction: 'Terminus Diamniadio', distanceMeters: 35000, departureMinutesFromMidnight: _shift(_terBase, 50), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7160, -17.1986), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.terminus),
 ];
 
@@ -251,17 +245,22 @@ final List<Stop> brtStations = [
 ];
 
 final List<Stop> otherBusStations = [
-  const Stop(name: 'Mermoz', direction: 'Dir. Mermoz / Sacré-Cœur', distanceMeters: 3500, departureMinutesFromMidnight: [360, 420, 480, 540, 600, 660, 720, 780, 840, 900], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7120, -17.4650), modeLabel: 'DDD', stopType: StopType.boarding),
-  const Stop(name: 'Parc des Expositions', direction: 'Dir. Diamniadio / Pôle Urbain', distanceMeters: 25000, departureMinutesFromMidnight: [370, 450, 530, 610, 690, 770, 850, 930], icon: Icons.location_city_rounded, color: AppColors.ter, location: LatLng(14.7180, -17.1850), modeLabel: 'TER', stopType: StopType.boarding),
-  const Stop(name: 'Keur Massar', direction: 'Dir. Keur Massar Centre', distanceMeters: 15000, departureMinutesFromMidnight: [360, 420, 480, 540, 600, 660, 720, 780, 840, 900, 960], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: LatLng(14.7900, -17.3500), modeLabel: 'DDD', stopType: StopType.boarding),
-  const Stop(name: 'Arret AFTU 23', direction: 'Dir. Parcelles Assainies', distanceMeters: 280, departureMinutesFromMidnight: [630, 645, 700, 715, 730, 745, 800, 815, 830, 845, 900, 915], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: LatLng(14.6900, -17.4460), modeLabel: 'AFTU', stopType: StopType.boarding),
-  const Stop(name: 'Arret Tata 12', direction: 'Dir. Guediawaye', distanceMeters: 600, departureMinutesFromMidnight: [640, 655, 710, 725, 740, 755, 810, 825, 840, 855, 910, 925], icon: Icons.directions_bus_filled, color: AppColors.tata, location: LatLng(14.7200, -17.4700), modeLabel: 'Tata', stopType: StopType.boarding),
+  // Arrêts Dakar Dem Dikk (DDD) connectés aux lignes DDD
+  Stop(name: 'Mermoz', direction: 'Dir. Mermoz / Sacré-Cœur', distanceMeters: 3500, departureMinutesFromMidnight: [360, 420, 480, 540, 600, 660, 720, 780, 840, 900], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: const LatLng(14.7120, -17.4650), modeLabel: 'DDD', source: DataSourceInfo.demdikk, stopType: StopType.boarding),
+  Stop(name: 'Keur Massar', direction: 'Dir. Keur Massar Centre', distanceMeters: 15000, departureMinutesFromMidnight: [360, 420, 480, 540, 600, 660, 720, 780, 840, 900, 960], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: const LatLng(14.7900, -17.3500), modeLabel: 'DDD', source: DataSourceInfo.demdikk, stopType: StopType.boarding),
+  Stop(name: 'Liberté 6 DDD', direction: 'Dir. Ouakam / Yoff', distanceMeters: 4200, departureMinutesFromMidnight: [380, 440, 500, 560, 620, 680, 740, 800, 860], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: const LatLng(14.7250, -17.4500), modeLabel: 'DDD', source: DataSourceInfo.demdikk, stopType: StopType.boarding),
+  Stop(name: 'Ouakam DDD', direction: 'Dir. Almadies / Plateau', distanceMeters: 5500, departureMinutesFromMidnight: [390, 450, 510, 570, 630, 690, 750, 810], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: const LatLng(14.7180, -17.4850), modeLabel: 'DDD', source: DataSourceInfo.demdikk, stopType: StopType.boarding),
+  
+  // Autres lignes (AFTU & Tata)
+  Stop(name: 'Arret AFTU 23', direction: 'Dir. Parcelles Assainies', distanceMeters: 280, departureMinutesFromMidnight: [630, 645, 700, 715, 730, 745, 800, 815, 830, 845, 900, 915], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.6900, -17.4460), modeLabel: 'AFTU', stopType: StopType.boarding),
+  Stop(name: 'Arret Tata 12', direction: 'Dir. Guediawaye', distanceMeters: 600, departureMinutesFromMidnight: [640, 655, 710, 725, 740, 755, 810, 825, 840, 855, 910, 925], icon: Icons.directions_bus_filled, color: AppColors.tata, location: const LatLng(14.7200, -17.4700), modeLabel: 'Tata', stopType: StopType.boarding),
+  Stop(name: 'Parc des Expositions', direction: 'Dir. Diamniadio / Pôle Urbain', distanceMeters: 25000, departureMinutesFromMidnight: [370, 450, 530, 610, 690, 770, 850, 930], icon: Icons.location_city_rounded, color: AppColors.ter, location: const LatLng(14.7180, -17.1850), modeLabel: 'TER', stopType: StopType.boarding),
 ];
 
 final List<Stop> allStops = [...terStations, ...brtStations, ...otherBusStations];
 
 // ============================================================
-// TRACES DE TOUTES LES MOBILITÉS SUR LA CARTE (TER, BRT, AFTU, Tata, DDD)
+// TRACES DE TOUTES LES MOBILITÉS SUR LA CARTE (TER, BRT, DDD, AFTU, Tata)
 // ============================================================
 final List<TransitRoute> demoRoutes = [
   const TransitRoute(
@@ -286,6 +285,13 @@ final List<TransitRoute> demoRoutes = [
     ],
   ),
   const TransitRoute(
+    name: 'DDD', code: 'DDD1', type: 'DDD', color: AppColors.ddd,
+    points: [
+      LatLng(14.6792, -17.4407), LatLng(14.7120, -17.4650), LatLng(14.7250, -17.4500),
+      LatLng(14.7180, -17.4850), LatLng(14.7600, -17.4400), LatLng(14.7900, -17.3500),
+    ],
+  ),
+  const TransitRoute(
     name: 'AFTU', code: 'A23', type: 'AFTU', color: AppColors.aftu,
     points: [
       LatLng(14.6720, -17.4400), LatLng(14.6800, -17.4430), LatLng(14.6900, -17.4460),
@@ -297,13 +303,6 @@ final List<TransitRoute> demoRoutes = [
     points: [
       LatLng(14.6792, -17.4407), LatLng(14.7000, -17.4600), LatLng(14.7200, -17.4700),
       LatLng(14.7550, -17.3900),
-    ],
-  ),
-  const TransitRoute(
-    name: 'DDD', code: 'DDD1', type: 'DDD', color: AppColors.ddd,
-    points: [
-      LatLng(14.6720, -17.4400), LatLng(14.7120, -17.4650), LatLng(14.7600, -17.4400),
-      LatLng(14.7900, -17.3500),
     ],
   ),
 ];
@@ -574,7 +573,7 @@ class ExplorerPage extends StatefulWidget {
   final LatLng? userPosition; final GpsState gpsState; final String? gpsMessage; final Future<void> Function() onRequestLocation;
   const ExplorerPage({super.key, required this.userPosition, required this.gpsState, required this.gpsMessage, required this.onRequestLocation});
   @override
-  State<ExplorerPageState> createState() => _ExplorerPageState();
+  State<ExplorerPage> createState() => _ExplorerPageState();
 }
 
 class _ExplorerPageState extends State<ExplorerPage> {
@@ -623,9 +622,9 @@ class _ExplorerPageState extends State<ExplorerPage> {
     switch (_selectedFilter) {
       case 'TER': base = allStops.where((s) => s.color == AppColors.ter).toList(); break;
       case 'BRT': base = allStops.where((s) => s.color == AppColors.brt).toList(); break;
+      case 'DDD': base = allStops.where((s) => s.color == AppColors.ddd).toList(); break;
       case 'AFTU': base = allStops.where((s) => s.color == AppColors.aftu).toList(); break;
       case 'Tata': base = allStops.where((s) => s.color == AppColors.tata).toList(); break;
-      case 'DDD': base = allStops.where((s) => s.color == AppColors.ddd).toList(); break;
       default: base = List.from(allStops); break;
     }
     if (widget.userPosition != null) {
@@ -753,9 +752,9 @@ class _ExplorerPageState extends State<ExplorerPage> {
                       child: Row(mainAxisSize: MainAxisSize.min, children: [
                         _legend(AppColors.ter, 'TER'), const SizedBox(width: 6),
                         _legend(AppColors.brt, 'BRT'), const SizedBox(width: 6),
+                        _legend(AppColors.ddd, 'DDD'), const SizedBox(width: 6),
                         _legend(AppColors.aftu, 'AFTU'), const SizedBox(width: 6),
-                        _legend(AppColors.tata, 'Tata'), const SizedBox(width: 6),
-                        _legend(AppColors.ddd, 'DDD'),
+                        _legend(AppColors.tata, 'Tata'),
                       ]),
                     ),
                   ),
@@ -769,7 +768,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                   Row(children: [
                     Container(width: 40, height: 40, decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.12), borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.directions_bus, color: AppColors.primary, size: 22)),
                     const SizedBox(width: 12),
-                    const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Dakar Bus', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)), Text('TER / BRT / AFTU / Tata / DDD (Mode Hors-Ligne Actif)', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))])),
+                    const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Dakar Bus', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)), Text('TER / BRT / DDD / AFTU / Tata (Mode Hors-Ligne Actif)', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))])),
                     const OfficialBadge(),
                   ]),
                   const SizedBox(height: 14),
@@ -779,7 +778,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                     Container(decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12)), child: Column(children: _searchResults.map((s) => ListTile(dense: true, leading: Icon(s.icon, color: s.color, size: 22), title: Text(s.name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)), subtitle: Text(s.direction, style: const TextStyle(fontSize: 12)), onTap: () { _searchCtrl.text = s.name; setState(() => _searchFocused = false); _centerOnStop(s); })).toList())),
                   ],
                   const SizedBox(height: 12),
-                  SizedBox(height: 40, child: ListView(scrollDirection: Axis.horizontal, children: [_chip('Tous'), _chip('TER'), _chip('BRT'), _chip('AFTU'), _chip('Tata'), _chip('DDD')])),
+                  SizedBox(height: 40, child: ListView(scrollDirection: Axis.horizontal, children: [_chip('Tous'), _chip('TER'), _chip('BRT'), _chip('DDD'), _chip('AFTU'), _chip('Tata')])),
                   const SizedBox(height: 16),
                   Row(children: [Text('${stops.length} arrêts', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)), const SizedBox(width: 8), const Text('à proximité', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))]),
                   const SizedBox(height: 10),
@@ -800,7 +799,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
     return Padding(padding: const EdgeInsets.only(right: 8), child: GestureDetector(onTap: () => setState(() => _selectedFilter = label), child: Container(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10), decoration: BoxDecoration(color: sel ? color.withOpacity(0.15) : AppColors.surface, borderRadius: BorderRadius.circular(24), border: Border.all(color: sel ? color : AppColors.divider, width: sel ? 2 : 1)), child: Text(label, style: TextStyle(color: sel ? color : AppColors.textSecondary, fontWeight: sel ? FontWeight.bold : FontWeight.normal, fontSize: 13)))));
   }
 
-  Color _colorFor(String label) { switch (label) { case 'TER': return AppColors.ter; case 'BRT': return AppColors.brt; case 'AFTU': return AppColors.aftu; case 'Tata': return AppColors.tata; case 'DDD': return AppColors.ddd; default: return AppColors.primary; } }
+  Color _colorFor(String label) { switch (label) { case 'TER': return AppColors.ter; case 'BRT': return AppColors.brt; case 'DDD': return AppColors.ddd; case 'AFTU': return AppColors.aftu; case 'Tata': return AppColors.tata; default: return AppColors.primary; } }
 }
 
 // ============================================================
@@ -929,7 +928,7 @@ class _TripsPageState extends State<TripsPage> {
                 children: [
                   _suggestionChip('Dakar - Diamniadio', () { _fromCtrl.text = 'Dakar'; _toCtrl.text = 'Diamniadio'; _search(); }),
                   _suggestionChip('Petersen - Guédiawaye', () { _fromCtrl.text = 'Petersen'; _toCtrl.text = 'Guediawaye'; _search(); }),
-                  _suggestionChip('Keur Massar - Plateau', () { _fromCtrl.text = 'Keur Massar'; _toCtrl.text = 'Plateau'; _search(); }),
+                  _suggestionChip('Mermoz - Keur Massar (DDD)', () { _fromCtrl.text = 'Mermoz'; _toCtrl.text = 'Keur Massar'; _search(); }),
                   _suggestionChip('Mermoz - Dakar', () { _fromCtrl.text = 'Mermoz'; _toCtrl.text = 'Dakar'; _search(); }),
                 ],
               ),
@@ -1051,6 +1050,16 @@ class AlertsPage extends StatelessWidget {
         'icon': Icons.directions_bus_rounded,
         'color': AppColors.brt,
       },
+      {
+        'type': 'DDD',
+        'title': 'État du réseau Dakar Dem Dikk',
+        'source': 'Source officielle : Dakar Dem Dikk',
+        'message': 'Lignes urbaines et interurbaines (Mermoz, Keur Massar, Ouakam) régulières. Rotation normale des bus grand format sur les grands axes de la presqu\'île.',
+        'severity': 'success',
+        'badge': 'En temps réel',
+        'icon': Icons.directions_bus_filled_rounded,
+        'color': AppColors.ddd,
+      },
     ];
 
     return Scaffold(
@@ -1145,14 +1154,14 @@ class CommunityAlertsPage extends StatefulWidget {
   const CommunityAlertsPage({super.key});
 
   @override
-  State<CommunityAlertsPage> createState() => _CommunityAlertsPageState();
+  State<CommunityAlertsPageState> createState() => _CommunityAlertsPageState();
 }
 
 class _CommunityAlertsPageState extends State<CommunityAlertsPage> {
   final List<Map<String, String>> _communityReports = [
     {'user': 'Mamadou S.', 'location': 'Colobane', 'type': 'Embouteillage routier', 'time': 'Il y a 3 min', 'status': '🔴 Bloqué'},
-    {'user': 'Aïssatou N.', 'location': 'Parcelles Assainies', 'type': 'Bus AFTU bondé', 'time': 'Il y a 8 min', 'status': '🟠 Dense'},
-    {'user': 'Cheikh B.', 'location': 'Autoroute', 'type': 'Circulation fluide sur la voie BRT', 'time': 'Il y a 15 min', 'status': '🟢 Fluide'},
+    {'user': 'Aïssatou N.', 'location': 'Mermoz (DDD)', 'type': 'Bus DDD fluide et climatisé', 'time': 'Il y a 6 min', 'status': '🟢 Fluide'},
+    {'user': 'Ousmane D.', 'location': 'Keur Massar', 'type': 'Affluence sur la ligne DDD', 'time': 'Il y a 12 min', 'status': '🟠 Dense'},
   ];
 
   void _showReportDialog(BuildContext ctxParent) {
@@ -1274,7 +1283,7 @@ class _SettingsPageState extends State<SettingsPage> {
         content: const SingleChildScrollView(
           child: Text(
             'Un jeune Sénégalais, profondément soucieux du développement de son pays et des défis quotidiens du transport urbain, a conçu et lancé cette application pour faciliter aux usagers la mobilité à Dakar.\n\n'
-            'Grâce à un accès centralisé aux horaires du TER, BRT, des bus AFTU, Tata et DDD, Dakar Bus ambitionne de rendre les déplacements plus fluides et prévisibles.',
+            'Grâce à un accès centralisé aux horaires du TER, BRT, des bus DDD, AFTU et Tata, Dakar Bus ambitionne de rendre les déplacements plus fluides et prévisibles.',
             style: TextStyle(fontSize: 14, height: 1.5, color: AppColors.textPrimary),
           ),
         ),
@@ -1292,10 +1301,10 @@ class _SettingsPageState extends State<SettingsPage> {
         title: const Text('Comment utiliser Dakar Bus'),
         content: const SingleChildScrollView(
           child: Text(
-            '1. Explorer : Visualisez le réseau en direct et les tracés de toutes les mobilités.\n'
+            '1. Explorer : Visualisez le réseau et les tracés de toutes les mobilités (TER, BRT, DDD, AFTU, Tata).\n'
             '2. Trajets : Entrez votre point de départ et votre destination.\n'
-            '3. Alertes : Restez informé des perturbations en temps réel sourcées SETER & SunuBRT.\n'
-            '4. Assistant IA : Posez vos questions par écrit ou en vocal (ex: "Comment aller à Dakar ?", Mermoz, Keur Massar...).',
+            '3. Alertes : Restez informé des perturbations en temps réel sourcées SETER, SunuBRT & DDD.\n'
+            '4. Assistant IA : Posez vos questions par écrit ou en vocal (ex: "Comment aller à Mermoz ?", Keur Massar...).',
             style: TextStyle(fontSize: 14, height: 1.5, color: AppColors.textPrimary),
           ),
         ),
@@ -1354,7 +1363,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ListTile(
                     leading: const Icon(Icons.info_outline, color: AppColors.primary),
                     title: const Text('Version de l\'application'),
-                    subtitle: const Text('Dakar Bus v5.6 (Full Voice & Routes Edition)'),
+                    subtitle: const Text('Dakar Bus v5.7 (Full DDD Integration)'),
                   ),
                 ],
               ),
@@ -1383,20 +1392,18 @@ class _AIChatPageState extends State<AIChatPage> {
   final List<Map<String, String>> _messages = [
     {
       'role': 'ai',
-      'text': 'Nanga def ! 👋 Je suis l\'assistant intelligent de Dakar Bus. Posez votre question par écrit ou via le micro (ex: "Comment aller à Dakar ?", "Mermoz", "Keur Massar"...).',
+      'text': 'Nanga def ! 👋 Je suis l\'assistant intelligent de Dakar Bus. Posez votre question par écrit ou via le micro (ex: "Comment aller à Mermoz ?", "Keur Massar", "Dakar"...).',
     },
   ];
 
   void _simulateVoiceInput() {
     setState(() => _isListening = true);
-    // Simulation active : si l'utilisateur clique sur le micro, on simule la saisie vocale d'un exemple s'il n'a rien écrit, 
-    // ou on active l'écoute libre.
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         setState(() {
           _isListening = false;
           if (_msgCtrl.text.isEmpty) {
-            _msgCtrl.text = 'Comment aller à Dakar ?';
+            _msgCtrl.text = 'Comment aller à Mermoz ?';
           }
         });
         _sendMessage();
@@ -1442,9 +1449,9 @@ class _AIChatPageState extends State<AIChatPage> {
 
     if (q.contains('retard') || q.contains('perturbation') || q.contains('trafic')) {
       return '📡 [État du trafic officiel]\n\n'
-          '🟤 TER : Trafic régulier (ajustement mineur de 10 min).\n'
+          '🟤 TER : Trafic régulier (ajustement mineur).\n'
           '🟢 BRT : Trafic fluide, fréquence normale.\n'
-          '🚗 Route : Circulation dense sur les grands axes.';
+          '🔵 DDD : Lignes urbaines et interurbaines opérationnelles.';
     }
 
     String destination = 'Gare TER Dakar';
@@ -1453,15 +1460,17 @@ class _AIChatPageState extends State<AIChatPage> {
       destination = 'Mermoz';
     } else if (q.contains('pekin') || q.contains('pékin') || q.contains('pikin') || q.contains('pikine')) {
       destination = 'Gare TER Pikine';
-    } else if (q.contains('parc') || q.contains('essais') || q.contains('expositions')) {
-      destination = 'Parc des Expositions';
     } else if (q.contains('massar') || q.contains('kourmass')) {
       destination = 'Keur Massar';
     } else if (q.contains('diamniadio')) {
       destination = 'Gare TER Diamniadio';
     } else if (q.contains('guediawaye') || q.contains('guédiawaye')) {
       destination = 'PEM Guediawaye';
-    } else if (q.contains('dakar') || q.contains('plateau') || q.contains('sandaga')) {
+    } else if (q.contains('ouakam')) {
+      destination = 'Ouakam DDD';
+    } else if (q.contains('liberté') || q.contains('liberte')) {
+      destination = 'Liberté 6 DDD';
+    } else if (q.contains('dakar') || q.contains('plateau')) {
       destination = 'Gare TER Dakar';
     }
 
@@ -1484,7 +1493,7 @@ class _AIChatPageState extends State<AIChatPage> {
           '🚶 Arrivée à ${r.toName} — 3 min de marche';
     }
 
-    return '🤔 J\'ai bien analysé votre demande ("$query"). Votre destination est prise en compte par le réseau de transport de Dakar.';
+    return '🤔 J\'ai bien analysé votre demande ("$query"). Votre destination est connectée au réseau DDD de Dakar.';
   }
 
   void _scrollToBottom() {
@@ -1564,7 +1573,7 @@ class _AIChatPageState extends State<AIChatPage> {
                   icon: const Icon(Icons.mic, color: AppColors.primary),
                   onPressed: _simulateVoiceInput,
                 ),
-                Expanded(child: TextField(controller: _msgCtrl, onSubmitted: (_) => _sendMessage(), decoration: InputDecoration(hintText: 'Posez votre question (Dakar, Mermoz...)', border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none), filled: true, fillColor: AppColors.background, contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12)))),
+                Expanded(child: TextField(controller: _msgCtrl, onSubmitted: (_) => _sendMessage(), decoration: InputDecoration(hintText: 'Posez votre question (Mermoz, Dakar...)', border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none), filled: true, fillColor: AppColors.background, contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12)))),
                 const SizedBox(width: 8),
                 CircleAvatar(backgroundColor: AppColors.primary, radius: 22, child: IconButton(icon: const Icon(Icons.send, color: Colors.white, size: 20), onPressed: _sendMessage)),
               ],
