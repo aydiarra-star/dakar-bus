@@ -6,7 +6,6 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 
 void main() => runApp(const DakarBusApp());
 
@@ -100,17 +99,17 @@ final List<int> _brtBase = _generateSchedule(from: 360, to: 1260, step: 6);
 final List<int> _terBase = _buildTerBase();
 
 // ============================================================
-// COULEURS & THEME (VERT CLAIR & VERT ICONIQUE)
+// COULEURS & THEME
 // ============================================================
 class AppColors {
-  static const primary = Color(0xFF00B140);   // Vert principal
+  static const primary = Color(0xFF00B140);
   static const primaryDark = Color(0xFF008A32);
-  static const ter = Color(0xFF8D4004);     // Marron TER
-  static const brt = Color(0xFF00B140);     // Vert BRT
-  static const aftu = Color(0xFFEF6C00);    // Orange AFTU
-  static const tata = Color(0xFF1976D2);    // Bleu Tata
-  static const ddd = Color(0xFF00ACC1);     // Cyan DDD
-  static const background = Color(0xFFF1F8F5); // Fond vert très clair et doux
+  static const ter = Color(0xFF8D4004);
+  static const brt = Color(0xFF00B140);
+  static const aftu = Color(0xFFEF6C00);
+  static const tata = Color(0xFF1976D2);
+  static const ddd = Color(0xFF00ACC1);
+  static const background = Color(0xFFF1F8F5);
   static const surface = Color(0xFFFFFFFF);
   static const textPrimary = Color(0xFF111111);
   static const textSecondary = Color(0xFF555555);
@@ -526,14 +525,6 @@ class _MainShellState extends State<MainShell> {
   void initState() {
     super.initState();
     _ticker = Timer.periodic(const Duration(seconds: 15), (_) { if (mounted) setState(() {}); });
-    _initOfflineCache();
-  }
-
-  Future<void> _initOfflineCache() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      prefs.setBool('offline_cache_active', true);
-    } catch (_) {}
   }
 
   @override
@@ -562,7 +553,7 @@ class _MainShellState extends State<MainShell> {
       ExplorerPage(userPosition: _userPosition, gpsState: _gpsState, gpsMessage: _gpsMessage, onRequestLocation: _requestLocation),
       const TripsPage(),
       const AlertsPage(),
-      const CommunityAlertsPage(), // Nouvel onglet Crowdsourcing
+      const CommunityAlertsPage(),
       const SettingsPage(),
     ];
 
@@ -831,7 +822,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
 }
 
 // ============================================================
-// CARTE D ARRET (AVEC INDICATEUR DE CONFORT)
+// CARTE D ARRET
 // ============================================================
 class StopCard extends StatelessWidget {
   final Stop stop; final double distanceMeters;
@@ -892,7 +883,7 @@ class StopCard extends StatelessWidget {
 }
 
 // ============================================================
-// ONGLET TRAJETS 100% FONCTIONNEL
+// ONGLET TRAJETS
 // ============================================================
 class TripsPage extends StatefulWidget {
   const TripsPage({super.key});
@@ -1186,7 +1177,7 @@ class AlertsPage extends StatelessWidget {
 }
 
 // ============================================================
-// NOUVEL ONGLET : CROWDSOURCING & SIGNALEMENT DIRECT RUE
+// ONGLET : CROWDSOURCING & SIGNALEMENT DIRECT RUE
 // ============================================================
 class CommunityAlertsPage extends StatefulWidget {
   const CommunityAlertsPage({super.key});
@@ -1202,11 +1193,11 @@ class _CommunityAlertsPageState extends State<CommunityAlertsPage> {
     {'user': 'Cheikh B.', 'location': 'Autoroute', 'type': 'Circulation fluide sur la voie BRT', 'time': 'Il y a 15 min', 'status': '🟢 Fluide'},
   ];
 
-  void _showReportDialog() {
+  void _showReportDialog(BuildContext ctxParent) {
     String location = 'Dakar';
     String type = 'Embouteillage';
     showDialog(
-      context: dialogContext,
+      context: ctxParent,
       builder: (ctx) => AlertDialog(
         title: const Text('Signaler un incident sur le terrain'),
         content: Column(
@@ -1232,7 +1223,7 @@ class _CommunityAlertsPageState extends State<CommunityAlertsPage> {
                 _communityReports.insert(0, {'user': 'Vous', 'location': location, 'type': type, 'time': 'À l\'instant', 'status': '🟠 Signalé'});
               });
               Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Merci ! Votre signalement aide toute la communauté dakaroise.')));
+              ScaffoldMessenger.of(ctxParent).showSnackBar(const SnackBar(content: Text('Merci ! Votre signalement aide toute la communauté dakaroise.')));
             },
             child: const Text('Publier'),
           ),
@@ -1241,11 +1232,8 @@ class _CommunityAlertsPageState extends State<CommunityAlertsPage> {
     );
   }
 
-  late BuildContext dialogContext;
-
   @override
   Widget build(BuildContext context) {
-    dialogContext = context;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -1262,7 +1250,7 @@ class _CommunityAlertsPageState extends State<CommunityAlertsPage> {
                 ])),
                 ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-                  onPressed: _showReportDialog,
+                  onPressed: () => _showReportDialog(context),
                   icon: const Icon(Icons.add, size: 16),
                   label: const Text('Signaler'),
                 ),
@@ -1435,7 +1423,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ListTile(
                     leading: const Icon(Icons.info_outline, color: AppColors.primary),
                     title: const Text('Version de l\'application'),
-                    subtitle: const Text('Dakar Bus v5.0 (Ultimate Quality Edition)'),
+                    subtitle: const Text('Dakar Bus v5.1 (Fixed Build Edition)'),
                   ),
                 ],
               ),
@@ -1448,7 +1436,7 @@ class _SettingsPageState extends State<SettingsPage> {
 }
 
 // ============================================================
-// ASSISTANT IA INTELLIGENT (AVEC SUPPORT VOCAL SIMULÉ)
+// ASSISTANT IA INTELLIGENT
 // ============================================================
 class AIChatPage extends StatefulWidget {
   const AIChatPage({super.key});
@@ -1464,7 +1452,7 @@ class _AIChatPageState extends State<AIChatPage> {
   final List<Map<String, String>> _messages = [
     {
       'role': 'ai',
-      'text': 'Nanga def ! 👋 Je suis l\'intelligence artificielle de Dakar Bus. J\'intègre désormais un mode vocal, un mode hors-ligne et l\'analyse du trafic en temps réel.\n\n'
+      'text': 'Nanga def ! 👋 Je suis l\'intelligence artificielle de Dakar Bus. J\'intègre un mode vocal, un mode hors-ligne et l\'analyse du trafic en temps réel.\n\n'
           'Posez votre question à l\'écrit ou touchez le micro pour dicter vocalement !',
     },
   ];
