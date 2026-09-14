@@ -1274,7 +1274,7 @@ class _SettingsPageState extends State<SettingsPage> {
             '1. Explorer : Visualisez le réseau en direct.\n'
             '2. Trajets : Entrez votre départ et destination.\n'
             '3. Alertes : Restez informé des perturbations.\n'
-            '4. Assistant IA : Posez vos questions par écrit ou en vocal (ex: Mermoz, Pékin, Parc des Expositions...).',
+            '4. Assistant IA : Posez vos questions par écrit ou en vocal (ex: Dakar, Mermoz, Keur Massar...).',
             style: TextStyle(fontSize: 14, height: 1.5, color: AppColors.textPrimary),
           ),
         ),
@@ -1333,7 +1333,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ListTile(
                     leading: const Icon(Icons.info_outline, color: AppColors.primary),
                     title: const Text('Version de l\'application'),
-                    subtitle: const Text('Dakar Bus v5.3 (Universal Voice & AI Edition)'),
+                    subtitle: const Text('Dakar Bus v5.4 (Pure Voice & AI Edition)'),
                   ),
                 ],
               ),
@@ -1346,7 +1346,7 @@ class _SettingsPageState extends State<SettingsPage> {
 }
 
 // ============================================================
-// ASSISTANT IA INTELLIGENT & UNIVERSEL
+// ASSISTANT IA INTELLIGENT & LIBRE
 // ============================================================
 class AIChatPage extends StatefulWidget {
   const AIChatPage({super.key});
@@ -1362,22 +1362,18 @@ class _AIChatPageState extends State<AIChatPage> {
   final List<Map<String, String>> _messages = [
     {
       'role': 'ai',
-      'text': 'Nanga def ! 👋 Je suis l\'assistant intelligent de Dakar Bus. Posez votre question par écrit ou via le micro pour n\'importe quel trajet (ex: Mermoz, Pékin, Parc des Expositions, Keur Massar...).',
+      'text': 'Nanga def ! 👋 Je suis l\'assistant intelligent de Dakar Bus. Posez votre question par écrit ou via le micro (ex: "Comment aller à Dakar ?", "Mermoz", "Keur Massar"...).',
     },
   ];
 
   void _simulateVoiceInput() {
     setState(() => _isListening = true);
+    // Simule une écoute propre sans injecter de texte automatique à la place de l'utilisateur
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         setState(() {
           _isListening = false;
-          // Si le champ est vide lors du clic micro, on propose un exemple libre, sinon on garde le texte dicté/saisi
-          if (_msgCtrl.text.isEmpty) {
-            _msgCtrl.text = 'Comment aller à Mermoz ?';
-          }
         });
-        _sendMessage();
       }
     });
   }
@@ -1388,7 +1384,7 @@ class _AIChatPageState extends State<AIChatPage> {
     
     setState(() {
       _messages.add({'role': 'user', 'text': text});
-      _msgCtrl.clear(); // Vide proprement le champ pour ne pas boucler sur l'ancienne question
+      _msgCtrl.clear(); // Vide proprement le champ
     });
     _scrollToBottom();
 
@@ -1425,8 +1421,8 @@ class _AIChatPageState extends State<AIChatPage> {
           '🚗 Route : Circulation dense sur les grands axes.';
     }
 
-    // --- ANALYSE UNIVERSELLE DES LIEUX DEMANDES (Mermoz, Pékin, Parc, etc.) ---
-    String destination = 'Place Leclerc';
+    // --- ANALYSE DE LA DESTINATION SAISIE OU DICTÉE ---
+    String destination = 'Gare TER Dakar'; // Par défaut si on demande Dakar ou autre
     
     if (q.contains('mermoz')) {
       destination = 'Mermoz';
@@ -1449,6 +1445,7 @@ class _AIChatPageState extends State<AIChatPage> {
       if (q.contains('pikine')) depart = 'Gare TER Pikine';
       if (q.contains('colobane')) depart = 'Gare TER Colobane';
       if (q.contains('mermoz')) depart = 'Mermoz';
+      if (q.contains('keur massar')) depart = 'Keur Massar';
     }
 
     final result = RoutePlanner.plan(fromQuery: depart, toQuery: destination);
@@ -1462,7 +1459,7 @@ class _AIChatPageState extends State<AIChatPage> {
           '🚶 Arrivée à ${r.toName} — 3 min de marche';
     }
 
-    return '🤔 J\'ai bien analysé votre demande ("$query"). Votre destination est prise en compte, les navettes TER, BRT et bus desservent cette zone régulièrement.';
+    return '🤔 J\'ai bien analysé votre demande ("$query"). Votre destination est prise en compte par le réseau de transport de Dakar.';
   }
 
   void _scrollToBottom() {
@@ -1542,7 +1539,7 @@ class _AIChatPageState extends State<AIChatPage> {
                   icon: const Icon(Icons.mic, color: AppColors.primary),
                   onPressed: _simulateVoiceInput,
                 ),
-                Expanded(child: TextField(controller: _msgCtrl, onSubmitted: (_) => _sendMessage(), decoration: InputDecoration(hintText: 'Posez votre question (Mermoz, Pékin...)', border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none), filled: true, fillColor: AppColors.background, contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12)))),
+                Expanded(child: TextField(controller: _msgCtrl, onSubmitted: (_) => _sendMessage(), decoration: InputDecoration(hintText: 'Posez votre question (Dakar, Mermoz...)', border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none), filled: true, fillColor: AppColors.background, contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12)))),
                 const SizedBox(width: 8),
                 CircleAvatar(backgroundColor: AppColors.primary, radius: 22, child: IconButton(icon: const Icon(Icons.send, color: Colors.white, size: 20), onPressed: _sendMessage)),
               ],
