@@ -1,57 +1,58 @@
-name: Deploy to GitHub Pages
+nom : Déploiement sur GitHub Pages
 
-on:
-  push:
-    branches:
-      - main
+sur :
+  pousser :
+    branches :
+      - principal
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+autorisations :
+  contenu : read
+  pages : write
+  jeton d'identification : write
 
-concurrency:
-  group: 'pages'
-  cancel-in-progress: true
+concurrence :
+  groupe : 'pages'
+  annulation en cours : vrai
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+emplois :
+  construire :
+    fonctionne sous : ubuntu-latest
+    étapes :
+      - nom : Caisse
+        utilisations : actions/checkout@v4
 
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
+      - nom : Configurer Java
+        utilise : actions/setup-java@v4
+        avec :
+          distribution : 'temurin'
+          version Java : '17'
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
+      - nom : Configurer Flutter
+        utilise : subosito/flutter-action@v2
+        avec :
+          flutter-version: '3.19.0'
           channel: 'stable'
           cache: true
 
-      - name: Install Dependencies
-        run: flutter pub get
+      - nom : Installer les dépendances
+        exécuter : flutter pub get
 
-      - name: Build Web
-        run: |
-          flutter build web --release --no-wasm-dry-run --base-href "/dakar-bus/"
+      - nom : Créer un site web
+        exécuter : |
+          flutter build web --release --base-href "/dakar-bus/"
 
-      - name: Upload Pages Artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: build/web
+      - nom : Artefact de téléchargement de pages
+        utilisations : actions/upload-pages-artifact@v3
+        avec :
+          chemin : build/web
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+  déployer :
+    besoins : construire
+    fonctionne sous : ubuntu-latest
+    environnement :
+      nom : github-pages
+      url : ${{ steps.deployment.outputs.page_url }}
+    étapes :
+      - nom : Déployer sur GitHub Pages
+        id : déploiement
+        utilisations : actions/deploy-pages@v4
