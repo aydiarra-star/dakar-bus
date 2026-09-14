@@ -84,7 +84,7 @@ final List<int> _terBase = _buildTerBase();
 // COULEURS & THEME
 // ============================================================
 class AppColors {
-  static const primary = Color(0xFF00695C); // Vert vif pour l'application
+  static const primary = Color(0xFF00695C);
   static const brt = Color(0xFF1976D2);
   static const ter = Color(0xFF8D4004);
   static const aftu = Color(0xFFEF6C00);
@@ -126,7 +126,7 @@ class DataStatusBadge extends StatelessWidget {
     }
     return Container(
       padding: EdgeInsets.symmetric(horizontal: compact ? 6 : 8, vertical: compact ? 2 : 4),
-      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(6), border: Border.all(color: color.withOpacity(0.3), width: 0.8)),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6), border: Border.all(color: color.withValues(alpha: 0.3), width: 0.8)),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         if (dotOnly) Container(width: 6, height: 6, decoration: BoxDecoration(color: color, shape: BoxShape.circle))
         else if (icon != null) Icon(icon, size: compact ? 10 : 12, color: color),
@@ -142,7 +142,7 @@ class OfficialBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-    decoration: BoxDecoration(color: AppColors.success.withOpacity(0.12), borderRadius: BorderRadius.circular(4), border: Border.all(color: AppColors.success.withOpacity(0.35), width: 0.8)),
+    decoration: BoxDecoration(color: AppColors.success.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(4), border: Border.all(color: AppColors.success.withValues(alpha: 0.35), width: 0.8)),
     child: const Text('OFFICIEL', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppColors.success, letterSpacing: 0.5)),
   );
 }
@@ -428,7 +428,7 @@ class DakarBusApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         scaffoldBackgroundColor: AppColors.background,
-        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary, primary: AppColors.primary),
+        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
         appBarTheme: const AppBarTheme(backgroundColor: AppColors.primary, foregroundColor: Colors.white, elevation: 0),
       ),
       home: const MainShell(),
@@ -474,7 +474,9 @@ class _MainShellState extends State<MainShell> {
       if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
         setState(() { _gpsState = GpsState.denied; _gpsMessage = 'Permission GPS refusée.'; }); return;
       }
-      final position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high, timeLimit: const Duration(seconds: 10));
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high, timeLimit: Duration(seconds: 10)),
+      );
       setState(() { _userPosition = LatLng(position.latitude, position.longitude); _gpsState = GpsState.granted; _gpsMessage = null; });
     } catch (_) { setState(() { _gpsState = GpsState.error; _gpsMessage = 'Erreur GPS.'; }); }
   }
@@ -491,7 +493,7 @@ class _MainShellState extends State<MainShell> {
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: pages),
       bottomNavigationBar: Container(
-        decoration: BoxDecoration(color: AppColors.surface, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, -2))]),
+        decoration: BoxDecoration(color: AppColors.surface, boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 8, offset: const Offset(0, -2))]),
         child: SafeArea(
           top: false,
           minimum: const EdgeInsets.only(bottom: 4),
@@ -499,7 +501,7 @@ class _MainShellState extends State<MainShell> {
             selectedIndex: _currentIndex,
             onDestinationSelected: (i) => setState(() => _currentIndex = i),
             backgroundColor: AppColors.surface,
-            indicatorColor: AppColors.primary.withOpacity(0.15),
+            indicatorColor: AppColors.primary.withValues(alpha: 0.15),
             labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
             height: 68,
             destinations: const [
@@ -615,7 +617,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                               decoration: BoxDecoration(
                                 color: s.color, shape: BoxShape.circle,
                                 border: Border.all(color: Colors.white, width: 2),
-                                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.25), blurRadius: 3)],
+                                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.25), blurRadius: 3)],
                               ),
                               child: Icon(s.icon, color: Colors.white, size: 12),
                             ),
@@ -623,7 +625,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                         )).toList(),
                       ),
                       if (widget.userPosition != null)
-                        MarkerLayer(markers: [Marker(point: widget.userPosition!, width: 20, height: 20, child: Container(decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 3), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 4)])))]),
+                        MarkerLayer(markers: [Marker(point: widget.userPosition!, width: 20, height: 20, child: Container(decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 3), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 4)])))]),
                     ],
                   ),
                   if (_isLoadingRoutes) Positioned(top: 10, left: 140, child: Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(12)), child: const Text('Calcul des routes GPS...', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)))),
@@ -684,7 +686,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                     ),
                   ),
                   
-                  Positioned(top: 12, left: 12, child: Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6), decoration: BoxDecoration(color: AppColors.surface.withOpacity(0.95), borderRadius: BorderRadius.circular(8)), child: Row(mainAxisSize: MainAxisSize.min, children: [_legend(AppColors.ter, 'TER'), const SizedBox(width: 6), _legend(AppColors.brt, 'BRT'), const SizedBox(width: 6), _legend(AppColors.aftu, 'AFTU'), const SizedBox(width: 6), _legend(AppColors.tata, 'Tata'), const SizedBox(width: 6), _legend(AppColors.ddd, 'DDD')]))),
+                  Positioned(top: 12, left: 12, child: Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6), decoration: BoxDecoration(color: AppColors.surface.withValues(alpha: 0.95), borderRadius: BorderRadius.circular(8)), child: Row(mainAxisSize: MainAxisSize.min, children: [_legend(AppColors.ter, 'TER'), const SizedBox(width: 6), _legend(AppColors.brt, 'BRT'), const SizedBox(width: 6), _legend(AppColors.aftu, 'AFTU'), const SizedBox(width: 6), _legend(AppColors.tata, 'Tata'), const SizedBox(width: 6), _legend(AppColors.ddd, 'DDD')]))),
                 ],
               ),
             ),
@@ -693,13 +695,13 @@ class _ExplorerPageState extends State<ExplorerPage> {
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
                 children: [
                   Row(children: [
-                    Container(width: 40, height: 40, decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.12), borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.directions_bus, color: AppColors.primary, size: 22)),
+                    Container(width: 40, height: 40, decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.directions_bus, color: AppColors.primary, size: 22)),
                     const SizedBox(width: 12),
                     const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Dakar Bus', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)), Text('TER / BRT / AFTU / Tata / DDD', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))])),
                     const OfficialBadge(),
                   ]),
                   const SizedBox(height: 14),
-                  Container(decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)]), child: TextField(controller: _searchCtrl, onChanged: (_) => setState(() => _searchFocused = true), decoration: InputDecoration(hintText: 'Ou voulez-vous aller ?', prefixIcon: const Icon(Icons.search, color: AppColors.primary, size: 22), suffixIcon: _searchFocused ? IconButton(icon: const Icon(Icons.close, size: 20), onPressed: () { _searchCtrl.clear(); setState(() => _searchFocused = false); }) : null, border: InputBorder.none, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14)))),
+                  Container(decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 8)]), child: TextField(controller: _searchCtrl, onChanged: (_) => setState(() => _searchFocused = true), decoration: InputDecoration(hintText: 'Ou voulez-vous aller ?', prefixIcon: const Icon(Icons.search, color: AppColors.primary, size: 22), suffixIcon: _searchFocused ? IconButton(icon: const Icon(Icons.close, size: 20), onPressed: () { _searchCtrl.clear(); setState(() => _searchFocused = false); }) : null, border: InputBorder.none, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14)))),
                   if (_searchFocused && _searchResults.isNotEmpty) ...[
                     const SizedBox(height: 8),
                     Container(decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12)), child: Column(children: _searchResults.map((s) => ListTile(dense: true, leading: Icon(s.icon, color: s.color, size: 22), title: Text(s.name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)), subtitle: Text(s.direction, style: const TextStyle(fontSize: 12)), onTap: () { _searchCtrl.text = s.name; setState(() => _searchFocused = false); _centerOnStop(s); })).toList())),
@@ -723,7 +725,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
 
   Widget _chip(String label) {
     final color = _colorFor(label); final sel = _selectedFilter == label;
-    return Padding(padding: const EdgeInsets.only(right: 8), child: GestureDetector(onTap: () => setState(() => _selectedFilter = label), child: Container(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10), decoration: BoxDecoration(color: sel ? color.withOpacity(0.15) : AppColors.surface, borderRadius: BorderRadius.circular(24), border: Border.all(color: sel ? color : AppColors.divider, width: sel ? 2 : 1)), child: Text(label, style: TextStyle(color: sel ? color : AppColors.textSecondary, fontWeight: sel ? FontWeight.bold : FontWeight.normal, fontSize: 13)))));
+    return Padding(padding: const EdgeInsets.only(right: 8), child: GestureDetector(onTap: () => setState(() => _selectedFilter = label), child: Container(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10), decoration: BoxDecoration(color: sel ? color.withValues(alpha: 0.15) : AppColors.surface, borderRadius: BorderRadius.circular(24), border: Border.all(color: sel ? color : AppColors.divider, width: sel ? 2 : 1)), child: Text(label, style: TextStyle(color: sel ? color : AppColors.textSecondary, fontWeight: sel ? FontWeight.bold : FontWeight.normal, fontSize: 13)))));
   }
 
   Color _colorFor(String label) { switch (label) { case 'TER': return AppColors.ter; case 'BRT': return AppColors.brt; case 'AFTU': return AppColors.aftu; case 'Tata': return AppColors.tata; case 'DDD': return AppColors.ddd; default: return AppColors.primary; } }
@@ -745,7 +747,7 @@ class StopCard extends StatelessWidget {
     else { timeWidget = Text(TimeHelper.formatRemaining(remaining), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.success)); }
 
     return Container(
-      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6)]),
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 6)]),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: stop))),
@@ -783,7 +785,7 @@ class StopCard extends StatelessWidget {
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(4), border: Border.all(color: color.withOpacity(0.4), width: 0.8)),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4), border: Border.all(color: color.withValues(alpha: 0.4), width: 0.8)),
       child: Text(label, style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: color)),
     );
   }
@@ -830,7 +832,7 @@ class _TripsPageState extends State<TripsPage> {
             
             Container(
               padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, 4))]),
+              decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 15, offset: const Offset(0, 4))]),
               child: Column(
                 children: [
                   _buildInputField(controller: _fromCtrl, label: 'Départ', icon: Icons.my_location, color: AppColors.primary),
@@ -891,7 +893,7 @@ class _TripsPageState extends State<TripsPage> {
   Widget _suggestionChip(String label, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10), decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.divider), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4)]), child: Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500))),
+      child: Container(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10), decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.divider), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 4)]), child: Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500))),
     );
   }
 
@@ -907,7 +909,7 @@ class _TripsPageState extends State<TripsPage> {
           children: [
             Row(
               children: [
-                Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: r.segments.first.color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Icon(r.segments.first.icon, color: r.segments.first.color, size: 22)),
+                Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: r.segments.first.color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)), child: Icon(r.segments.first.icon, color: r.segments.first.color, size: 22)),
                 const SizedBox(width: 12),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('${r.fromName} ➔ ${r.toName}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)), const SizedBox(height: 2), Text('${r.transferCount} correspondance(s) . ${r.segments.length} étape(s)', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))])),
                 Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Text('${r.totalMinutes} min', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 18)), const Text('Durée totale', style: TextStyle(fontSize: 10, color: AppColors.textSecondary))]),
@@ -993,17 +995,17 @@ class _AlertsPageState extends State<AlertsPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: color.withOpacity(0.3), width: 1.5), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)]),
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: color.withValues(alpha: 0.3), width: 1.5), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 8)]),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: alert['color'].withOpacity(0.1), shape: BoxShape.circle), child: Icon(alert['icon'], color: alert['color'], size: 22)),
+          Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: alert['color'].withValues(alpha: 0.1), shape: BoxShape.circle), child: Icon(alert['icon'], color: alert['color'], size: 22)),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(children: [Text(alert['type'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: alert['color'])), const Spacer(), Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Text(alert['time'], style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.bold)))]),
+                Row(children: [Text(alert['type'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: alert['color'])), const Spacer(), Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)), child: Text(alert['time'], style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.bold)))]),
                 const SizedBox(height: 6),
                 Text(alert['message'], style: const TextStyle(fontSize: 13, height: 1.4, color: AppColors.textPrimary)),
               ],
@@ -1017,10 +1019,10 @@ class _AlertsPageState extends State<AlertsPage> {
   Widget _buildAIAssistantSection() {
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(gradient: LinearGradient(colors: [AppColors.primary.withOpacity(0.08), AppColors.primary.withOpacity(0.02)], begin: Alignment.topLeft, end: Alignment.bottomRight), borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.primary.withOpacity(0.2))),
+      decoration: BoxDecoration(gradient: LinearGradient(colors: [AppColors.primary.withValues(alpha: 0.08), AppColors.primary.withValues(alpha: 0.02)], begin: Alignment.topLeft, end: Alignment.bottomRight), borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.primary.withValues(alpha: 0.2))),
       child: Column(
         children: [
-          Row(children: [Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.15), shape: BoxShape.circle), child: const Icon(Icons.auto_awesome, color: AppColors.primary, size: 24)), const SizedBox(width: 14), const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Assistant IA', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary)), Text('Posez vos questions en direct', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))]))]),
+          Row(children: [Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.15), shape: BoxShape.circle), child: const Icon(Icons.auto_awesome, color: AppColors.primary, size: 24)), const SizedBox(width: 14), const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Assistant IA', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary)), Text('Posez vos questions en direct', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))]))]),
           const SizedBox(height: 16),
           const Text('L\'IA analyse le réseau en temps réel pour vous informer sur les horaires, les perturbations et vous guider dans vos correspondances.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.4)),
           const SizedBox(height: 16),
@@ -1068,7 +1070,7 @@ class _AIChatPageState extends State<AIChatPage> {
       return 'Pour vous rendre à Keur Massar, je vous recommande de prendre le TER jusqu\'à la gare de Thiaroye, puis de prendre une ligne DDD (217, 218 ou 227). Le temps de trajet estimé est d\'environ 45 minutes.';
     } else if (q.contains('retard') || q.contains('perturbation') || q.contains('probleme')) {
       return 'Il y a actuellement un léger retard de 10 minutes sur la ligne TER Dakar-Diamniadio. Le trafic est normal sur le reste du réseau.';
-    } else if (q.contains('bonjour') bottom || q.contains('salut')) {
+    } else if (q.contains('bonjour') || q.contains('salut')) {
       return 'Bonjour ! Comment puis-je vous aider dans vos déplacements à Dakar aujourd\'hui ?';
     } else {
       return 'Je ne suis pas sûr de comprendre. Vous pouvez me demander des informations sur les lignes (TER, BRT, AFTU, Tata, DDD), les horaires, ou les perturbations en cours.';
@@ -1103,8 +1105,8 @@ class _AIChatPageState extends State<AIChatPage> {
                     constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.82),
                     decoration: BoxDecoration(
                       color: isUser ? AppColors.primary : AppColors.surface,
-                      borderRadius: BorderRadius.only(topLeft: const Radius.circular(18), topRight: const Radius.circular(18),Left: isUser ? const Radius.circular(18) : const Radius.circular(4), bottomRight: isUser ? const Radius.circular(4) : const Radius.circular(18)),
-                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 6)],
+                      borderRadius: BorderRadius.only(topLeft: const Radius.circular(18), topRight: const Radius.circular(18), bottomLeft: isUser ? const Radius.circular(18) : const Radius.circular(4), bottomRight: isUser ? const Radius.circular(4) : const Radius.circular(18)),
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 6)],
                     ),
                     child: Text(msg['text']!, style: TextStyle(color: isUser ? Colors.white : AppColors.textPrimary, fontSize: 14, height: 1.3)),
                   ),
@@ -1114,7 +1116,7 @@ class _AIChatPageState extends State<AIChatPage> {
           ),
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: AppColors.surface, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)]),
+            decoration: BoxDecoration(color: AppColors.surface, boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)]),
             child: Row(
               children: [
                 Expanded(child: TextField(controller: _msgCtrl, onSubmitted: (_) => _sendMessage(), decoration: InputDecoration(hintText: 'Posez votre question...', border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none), filled: true, fillColor: AppColors.background, contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12)))),
@@ -1130,7 +1132,7 @@ class _AIChatPageState extends State<AIChatPage> {
 }
 
 // ============================================================
-// REGLAGES & DETAILS (Mise à jour pour les deux voies)
+// REGLAGES & DETAILS
 // ============================================================
 class SettingsPage extends StatelessWidget {
   final List<FavoriteRoute> favorites;
@@ -1174,11 +1176,7 @@ class DualStopDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Trouver l'arrêt opposé (deuxième voie)
     final opposite = OppositeStopService.findOppositeStop(currentStop: stop, allStops: allStops);
-    
-    // Simuler les directions opposées pour l'affichage comme sur l'image
-    // Exemple : Si l'arrêt est "Gare TER Dakar" (Arrivée), l'opposé est "Gare TER Dakar" (Embarquement)
     final isArrival = stop.stopType == StopType.arrival;
     final oppositeDirection = isArrival ? stop.direction.replaceAll('Arrivée', 'Embarquement') : stop.direction.replaceAll('Embarquement', 'Arrivée');
 
@@ -1187,18 +1185,11 @@ class DualStopDetailPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Carte de l'arrêt actuel (Voie 1)
           _buildStopCard(stop, stop.direction, stop.distanceMeters, isArrival ? 'Arrivée' : 'Départ'),
-          
           const SizedBox(height: 16),
-          
-          // Carte de l'arrêt opposé (Voie 2) - Affichage comme sur l'image d'exemple
           if (opposite != null)
             _buildStopCard(opposite, oppositeDirection, opposite.distanceMeters, isArrival ? 'Départ' : 'Arrivée'),
-            
           const SizedBox(height: 24),
-          
-          // Informations supplémentaires
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider)),
@@ -1217,14 +1208,13 @@ class DualStopDetailPage extends StatelessWidget {
     );
   }
 
-  // Widget pour afficher une carte d'arrêt (Voie 1 ou Voie 2)
   Widget _buildStopCard(Stop s, String direction, double distance, String badgeLabel) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface, 
         borderRadius: BorderRadius.circular(16), 
-        border: Border.all(color: AppColors.primary.withOpacity(0.3), width: 2), // Bordure verte vive
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)]
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 2),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)]
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -1233,35 +1223,20 @@ class DualStopDetailPage extends StatelessWidget {
           children: [
             Row(
               children: [
-                // Badge de la ligne (ex: 148)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary, 
-                    borderRadius: BorderRadius.circular(8)
-                  ),
-                  child: Text(
-                    s.modeLabel == 'TER' ? 'TER' : (s.modeLabel == 'BRT' ? 'BRT' : (s.modeLabel == 'DDD' ? 'DDD' : s.modeLabel)),
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
-                  ),
+                  decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(8)),
+                  child: Text(s.modeLabel, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
                 ),
                 const SizedBox(width: 12),
-                // Badge Arrivée/Départ
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: badgeLabel == 'Arrivée' ? AppColors.warning.withOpacity(0.15) : AppColors.primary.withOpacity(0.15),
+                    color: badgeLabel == 'Arrivée' ? AppColors.warning.withValues(alpha: 0.15) : AppColors.primary.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(color: badgeLabel == 'Arrivée' ? AppColors.warning : AppColors.primary, width: 1),
                   ),
-                  child: Text(
-                    badgeLabel.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: 10, 
-                      fontWeight: FontWeight.bold, 
-                      color: badgeLabel == 'Arrivée' ? AppColors.warning : AppColors.primary
-                    ),
-                  ),
+                  child: Text(badgeLabel.toUpperCase(), style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: badgeLabel == 'Arrivée' ? AppColors.warning : AppColors.primary)),
                 ),
               ],
             ),
@@ -1280,14 +1255,10 @@ class DualStopDetailPage extends StatelessWidget {
                     ],
                   ),
                 ),
-                // Temps d'attente (comme sur l'image)
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(
-                      s.remainingMinutes() != null ? TimeHelper.formatRemaining(s.remainingMinutes()!) : 'N/A',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.primary),
-                    ),
+                    Text(s.remainingMinutes() != null ? TimeHelper.formatRemaining(s.remainingMinutes()!) : 'N/A', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.primary)),
                     const Text('attente', style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
                   ],
                 ),
@@ -1302,13 +1273,7 @@ class DualStopDetailPage extends StatelessWidget {
   Widget _buildInfoRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        children: [
-          Text(label, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-          const Spacer(),
-          Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-        ],
-      ),
+      child: Row(children: [Text(label, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)), const Spacer(), Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold))]),
     );
   }
 
