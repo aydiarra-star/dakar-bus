@@ -1585,6 +1585,6 @@ class DualStopDetailPage extends StatelessWidget {
       case StopType.boarding: return 'Embarquement';
       case StopType.terminus: return 'Terminus';
       case StopType.correspondence: return 'Correspondance';
-    }
+    
   }
 }
