@@ -27,7 +27,7 @@ class RoutingService {
         '?overview=full&geometries=geojson';
 
     try {
-      final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 4));
+      final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 3));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final List coordinates = data['routes'][0]['geometry']['coordinates'];
@@ -116,7 +116,6 @@ class AppColors {
   static const divider = Color(0xFFD4EDE2);
   static const success = Color(0xFF00B140);
   static const warning = Color(0xFFEF6C00);
-  static const neutral = Color(0xFF9E9E9E);
 }
 
 // ============================================================
@@ -226,13 +225,9 @@ final List<Stop> terStations = [
   Stop(name: 'Gare TER Dakar', direction: 'Terminus Dakar (Arrivée)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 0), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6792, -17.4407), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.arrival),
   Stop(name: 'Gare TER Dakar', direction: 'Dir. Diamniadio (Embarquement)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 3), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6795, -17.4405), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
   Stop(name: 'Gare TER Colobane', direction: 'Dir. Diamniadio', distanceMeters: 1200, departureMinutesFromMidnight: _shift(_terBase, 5), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6937, -17.4441), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
-  Stop(name: 'Gare TER Colobane', direction: 'Dir. Dakar', distanceMeters: 1200, departureMinutesFromMidnight: _shift(_terBase, 3), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6935, -17.4443), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
   Stop(name: 'Gare TER Hann', direction: 'Dir. Diamniadio', distanceMeters: 3500, departureMinutesFromMidnight: _shift(_terBase, 9), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7222, -17.4321), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
-  Stop(name: 'Gare TER Dalifort', direction: 'Dir. Diamniadio', distanceMeters: 5100, departureMinutesFromMidnight: _shift(_terBase, 12), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7410, -17.4120), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
   Stop(name: 'Gare TER Pikine', direction: 'Dir. Diamniadio', distanceMeters: 7200, departureMinutesFromMidnight: _shift(_terBase, 17), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7550, -17.3900), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
-  Stop(name: 'Gare TER Thiaroye', direction: 'Dir. Diamniadio', distanceMeters: 8100, departureMinutesFromMidnight: _shift(_terBase, 20), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7588, -17.3803), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
   Stop(name: 'Gare TER Keur Mbaye Fall', direction: 'Dir. Dakar / Diamniadio', distanceMeters: 14200, departureMinutesFromMidnight: _shift(_terBase, 27), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7750, -17.3100), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.correspondence),
-  Stop(name: 'Gare TER Rufisque', direction: 'Dir. Diamniadio', distanceMeters: 22100, departureMinutesFromMidnight: _shift(_terBase, 36), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7157, -17.2703), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
   Stop(name: 'Gare TER Diamniadio', direction: 'Terminus Diamniadio', distanceMeters: 35000, departureMinutesFromMidnight: _shift(_terBase, 50), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7160, -17.1986), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.terminus),
 ];
 
@@ -240,69 +235,59 @@ final List<Stop> brtStations = [
   Stop(name: 'PEM Petersen', direction: 'Terminus sud BRT', distanceMeters: 200, departureMinutesFromMidnight: _shift(_brtBase, 0), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.6720, -17.4400), modeLabel: 'BRT', source: DataSourceInfo.sunubrt, stopType: StopType.terminus),
   Stop(name: 'BRT Colobane', direction: 'Dir. Guediawaye', distanceMeters: 150, departureMinutesFromMidnight: _shift(_brtBase, 2), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.6950, -17.4420), modeLabel: 'BRT', source: DataSourceInfo.sunubrt, stopType: StopType.boarding),
   Stop(name: 'BRT Grand Dakar', direction: 'Dir. Guediawaye', distanceMeters: 1500, departureMinutesFromMidnight: _shift(_brtBase, 4), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.7050, -17.4400), modeLabel: 'BRT', source: DataSourceInfo.sunubrt, stopType: StopType.boarding),
-  Stop(name: 'BRT Parcelles', direction: 'Dir. Guediawaye', distanceMeters: 5000, departureMinutesFromMidnight: _shift(_brtBase, 6), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.7350, -17.4260), modeLabel: 'BRT', source: DataSourceInfo.sunubrt, stopType: StopType.boarding),
   Stop(name: 'PEM Guediawaye', direction: 'Terminus nord BRT', distanceMeters: 10500, departureMinutesFromMidnight: _shift(_brtBase, 8), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.7735, -17.3977), modeLabel: 'BRT', source: DataSourceInfo.sunubrt, stopType: StopType.terminus),
 ];
 
 final List<Stop> otherBusStations = [
-  // Arrêts Dakar Dem Dikk (DDD) connectés aux lignes DDD
   Stop(name: 'Mermoz', direction: 'Dir. Mermoz / Sacré-Cœur', distanceMeters: 3500, departureMinutesFromMidnight: [360, 420, 480, 540, 600, 660, 720, 780, 840, 900], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: const LatLng(14.7120, -17.4650), modeLabel: 'DDD', source: DataSourceInfo.demdikk, stopType: StopType.boarding),
   Stop(name: 'Keur Massar', direction: 'Dir. Keur Massar Centre', distanceMeters: 15000, departureMinutesFromMidnight: [360, 420, 480, 540, 600, 660, 720, 780, 840, 900, 960], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: const LatLng(14.7900, -17.3500), modeLabel: 'DDD', source: DataSourceInfo.demdikk, stopType: StopType.boarding),
   Stop(name: 'Liberté 6 DDD', direction: 'Dir. Ouakam / Yoff', distanceMeters: 4200, departureMinutesFromMidnight: [380, 440, 500, 560, 620, 680, 740, 800, 860], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: const LatLng(14.7250, -17.4500), modeLabel: 'DDD', source: DataSourceInfo.demdikk, stopType: StopType.boarding),
   Stop(name: 'Ouakam DDD', direction: 'Dir. Almadies / Plateau', distanceMeters: 5500, departureMinutesFromMidnight: [390, 450, 510, 570, 630, 690, 750, 810], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: const LatLng(14.7180, -17.4850), modeLabel: 'DDD', source: DataSourceInfo.demdikk, stopType: StopType.boarding),
-  
-  // Autres lignes (AFTU & Tata)
   Stop(name: 'Arret AFTU 23', direction: 'Dir. Parcelles Assainies', distanceMeters: 280, departureMinutesFromMidnight: [630, 645, 700, 715, 730, 745, 800, 815, 830, 845, 900, 915], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.6900, -17.4460), modeLabel: 'AFTU', stopType: StopType.boarding),
   Stop(name: 'Arret Tata 12', direction: 'Dir. Guediawaye', distanceMeters: 600, departureMinutesFromMidnight: [640, 655, 710, 725, 740, 755, 810, 825, 840, 855, 910, 925], icon: Icons.directions_bus_filled, color: AppColors.tata, location: const LatLng(14.7200, -17.4700), modeLabel: 'Tata', stopType: StopType.boarding),
-  Stop(name: 'Parc des Expositions', direction: 'Dir. Diamniadio / Pôle Urbain', distanceMeters: 25000, departureMinutesFromMidnight: [370, 450, 530, 610, 690, 770, 850, 930], icon: Icons.location_city_rounded, color: AppColors.ter, location: const LatLng(14.7180, -17.1850), modeLabel: 'TER', stopType: StopType.boarding),
 ];
 
 final List<Stop> allStops = [...terStations, ...brtStations, ...otherBusStations];
 
 // ============================================================
-// TRACES DE TOUTES LES MOBILITÉS SUR LA CARTE (TER, BRT, DDD, AFTU, Tata)
+// TRACES DES ROUTES (OPTIMISES POUR COMPILATEUR WEB)
 // ============================================================
 final List<TransitRoute> demoRoutes = [
-  const TransitRoute(
+  TransitRoute(
     name: 'TER', code: 'TER', type: 'TER', color: AppColors.ter,
     points: [
-      LatLng(14.6792, -17.4407), LatLng(14.6850, -17.4430), LatLng(14.6937, -17.4441),
-      LatLng(14.7100, -17.4380), LatLng(14.7222, -17.4321), LatLng(14.7320, -17.4220),
-      LatLng(14.7410, -17.4120), LatLng(14.7480, -17.4000), LatLng(14.7550, -17.3900),
-      LatLng(14.7588, -17.3803), LatLng(14.7650, -17.3600), LatLng(14.7700, -17.3400),
-      LatLng(14.7750, -17.3100), LatLng(14.7650, -17.3000), LatLng(14.7500, -17.2900),
-      LatLng(14.7300, -17.2800), LatLng(14.7157, -17.2703), LatLng(14.6900, -17.2200),
-      LatLng(14.7160, -17.1986),
+      const LatLng(14.6792, -17.4407), const LatLng(14.6937, -17.4441),
+      const LatLng(14.7222, -17.4321), const LatLng(14.7550, -17.3900),
+      const LatLng(14.7750, -17.3100), const LatLng(14.7160, -17.1986),
     ],
   ),
-  const TransitRoute(
+  TransitRoute(
     name: 'BRT', code: 'B1', type: 'BRT', color: AppColors.brt,
     points: [
-      LatLng(14.6720, -17.4400), LatLng(14.6820, -17.4410), LatLng(14.6950, -17.4420),
-      LatLng(14.7050, -17.4400), LatLng(14.7150, -17.4370), LatLng(14.7220, -17.4330),
-      LatLng(14.7280, -17.4300), LatLng(14.7350, -17.4260), LatLng(14.7450, -17.4180),
-      LatLng(14.7520, -17.4100), LatLng(14.7620, -17.4040), LatLng(14.7735, -17.3977),
+      const LatLng(14.6720, -17.4400), const LatLng(14.6950, -17.4420),
+      const LatLng(14.7350, -17.4260), const LatLng(14.7735, -17.3977),
     ],
   ),
-  const TransitRoute(
+  TransitRoute(
     name: 'DDD', code: 'DDD1', type: 'DDD', color: AppColors.ddd,
     points: [
-      LatLng(14.6792, -17.4407), LatLng(14.7120, -17.4650), LatLng(14.7250, -17.4500),
-      LatLng(14.7180, -17.4850), LatLng(14.7600, -17.4400), LatLng(14.7900, -17.3500),
+      const LatLng(14.6792, -17.4407), const LatLng(14.7120, -17.4650),
+      const LatLng(14.7250, -17.4500), const LatLng(14.7180, -17.4850),
+      const LatLng(14.7900, -17.3500),
     ],
   ),
-  const TransitRoute(
+  TransitRoute(
     name: 'AFTU', code: 'A23', type: 'AFTU', color: AppColors.aftu,
     points: [
-      LatLng(14.6720, -17.4400), LatLng(14.6800, -17.4430), LatLng(14.6900, -17.4460),
-      LatLng(14.7100, -17.4500), LatLng(14.7350, -17.4260),
+      const LatLng(14.6720, -17.4400), const LatLng(14.6900, -17.4460),
+      const LatLng(14.7350, -17.4260),
     ],
   ),
-  const TransitRoute(
+  TransitRoute(
     name: 'Tata', code: 'T12', type: 'Tata', color: AppColors.tata,
     points: [
-      LatLng(14.6792, -17.4407), LatLng(14.7000, -17.4600), LatLng(14.7200, -17.4700),
-      LatLng(14.7550, -17.3900),
+      const LatLng(14.6792, -17.4407), const LatLng(14.7200, -17.4700),
+      const LatLng(14.7550, -17.3900),
     ],
   ),
 ];
@@ -1363,7 +1348,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ListTile(
                     leading: const Icon(Icons.info_outline, color: AppColors.primary),
                     title: const Text('Version de l\'application'),
-                    subtitle: const Text('Dakar Bus v5.7 (Full DDD Integration)'),
+                    subtitle: const Text('Dakar Bus v5.8 (Optimized Web Release)'),
                   ),
                 ],
               ),
