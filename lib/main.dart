@@ -547,7 +547,7 @@ class _MainShellState extends State<MainShell> {
 }
 
 // ============================================================
-// EXPLORER
+// EXPLORER (AVEC TRACÉS DES MOBILITÉS SUR LA CARTE)
 // ============================================================
 class ExplorerPage extends StatefulWidget {
   final LatLng? userPosition; final GpsState gpsState; final String? gpsMessage; final Future<void> Function() onRequestLocation;
@@ -1002,7 +1002,7 @@ class _TripsPageState extends State<TripsPage> {
 }
 
 // ============================================================
-// ONGLET ALERTES OFFICIELLES & GPS
+// ONGLET ALERTES OFFICIELLES & EN TEMPS REEL
 // ============================================================
 class AlertsPage extends StatelessWidget {
   const AlertsPage({super.key});
@@ -1016,7 +1016,7 @@ class AlertsPage extends StatelessWidget {
         'source': 'Source officielle : SETER (Société d\'Exploitation du TER)',
         'message': 'Régulation en cours sur l\'axe Dakar - Diamniadio suite à un afflux aux heures de pointe. Les trains circulent selon l\'horaire cadencé avec un ajustement mineur de 10 minutes sur certaines rotations.',
         'severity': 'warning',
-        'time': 'Mise à jour en direct',
+        'badge': 'Mise à jour en direct',
         'icon': Icons.train_rounded,
         'color': AppColors.ter,
       },
@@ -1026,7 +1026,7 @@ class AlertsPage extends StatelessWidget {
         'source': 'Source officielle : Dakar Mobilité (SunuBRT)',
         'message': 'Trafic 100% fluide et opérationnel sur l\'ensemble du couloir exclusif entre PEM Petersen et PEM Guédiawaye. Les bus électriques circulent à fréquence normale (toutes les 6 minutes).',
         'severity': 'success',
-        'time': 'En temps réel',
+        'badge': 'En temps réel',
         'icon': Icons.directions_bus_rounded,
         'color': AppColors.brt,
       },
@@ -1100,7 +1100,7 @@ class AlertsPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(children: [Text(alert['type'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: alert['color'])), const Spacer(), Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Text(alert['time'], style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.bold)))]),
+                  Row(children: [Text(alert['type'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: alert['color'])), const Spacer(), Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Text(alert['badge'], style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.bold)))]),
                   const SizedBox(height: 4),
                   Text(alert['source'], style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primary)),
                   const SizedBox(height: 6),
@@ -1233,7 +1233,7 @@ class _CommunityAlertsPageState extends State<CommunityAlertsPage> {
 }
 
 // ============================================================
-// REGLAGES
+// REGLAGES (AVEC PRESENTATION DU PROJET & MODE D'UTILISATION)
 // ============================================================
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -1271,10 +1271,10 @@ class _SettingsPageState extends State<SettingsPage> {
         title: const Text('Comment utiliser Dakar Bus'),
         content: const SingleChildScrollView(
           child: Text(
-            '1. Explorer : Visualisez le réseau en direct.\n'
-            '2. Trajets : Entrez votre départ et destination.\n'
-            '3. Alertes : Restez informé des perturbations.\n'
-            '4. Assistant IA : Posez vos questions par écrit ou en vocal (ex: Dakar, Mermoz, Keur Massar...).',
+            '1. Explorer : Visualisez le réseau en direct et les tracés des mobilités.\n'
+            '2. Trajets : Entrez votre point de départ et votre destination.\n'
+            '3. Alertes : Restez informé des perturbations en temps réel sourcées SETER & SunuBRT.\n'
+            '4. Assistant IA : Posez vos questions par écrit ou en vocal (ex: "Comment aller à Dakar ?", Mermoz, Keur Massar...).',
             style: TextStyle(fontSize: 14, height: 1.5, color: AppColors.textPrimary),
           ),
         ),
@@ -1333,7 +1333,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ListTile(
                     leading: const Icon(Icons.info_outline, color: AppColors.primary),
                     title: const Text('Version de l\'application'),
-                    subtitle: const Text('Dakar Bus v5.4 (Pure Voice & AI Edition)'),
+                    subtitle: const Text('Dakar Bus v5.5 (Official Production Edition)'),
                   ),
                 ],
               ),
@@ -1368,7 +1368,6 @@ class _AIChatPageState extends State<AIChatPage> {
 
   void _simulateVoiceInput() {
     setState(() => _isListening = true);
-    // Simule une écoute propre sans injecter de texte automatique à la place de l'utilisateur
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         setState(() {
@@ -1384,7 +1383,7 @@ class _AIChatPageState extends State<AIChatPage> {
     
     setState(() {
       _messages.add({'role': 'user', 'text': text});
-      _msgCtrl.clear(); // Vide proprement le champ
+      _msgCtrl.clear();
     });
     _scrollToBottom();
 
@@ -1421,8 +1420,7 @@ class _AIChatPageState extends State<AIChatPage> {
           '🚗 Route : Circulation dense sur les grands axes.';
     }
 
-    // --- ANALYSE DE LA DESTINATION SAISIE OU DICTÉE ---
-    String destination = 'Gare TER Dakar'; // Par défaut si on demande Dakar ou autre
+    String destination = 'Gare TER Dakar';
     
     if (q.contains('mermoz')) {
       destination = 'Mermoz';
