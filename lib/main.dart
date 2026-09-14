@@ -10,49 +10,6 @@ import 'package:http/http.dart' as http;
 void main() => runApp(const DakarBusApp());
 
 // ============================================================
-// SERVICE ROUTING REEL (OSRM + SECURITE TERRESTRE)
-// ============================================================
-class RoutingService {
-  static final Map<String, List<LatLng>> _cache = {};
-
-  static String _cacheKey(LatLng a, LatLng b) =>
-      '${a.latitude.toStringAsFixed(5)},${a.longitude.toStringAsFixed(5)}|${b.latitude.toStringAsFixed(5)},${b.longitude.toStringAsFixed(5)}';
-
-  static Future<List<LatLng>> getRealRoute(LatLng start, LatLng end) async {
-    final key = _cacheKey(start, end);
-    if (_cache.containsKey(key)) return _cache[key]!;
-
-    final url = 'https://router.project-osrm.org/route/v1/driving/'
-        '${start.longitude},${start.latitude};${end.longitude},${end.latitude}'
-        '?overview=full&geometries=geojson';
-
-    try {
-      final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 4));
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final List coordinates = data['routes'][0]['geometry']['coordinates'];
-        final points = coordinates.map<LatLng>((coord) => LatLng(coord[1], coord[0])).toList();
-        _cache[key] = points;
-        return points;
-      }
-    } catch (_) {}
-    final fallback = _getFallbackTerrestrialRoute(start, end);
-    _cache[key] = fallback;
-    return fallback;
-  }
-
-  static List<LatLng> _getFallbackTerrestrialRoute(LatLng start, LatLng end) {
-    if (start.latitude > 14.70 && end.latitude > 14.70 && (start.longitude - end.longitude).abs() > 0.05) {
-      return [
-        start, const LatLng(14.7410, -17.4120), const LatLng(14.7550, -17.3900),
-        const LatLng(14.7588, -17.3803), const LatLng(14.7450, -17.3980), end,
-      ];
-    }
-    return [start, end];
-  }
-}
-
-// ============================================================
 // SERVICE DE DETECTION DES DEUX SENS
 // ============================================================
 class OppositeStopService {
@@ -108,14 +65,14 @@ final List<int> _brtBase = _generateSchedule(from: 360, to: 1260, step: 6);
 final List<int> _terBase = _buildTerBase();
 
 // ============================================================
-// COULEURS & THEME (TATA EN BLEU, BRT EN VERT, ETC.)
+// COULEURS & THEME (1 COULEUR UNIQUE PAR MOBILITÉ)
 // ============================================================
 class AppColors {
   static const primary = Color(0xFF00695C);
   static const ter = Color(0xFF8D4004);     // Marron TER
   static const brt = Color(0xFF2E7D32);     // Vert BRT
   static const aftu = Color(0xFFEF6C00);    // Orange AFTU
-  static const tata = Color(0xFF1976D2);    // Bleu Tata (Demandé en bleu)
+  static const tata = Color(0xFF1976D2);    // Bleu Tata
   static const ddd = Color(0xFF00ACC1);     // Cyan DDD
   static const background = Color(0xFFF8F9FA);
   static const surface = Color(0xFFFFFFFF);
@@ -226,8 +183,6 @@ class Stop {
 class TransitRoute {
   final String name; final String code; final String type; final Color color; final List<LatLng> points;
   const TransitRoute({required this.name, required this.code, required this.type, required this.color, required this.points});
-
-  bool get isDedicated => type == 'TER' || type == 'BRT';
 }
 
 class FavoriteRoute {
@@ -256,7 +211,7 @@ class RouteSearchResult {
 }
 
 // ============================================================
-// DONNEES DES STATIONS AVEC LEUR COULEUR EXACTE
+// DONNEES DES STATIONS
 // ============================================================
 final List<Stop> terStations = [
   Stop(name: 'Gare TER Dakar', direction: 'Terminus Dakar (Arrivée)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 0), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6792, -17.4407), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.arrival),
@@ -309,45 +264,54 @@ final List<Stop> otherBusStations = [
 final List<Stop> allStops = [...terStations, ...brtStations, ...otherBusStations];
 
 // ============================================================
-// TRACES DES LIGNES (CHAQUE ITINÉRAIRE A SA COULEUR EXACTE)
+// TRACES DES LIGNES (POINTS Denses, Continus et Harmonisés)
 // ============================================================
 final List<TransitRoute> demoRoutes = [
   const TransitRoute(
     name: 'TER', code: 'TER', type: 'TER', color: AppColors.ter,
     points: [
-      LatLng(14.6792, -17.4407), LatLng(14.6937, -17.4441), LatLng(14.7222, -17.4321),
-      LatLng(14.7410, -17.4120), LatLng(14.7550, -17.3900), LatLng(14.7700, -17.3400),
-      LatLng(14.7750, -17.3100), LatLng(14.7500, -17.2900), LatLng(14.7157, -17.2703),
-      LatLng(14.6900, -17.2200), LatLng(14.7160, -17.1986),
+      LatLng(14.6792, -17.4407), LatLng(14.6850, -17.4430), LatLng(14.6937, -17.4441),
+      LatLng(14.7100, -17.4380), LatLng(14.7222, -17.4321), LatLng(14.7320, -17.4220),
+      LatLng(14.7410, -17.4120), LatLng(14.7480, -17.4000), LatLng(14.7550, -17.3900),
+      LatLng(14.7588, -17.3803), LatLng(14.7650, -17.3600), LatLng(14.7700, -17.3400),
+      LatLng(14.7750, -17.3100), LatLng(14.7650, -17.3000), LatLng(14.7500, -17.2900),
+      LatLng(14.7300, -17.2800), LatLng(14.7157, -17.2703), LatLng(14.7000, -17.2500),
+      LatLng(14.6900, -17.2200), LatLng(14.7050, -17.2100), LatLng(14.7160, -17.1986),
     ],
   ),
   const TransitRoute(
-    name: 'BRT', code: 'B1', type: 'BRT', color: AppColors.brt, // Vert
+    name: 'BRT', code: 'B1', type: 'BRT', color: AppColors.brt,
     points: [
-      LatLng(14.6720, -17.4400), LatLng(14.6950, -17.4420), LatLng(14.7050, -17.4400),
-      LatLng(14.7220, -17.4330), LatLng(14.7350, -17.4260), LatLng(14.7520, -17.4100),
-      LatLng(14.7735, -17.3977),
+      LatLng(14.6720, -17.4400), LatLng(14.6820, -17.4410), LatLng(14.6950, -17.4420),
+      LatLng(14.7050, -17.4400), LatLng(14.7150, -17.4370), LatLng(14.7220, -17.4330),
+      LatLng(14.7280, -17.4300), LatLng(14.7350, -17.4260), LatLng(14.7450, -17.4180),
+      LatLng(14.7520, -17.4100), LatLng(14.7620, -17.4040), LatLng(14.7735, -17.3977),
     ],
   ),
   const TransitRoute(
-    name: 'AFTU', code: '23', type: 'AFTU', color: AppColors.aftu, // Orange
+    name: 'AFTU', code: '23', type: 'AFTU', color: AppColors.aftu,
     points: [
-      LatLng(14.7600, -17.4400), LatLng(14.7450, -17.4430), LatLng(14.7200, -17.4460),
-      LatLng(14.6900, -17.4460), LatLng(14.6790, -17.4400),
+      LatLng(14.6720, -17.4400), LatLng(14.6800, -17.4430), LatLng(14.6900, -17.4460),
+      LatLng(14.7050, -17.4520), LatLng(14.7200, -17.4600), LatLng(14.7350, -17.4550),
+      LatLng(14.7500, -17.4500), LatLng(14.7600, -17.4400),
     ],
   ),
   const TransitRoute(
-    name: 'Tata', code: '12', type: 'TATA', color: AppColors.tata, // BLEU (Identique aux arrêts Tata)
+    name: 'Tata', code: '12', type: 'TATA', color: AppColors.tata,
     points: [
-      LatLng(14.7735, -17.3977), LatLng(14.7500, -17.4200), LatLng(14.7250, -17.4500),
-      LatLng(14.7000, -17.4600), LatLng(14.6800, -17.4500), LatLng(14.6750, -17.4400),
+      LatLng(14.7735, -17.3977), LatLng(14.7620, -17.4100), LatLng(14.7500, -17.4200),
+      LatLng(14.7380, -17.4350), LatLng(14.7250, -17.4500), LatLng(14.7120, -17.4580),
+      LatLng(14.7000, -17.4600), LatLng(14.6900, -17.4550), LatLng(14.6800, -17.4500),
+      LatLng(14.6750, -17.4400), LatLng(14.6720, -17.4350),
     ],
   ),
   const TransitRoute(
-    name: 'DDD Urbaine', code: 'DDD-1', type: 'DDD', color: AppColors.ddd, // Cyan
+    name: 'DDD Urbaine', code: 'DDD-1', type: 'DDD', color: AppColors.ddd,
     points: [
-      LatLng(14.7600, -17.4400), LatLng(14.7450, -17.4440), LatLng(14.7250, -17.4520),
-      LatLng(14.7050, -17.4560), LatLng(14.6900, -17.4480), LatLng(14.6790, -17.4420),
+      LatLng(14.7600, -17.4400), LatLng(14.7520, -17.4420), LatLng(14.7450, -17.4440),
+      LatLng(14.7350, -17.4480), LatLng(14.7250, -17.4520), LatLng(14.7150, -17.4540),
+      LatLng(14.7050, -17.4560), LatLng(14.6980, -17.4520), LatLng(14.6900, -17.4480),
+      LatLng(14.6840, -17.4450), LatLng(14.6790, -17.4420), LatLng(14.6750, -17.4410),
       LatLng(14.6720, -17.4400),
     ],
   ),
@@ -661,48 +625,6 @@ class _ExplorerPageState extends State<ExplorerPage> {
   bool _searchFocused = false;
   final TextEditingController _searchCtrl = TextEditingController();
 
-  List<Polyline> _dynamicPolylines = [];
-  bool _isLoadingRoutes = true;
-
-  @override
-  void initState() { super.initState(); _loadDynamicRoutes(); }
-
-  Future<void> _loadDynamicRoutes() async {
-    final List<Polyline> loaded = [];
-
-    for (final route in demoRoutes) {
-      if (route.points.length < 2) continue;
-
-      List<LatLng> fullRoutePoints = [];
-
-      if (route.isDedicated) {
-        fullRoutePoints = List<LatLng>.from(route.points);
-      } else {
-        final List<Future<List<LatLng>>> futures = [];
-        for (int i = 0; i < route.points.length - 1; i++) {
-          futures.add(RoutingService.getRealRoute(route.points[i], route.points[i + 1]));
-        }
-        final List<List<LatLng>> segments = await Future.wait(futures);
-        for (final segment in segments) {
-          if (fullRoutePoints.isNotEmpty && segment.isNotEmpty) {
-            fullRoutePoints.addAll(segment.skip(1));
-          } else {
-            fullRoutePoints.addAll(segment);
-          }
-        }
-        if (fullRoutePoints.isEmpty) fullRoutePoints = List<LatLng>.from(route.points);
-      }
-
-      loaded.add(Polyline(
-        points: fullRoutePoints,
-        color: route.color,
-        strokeWidth: route.isDedicated ? 6.0 : 4.5,
-      ));
-    }
-
-    if (mounted) setState(() { _dynamicPolylines = loaded; _isLoadingRoutes = false; });
-  }
-
   List<Stop> get _filteredStops {
     List<Stop> base;
     switch (_selectedFilter) {
@@ -733,7 +655,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
   @override
   Widget build(BuildContext context) {
     final stops = _filteredStops;
-    final activePolylines = _dynamicPolylines.isNotEmpty ? _dynamicPolylines : demoRoutes.map((r) => Polyline(points: r.points, color: r.color, strokeWidth: 5.0)).toList();
+    // Rendu direct et instantané de toutes les lignes sans coupure réseau
+    final activePolylines = demoRoutes.map((r) => Polyline(points: r.points, color: r.color, strokeWidth: 5.0)).toList();
     final mapStops = _selectedFilter == 'Tous' ? allStops : _filteredStops;
 
     return Scaffold(
@@ -773,7 +696,6 @@ class _ExplorerPageState extends State<ExplorerPage> {
                         MarkerLayer(markers: [Marker(point: widget.userPosition!, width: 20, height: 20, child: Container(decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 3), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 4)])))]),
                     ],
                   ),
-                  if (_isLoadingRoutes) Positioned(top: 10, left: 140, child: Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(12)), child: const Text('Calcul des routes GPS...', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)))),
 
                   Positioned(
                     bottom: 16, left: 16,
@@ -1224,7 +1146,8 @@ class _AIChatPageState extends State<AIChatPage> {
       return '📡 État du réseau en temps réel :\n\n'
           '🟤 TER : léger retard de 10 min sur Dakar - Diamniadio\n'
           '🟢 BRT : trafic fluide (fréquence 6 min)\n'
-          '🔵 DDD 217 : déviation à Thiaroye (travaux en cours)\n'
+          '🔵 Tata : trafic normal\n'
+          'cyan DDD 217 : déviation à Thiaroye (travaux en cours)\n'
           '🟠 AFTU 23 : trafic normal\n\n'
           'Consultez l\'onglet "Alertes" pour plus de détails.';
     }
