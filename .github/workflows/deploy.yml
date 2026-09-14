@@ -38,8 +38,7 @@ jobs:
 
       - name: Build Web
         run: |
-          flutter build web --release \
-            --base-href "/dakar-bus/"
+          flutter build web --release --no-wasm-dry-run --base-href "/dakar-bus/"
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
