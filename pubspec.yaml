@@ -1,15 +1,15 @@
 name: dakar_bus
-description: Application d information voyageur Dakar Bus
+description: "Application de mobilité urbaine à Dakar - TER, BRT, AFTU, Tata, DDD"
 publish_to: 'none'
-version: 3.5.0+1
+version: 5.1.0+1
 
 environment:
-  sdk: '^3.3.0'
+  sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
-  flutter_map: ^6.0.0
+  flutter_map: ^6.1.0
   latlong2: ^0.9.0
   geolocator: ^10.1.0
   http: ^1.2.0
