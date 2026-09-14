@@ -10,6 +10,41 @@ import 'package:http/http.dart' as http;
 void main() => runApp(const DakarBusApp());
 
 // ============================================================
+// SERVICE ROUTING REEL SPECIALISE (OSRM GEOSPATIAL)
+// ============================================================
+class RoutingService {
+  static final Map<String, List<LatLng>> _cache = {};
+
+  static String _cacheKey(LatLng a, LatLng b) =>
+      '${a.latitude.toStringAsFixed(5)},${a.longitude.toStringAsFixed(5)}|${b.latitude.toStringAsFixed(5)},${b.longitude.toStringAsFixed(5)}';
+
+  static Future<List<LatLng>> getRealRoute(LatLng start, LatLng end) async {
+    final key = _cacheKey(start, end);
+    if (_cache.containsKey(key)) return _cache[key]!;
+
+    final url = 'https://router.project-osrm.org/route/v1/driving/'
+        '${start.longitude},${start.latitude};${end.longitude},${end.latitude}'
+        '?overview=full&geometries=geojson';
+
+    try {
+      final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 4));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final List coordinates = data['routes'][0]['geometry']['coordinates'];
+        final points = coordinates.map<LatLng>((coord) => LatLng(coord[1], coord[0])).toList();
+        _cache[key] = points;
+        return points;
+      }
+    } catch (_) {}
+    
+    // Fallback de secours intelligent si hors-ligne
+    final fallback = [start, end];
+    _cache[key] = fallback;
+    return fallback;
+  }
+}
+
+// ============================================================
 // SERVICE DE DETECTION DES DEUX SENS
 // ============================================================
 class OppositeStopService {
@@ -65,12 +100,12 @@ final List<int> _brtBase = _generateSchedule(from: 360, to: 1260, step: 6);
 final List<int> _terBase = _buildTerBase();
 
 // ============================================================
-// COULEURS & THEME (1 COULEUR UNIQUE PAR MOBILITÉ)
+// COULEURS & THEME (BRT EN VERT STRICTEMENT)
 // ============================================================
 class AppColors {
   static const primary = Color(0xFF00695C);
   static const ter = Color(0xFF8D4004);     // Marron TER
-  static const brt = Color(0xFF2E7D32);     // Vert BRT
+  static const brt = Color(0xFF2E7D32);     // Vert BRT (Exigence validée)
   static const aftu = Color(0xFFEF6C00);    // Orange AFTU
   static const tata = Color(0xFF1976D2);    // Bleu Tata
   static const ddd = Color(0xFF00ACC1);     // Cyan DDD
@@ -183,6 +218,8 @@ class Stop {
 class TransitRoute {
   final String name; final String code; final String type; final Color color; final List<LatLng> points;
   const TransitRoute({required this.name, required this.code, required this.type, required this.color, required this.points});
+
+  bool get isDedicated => type == 'TER';
 }
 
 class FavoriteRoute {
@@ -211,7 +248,7 @@ class RouteSearchResult {
 }
 
 // ============================================================
-// DONNEES DES STATIONS
+// DONNEES DES STATIONS (COULEURS ASSORTIES)
 // ============================================================
 final List<Stop> terStations = [
   Stop(name: 'Gare TER Dakar', direction: 'Terminus Dakar (Arrivée)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 0), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6792, -17.4407), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.arrival),
@@ -264,7 +301,7 @@ final List<Stop> otherBusStations = [
 final List<Stop> allStops = [...terStations, ...brtStations, ...otherBusStations];
 
 // ============================================================
-// TRACES DES LIGNES (POINTS Denses, Continus et Harmonisés)
+// TRACES DES LIGNES (POINTS DE PASSAGE COMPLETS ET FLUIDES)
 // ============================================================
 final List<TransitRoute> demoRoutes = [
   const TransitRoute(
@@ -275,12 +312,12 @@ final List<TransitRoute> demoRoutes = [
       LatLng(14.7410, -17.4120), LatLng(14.7480, -17.4000), LatLng(14.7550, -17.3900),
       LatLng(14.7588, -17.3803), LatLng(14.7650, -17.3600), LatLng(14.7700, -17.3400),
       LatLng(14.7750, -17.3100), LatLng(14.7650, -17.3000), LatLng(14.7500, -17.2900),
-      LatLng(14.7300, -17.2800), LatLng(14.7157, -17.2703), LatLng(14.7000, -17.2500),
-      LatLng(14.6900, -17.2200), LatLng(14.7050, -17.2100), LatLng(14.7160, -17.1986),
+      LatLng(14.7300, -17.2800), LatLng(14.7157, -17.2703), LatLng(14.6900, -17.2200),
+      LatLng(14.7160, -17.1986),
     ],
   ),
   const TransitRoute(
-    name: 'BRT', code: 'B1', type: 'BRT', color: AppColors.brt,
+    name: 'BRT', code: 'B1', type: 'BRT', color: AppColors.brt, // VERT EXIGE
     points: [
       LatLng(14.6720, -17.4400), LatLng(14.6820, -17.4410), LatLng(14.6950, -17.4420),
       LatLng(14.7050, -17.4400), LatLng(14.7150, -17.4370), LatLng(14.7220, -17.4330),
@@ -289,7 +326,7 @@ final List<TransitRoute> demoRoutes = [
     ],
   ),
   const TransitRoute(
-    name: 'AFTU', code: '23', type: 'AFTU', color: AppColors.aftu,
+    name: 'AFTU', code: '23', type: 'AFTU', color: AppColors.aftu, // ORANGE
     points: [
       LatLng(14.6720, -17.4400), LatLng(14.6800, -17.4430), LatLng(14.6900, -17.4460),
       LatLng(14.7050, -17.4520), LatLng(14.7200, -17.4600), LatLng(14.7350, -17.4550),
@@ -297,7 +334,7 @@ final List<TransitRoute> demoRoutes = [
     ],
   ),
   const TransitRoute(
-    name: 'Tata', code: '12', type: 'TATA', color: AppColors.tata,
+    name: 'Tata', code: '12', type: 'TATA', color: AppColors.tata, // BLEU
     points: [
       LatLng(14.7735, -17.3977), LatLng(14.7620, -17.4100), LatLng(14.7500, -17.4200),
       LatLng(14.7380, -17.4350), LatLng(14.7250, -17.4500), LatLng(14.7120, -17.4580),
@@ -306,7 +343,7 @@ final List<TransitRoute> demoRoutes = [
     ],
   ),
   const TransitRoute(
-    name: 'DDD Urbaine', code: 'DDD-1', type: 'DDD', color: AppColors.ddd,
+    name: 'DDD Urbaine', code: 'DDD-1', type: 'DDD', color: AppColors.ddd, // CYAN
     points: [
       LatLng(14.7600, -17.4400), LatLng(14.7520, -17.4420), LatLng(14.7450, -17.4440),
       LatLng(14.7350, -17.4480), LatLng(14.7250, -17.4520), LatLng(14.7150, -17.4540),
@@ -608,7 +645,7 @@ class _MainShellState extends State<MainShell> {
 }
 
 // ============================================================
-// EXPLORER
+// EXPLORER AVEC ROUTAGE OSRM DYNAMIQUE ET FLUIDE
 // ============================================================
 class ExplorerPage extends StatefulWidget {
   final LatLng? userPosition; final GpsState gpsState; final String? gpsMessage; final Future<void> Function() onRequestLocation;
@@ -624,6 +661,48 @@ class _ExplorerPageState extends State<ExplorerPage> {
   int _mapHeight = 260;
   bool _searchFocused = false;
   final TextEditingController _searchCtrl = TextEditingController();
+
+  List<Polyline> _dynamicPolylines = [];
+  bool _isLoadingRoutes = true;
+
+  @override
+  void initState() { super.initState(); _loadDynamicRoutes(); }
+
+  Future<void> _loadDynamicRoutes() async {
+    final List<Polyline> loaded = [];
+
+    for (final route in demoRoutes) {
+      if (route.points.length < 2) continue;
+
+      List<LatLng> fullRoutePoints = [];
+
+      if (route.isDedicated) {
+        fullRoutePoints = List<LatLng>.from(route.points);
+      } else {
+        final List<Future<List<LatLng>>> futures = [];
+        for (int i = 0; i < route.points.length - 1; i++) {
+          futures.add(RoutingService.getRealRoute(route.points[i], route.points[i + 1]));
+        }
+        final List<List<LatLng>> segments = await Future.wait(futures);
+        for (final segment in segments) {
+          if (fullRoutePoints.isNotEmpty && segment.isNotEmpty) {
+            fullRoutePoints.addAll(segment.skip(1));
+          } else {
+            fullRoutePoints.addAll(segment);
+          }
+        }
+        if (fullRoutePoints.isEmpty) fullRoutePoints = List<LatLng>.from(route.points);
+      }
+
+      loaded.add(Polyline(
+        points: fullRoutePoints,
+        color: route.color,
+        strokeWidth: 5.5,
+      ));
+    }
+
+    if (mounted) setState(() { _dynamicPolylines = loaded; _isLoadingRoutes = false; });
+  }
 
   List<Stop> get _filteredStops {
     List<Stop> base;
@@ -655,8 +734,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
   @override
   Widget build(BuildContext context) {
     final stops = _filteredStops;
-    // Rendu direct et instantané de toutes les lignes sans coupure réseau
-    final activePolylines = demoRoutes.map((r) => Polyline(points: r.points, color: r.color, strokeWidth: 5.0)).toList();
+    final activePolylines = _dynamicPolylines.isNotEmpty ? _dynamicPolylines : demoRoutes.map((r) => Polyline(points: r.points, color: r.color, strokeWidth: 5.0)).toList();
     final mapStops = _selectedFilter == 'Tous' ? allStops : _filteredStops;
 
     return Scaffold(
@@ -696,6 +774,16 @@ class _ExplorerPageState extends State<ExplorerPage> {
                         MarkerLayer(markers: [Marker(point: widget.userPosition!, width: 20, height: 20, child: Container(decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 3), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 4)])))]),
                     ],
                   ),
+
+                  if (_isLoadingRoutes)
+                    Positioned(
+                      top: 10, left: 100,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(12)),
+                        child: const Text('Routage GPS géospatial en cours...', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                      ),
+                    ),
 
                   Positioned(
                     bottom: 16, left: 16,
@@ -753,7 +841,20 @@ class _ExplorerPageState extends State<ExplorerPage> {
                     ),
                   ),
 
-                  Positioned(top: 12, left: 12, child: Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6), decoration: BoxDecoration(color: AppColors.surface.withOpacity(0.95), borderRadius: BorderRadius.circular(8)), child: Row(mainAxisSize: MainAxisSize.min, children: [_legend(AppColors.ter, 'TER'), const SizedBox(width: 6), _legend(AppColors.brt, 'BRT'), const SizedBox(width: 6), _legend(AppColors.aftu, 'AFTU'), const SizedBox(width: 6), _legend(AppColors.tata, 'Tata'), const SizedBox(width: 6), _legend(AppColors.ddd, 'DDD')]))),
+                  Positioned(
+                    top: 12, left: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      decoration: BoxDecoration(color: AppColors.surface.withOpacity(0.95), borderRadius: BorderRadius.circular(8)),
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        _legend(AppColors.ter, 'TER'), const SizedBox(width: 6),
+                        _legend(AppColors.brt, 'BRT'), const SizedBox(width: 6),
+                        _legend(AppColors.aftu, 'AFTU'), const SizedBox(width: 6),
+                        _legend(AppColors.tata, 'Tata'), const SizedBox(width: 6),
+                        _legend(AppColors.ddd, 'DDD'),
+                      ]),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -1145,9 +1246,9 @@ class _AIChatPageState extends State<AIChatPage> {
     if (q.contains('retard') || q.contains('perturbation') || q.contains('probleme') || q.contains('panne') || q.contains('travaux')) {
       return '📡 État du réseau en temps réel :\n\n'
           '🟤 TER : léger retard de 10 min sur Dakar - Diamniadio\n'
-          '🟢 BRT : trafic fluide (fréquence 6 min)\n'
+          '🟢 BRT : trafic fluide et opérationnel\n'
           '🔵 Tata : trafic normal\n'
-          'cyan DDD 217 : déviation à Thiaroye (travaux en cours)\n'
+          '🔷 DDD 217 : déviation à Thiaroye (travaux en cours)\n'
           '🟠 AFTU 23 : trafic normal\n\n'
           'Consultez l\'onglet "Alertes" pour plus de détails.';
     }
@@ -1279,7 +1380,7 @@ class _AIChatPageState extends State<AIChatPage> {
             decoration: BoxDecoration(color: AppColors.surface, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)]),
             child: Row(
               children: [
-                Expanded(child: TextField(controller: _msgCtrl, onSubmitted: (_) => _sendMessage(), decoration: InputDecoration(hintText: 'Posez votre question...', border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none), filled: true, fillColor: AppColors.background, contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12)))),
+                Expanded(child: TextField(controller: _msgCtrl, onSubmitted: (_) => _sendMessage(), decoration: InputDecoration(hintText: 'Posez your question...', border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none), filled: true, fillColor: AppColors.background, contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12)))),
                 const SizedBox(width: 8),
                 CircleAvatar(backgroundColor: AppColors.primary, radius: 22, child: IconButton(icon: const Icon(Icons.send, color: Colors.white, size: 20), onPressed: _sendMessage)),
               ],
