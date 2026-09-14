@@ -536,7 +536,6 @@ const Map<String, String> kDakarLocationAliases = {
   'pikine': 'Pikine',
   'guediawaye': 'Guediawaye',
   'guédiawaye': 'Guediawaye',
-  'guédiawaye': 'Guediawaye',
   'keur massar': 'Keur Massar',
   'keur-massar': 'Keur Massar',
   'thiaroye': 'Thiaroye',
@@ -1592,9 +1591,7 @@ class DualStopDetailPage extends StatelessWidget {
     // 1) Chercher un arrêt PHYSIQUE en sens inverse
     final realOpposite = OppositeStopService.findOppositeStop(currentStop: stop, allStops: allStops);
 
-    // 2) Si aucun n'existe (cas fréquent pour les DDD), créer un sens inverse VIRTUEL
-    //    en inversant le libellé de direction. Cela garantit l'affichage "aller/retour"
-    //    demandé par l'utilisateur, même quand la donnée n'est pas dupliquée.
+    // 2) Si aucun n'existe, créer un sens inverse VIRTUEL
     final opposite = realOpposite ?? _buildVirtualOpposite(stop);
     final bool isVirtual = realOpposite == null;
 
@@ -1658,81 +1655,86 @@ class DualStopDetailPage extends StatelessWidget {
     );
   }
 
-  /// Construit un arrêt virtuel en sens inverse : mêmes coordonnées, même mode,
-  /// même couleur, mais direction inversée et type opposé.
-  Stop _buildVirtualOpposite(Stop s) {
-    return s.copyWith(
-      direction: DirectionHelper.reverse(s.direction),
-      stopType: DirectionHelper.oppositeType(s.stopType),
+  /// Génère un arrêt virtuel en sens inverse à partir de l'arrêt d'origine
+  Stop _buildVirtualOpposite(Stop original) {
+    return original.copyWith(
+      direction: DirectionHelper.reverse(original.direction),
+      stopType: DirectionHelper.oppositeType(original.stopType),
+      departureMinutesFromMidnight: original.departureMinutesFromMidnight.map((m) => m + 5).toList(),
     );
   }
 
-  Widget _buildStopCard(Stop s, String direction, double distance, String badgeLabel) {
+  Widget _buildStopCard(Stop s, String direction, double distance, String badgeText) {
+    final nextMin = s.nextDepartureMinutes();
+    final normalized = nextMin != null ? nextMin % (24 * 60) : null;
+    final nextTimeStr = normalized != null
+        ? '${(normalized ~/ 60).toString().padLeft(2, '0')} h ${(normalized % 60).toString().padLeft(2, '0')}'
+        : 'Indisponible';
+
     return Container(
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 2),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
+        border: Border.all(color: s.color.withValues(alpha: 0.3), width: 1.5),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8)],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(8)),
-                  child: Text(s.modeLabel, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
-                ),
-                const SizedBox(width: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: badgeLabel == 'Arrivée' ? AppColors.warning.withValues(alpha: 0.15) : AppColors.primary.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: badgeLabel == 'Arrivée' ? AppColors.warning : AppColors.primary, width: 1),
-                  ),
-                  child: Text(badgeLabel.toUpperCase(), style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: badgeLabel == 'Arrivée' ? AppColors.warning : AppColors.primary)),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Icon(s.icon, color: s.color, size: 28),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Vers $direction', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      const SizedBox(height: 4),
-                      Text('${DistanceHelper.format(distance)} . ${s.modeLabel}', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                    ],
-                  ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(s.remainingMinutes() != null ? TimeHelper.formatRemaining(s.remainingMinutes()!) : 'N/A', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.primary)),
-                    const Text('attente', style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(backgroundColor: s.color, radius: 18, child: Icon(s.icon, color: Colors.white, size: 16)),
+              const SizedBox(width: 10),
+              Expanded(child: Text(s.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(color: s.color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
+                child: Text(badgeText, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: s.color)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(children: [const Icon(Icons.arrow_forward_ios, size: 12, color: AppColors.textSecondary), const SizedBox(width: 6), Expanded(child: Text(direction, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)))]),
+          const SizedBox(height: 10),
+          const Divider(height: 1),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Prochain départ', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                  const SizedBox(height: 2),
+                  Text(nextTimeStr, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: s.color)),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  const Text('Distance', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                  const SizedBox(height: 2),
+                  Text(DistanceHelper.format(distance), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildInfoRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(children: [Text(label, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)), const Spacer(), Flexible(child: Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold), textAlign: TextAlign.right))]),
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+          Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+        ],
+      ),
     );
   }
 
