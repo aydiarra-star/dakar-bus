@@ -99,21 +99,21 @@ final List<int> _brtBase = _generateSchedule(from: 360, to: 1260, step: 6);
 final List<int> _terBase = _buildTerBase();
 
 // ============================================================
-// COULEURS & THEME (VERT CITYMAPPER & COULEURS LIGNES)
+// COULEURS & THEME (VERT CLAIR & VERT ICONIQUE)
 // ============================================================
 class AppColors {
-  static const primary = Color(0xFF00B140);   // Vert iconique Citymapper
+  static const primary = Color(0xFF00B140);   // Vert principal
   static const primaryDark = Color(0xFF008A32);
   static const ter = Color(0xFF8D4004);     // Marron TER
   static const brt = Color(0xFF00B140);     // Vert BRT
   static const aftu = Color(0xFFEF6C00);    // Orange AFTU
   static const tata = Color(0xFF1976D2);    // Bleu Tata
   static const ddd = Color(0xFF00ACC1);     // Cyan DDD
-  static const background = Color(0xFFF4F6F5);
+  static const background = Color(0xFFF1F8F5); // Fond vert très clair et doux
   static const surface = Color(0xFFFFFFFF);
   static const textPrimary = Color(0xFF111111);
-  static const textSecondary = Color(0xFF666666);
-  static const divider = Color(0xFFE0E0E0);
+  static const textSecondary = Color(0xFF555555);
+  static const divider = Color(0xFFD4EDE2);
   static const success = Color(0xFF00B140);
   static const warning = Color(0xFFEF6C00);
   static const neutral = Color(0xFF9E9E9E);
@@ -130,8 +130,6 @@ class DataSourceInfo {
   static const sunubrt = DataSourceInfo(origin: DataOrigin.official, label: 'SunuBRT');
   static const demo = DataSourceInfo(origin: DataOrigin.demo, label: 'Demonstration');
 }
-
-enum DataStatus { scheduled, live, unknown }
 
 class OfficialBadge extends StatelessWidget {
   const OfficialBadge({super.key});
@@ -191,6 +189,8 @@ class Stop {
   String? nextDepartureLabel() { final d = nextDepartureMinutes(); if (d == null) return null; final normalized = d % (24 * 60); return '${(normalized ~/ 60).toString().padLeft(2, '0')} h ${(normalized % 60).toString().padLeft(2, '0')}'; }
   int? departureAfter(int minFromMidnight) { for (final d in departureMinutesFromMidnight) { if (d > minFromMidnight) return d; } if (departureMinutesFromMidnight.isNotEmpty) return departureMinutesFromMidnight.first + 24 * 60; return null; }
 }
+
+enum DataStatus { scheduled, live, unknown }
 
 class TransitRoute {
   final String name; final String code; final String type; final Color color; final List<LatLng> points;
@@ -338,7 +338,7 @@ class RoutePlanner {
     final fromStop = _findNearestStop(fromQuery);
     final toStop = _findNearestStop(toQuery);
 
-    if (fromStop == null) return const RouteSearchResult(errorMessage: 'Lieu de depart introuvable.');
+    if (fromStop == null) return const RouteSearchResult(errorMessage: 'Lieu de départ introuvable.');
     if (toStop == null) return const RouteSearchResult(errorMessage: 'Destination introuvable.');
 
     final now = DateTime.now();
@@ -356,7 +356,7 @@ class RoutePlanner {
     }
 
     if (candidates.isEmpty) {
-      return RouteSearchResult(errorMessage: 'Aucun itineraire trouve entre ${fromStop.name} et ${toStop.name}.');
+      return RouteSearchResult(errorMessage: 'Aucun itinéraire trouvé entre ${fromStop.name} et ${toStop.name}.');
     }
 
     candidates.sort((a, b) => a.totalMinutes.compareTo(b.totalMinutes));
@@ -553,11 +553,6 @@ class _MainShellState extends State<MainShell> {
   GpsState _gpsState = GpsState.idle;
   String? _gpsMessage;
 
-  final List<FavoriteRoute> _favorites = [
-    const FavoriteRoute(label: 'Maison', from: 'Ma position', to: 'Plateau', icon: Icons.home_rounded),
-    const FavoriteRoute(label: 'Travail', from: 'Ma position', to: 'Parcelles Assainies', icon: Icons.work_rounded),
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -570,11 +565,11 @@ class _MainShellState extends State<MainShell> {
   Future<void> _requestLocation() async {
     setState(() { _gpsState = GpsState.loading; _gpsMessage = null; });
     try {
-      if (!await Geolocator.isLocationServiceEnabled()) { setState(() { _gpsState = GpsState.serviceDisabled; _gpsMessage = 'GPS desactive.'; }); return; }
+      if (!await Geolocator.isLocationServiceEnabled()) { setState(() { _gpsState = GpsState.serviceDisabled; _gpsMessage = 'GPS désactivé.'; }); return; }
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
-        setState(() { _gpsState = GpsState.denied; _gpsMessage = 'Permission GPS refusee.'; }); return;
+        setState(() { _gpsState = GpsState.denied; _gpsMessage = 'Permission GPS refusée.'; }); return;
       }
       final position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
@@ -790,7 +785,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                             children: [
                               Icon(_mapHeight == 160 ? Icons.expand_more : Icons.expand_less, color: AppColors.primary, size: 18),
                               const SizedBox(width: 4),
-                              Text(_mapHeight == 160 ? 'Agrandir' : 'Reduire', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                              Text(_mapHeight == 160 ? 'Agrandir' : 'Réduire', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primary)),
                             ],
                           ),
                         ),
@@ -826,7 +821,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                     const OfficialBadge(),
                   ]),
                   const SizedBox(height: 14),
-                  Container(decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)]), child: TextField(controller: _searchCtrl, onChanged: (_) => setState(() => _searchFocused = true), decoration: InputDecoration(hintText: 'Ou voulez-vous aller ?', prefixIcon: const Icon(Icons.search, color: AppColors.primary, size: 22), suffixIcon: _searchFocused ? IconButton(icon: const Icon(Icons.close, size: 20), onPressed: () { _searchCtrl.clear(); setState(() => _searchFocused = false); }) : null, border: InputBorder.none, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14)))),
+                  Container(decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)]), child: TextField(controller: _searchCtrl, onChanged: (_) => setState(() => _searchFocused = true), decoration: InputDecoration(hintText: 'Où voulez-vous aller ?', prefixIcon: const Icon(Icons.search, color: AppColors.primary, size: 22), suffixIcon: _searchFocused ? IconButton(icon: const Icon(Icons.close, size: 20), onPressed: () { _searchCtrl.clear(); setState(() => _searchFocused = false); }) : null, border: InputBorder.none, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14)))),
                   if (_searchFocused && _searchResults.isNotEmpty) ...[
                     const SizedBox(height: 8),
                     Container(decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12)), child: Column(children: _searchResults.map((s) => ListTile(dense: true, leading: Icon(s.icon, color: s.color, size: 22), title: Text(s.name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)), subtitle: Text(s.direction, style: const TextStyle(fontSize: 12)), onTap: () { _searchCtrl.text = s.name; setState(() => _searchFocused = false); _centerOnStop(s); })).toList())),
@@ -902,8 +897,8 @@ class StopCard extends StatelessWidget {
   Widget _buildStopTypeBadge(StopType type) {
     Color color; String label;
     switch (type) {
-      case StopType.arrival: color = AppColors.warning; label = 'ARRIVEE'; break;
-      case StopType.departure: color = AppColors.primary; label = 'DEPART'; break;
+      case StopType.arrival: color = AppColors.warning; label = 'ARRIVÉE'; break;
+      case StopType.departure: color = AppColors.primary; label = 'DÉPART'; break;
       case StopType.boarding: color = AppColors.brt; label = 'EMBARQ.'; break;
       case StopType.terminus: color = AppColors.ter; label = 'TERMINUS'; break;
       case StopType.correspondence: color = AppColors.tata; label = 'CORRESP.'; break;
@@ -1075,7 +1070,7 @@ class _TripsPageState extends State<TripsPage> {
 }
 
 // ============================================================
-// ONGLET ALERTES 100% FONCTIONNEL
+// ONGLET ALERTES (CLIQUABLES POUR EN SAVOIR PLUS)
 // ============================================================
 class AlertsPage extends StatelessWidget {
   const AlertsPage({super.key});
@@ -1083,10 +1078,10 @@ class AlertsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List<Map<String, dynamic>> alerts = [
-      {'type': 'TER', 'message': 'Retard de 10 min sur la ligne Dakar-Diamniadio suite à un incident technique.', 'severity': 'warning', 'time': 'Il y a 5 min', 'icon': Icons.train_rounded, 'color': AppColors.ter},
-      {'type': 'BRT', 'message': 'Trafic fluide et opérationnel sur l\'ensemble du réseau BRT.', 'severity': 'success', 'time': 'Il y a 12 min', 'icon': Icons.directions_bus_rounded, 'color': AppColors.brt},
-      {'type': 'DDD', 'message': 'Déviation temporaire de la ligne 217 à Thiaroye en raison de travaux.', 'severity': 'warning', 'time': 'Il y a 30 min', 'icon': Icons.directions_bus_filled_rounded, 'color': AppColors.ddd},
-      {'type': 'AFTU', 'message': 'Reprise normale du trafic sur la ligne 23.', 'severity': 'success', 'time': 'Il y a 1 h', 'icon': Icons.directions_bus_outlined, 'color': AppColors.aftu},
+      {'type': 'TER', 'title': 'Retard ligne Dakar-Diamniadio', 'message': 'Retard de 10 min sur la ligne Dakar-Diamniadio suite à un incident technique temporaire.', 'severity': 'warning', 'time': 'Il y a 5 min', 'icon': Icons.train_rounded, 'color': AppColors.ter},
+      {'type': 'BRT', 'title': 'Trafic fluide BRT', 'message': 'Trafic fluide et opérationnel sur l\'ensemble du réseau BRT. Fréquence normale de 6 minutes.', 'severity': 'success', 'time': 'Il y a 12 min', 'icon': Icons.directions_bus_rounded, 'color': AppColors.brt},
+      {'type': 'DDD', 'title': 'Déviation à Thiaroye', 'message': 'Déviation temporaire de la ligne 217 à Thiaroye en raison de travaux de voirie en cours.', 'severity': 'warning', 'time': 'Il y a 30 min', 'icon': Icons.directions_bus_filled_rounded, 'color': AppColors.ddd},
+      {'type': 'AFTU', 'title': 'Reprise ligne AFTU 23', 'message': 'Reprise normale du trafic sur la ligne 23 suite à la fin des perturbations matinales.', 'severity': 'success', 'time': 'Il y a 1 h', 'icon': Icons.directions_bus_outlined, 'color': AppColors.aftu},
     ];
 
     return Scaffold(
@@ -1098,45 +1093,68 @@ class AlertsPage extends StatelessWidget {
           children: [
             const Text('Alertes trafic en direct', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
-            const Text('Informations officielles en temps réel sur le réseau.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+            const Text('Touchez une alerte pour en savoir plus.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
             const SizedBox(height: 20),
-            ...alerts.map((alert) => _buildAlertCard(alert)),
+            ...alerts.map((alert) => _buildAlertCard(context, alert)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildAlertCard(Map<String, dynamic> alert) {
+  Widget _buildAlertCard(BuildContext context, Map<String, dynamic> alert) {
     final isWarning = alert['severity'] == 'warning';
     final color = isWarning ? AppColors.warning : AppColors.success;
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: color.withOpacity(0.3), width: 1.5), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)]),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: alert['color'].withOpacity(0.1), shape: BoxShape.circle), child: Icon(alert['icon'], color: alert['color'], size: 22)),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(children: [Text(alert['type'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: alert['color'])), const Spacer(), Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Text(alert['time'], style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.bold)))]),
-                const SizedBox(height: 6),
-                Text(alert['message'], style: const TextStyle(fontSize: 13, height: 1.4, color: AppColors.textPrimary)),
-              ],
-            ),
+    return GestureDetector(
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Row(children: [
+              Icon(alert['icon'], color: alert['color']),
+              const SizedBox(width: 10),
+              Expanded(child: Text('${alert['type']} - ${alert['title']}', style: const TextStyle(fontSize: 16))),
+            ]),
+            content: Text(alert['message'], style: const TextStyle(fontSize: 14, height: 1.4)),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Fermer', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+              ),
+            ],
           ),
-        ],
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 14),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: color.withOpacity(0.3), width: 1.5), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)]),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: alert['color'].withOpacity(0.1), shape: BoxShape.circle), child: Icon(alert['icon'], color: alert['color'], size: 22)),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(children: [Text(alert['type'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: alert['color'])), const Spacer(), Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Text(alert['time'], style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.bold)))]),
+                  const SizedBox(height: 6),
+                  Text(alert['message'], maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, height: 1.4, color: AppColors.textPrimary)),
+                  const SizedBox(height: 6),
+                  const Text('Appuyer pour plus de détails →', style: TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w600)),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
 // ============================================================
-// ONGLET RÉGLAGES 100% FONCTIONNEL
+// ONGLET RÉGLAGES (PRÉSENTATION & CONDITIONS D'UTILISATION)
 // ============================================================
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -1147,6 +1165,64 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   bool _notificationsEnabled = true;
   bool _darkMode = false;
+
+  void _showPresentationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('À propos de Dakar Bus'),
+        content: const SingleChildScrollView(
+          child: Text(
+            'Un jeune Sénégalais, profondément soucieux du développement de son pays et des défis quotidiens du transport urbain, a conçu et lancé cette application pour faciliter aux usagers la mobilité à Dakar.\n\n'
+            'Grâce à un accès centralisé aux horaires du TER, BRT, des bus AFTU, Tata et DDD, Dakar Bus ambitionne de rendre les déplacements plus fluides, prévisibles et accessibles pour tous.',
+            style: TextStyle(fontSize: 14, height: 1.5, color: AppColors.textPrimary),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Fermer', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold))),
+        ],
+      ),
+    );
+  }
+
+  void _showUserGuideDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Comment utiliser Dakar Bus'),
+        content: const SingleChildScrollView(
+          child: Text(
+            '1. L\'onglet Explorer : Visualisez l\'ensemble du réseau en direct sur la carte interactive, consultez les arrêts à proximité et cliquez dessus pour voir les prochains départs.\n\n'
+            '2. L\'onglet Trajets : Entrez votre point de départ et votre destination pour obtenir le meilleur itinéraire multimodal combinant les différentes mobilités.\n\n'
+            '3. L\'onglet Alertes : Restez informé en temps réel des perturbations, retards ou travaux sur le réseau.\n\n'
+            '4. L\'Assistant IA : Posez vos questions à tout moment pour obtenir une assistance personnalisée sur vos déplacements.',
+            style: TextStyle(fontSize: 14, height: 1.5, color: AppColors.textPrimary),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Compris', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold))),
+        ],
+      ),
+    );
+  }
+
+  void _showTermsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Conditions d\'utilisation'),
+        content: const SingleChildScrollView(
+          child: Text(
+            'Les présentes conditions régissent l\'utilisation de l\'application Dakar Bus. Les données d\'horaires et de trafic sont fournies à titre indicatif et visent à améliorer l\'expérience de mobilité urbaine des usagers à Dakar. L\'éditeur ne saurait être tenu responsable des imprévus liés aux conditions de circulation routière.',
+            style: TextStyle(fontSize: 14, height: 1.5, color: AppColors.textPrimary),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Fermer', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold))),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1182,19 +1258,33 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   const Divider(height: 1),
                   ListTile(
-                    leading: const Icon(Icons.language, color: AppColors.primary),
-                    title: const Text('Langue'),
-                    subtitle: const Text('Français'),
+                    leading: const Icon(Icons.person_outline, color: AppColors.primary),
+                    title: const Text('Présentation du projet'),
+                    subtitle: const Text('L\'histoire de Dakar Bus'),
                     trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Langue française active')));
-                    },
+                    onTap: () => _showPresentationDialog(context),
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.help_outline, color: AppColors.primary),
+                    title: const Text('Comment utiliser l\'application'),
+                    subtitle: const Text('Guide pratique d\'utilisation'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => _showUserGuideDialog(context),
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.gavel_outlined, color: AppColors.primary),
+                    title: const Text('Conditions d\'utilisation'),
+                    subtitle: const Text('Mentions légales et règles'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => _showTermsDialog(context),
                   ),
                   const Divider(height: 1),
                   ListTile(
                     leading: const Icon(Icons.info_outline, color: AppColors.primary),
                     title: const Text('Version de l\'application'),
-                    subtitle: const Text('Dakar Bus v3.2.0 (Official Citymapper Edition)'),
+                    subtitle: const Text('Dakar Bus v3.3.0'),
                   ),
                 ],
               ),
@@ -1317,7 +1407,7 @@ class _AIChatPageState extends State<AIChatPage> {
 }
 
 // ============================================================
-// DETAIL ARRET — ALLER / RETOUR (CORRECTEMENT SYNCHRONISE)
+// DETAIL ARRET — ALLER / RETOUR
 // ============================================================
 class DualStopDetailPage extends StatelessWidget {
   final Stop stop;
