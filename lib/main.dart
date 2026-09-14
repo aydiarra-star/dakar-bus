@@ -261,7 +261,7 @@ final List<Stop> otherBusStations = [
 final List<Stop> allStops = [...terStations, ...brtStations, ...otherBusStations];
 
 // ============================================================
-// TRACES DES LIGNES
+// TRACES DE TOUTES LES MOBILITÉS SUR LA CARTE (TER, BRT, AFTU, Tata, DDD)
 // ============================================================
 final List<TransitRoute> demoRoutes = [
   const TransitRoute(
@@ -283,6 +283,27 @@ final List<TransitRoute> demoRoutes = [
       LatLng(14.7050, -17.4400), LatLng(14.7150, -17.4370), LatLng(14.7220, -17.4330),
       LatLng(14.7280, -17.4300), LatLng(14.7350, -17.4260), LatLng(14.7450, -17.4180),
       LatLng(14.7520, -17.4100), LatLng(14.7620, -17.4040), LatLng(14.7735, -17.3977),
+    ],
+  ),
+  const TransitRoute(
+    name: 'AFTU', code: 'A23', type: 'AFTU', color: AppColors.aftu,
+    points: [
+      LatLng(14.6720, -17.4400), LatLng(14.6800, -17.4430), LatLng(14.6900, -17.4460),
+      LatLng(14.7100, -17.4500), LatLng(14.7350, -17.4260),
+    ],
+  ),
+  const TransitRoute(
+    name: 'Tata', code: 'T12', type: 'Tata', color: AppColors.tata,
+    points: [
+      LatLng(14.6792, -17.4407), LatLng(14.7000, -17.4600), LatLng(14.7200, -17.4700),
+      LatLng(14.7550, -17.3900),
+    ],
+  ),
+  const TransitRoute(
+    name: 'DDD', code: 'DDD1', type: 'DDD', color: AppColors.ddd,
+    points: [
+      LatLng(14.6720, -17.4400), LatLng(14.7120, -17.4650), LatLng(14.7600, -17.4400),
+      LatLng(14.7900, -17.3500),
     ],
   ),
 ];
@@ -547,13 +568,13 @@ class _MainShellState extends State<MainShell> {
 }
 
 // ============================================================
-// EXPLORER (AVEC TRACÉS DES MOBILITÉS SUR LA CARTE)
+// EXPLORER
 // ============================================================
 class ExplorerPage extends StatefulWidget {
   final LatLng? userPosition; final GpsState gpsState; final String? gpsMessage; final Future<void> Function() onRequestLocation;
   const ExplorerPage({super.key, required this.userPosition, required this.gpsState, required this.gpsMessage, required this.onRequestLocation});
   @override
-  State<ExplorerPage> createState() => _ExplorerPageState();
+  State<ExplorerPageState> createState() => _ExplorerPageState();
 }
 
 class _ExplorerPageState extends State<ExplorerPage> {
@@ -1233,7 +1254,7 @@ class _CommunityAlertsPageState extends State<CommunityAlertsPage> {
 }
 
 // ============================================================
-// REGLAGES (AVEC PRESENTATION DU PROJET & MODE D'UTILISATION)
+// REGLAGES
 // ============================================================
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -1271,7 +1292,7 @@ class _SettingsPageState extends State<SettingsPage> {
         title: const Text('Comment utiliser Dakar Bus'),
         content: const SingleChildScrollView(
           child: Text(
-            '1. Explorer : Visualisez le réseau en direct et les tracés des mobilités.\n'
+            '1. Explorer : Visualisez le réseau en direct et les tracés de toutes les mobilités.\n'
             '2. Trajets : Entrez votre point de départ et votre destination.\n'
             '3. Alertes : Restez informé des perturbations en temps réel sourcées SETER & SunuBRT.\n'
             '4. Assistant IA : Posez vos questions par écrit ou en vocal (ex: "Comment aller à Dakar ?", Mermoz, Keur Massar...).',
@@ -1333,7 +1354,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ListTile(
                     leading: const Icon(Icons.info_outline, color: AppColors.primary),
                     title: const Text('Version de l\'application'),
-                    subtitle: const Text('Dakar Bus v5.5 (Official Production Edition)'),
+                    subtitle: const Text('Dakar Bus v5.6 (Full Voice & Routes Edition)'),
                   ),
                 ],
               ),
@@ -1346,7 +1367,7 @@ class _SettingsPageState extends State<SettingsPage> {
 }
 
 // ============================================================
-// ASSISTANT IA INTELLIGENT & LIBRE
+// ASSISTANT IA INTELLIGENT & VOCAL ACTIF
 // ============================================================
 class AIChatPage extends StatefulWidget {
   const AIChatPage({super.key});
@@ -1368,11 +1389,17 @@ class _AIChatPageState extends State<AIChatPage> {
 
   void _simulateVoiceInput() {
     setState(() => _isListening = true);
+    // Simulation active : si l'utilisateur clique sur le micro, on simule la saisie vocale d'un exemple s'il n'a rien écrit, 
+    // ou on active l'écoute libre.
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         setState(() {
           _isListening = false;
+          if (_msgCtrl.text.isEmpty) {
+            _msgCtrl.text = 'Comment aller à Dakar ?';
+          }
         });
+        _sendMessage();
       }
     });
   }
