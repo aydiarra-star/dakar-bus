@@ -9,6 +9,9 @@ import 'package:http/http.dart' as http;
 
 void main() => runApp(const DakarBusApp());
 
+// ============================================================
+// GEOFENCING STRICT TERRE FERME DAKAR (ANTI-OCEAN)
+// ============================================================
 class DakarBounds {
   static const double north = 14.7900;
   static const double south = 14.6500;
@@ -29,6 +32,9 @@ class DakarBounds {
   }
 }
 
+// ============================================================
+// SERVICE ROUTING REEL OSRM
+// ============================================================
 class RoutingService {
   static final Map<String, List<LatLng>> _cache = {};
 
@@ -63,6 +69,50 @@ class RoutingService {
   }
 }
 
+// ============================================================
+// SERVICE DE DETECTION DES DEUX SENS & INVERSION PROPRE
+// ============================================================
+class OppositeStopService {
+  static const double _maxOppositeDistanceMeters = 500.0;
+
+  static Stop? findOppositeStop({required Stop currentStop, required List<Stop> allStops}) {
+    Stop? bestCandidate;
+    double minDistance = double.infinity;
+    final currentName = currentStop.name.toLowerCase();
+
+    for (final stop in allStops) {
+      if (identical(stop, currentStop)) continue;
+      if (stop.name == currentStop.name && stop.direction == currentStop.direction) continue;
+
+      final double distance = DistanceHelper.haversineMeters(currentStop.location, stop.location);
+      if (distance <= 50.0 && distance < minDistance) {
+        final stopName = stop.name.toLowerCase();
+        if (currentName.contains(stopName) || stopName.contains(currentName)) {
+          minDistance = distance;
+          bestCandidate = stop;
+        }
+      }
+    }
+    if (bestCandidate != null) return bestCandidate;
+
+    for (final stop in allStops) {
+      if (identical(stop, currentStop)) continue;
+      if (stop.modeLabel != currentStop.modeLabel) continue;
+      if (stop.direction == currentStop.direction) continue;
+
+      final double distance = DistanceHelper.haversineMeters(currentStop.location, stop.location);
+      if (distance <= _maxOppositeDistanceMeters && distance < minDistance) {
+        minDistance = distance;
+        bestCandidate = stop;
+      }
+    }
+    return bestCandidate;
+  }
+}
+
+// ============================================================
+// GENERATEUR D HORAIRES DYNAMIQUES & ROTATIONS CONTINUES
+// ============================================================
 List<int> _generateSchedule({required int from, required int to, required int step}) {
   final list = <int>[];
   for (int m = from; m <= to; m += step) { list.add(m); }
@@ -74,14 +124,17 @@ List<int> _buildTerBase() => _generateSchedule(from: 330, to: 1320, step: _isSun
 final List<int> _brtBase = _generateSchedule(from: 360, to: 1260, step: 6);
 final List<int> _terBase = _buildTerBase();
 
+// ============================================================
+// PALETTE OFFICIELLE DES TRANSPORTS
+// ============================================================
 class AppColors {
   static const primary = Color(0xFF00B140);
   static const primaryDark = Color(0xFF008A32);
-  static const ter = Color(0xFF8B4513);
-  static const brt = Color(0xFF22C55E);
-  static const aftu = Color(0xFFFF8C42);
-  static const tata = Color(0xFF87CEEB);
-  static const ddd = Color(0xFF3B82F6);
+  static const ter = Color(0xFF8B4513);    // Train Express Régional
+  static const brt = Color(0xFF22C55E);    // Bus Rapid Transit
+  static const aftu = Color(0xFFFF8C42);   // Autobus AFTU
+  static const tata = Color(0xFF87CEEB);   // Minibus Tata
+  static const ddd = Color(0xFF3B82F6);    // Dakar Dem Dikk
   static const background = Color(0xFFF1F8F5);
   static const surface = Color(0xFFFFFFFF);
   static const textPrimary = Color(0xFF111111);
@@ -91,6 +144,9 @@ class AppColors {
   static const warning = Color(0xFFEF6C00);
 }
 
+// ============================================================
+// SOURCE DE DONNEES & STATUT
+// ============================================================
 enum DataOrigin { official, verified, indicative, unavailable }
 class DataSourceInfo {
   final DataOrigin origin; final String label; final String badgeEmoji;
@@ -102,6 +158,9 @@ class DataSourceInfo {
   static const demo = DataSourceInfo(origin: DataOrigin.indicative, label: 'Donnée Indicative (~)', badgeEmoji: '🟡');
 }
 
+// ============================================================
+// MODELES DE DONNEES ET ROUTES DETAILLEES OFFICIELLES
+// ============================================================
 enum StopType { arrival, departure, boarding, terminus, correspondence, intermediate }
 
 class DetailedStop {
@@ -192,17 +251,17 @@ class DetailedRoute {
       );
     } else if (stop.modeLabel == 'BRT') {
       List<DetailedStop> brtStops = [
-        const DetailedStop(stopId: 'brt_1', name: 'PEM Petersen', sequence: 1, location: LatLng(14.6720, -17.4400), distanceFromStart: '0 km', estimatedTime: '00:00', isTerminal: true, type: 'Embarquement'),
-        const DetailedStop(stopId: 'brt_2', name: 'Place de l’Obélisque', sequence: 2, location: LatLng(14.6850, -17.4500), distanceFromStart: '1.5 km', estimatedTime: '04:00', isTerminal: false, type: 'Intermédiaire'),
-        const DetailedStop(stopId: 'brt_3', name: 'Sacré-Cœur', sequence: 3, location: LatLng(14.7100, -17.4650), distanceFromStart: '3.5 km', estimatedTime: '09:00', isTerminal: false, type: 'Intermédiaire'),
-        const DetailedStop(stopId: 'brt_4', name: 'Liberté 6', sequence: 4, location: LatLng(14.7150, -17.4580), distanceFromStart: '4.8 km', estimatedTime: '12:00', isTerminal: false, type: 'Correspondance'),
-        const DetailedStop(stopId: 'brt_5', name: 'Grand Yoff', sequence: 5, location: LatLng(14.7050, -17.4400), distanceFromStart: '6.2 km', estimatedTime: '16:00', isTerminal: false, type: 'Intermédiaire'),
-        const DetailedStop(stopId: 'brt_6', name: 'Grand Médine', sequence: 6, location: LatLng(14.7150, -17.4450), distanceFromStart: '7.5 km', estimatedTime: '20:00', isTerminal: false, type: 'Intermédiaire'),
-        const DetailedStop(stopId: 'brt_7', name: 'Parcelles Assainies', sequence: 7, location: LatLng(14.7220, -17.4420), distanceFromStart: '8.5 km', estimatedTime: '24:00', isTerminal: false, type: 'Intermédiaire'),
-        const DetailedStop(stopId: 'brt_8', name: 'Fadia', sequence: 8, location: LatLng(14.7350, -17.4350), distanceFromStart: '9.8 km', estimatedTime: '28:00', isTerminal: false, type: 'Intermédiaire'),
-        const DetailedStop(stopId: 'brt_9', name: 'Cambérène', sequence: 9, location: LatLng(14.7480, -17.4250), distanceFromStart: '11.0 km', estimatedTime: '32:00', isTerminal: false, type: 'Intermédiaire'),
-        const DetailedStop(stopId: 'brt_10', name: 'Hôpital Dalal Jamm', sequence: 10, location: LatLng(14.7620, -17.4100), distanceFromStart: '12.5 km', estimatedTime: '37:00', isTerminal: false, type: 'Intermédiaire'),
-        const DetailedStop(stopId: 'brt_11', name: 'PEM Guédiawaye', sequence: 11, location: LatLng(14.7735, -17.3977), distanceFromStart: '14.0 km', estimatedTime: '42:00', isTerminal: true, type: 'Arrivée'),
+        const DetailedStop(stopId: 'brt_1', name: 'Guédiawaye', sequence: 1, location: LatLng(14.7735, -17.3977), distanceFromStart: '0 km', estimatedTime: '00:00', isTerminal: true, type: 'Embarquement'),
+        const DetailedStop(stopId: 'brt_2', name: 'Hôpital Dalal Jamm', sequence: 2, location: LatLng(14.7620, -17.4100), distanceFromStart: '1.5 km', estimatedTime: '04:00', isTerminal: false, type: 'Intermédiaire'),
+        const DetailedStop(stopId: 'brt_3', name: 'Cambérène', sequence: 3, location: LatLng(14.7480, -17.4250), distanceFromStart: '3.0 km', estimatedTime: '08:00', isTerminal: false, type: 'Intermédiaire'),
+        const DetailedStop(stopId: 'brt_4', name: 'Fadia', sequence: 4, location: LatLng(14.7350, -17.4350), distanceFromStart: '4.2 km', estimatedTime: '11:00', isTerminal: false, type: 'Intermédiaire'),
+        const DetailedStop(stopId: 'brt_5', name: 'Parcelles Assainies', sequence: 5, location: LatLng(14.7220, -17.4420), distanceFromStart: '5.5 km', estimatedTime: '15:00', isTerminal: false, type: 'Intermédiaire'),
+        const DetailedStop(stopId: 'brt_6', name: 'Grand Médine', sequence: 6, location: LatLng(14.7150, -17.4450), distanceFromStart: '6.5 km', estimatedTime: '18:00', isTerminal: false, type: 'Intermédiaire'),
+        const DetailedStop(stopId: 'brt_7', name: 'Grand Yoff', sequence: 7, location: LatLng(14.7050, -17.4400), distanceFromStart: '7.8 km', estimatedTime: '22:00', isTerminal: false, type: 'Intermédiaire'),
+        const DetailedStop(stopId: 'brt_8', name: 'Liberté 6', sequence: 8, location: LatLng(14.7150, -17.4580), distanceFromStart: '9.2 km', estimatedTime: '26:00', isTerminal: false, type: 'Correspondance'),
+        const DetailedStop(stopId: 'brt_9', name: 'Sacré-Cœur', sequence: 9, location: LatLng(14.7100, -17.4650), distanceFromStart: '10.5 km', estimatedTime: '30:00', isTerminal: false, type: 'Intermédiaire'),
+        const DetailedStop(stopId: 'brt_10', name: 'Place de l’Obélisque', sequence: 10, location: LatLng(14.6850, -17.4500), distanceFromStart: '12.5 km', estimatedTime: '36:00', isTerminal: false, type: 'Intermédiaire'),
+        const DetailedStop(stopId: 'brt_11', name: 'Gare de Petersen', sequence: 11, location: LatLng(14.6720, -17.4400), distanceFromStart: '14.0 km', estimatedTime: '42:00', isTerminal: true, type: 'Arrivée'),
       ];
 
       if (isReturnRoute) {
@@ -222,12 +281,12 @@ class DetailedRoute {
       }
 
       return DetailedRoute(
-        routeId: isReturnRoute ? 'BRT_GUE_PET' : 'BRT_PET_GUE',
+        routeId: isReturnRoute ? 'BRT_PET_GUE' : 'BRT_GUE_PET',
         lineNumber: 1,
         operator: 'SunuBRT',
         color: AppColors.brt,
-        origin: isReturnRoute ? 'PEM Guédiawaye' : 'PEM Petersen',
-        destination: isReturnRoute ? 'PEM Petersen' : 'PEM Guédiawaye',
+        origin: isReturnRoute ? 'Gare de Petersen' : 'Guédiawaye',
+        destination: isReturnRoute ? 'Guédiawaye' : 'Gare de Petersen',
         totalDistance: '14.0 km',
         stops: brtStops,
       );
@@ -356,7 +415,7 @@ enum DataStatus { scheduled, live, unknown }
 class TransitRoute {
   final String name; final String code; final String type; final Color color; final List<LatLng> points;
   const TransitRoute({required this.name, required this.code, required this.type, required this.color, required this.points});
-  bool get isDedicated => type == 'TER' || type == 'BRT';
+  bool get isDedicated => type == 'TER';
 }
 
 class RouteSegment {
@@ -379,6 +438,9 @@ class RouteSearchResult {
   bool get hasRoutes => routes.isNotEmpty;
 }
 
+// ============================================================
+// STATIONS ET ARRETS STRICTEMENT SUR TERRE FERME (DAKAR)
+// ============================================================
 final List<Stop> terStations = [
   Stop(name: 'Gare TER Dakar', direction: 'Terminus Dakar (Arrivée)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 0), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6792, -17.4407), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.arrival),
   Stop(name: 'Gare TER Dakar', direction: 'Dir. Diamniadio (Embarquement)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 3), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6795, -17.4405), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
@@ -391,10 +453,10 @@ final List<Stop> terStations = [
 ];
 
 final List<Stop> brtStations = [
-  Stop(name: 'PEM Petersen', direction: 'Dir. Guédiawaye (Embarquement)', distanceMeters: 200, departureMinutesFromMidnight: _shift(_brtBase, 0), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.6720, -17.4400), modeLabel: 'BRT', source: DataSourceInfo.sunubrt, stopType: StopType.boarding),
-  Stop(name: 'PEM Petersen', direction: 'Terminus PEM Petersen (Arrivée)', distanceMeters: 200, departureMinutesFromMidnight: _shift(_brtBase, 2), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.6722, -17.4402), modeLabel: 'BRT', source: DataSourceInfo.sunubrt, stopType: StopType.arrival),
-  Stop(name: 'BRT Colobane', direction: 'Dir. Guédiawaye', distanceMeters: 1500, departureMinutesFromMidnight: _shift(_brtBase, 4), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.6950, -17.4420), modeLabel: 'BRT', source: DataSourceInfo.sunubrt, stopType: StopType.boarding),
-  Stop(name: 'PEM Guédiawaye', direction: 'Terminus PEM Guédiawaye (Arrivée)', distanceMeters: 10500, departureMinutesFromMidnight: _shift(_brtBase, 8), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.7735, -17.3977), modeLabel: 'BRT', source: DataSourceInfo.sunubrt, stopType: StopType.arrival),
+  Stop(name: 'PEM Petersen', direction: 'Terminus sud BRT', distanceMeters: 200, departureMinutesFromMidnight: _shift(_brtBase, 0), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.6720, -17.4400), modeLabel: 'BRT', source: DataSourceInfo.sunubrt, stopType: StopType.terminus),
+  Stop(name: 'BRT Colobane', direction: 'Dir. Guediawaye', distanceMeters: 150, departureMinutesFromMidnight: _shift(_brtBase, 2), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.6950, -17.4420), modeLabel: 'BRT', source: DataSourceInfo.sunubrt, stopType: StopType.boarding),
+  Stop(name: 'BRT Grand Dakar', direction: 'Dir. Guediawaye', distanceMeters: 1500, departureMinutesFromMidnight: _shift(_brtBase, 4), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.7050, -17.4400), modeLabel: 'BRT', source: DataSourceInfo.sunubrt, stopType: StopType.boarding),
+  Stop(name: 'PEM Guediawaye', direction: 'Terminus nord BRT', distanceMeters: 10500, departureMinutesFromMidnight: _shift(_brtBase, 8), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.7735, -17.3977), modeLabel: 'BRT', source: DataSourceInfo.sunubrt, stopType: StopType.terminus),
 ];
 
 final List<Stop> aftuAndBusStations = [
@@ -409,6 +471,9 @@ final List<Stop> allStops = [...terStations, ...brtStations, ...aftuAndBusStatio
     .where((s) => DakarBounds.isValid(s.location))
     .toList();
 
+// ============================================================
+// TRACES DES ROUTES AUX COULEURS RESPECTIVES
+// ============================================================
 final List<TransitRoute> demoRoutes = [
   TransitRoute(
     name: 'TER', code: 'TER', type: 'TER', color: AppColors.ter,
@@ -442,6 +507,9 @@ final List<TransitRoute> demoRoutes = [
   ),
 ];
 
+// ============================================================
+// MOTEUR D ITINERAIRES INTELLIGENT
+// ============================================================
 class RoutePlanner {
   static RouteSearchResult plan({required String fromQuery, required String toQuery}) {
     final now = DateTime.now();
@@ -526,6 +594,9 @@ class RoutePlanner {
   }
 }
 
+// ============================================================
+// UTILITAIRES & GESTION DES DIRECTIONS
+// ============================================================
 class TimeHelper {
   static String formatRemaining(int minutes) {
     if (minutes <= 0) return 'Imminent';
@@ -574,13 +645,11 @@ class DirectionHelper {
     }
     return 'Terminus / Centre';
   }
-
-  static String reverseDirection(String currentName, String direction) {
-    final dest = extractDestination(direction);
-    return 'Sens inverse : Dir. $currentName (depuis $dest)';
-  }
 }
 
+// ============================================================
+// APP SHELL
+// ============================================================
 class DakarBusApp extends StatelessWidget {
   const DakarBusApp({super.key});
   @override
@@ -683,6 +752,9 @@ class _MainShellState extends State<MainShell> {
   }
 }
 
+// ============================================================
+// EXPLORER
+// ============================================================
 class ExplorerPage extends StatefulWidget {
   final LatLng? userPosition; final GpsState gpsState; final String? gpsMessage; final Future<void> Function() onRequestLocation;
   const ExplorerPage({super.key, required this.userPosition, required this.gpsState, required this.gpsMessage, required this.onRequestLocation});
@@ -916,6 +988,9 @@ class _ExplorerPageState extends State<ExplorerPage> {
   Color _colorFor(String label) { switch (label) { case 'TER': return AppColors.ter; case 'BRT': return AppColors.brt; case 'DDD': return AppColors.ddd; case 'AFTU': return AppColors.aftu; case 'Tata': return AppColors.tata; default: return AppColors.primary; } }
 }
 
+// ============================================================
+// CARTE D ARRET
+// ============================================================
 class StopCard extends StatelessWidget {
   final Stop stop; final double distanceMeters;
   const StopCard({super.key, required this.stop, required this.distanceMeters});
@@ -985,6 +1060,9 @@ class StopCard extends StatelessWidget {
   }
 }
 
+// ============================================================
+// ONGLET TRAJETS
+// ============================================================
 class TripsPage extends StatefulWidget {
   const TripsPage({super.key});
   @override
@@ -1048,11 +1126,8 @@ class _TripsPageState extends State<TripsPage> {
                   _suggestionChip('Dakar - Diamniadio (TER 14 gares)', () { 
                     Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(terStations.first))));
                   }),
-                  _suggestionChip('PEM Petersen - PEM Guédiawaye (BRT)', () { 
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(brtStations.first))));
-                  }),
-                  _suggestionChip('Mermoz - Sacré-Cœur (DDD)', () { 
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(aftuAndBusStations[3]))));
+                  _suggestionChip('Guédiawaye - Petersen (BRT)', () { 
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(brtStations.last))));
                   }),
                 ],
               ),
@@ -1107,7 +1182,7 @@ class _TripsPageState extends State<TripsPage> {
                 Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: r.segments.first.color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Icon(r.segments.first.icon, color: r.segments.first.color, size: 22)),
                 const SizedBox(width: 12),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('${r.fromName} - ${r.toName}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)), const SizedBox(height: 2), Text('${r.transferCount} correspondance(s) . ${r.segments.length} étape(s)', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))])),
-                Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Text('${r.totalMinutes} min', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 18)), const Text('Durée totale', style: TextStyle(fontSize: 10, color: AppColors.textSecondary))])),
+                Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Text('${r.totalMinutes} min', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 18)), const Text('Durée totale', style: TextStyle(fontSize: 10, color: AppColors.textSecondary))]),
               ],
             ),
             const SizedBox(height: 16),
@@ -1145,6 +1220,9 @@ class _TripsPageState extends State<TripsPage> {
   }
 }
 
+// ============================================================
+// ONGLET ALERTES OFFICIELLES & EN TEMPS REEL
+// ============================================================
 class AlertsPage extends StatelessWidget {
   const AlertsPage({super.key});
 
@@ -1163,9 +1241,9 @@ class AlertsPage extends StatelessWidget {
       },
       {
         'type': 'BRT',
-        'title': 'Corridor officiel SunuBRT (Guédiawaye - Petersen)',
-        'source': 'Source officielle : Dakar Mobilité / CETUD',
-        'message': 'Le corridor BRT relie le PEM Petersen au PEM Guédiawaye en passant par Colobane, Grand Yoff, Parcelles Assainies et Hôpital Dalal Jamm.',
+        'title': 'Corridor officiel SunuBRT',
+        'source': 'Source officielle : Dakar Mobilité',
+        'message': 'Le corridor relie Guédiawaye à Petersen en passant par Dalal Jamm, Parcelles Assainies, Grand Yoff et la Place de l’Obélisque.',
         'severity': 'success',
         'badge': 'En direct',
         'icon': Icons.directions_bus_rounded,
@@ -1219,6 +1297,9 @@ class AlertsPage extends StatelessWidget {
   }
 }
 
+// ============================================================
+// CROWDSOURCING & SIGNALEMENT DIRECT RUE
+// ============================================================
 class CommunityAlertsPage extends StatefulWidget {
   const CommunityAlertsPage({super.key});
 
@@ -1273,6 +1354,9 @@ class CommunityAlertsPageState extends State<CommunityAlertsPage> {
   }
 }
 
+// ============================================================
+// REGLAGES
+// ============================================================
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
   @override
@@ -1302,7 +1386,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   const Divider(height: 1),
                   SwitchListTile(secondary: const Icon(Icons.dark_mode_outlined, color: AppColors.primary), title: const Text('Mode sombre'), value: _darkMode, activeColor: AppColors.primary, onChanged: (v) => setState(() => _darkMode = v)),
                   const Divider(height: 1),
-                  const ListTile(leading: Icon(Icons.info_outline, color: AppColors.primary), title: Text('Version de l\'application'), subtitle: Text('Dakar Bus v7.7 (Clean Web Build)')),
+                  const ListTile(leading: Icon(Icons.info_outline, color: AppColors.primary), title: Text('Version de l\'application'), subtitle: Text('Dakar Bus v7.1 (Libellés Aller/Retour optimisés)')),
                 ],
               ),
             ),
@@ -1313,6 +1397,9 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 }
 
+// ============================================================
+// ASSISTANT IA INTELLIGENT
+// ============================================================
 class AIChatPage extends StatefulWidget {
   const AIChatPage({super.key});
   @override
@@ -1321,7 +1408,7 @@ class AIChatPage extends StatefulWidget {
 
 class _AIChatPageState extends State<AIChatPage> {
   final TextEditingController _msgCtrl = TextEditingController();
-  final List<Map<String, String>> _messages = [{'role': 'ai', 'text': 'Nanga def ! 👋 Interrogez-moi sur les horaires et les sens de circulation.'}];
+  final List<Map<String, String>> _messages = [{'role': 'ai', 'text': 'Nanga def ! 👋 Interrogez-moi sur les horaires et les arrêts.'}];
 
   void _sendMessage() {
     final text = _msgCtrl.text.trim();
@@ -1329,7 +1416,7 @@ class _AIChatPageState extends State<AIChatPage> {
     setState(() { _messages.add({'role': 'user', 'text': text}); _msgCtrl.clear(); });
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
-        setState(() { _messages.add({'role': 'ai', 'text': '🚍 Les services BRT et TER fonctionnent normalement.'}); });
+        setState(() { _messages.add({'role': 'ai', 'text': '🚆 Les libellés d’embarquement et de terminus (arrivée) s’affichent désormais de manière claire et structurée.'}); });
       }
     });
   }
@@ -1354,6 +1441,9 @@ class _AIChatPageState extends State<AIChatPage> {
   }
 }
 
+// ============================================================
+// PAGE DE ROUTE DETAILLEE AVEC MINI-CARTE ET TIMELINE
+// ============================================================
 class DetailedRoutePage extends StatelessWidget {
   final DetailedRoute route;
   const DetailedRoutePage({super.key, required this.route});
@@ -1399,89 +1489,71 @@ class DetailedRoutePage extends StatelessWidget {
           const SizedBox(height: 20),
           Text('Arrêts & Gares alignés — ${route.operator}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
-          for (int idx = 0; idx < route.stops.length; idx++)
-            Builder(
-              builder: (context) {
-                final stop = route.stops[idx];
-                final isLast = idx == route.stops.length - 1;
-                return IntrinsicHeight(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Column(
-                        children: [
-                          Container(
-                            width: 26,
-                            height: 26,
-                            decoration: BoxDecoration(color: route.color, shape: BoxShape.circle),
-                            child: Center(
-                              child: Text(
-                                '${idx + 1}',
-                                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          ),
-                          if (!isLast) Expanded(child: Container(width: 3, color: route.color.withOpacity(0.4))),
-                        ],
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 20),
-                          child: Container(
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.divider)),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(child: Text(stop.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(color: AppColors.success.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
-                                      child: const Text('[OFFICIEL]', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppColors.success)),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    Icon(Icons.access_time, size: 12, color: route.color),
-                                    const SizedBox(width: 4),
-                                    Text('Heure : ${stop.estimatedTime}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
-                                    const Spacer(),
-                                    Text('📍 ${stop.distanceFromStart}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
+          ...route.stops.asMap().entries.map((entry) {
+            final idx = entry.key; final stop = entry.value; final isLast = idx == route.stops.length - 1;
+            return IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Column(children: [
+                    Container(width: 26, height: 26, decoration: BoxDecoration(color: route.color, shape: BoxShape.circle), child: Center(child: Text('${idx + 1}', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)))),
+                    if (!isLast) Expanded(child: Container(width: 3, color: route.color.withOpacity(0.4))),
+                  ]),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 20),
+                      child: Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.divider)),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(children: [
+                              Expanded(child: Text(stop.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
+                              Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: AppColors.success.withOpacity(0.1), borderRadius: BorderRadius.circular(4)), child: const Text('[OFFICIEL]', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppColors.success))),
+                            ]),
+                            const SizedBox(height: 4),
+                            Row(children: [
+                              Icon(Icons.access_time, size: 12, color: route.color),
+                              const SizedBox(width: 4),
+                              Text('Heure : ${stop.estimatedTime}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                              const Spacer(),
+                              Text('📍 ${stop.distanceFromStart}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                            ]),
+                          ],
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                );
-              },
-            ),
+                ],
+              ),
+            );
+          }),
         ],
       ),
     );
   }
 }
 
+// ============================================================
+// DETAIL ARRET — ALLER / RETOUR SYNCHRONISE ET PROPRE
+// ============================================================
 class DualStopDetailPage extends StatelessWidget {
   final Stop stop;
   const DualStopDetailPage({super.key, required this.stop});
 
   @override
   Widget build(BuildContext context) {
-    final allergenStop = stop;
-    
-    final destinationName = DirectionHelper.extractDestination(stop.direction);
-    final returnStop = stop.copyWith(
-      name: stop.name,
-      direction: DirectionHelper.reverseDirection(stop.name, stop.direction),
+    // 1ère Carte (Aller) : Configurée en mode Départ (Embarquement) vers la destination
+    final allerStop = stop.copyWith(
+      direction: stop.direction.contains('Dir.') ? stop.direction : 'Dir. Diamniadio (Embarquement)',
+      stopType: StopType.boarding,
+    );
+
+    // 2ème Carte (Retour) : Configurée en mode Terminus / Arrivée (ex: Terminus Gare TER Dakar (Arrivée))
+    final retourStop = stop.copyWith(
+      direction: 'Terminus ${stop.name} (Arrivée)',
       stopType: StopType.arrival,
     );
 
@@ -1490,14 +1562,16 @@ class DualStopDetailPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // Bouton Aller (Départ / Embarquement) -> Ouvre le trajet direct
           GestureDetector(
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(allergenStop, isReturnRoute: false)))),
-            child: _buildStopCard(context, allergenStop, allergenStop.direction, allergenStop.distanceMeters, 'Aller', showArrow: true),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(stop, isReturnRoute: false)))),
+            child: _buildStopCard(context, allerStop, allerStop.direction, stop.distanceMeters, 'Aller', showArrow: true),
           ),
           const SizedBox(height: 16),
+          // Bouton Retour (Terminus / Arrivée) -> Ouvre le trajet inverse
           GestureDetector(
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(allergenStop, isReturnRoute: true)))),
-            child: _buildStopCard(context, returnStop, 'Sens inverse : Dir. ${stop.name} (depuis $destinationName)', allergenStop.distanceMeters, 'Retour', showArrow: true),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(stop, isReturnRoute: true)))),
+            child: _buildStopCard(context, retourStop, retourStop.direction, stop.distanceMeters, 'Retour', showArrow: true),
           ),
           const SizedBox(height: 24),
           Container(
