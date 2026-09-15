@@ -70,47 +70,6 @@ class RoutingService {
 }
 
 // ============================================================
-// SERVICE DE DETECTION DES DEUX SENS & INVERSION PROPRE
-// ============================================================
-class OppositeStopService {
-  static const double _maxOppositeDistanceMeters = 500.0;
-
-  static Stop? findOppositeStop({required Stop currentStop, required List<Stop> allStops}) {
-    Stop? bestCandidate;
-    double minDistance = double.infinity;
-    final currentName = currentStop.name.toLowerCase();
-
-    for (final stop in allStops) {
-      if (identical(stop, currentStop)) continue;
-      if (stop.name == currentStop.name && stop.direction == currentStop.direction) continue;
-
-      final double distance = DistanceHelper.haversineMeters(currentStop.location, stop.location);
-      if (distance <= 50.0 && distance < minDistance) {
-        final stopName = stop.name.toLowerCase();
-        if (currentName.contains(stopName) || stopName.contains(currentName)) {
-          minDistance = distance;
-          bestCandidate = stop;
-        }
-      }
-    }
-    if (bestCandidate != null) return bestCandidate;
-
-    for (final stop in allStops) {
-      if (identical(stop, currentStop)) continue;
-      if (stop.modeLabel != currentStop.modeLabel) continue;
-      if (stop.direction == currentStop.direction) continue;
-
-      final double distance = DistanceHelper.haversineMeters(currentStop.location, stop.location);
-      if (distance <= _maxOppositeDistanceMeters && distance < minDistance) {
-        minDistance = distance;
-        bestCandidate = stop;
-      }
-    }
-    return bestCandidate;
-  }
-}
-
-// ============================================================
 // GENERATEUR D HORAIRES DYNAMIQUES & ROTATIONS CONTINUES
 // ============================================================
 List<int> _generateSchedule({required int from, required int to, required int step}) {
@@ -251,17 +210,17 @@ class DetailedRoute {
       );
     } else if (stop.modeLabel == 'BRT') {
       List<DetailedStop> brtStops = [
-        const DetailedStop(stopId: 'brt_1', name: 'Guédiawaye', sequence: 1, location: LatLng(14.7735, -17.3977), distanceFromStart: '0 km', estimatedTime: '00:00', isTerminal: true, type: 'Embarquement'),
-        const DetailedStop(stopId: 'brt_2', name: 'Hôpital Dalal Jamm', sequence: 2, location: LatLng(14.7620, -17.4100), distanceFromStart: '1.5 km', estimatedTime: '04:00', isTerminal: false, type: 'Intermédiaire'),
-        const DetailedStop(stopId: 'brt_3', name: 'Cambérène', sequence: 3, location: LatLng(14.7480, -17.4250), distanceFromStart: '3.0 km', estimatedTime: '08:00', isTerminal: false, type: 'Intermédiaire'),
-        const DetailedStop(stopId: 'brt_4', name: 'Fadia', sequence: 4, location: LatLng(14.7350, -17.4350), distanceFromStart: '4.2 km', estimatedTime: '11:00', isTerminal: false, type: 'Intermédiaire'),
-        const DetailedStop(stopId: 'brt_5', name: 'Parcelles Assainies', sequence: 5, location: LatLng(14.7220, -17.4420), distanceFromStart: '5.5 km', estimatedTime: '15:00', isTerminal: false, type: 'Intermédiaire'),
-        const DetailedStop(stopId: 'brt_6', name: 'Grand Médine', sequence: 6, location: LatLng(14.7150, -17.4450), distanceFromStart: '6.5 km', estimatedTime: '18:00', isTerminal: false, type: 'Intermédiaire'),
-        const DetailedStop(stopId: 'brt_7', name: 'Grand Yoff', sequence: 7, location: LatLng(14.7050, -17.4400), distanceFromStart: '7.8 km', estimatedTime: '22:00', isTerminal: false, type: 'Intermédiaire'),
-        const DetailedStop(stopId: 'brt_8', name: 'Liberté 6', sequence: 8, location: LatLng(14.7150, -17.4580), distanceFromStart: '9.2 km', estimatedTime: '26:00', isTerminal: false, type: 'Correspondance'),
-        const DetailedStop(stopId: 'brt_9', name: 'Sacré-Cœur', sequence: 9, location: LatLng(14.7100, -17.4650), distanceFromStart: '10.5 km', estimatedTime: '30:00', isTerminal: false, type: 'Intermédiaire'),
-        const DetailedStop(stopId: 'brt_10', name: 'Place de l’Obélisque', sequence: 10, location: LatLng(14.6850, -17.4500), distanceFromStart: '12.5 km', estimatedTime: '36:00', isTerminal: false, type: 'Intermédiaire'),
-        const DetailedStop(stopId: 'brt_11', name: 'Gare de Petersen', sequence: 11, location: LatLng(14.6720, -17.4400), distanceFromStart: '14.0 km', estimatedTime: '42:00', isTerminal: true, type: 'Arrivée'),
+        const DetailedStop(stopId: 'brt_1', name: 'PEM Petersen', sequence: 1, location: LatLng(14.6720, -17.4400), distanceFromStart: '0 km', estimatedTime: '00:00', isTerminal: true, type: 'Embarquement'),
+        const DetailedStop(stopId: 'brt_2', name: 'Place de l’Obélisque', sequence: 2, location: LatLng(14.6850, -17.4500), distanceFromStart: '1.5 km', estimatedTime: '04:00', isTerminal: false, type: 'Intermédiaire'),
+        const DetailedStop(stopId: 'brt_3', name: 'Sacré-Cœur', sequence: 3, location: LatLng(14.7100, -17.4650), distanceFromStart: '3.5 km', estimatedTime: '09:00', isTerminal: false, type: 'Intermédiaire'),
+        const DetailedStop(stopId: 'brt_4', name: 'Liberté 6', sequence: 4, location: LatLng(14.7150, -17.4580), distanceFromStart: '4.8 km', estimatedTime: '12:00', isTerminal: false, type: 'Correspondance'),
+        const DetailedStop(stopId: 'brt_5', name: 'Grand Yoff', sequence: 5, location: LatLng(14.7050, -17.4400), distanceFromStart: '6.2 km', estimatedTime: '16:00', isTerminal: false, type: 'Intermédiaire'),
+        const DetailedStop(stopId: 'brt_6', name: 'Grand Médine', sequence: 6, location: LatLng(14.7150, -17.4450), distanceFromStart: '7.5 km', estimatedTime: '20:00', isTerminal: false, type: 'Intermédiaire'),
+        const DetailedStop(stopId: 'brt_7', name: 'Parcelles Assainies', sequence: 7, location: LatLng(14.7220, -17.4420), distanceFromStart: '8.5 km', estimatedTime: '24:00', isTerminal: false, type: 'Intermédiaire'),
+        const DetailedStop(stopId: 'brt_8', name: 'Fadia', sequence: 8, location: LatLng(14.7350, -17.4350), distanceFromStart: '9.8 km', estimatedTime: '28:00', isTerminal: false, type: 'Intermédiaire'),
+        const DetailedStop(stopId: 'brt_9', name: 'Cambérène', sequence: 9, location: LatLng(14.7480, -17.4250), distanceFromStart: '11.0 km', estimatedTime: '32:00', isTerminal: false, type: 'Intermédiaire'),
+        const DetailedStop(stopId: 'brt_10', name: 'Hôpital Dalal Jamm', sequence: 10, location: LatLng(14.7620, -17.4100), distanceFromStart: '12.5 km', estimatedTime: '37:00', isTerminal: false, type: 'Intermédiaire'),
+        const DetailedStop(stopId: 'brt_11', name: 'PEM Guédiawaye', sequence: 11, location: LatLng(14.7735, -17.3977), distanceFromStart: '14.0 km', estimatedTime: '42:00', isTerminal: true, type: 'Arrivée'),
       ];
 
       if (isReturnRoute) {
@@ -281,18 +240,18 @@ class DetailedRoute {
       }
 
       return DetailedRoute(
-        routeId: isReturnRoute ? 'BRT_PET_GUE' : 'BRT_GUE_PET',
+        routeId: isReturnRoute ? 'BRT_GUE_PET' : 'BRT_PET_GUE',
         lineNumber: 1,
         operator: 'SunuBRT',
         color: AppColors.brt,
-        origin: isReturnRoute ? 'Gare de Petersen' : 'Guédiawaye',
-        destination: isReturnRoute ? 'Guédiawaye' : 'Gare de Petersen',
+        origin: isReturnRoute ? 'PEM Guédiawaye' : 'PEM Petersen',
+        destination: isReturnRoute ? 'PEM Petersen' : 'PEM Guédiawaye',
         totalDistance: '14.0 km',
         stops: brtStops,
       );
     } else {
       final originName = stop.name;
-      final destName = DirectionHelper.extractDestination(stop.direction);
+      final destName = stop.direction.contains('Dir.') ? stop.direction.replaceAll('Dir.', '').trim() : 'Centre / Terminus';
       
       List<DetailedStop> generalStops = [
         DetailedStop(stopId: 'gen_1', name: originName, sequence: 1, location: stop.location, distanceFromStart: '0 km', estimatedTime: '00:00', isTerminal: true, type: 'Embarquement'),
@@ -363,7 +322,7 @@ class Stop {
     stopType: stopType ?? this.stopType,
   );
 
-  bool get isContinuousFlow => modeLabel == 'AFTU' || modeLabel == 'Tata';
+  bool get isContinuousFlow => modeLabel == 'AFTU' || modeLabel == 'Tata' || modeLabel == 'BRT';
 
   bool _isServiceOpen() {
     final now = DateTime.now();
@@ -376,7 +335,7 @@ class Stop {
 
   int? nextDepartureMinutes() {
     if (!_isServiceOpen()) return null;
-    if (isContinuousFlow) return 5;
+    if (isContinuousFlow) return 3;
     final now = DateTime.now(); 
     final currentMin = now.hour * 60 + now.minute;
     for (final d in departureMinutesFromMidnight) { 
@@ -387,7 +346,7 @@ class Stop {
 
   int? remainingMinutes() { 
     if (!_isServiceOpen()) return null;
-    if (isContinuousFlow) return 5;
+    if (isContinuousFlow) return 3;
     final d = nextDepartureMinutes(); 
     if (d == null) return null; 
     return d - (DateTime.now().hour * 60 + DateTime.now().minute); 
@@ -395,7 +354,7 @@ class Stop {
 
   String? nextDepartureLabel() { 
     if (!_isServiceOpen()) return 'Service fermé';
-    if (isContinuousFlow) return 'En rotation (~5 min)';
+    if (isContinuousFlow) return 'En rotation (~3 min)';
     final d = nextDepartureMinutes(); 
     if (d == null) return 'Prochainement'; 
     final normalized = d % (24 * 60); 
@@ -404,7 +363,7 @@ class Stop {
 
   int? departureAfter(int minFromMidnight) { 
     if (!_isServiceOpen()) return null;
-    if (isContinuousFlow) return minFromMidnight + 5;
+    if (isContinuousFlow) return minFromMidnight + 3;
     for (final d in departureMinutesFromMidnight) { if (d > minFromMidnight) return d; } 
     return null; 
   }
@@ -415,7 +374,7 @@ enum DataStatus { scheduled, live, unknown }
 class TransitRoute {
   final String name; final String code; final String type; final Color color; final List<LatLng> points;
   const TransitRoute({required this.name, required this.code, required this.type, required this.color, required this.points});
-  bool get isDedicated => type == 'TER';
+  bool get isDedicated => type == 'TER' || type == 'BRT';
 }
 
 class RouteSegment {
@@ -445,26 +404,19 @@ final List<Stop> terStations = [
   Stop(name: 'Gare TER Dakar', direction: 'Terminus Dakar (Arrivée)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 0), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6792, -17.4407), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.arrival),
   Stop(name: 'Gare TER Dakar', direction: 'Dir. Diamniadio (Embarquement)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 3), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6795, -17.4405), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
   Stop(name: 'Gare TER Colobane', direction: 'Dir. Diamniadio', distanceMeters: 1200, departureMinutesFromMidnight: _shift(_terBase, 5), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6937, -17.4441), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
-  Stop(name: 'Gare TER Hann', direction: 'Dir. Diamniadio', distanceMeters: 3500, departureMinutesFromMidnight: _shift(_terBase, 9), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7190, -17.4450), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
-  Stop(name: 'Gare TER Pikine', direction: 'Dir. Diamniadio', distanceMeters: 7200, departureMinutesFromMidnight: _shift(_terBase, 17), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7550, -17.3900), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
-  Stop(name: 'Gare TER Keur Mbaye Fall', direction: 'Dir. Dakar / Diamniadio', distanceMeters: 14200, departureMinutesFromMidnight: _shift(_terBase, 27), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7750, -17.3100), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.correspondence),
-  Stop(name: 'Gare TER Diamniadio', direction: 'Dir. Dakar (Embarquement)', distanceMeters: 35000, departureMinutesFromMidnight: _shift(_terBase, 50), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7160, -17.1986), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
   Stop(name: 'Gare TER Diamniadio', direction: 'Terminus Diamniadio (Arrivée)', distanceMeters: 35000, departureMinutesFromMidnight: _shift(_terBase, 48), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7163, -17.1980), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.arrival),
 ];
 
 final List<Stop> brtStations = [
-  Stop(name: 'PEM Petersen', direction: 'Terminus sud BRT', distanceMeters: 200, departureMinutesFromMidnight: _shift(_brtBase, 0), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.6720, -17.4400), modeLabel: 'BRT', source: DataSourceInfo.sunubrt, stopType: StopType.terminus),
-  Stop(name: 'BRT Colobane', direction: 'Dir. Guediawaye', distanceMeters: 150, departureMinutesFromMidnight: _shift(_brtBase, 2), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.6950, -17.4420), modeLabel: 'BRT', source: DataSourceInfo.sunubrt, stopType: StopType.boarding),
-  Stop(name: 'BRT Grand Dakar', direction: 'Dir. Guediawaye', distanceMeters: 1500, departureMinutesFromMidnight: _shift(_brtBase, 4), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.7050, -17.4400), modeLabel: 'BRT', source: DataSourceInfo.sunubrt, stopType: StopType.boarding),
-  Stop(name: 'PEM Guediawaye', direction: 'Terminus nord BRT', distanceMeters: 10500, departureMinutesFromMidnight: _shift(_brtBase, 8), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.7735, -17.3977), modeLabel: 'BRT', source: DataSourceInfo.sunubrt, stopType: StopType.terminus),
+  Stop(name: 'PEM Petersen', direction: 'Dir. Guédiawaye (Embarquement)', distanceMeters: 200, departureMinutesFromMidnight: _shift(_brtBase, 0), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.6720, -17.4400), modeLabel: 'BRT', source: DataSourceInfo.sunubrt, stopType: StopType.boarding),
+  Stop(name: 'PEM Petersen', direction: 'Terminus PEM Petersen (Arrivée)', distanceMeters: 200, departureMinutesFromMidnight: _shift(_brtBase, 2), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.6722, -17.4402), modeLabel: 'BRT', source: DataSourceInfo.sunubrt, stopType: StopType.arrival),
+  Stop(name: 'BRT Colobane', direction: 'Dir. Guédiawaye', distanceMeters: 1500, departureMinutesFromMidnight: _shift(_brtBase, 4), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.6950, -17.4420), modeLabel: 'BRT', source: DataSourceInfo.sunubrt, stopType: StopType.boarding),
+  Stop(name: 'PEM Guédiawaye', direction: 'Terminus PEM Guédiawaye (Arrivée)', distanceMeters: 10500, departureMinutesFromMidnight: _shift(_brtBase, 8), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.7735, -17.3977), modeLabel: 'BRT', source: DataSourceInfo.sunubrt, stopType: StopType.arrival),
 ];
 
 final List<Stop> aftuAndBusStations = [
   Stop(name: 'Parcelles Assainies (L1 à L10)', direction: 'Dir. Dakar Centre', distanceMeters: 300, departureMinutesFromMidnight: [], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.7645, -17.4420), modeLabel: 'AFTU', source: DataSourceInfo.aftuOfficial, stopType: StopType.boarding),
-  Stop(name: 'Grand Yoff (L11 à L25)', direction: 'Dir. Petersen', distanceMeters: 1100, departureMinutesFromMidnight: [], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.7420, -17.4480), modeLabel: 'AFTU', source: DataSourceInfo.aftuOfficial, stopType: StopType.correspondence),
-  Stop(name: 'Terminus Petersen (AFTU L25)', direction: 'Terminus central AFTU', distanceMeters: 450, departureMinutesFromMidnight: [], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.6720, -17.4400), modeLabel: 'AFTU', source: DataSourceInfo.aftuOfficial, stopType: StopType.terminus),
   Stop(name: 'Mermoz', direction: 'Dir. Sacré-Cœur', distanceMeters: 3500, departureMinutesFromMidnight: [360, 420, 480, 540, 600, 660, 720, 780, 840, 900], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: const LatLng(14.7120, -17.4650), modeLabel: 'DDD', source: DataSourceInfo.demdikk, stopType: StopType.boarding),
-  Stop(name: 'Arret Tata 12', direction: 'Dir. Guediawaye', distanceMeters: 600, departureMinutesFromMidnight: [], icon: Icons.directions_bus_filled, color: AppColors.tata, location: const LatLng(14.7200, -17.4700), modeLabel: 'Tata', source: DataSourceInfo.demo, stopType: StopType.boarding),
 ];
 
 final List<Stop> allStops = [...terStations, ...brtStations, ...aftuAndBusStations]
@@ -491,18 +443,6 @@ final List<TransitRoute> demoRoutes = [
       const LatLng(14.7050, -17.4400), const LatLng(14.7220, -17.4420),
       const LatLng(14.7350, -17.4350), const LatLng(14.7480, -17.4250),
       const LatLng(14.7620, -17.4100), const LatLng(14.7735, -17.3977),
-    ],
-  ),
-  TransitRoute(
-    name: 'AFTU 72 Lignes', code: 'A25', type: 'AFTU', color: AppColors.aftu,
-    points: [
-      const LatLng(14.7645, -17.4420), const LatLng(14.7420, -17.4480), const LatLng(14.6720, -17.4400),
-    ],
-  ),
-  TransitRoute(
-    name: 'Tata / DDD', code: 'T12', type: 'Tata', color: AppColors.tata,
-    points: [
-      const LatLng(14.6792, -17.4407), const LatLng(14.7120, -17.4650), const LatLng(14.7900, -17.3500),
     ],
   ),
 ];
@@ -532,11 +472,6 @@ class RoutePlanner {
       if (direct != null) candidates.add(direct);
     }
 
-    if (candidates.isEmpty || candidates.first.totalMinutes > 45) {
-      final transfer = _findTransfer(fromStop, toStop, currentMin);
-      if (transfer != null) candidates.add(transfer);
-    }
-
     if (candidates.isEmpty) {
       return RouteSearchResult(errorMessage: 'Aucun itinéraire trouvé entre ${fromStop.name} et ${toStop.name}.');
     }
@@ -551,7 +486,7 @@ class RoutePlanner {
     for (final s in allStops) {
       if (s.name.toLowerCase().contains(q)) return s;
     }
-    return allStops.firstWhere((s) => s.name.toLowerCase().contains('dakar'), orElse: () => allStops.first);
+    return allStops.first;
   }
 
   static PlannedRoute? _buildRoute(Stop from, Stop to, int currentMin) {
@@ -568,23 +503,6 @@ class RoutePlanner {
       fromName: from.name, toName: to.name, totalMinutes: dur,
       transferCount: 0, status: DataStatus.scheduled,
       segments: [RouteSegment(modeLabel: from.modeLabel, color: from.color, icon: from.icon, from: from.name, to: to.name, durationMinutes: dur, departureTime: _formatMin(dep), arrivalTime: _formatMin(arr), status: DataStatus.scheduled)],
-    );
-  }
-
-  static PlannedRoute? _findTransfer(Stop from, Stop to, int currentMin) {
-    final hub = allStops.firstWhere((s) => s.name.contains('Colobane') || s.name.contains('Petersen'), orElse: () => allStops.first);
-    if (hub.name == from.name || hub.name == to.name) return null;
-
-    final leg1 = _buildRoute(from, hub, currentMin);
-    if (leg1 == null) return null;
-    final leg2 = _buildRoute(hub, to, (currentMin + leg1.totalMinutes));
-    if (leg2 == null) return null;
-
-    return PlannedRoute(
-      fromName: from.name, toName: to.name,
-      totalMinutes: leg1.totalMinutes + leg2.totalMinutes + 5,
-      transferCount: 1, status: DataStatus.scheduled,
-      segments: [...leg1.segments, ...leg2.segments],
     );
   }
 
@@ -631,19 +549,6 @@ class DistanceHelper {
     final double h = (1 - math.cos(dLat)) / 2 +
         math.cos(lat1) * math.cos(lat2) * (1 - math.cos(dLon)) / 2;
     return 2 * earthRadius * math.asin(math.sqrt(h));
-  }
-}
-
-class DirectionHelper {
-  static String extractDestination(String direction) {
-    if (direction.contains('Dir.')) {
-      return direction.replaceAll('Dir.', '').trim();
-    }
-    if (direction.contains('-')) {
-      final parts = direction.split('-').map((s) => s.trim()).toList();
-      return parts.last;
-    }
-    return 'Terminus / Centre';
   }
 }
 
@@ -955,7 +860,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                   Row(children: [
                     Container(width: 40, height: 40, decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.12), borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.directions_bus, color: AppColors.primary, size: 22)),
                     const SizedBox(width: 12),
-                    const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Dakar Bus', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)), Text('TER / BRT / DDD / 72 Lignes AFTU & Tata', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))])),
+                    const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Dakar Bus', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)), Text('TER / BRT / DDD / AFTU & Tata', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))])),
                   ]),
                   const SizedBox(height: 14),
                   Container(decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)]), child: TextField(controller: _searchCtrl, onChanged: (_) => setState(() => _searchFocused = true), decoration: InputDecoration(hintText: 'Où voulez-vous aller ? (ex: Parcelles, UCAD...)', prefixIcon: const Icon(Icons.search, color: AppColors.primary, size: 22), suffixIcon: _searchFocused ? IconButton(icon: const Icon(Icons.close, size: 20), onPressed: () { _searchCtrl.clear(); setState(() => _searchFocused = false); }) : null, border: InputBorder.none, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14)))),
@@ -1070,8 +975,8 @@ class TripsPage extends StatefulWidget {
 }
 
 class _TripsPageState extends State<TripsPage> {
-  final _fromCtrl = TextEditingController(text: 'Parcelles Assainies');
-  final _toCtrl = TextEditingController(text: 'Petersen');
+  final _fromCtrl = TextEditingController(text: 'PEM Petersen');
+  final _toCtrl = TextEditingController(text: 'PEM Guédiawaye');
   bool _loading = false;
   RouteSearchResult? _result;
 
@@ -1095,7 +1000,7 @@ class _TripsPageState extends State<TripsPage> {
           children: [
             const Text('Planifier un trajet', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
-            const Text('Itinéraires multimodaux officiels (TER, BRT, 72 Lignes AFTU, Tata).', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+            const Text('Itinéraires multimodaux officiels (TER, BRT, AFTU).', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
             const SizedBox(height: 20),
 
             Container(
@@ -1105,7 +1010,7 @@ class _TripsPageState extends State<TripsPage> {
                 children: [
                   _buildInputField(controller: _fromCtrl, label: 'Départ', icon: Icons.my_location, color: AppColors.primary),
                   const SizedBox(height: 12),
-                  _buildInputField(controller: _toCtrl, label: 'Destination', icon: Icons.location_on, color: AppColors.ter),
+                  _buildInputField(controller: _toCtrl, label: 'Destination', icon: Icons.location_on, color: AppColors.brt),
                   const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: _loading ? null : _search,
@@ -1118,16 +1023,16 @@ class _TripsPageState extends State<TripsPage> {
 
             if (_result == null && !_loading) ...[
               const SizedBox(height: 24),
-              const Text('Suggestions populaires (TER, BRT, AFTU)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              const Text('Suggestions populaires (SunuBRT & TER)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
               Wrap(
                 spacing: 10, runSpacing: 10,
                 children: [
-                  _suggestionChip('Dakar - Diamniadio (TER 14 gares)', () { 
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(terStations.first))));
+                  _suggestionChip('PEM Petersen - PEM Guédiawaye (BRT)', () { 
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(brtStations.first))));
                   }),
-                  _suggestionChip('Guédiawaye - Petersen (BRT)', () { 
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(brtStations.last))));
+                  _suggestionChip('Gare TER Dakar - Diamniadio (TER)', () { 
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(terStations.first))));
                   }),
                 ],
               ),
@@ -1182,7 +1087,7 @@ class _TripsPageState extends State<TripsPage> {
                 Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: r.segments.first.color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Icon(r.segments.first.icon, color: r.segments.first.color, size: 22)),
                 const SizedBox(width: 12),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('${r.fromName} - ${r.toName}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)), const SizedBox(height: 2), Text('${r.transferCount} correspondance(s) . ${r.segments.length} étape(s)', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))])),
-                Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Text('${r.totalMinutes} min', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 18)), const Text('Durée totale', style: TextStyle(fontSize: 10, color: AppColors.textSecondary))]),
+                Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Text('${r.totalMinutes} min', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 18)), const Text('Durée totale', style: TextStyle(fontSize: 10, color: AppColors.textSecondary))])),
               ],
             ),
             const SizedBox(height: 16),
@@ -1230,20 +1135,10 @@ class AlertsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final List<Map<String, dynamic>> officialAlerts = [
       {
-        'type': 'TER',
-        'title': 'Réseau CETUD & SETER (14 Gares)',
-        'source': 'Source officielle : CETUD / SETER',
-        'message': 'Le TER dessert officiellement 14 gares de Dakar à Diamniadio en passant par Colobane, Hann, Pikine, Keur Massar et Rufisque.',
-        'severity': 'success',
-        'badge': '14 Gares Officielles',
-        'icon': Icons.train_rounded,
-        'color': AppColors.ter,
-      },
-      {
         'type': 'BRT',
-        'title': 'Corridor officiel SunuBRT',
-        'source': 'Source officielle : Dakar Mobilité',
-        'message': 'Le corridor relie Guédiawaye à Petersen en passant par Dalal Jamm, Parcelles Assainies, Grand Yoff et la Place de l’Obélisque.',
+        'title': 'Corridor officiel SunuBRT (Guédiawaye - Petersen)',
+        'source': 'Source officielle : Dakar Mobilité / CETUD',
+        'message': 'Le corridor BRT relie le PEM Petersen au PEM Guédiawaye en passant par Colobane, Grand Yoff, Parcelles Assainies et Hôpital Dalal Jamm.',
         'severity': 'success',
         'badge': 'En direct',
         'icon': Icons.directions_bus_rounded,
@@ -1260,7 +1155,7 @@ class AlertsPage extends StatelessWidget {
           children: [
             const Text('Alertes trafic & Réseau', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
-            const Text('Informations certifiées CETUD, SETER & SunuBRT.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+            const Text('Informations certifiées SunuBRT & CETUD.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
             const SizedBox(height: 20),
             ...officialAlerts.map((alert) => _buildAlertCard(context, alert)),
           ],
@@ -1309,8 +1204,8 @@ class CommunityAlertsPage extends StatefulWidget {
 
 class CommunityAlertsPageState extends State<CommunityAlertsPage> {
   final List<Map<String, String>> _communityReports = [
-    {'user': 'Mamadou S.', 'location': 'Parcelles Assainies (BRT)', 'type': 'Trafic fluide', 'time': 'Il y a 3 min', 'status': '🟢 Fluide'},
-    {'user': 'Aïssatou N.', 'location': 'Gare de Dakar (TER)', 'type': 'Embarquement régulier', 'time': 'Il y a 6 min', 'status': '🟢 Fluide'},
+    {'user': 'Mamadou S.', 'location': 'PEM Guédiawaye (BRT)', 'type': 'Trafic fluide', 'time': 'Il y a 3 min', 'status': '🟢 Fluide'},
+    {'user': 'Aïssatou N.', 'location': 'PEM Petersen (BRT)', 'type': 'Embarquement régulier', 'time': 'Il y a 6 min', 'status': '🟢 Fluide'},
   ];
 
   @override
@@ -1332,7 +1227,7 @@ class CommunityAlertsPageState extends State<CommunityAlertsPage> {
               decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider)),
               child: Row(
                 children: [
-                  const CircleAvatar(backgroundColor: AppColors.primary, child: Icon(Icons.person, color: Colors.white)),
+                  const CircleAvatar(backgroundColor: AppColors.brt, child: Icon(Icons.person, color: Colors.white)),
                   const SizedBox(width: 14),
                   Expanded(
                     child: Column(
@@ -1386,7 +1281,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   const Divider(height: 1),
                   SwitchListTile(secondary: const Icon(Icons.dark_mode_outlined, color: AppColors.primary), title: const Text('Mode sombre'), value: _darkMode, activeColor: AppColors.primary, onChanged: (v) => setState(() => _darkMode = v)),
                   const Divider(height: 1),
-                  const ListTile(leading: Icon(Icons.info_outline, color: AppColors.primary), title: Text('Version de l\'application'), subtitle: Text('Dakar Bus v7.1 (Libellés Aller/Retour optimisés)')),
+                  const ListTile(leading: Icon(Icons.info_outline, color: AppColors.primary), title: Text('Version de l\'application'), subtitle: Text('Dakar Bus v7.2 (BRT & TER strictement isolés)')),
                 ],
               ),
             ),
@@ -1408,7 +1303,7 @@ class AIChatPage extends StatefulWidget {
 
 class _AIChatPageState extends State<AIChatPage> {
   final TextEditingController _msgCtrl = TextEditingController();
-  final List<Map<String, String>> _messages = [{'role': 'ai', 'text': 'Nanga def ! 👋 Interrogez-moi sur les horaires et les arrêts.'}];
+  final List<Map<String, String>> _messages = [{'role': 'ai', 'text': 'Nanga def ! 👋 Posez vos questions sur le BRT, le TER ou les bus de Dakar.'}];
 
   void _sendMessage() {
     final text = _msgCtrl.text.trim();
@@ -1416,7 +1311,7 @@ class _AIChatPageState extends State<AIChatPage> {
     setState(() { _messages.add({'role': 'user', 'text': text}); _msgCtrl.clear(); });
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
-        setState(() { _messages.add({'role': 'ai', 'text': '🚆 Les libellés d’embarquement et de terminus (arrivée) s’affichent désormais de manière claire et structurée.'}); });
+        setState(() { _messages.add({'role': 'ai', 'text': '🚍 Les données du BRT (Guédiawaye - Petersen) et du TER sont désormais totalement indépendantes et exactes.'}); });
       }
     });
   }
@@ -1537,7 +1432,7 @@ class DetailedRoutePage extends StatelessWidget {
 }
 
 // ============================================================
-// DETAIL ARRET — ALLER / RETOUR SYNCHRONISE ET PROPRE
+// DETAIL ARRET — ALLER / RETOUR STRICTEMENT ISOLE PAR MODE
 // ============================================================
 class DualStopDetailPage extends StatelessWidget {
   final Stop stop;
@@ -1545,15 +1440,16 @@ class DualStopDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 1ère Carte (Aller) : Configurée en mode Départ (Embarquement) vers la destination
+    // Configuration propre selon le mode (BRT, TER ou autre)
+    final bool isBrt = stop.modeLabel == 'BRT';
+    
     final allerStop = stop.copyWith(
-      direction: stop.direction.contains('Dir.') ? stop.direction : 'Dir. Diamniadio (Embarquement)',
+      direction: isBrt ? 'Dir. Guédiawaye (Embarquement)' : 'Dir. Diamniadio (Embarquement)',
       stopType: StopType.boarding,
     );
 
-    // 2ème Carte (Retour) : Configurée en mode Terminus / Arrivée (ex: Terminus Gare TER Dakar (Arrivée))
     final retourStop = stop.copyWith(
-      direction: 'Terminus ${stop.name} (Arrivée)',
+      direction: isBrt ? 'Terminus PEM Petersen (Arrivée)' : 'Terminus Dakar (Arrivée)',
       stopType: StopType.arrival,
     );
 
@@ -1562,13 +1458,13 @@ class DualStopDetailPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Bouton Aller (Départ / Embarquement) -> Ouvre le trajet direct
+          // Bouton Aller
           GestureDetector(
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(stop, isReturnRoute: false)))),
             child: _buildStopCard(context, allerStop, allerStop.direction, stop.distanceMeters, 'Aller', showArrow: true),
           ),
           const SizedBox(height: 16),
-          // Bouton Retour (Terminus / Arrivée) -> Ouvre le trajet inverse
+          // Bouton Retour
           GestureDetector(
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(stop, isReturnRoute: true)))),
             child: _buildStopCard(context, retourStop, retourStop.direction, stop.distanceMeters, 'Retour', showArrow: true),
