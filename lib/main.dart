@@ -70,7 +70,7 @@ class RoutingService {
 }
 
 // ============================================================
-// SERVICE DE DETECTION DES DEUX SENS & INVERSION DYNAMIQUE
+// SERVICE DE DETECTION DES DEUX SENS & INVERSION PROpre
 // ============================================================
 class OppositeStopService {
   static const double _maxOppositeDistanceMeters = 500.0;
@@ -206,14 +206,7 @@ class DetailedRoute {
     required this.stops,
   });
 
-  static DetailedRoute fromStop(Stop stop) {
-    bool isDiamniadioOrigin = stop.name.toLowerCase().contains('diamniadio') && stop.stopType == StopType.boarding;
-    bool isReturn = stop.direction.contains('Diamniadio - Dakar') ||
-        stop.direction.contains('Dakar (Arrivée)') ||
-        stop.direction.contains('Sens inverse') ||
-        stop.direction.contains('Petersen') && stop.modeLabel == 'BRT' ||
-        isDiamniadioOrigin;
-
+  static DetailedRoute fromStop(Stop stop, {bool isReturnRoute = false}) {
     if (stop.modeLabel == 'TER') {
       List<DetailedStop> terStops = [
         const DetailedStop(stopId: 'ter_1', name: 'Gare de Dakar', sequence: 1, location: LatLng(14.6792, -17.4407), distanceFromStart: '0 km', estimatedTime: '00:00', isTerminal: true, type: 'Embarquement'),
@@ -230,7 +223,7 @@ class DetailedRoute {
         const DetailedStop(stopId: 'ter_12', name: 'Diamniadio', sequence: 12, location: LatLng(14.7160, -17.1986), distanceFromStart: '35.0 km', estimatedTime: '45:00', isTerminal: true, type: 'Arrivée'),
       ];
 
-      if (isReturn) {
+      if (isReturnRoute) {
         terStops = terStops.reversed.toList();
         for (int i = 0; i < terStops.length; i++) {
           terStops[i] = DetailedStop(
@@ -247,12 +240,12 @@ class DetailedRoute {
       }
 
       return DetailedRoute(
-        routeId: isReturn ? 'TER_DIAM_DAK' : 'TER_DAK_DIAM',
+        routeId: isReturnRoute ? 'TER_DIAM_DAK' : 'TER_DAK_DIAM',
         lineNumber: 1,
         operator: 'TER (Train Express Régional)',
         color: AppColors.ter,
-        origin: isReturn ? 'Gare de Diamniadio' : 'Gare de Dakar',
-        destination: isReturn ? 'Gare de Dakar' : 'Gare de Diamniadio',
+        origin: isReturnRoute ? 'Gare de Diamniadio' : 'Gare de Dakar',
+        destination: isReturnRoute ? 'Gare de Dakar' : 'Gare de Diamniadio',
         totalDistance: '35.0 km',
         stops: terStops,
       );
@@ -271,7 +264,7 @@ class DetailedRoute {
         const DetailedStop(stopId: 'brt_11', name: 'Gare de Petersen', sequence: 11, location: LatLng(14.6720, -17.4400), distanceFromStart: '14.0 km', estimatedTime: '42:00', isTerminal: true, type: 'Arrivée'),
       ];
 
-      if (isReturn) {
+      if (isReturnRoute) {
         brtStops = brtStops.reversed.toList();
         for (int i = 0; i < brtStops.length; i++) {
           brtStops[i] = DetailedStop(
@@ -288,28 +281,51 @@ class DetailedRoute {
       }
 
       return DetailedRoute(
-        routeId: isReturn ? 'BRT_PET_GUE' : 'BRT_GUE_PET',
+        routeId: isReturnRoute ? 'BRT_PET_GUE' : 'BRT_GUE_PET',
         lineNumber: 1,
         operator: 'SunuBRT',
         color: AppColors.brt,
-        origin: isReturn ? 'Gare de Petersen' : 'Guédiawaye',
-        destination: isReturn ? 'Guédiawaye' : 'Gare de Petersen',
+        origin: isReturnRoute ? 'Gare de Petersen' : 'Guédiawaye',
+        destination: isReturnRoute ? 'Guédiawaye' : 'Gare de Petersen',
         totalDistance: '14.0 km',
         stops: brtStops,
       );
     } else {
+      // Pour les bus urbains (DDD, AFTU, Tata) avec gestion propre de l'aller/retour
+      final originName = stop.name;
+      final destName = DirectionHelper.extractDestination(stop.direction);
+      
+      List<DetailedStop> generalStops = [
+        DetailedStop(stopId: 'gen_1', name: originName, sequence: 1, location: stop.location, distanceFromStart: '0 km', estimatedTime: '00:00', isTerminal: true, type: 'Embarquement'),
+        DetailedStop(stopId: 'gen_2', name: 'Station Intermédiaire', sequence: 2, location: LatLng(stop.location.latitude + 0.01, stop.location.longitude + 0.01), distanceFromStart: '1.8 km', estimatedTime: '06:00', isTerminal: false, type: 'Intermédiaire'),
+        DetailedStop(stopId: 'gen_3', name: destName, sequence: 3, location: LatLng(stop.location.latitude + 0.02, stop.location.longitude + 0.02), distanceFromStart: '3.5 km', estimatedTime: '12:00', isTerminal: true, type: 'Arrivée'),
+      ];
+
+      if (isReturnRoute) {
+        generalStops = generalStops.reversed.toList();
+        for (int i = 0; i < generalStops.length; i++) {
+          generalStops[i] = DetailedStop(
+            stopId: 'gen_ret_$i',
+            name: generalStops[i].name,
+            sequence: i + 1,
+            location: generalStops[i].location,
+            distanceFromStart: '${(3.5 - double.parse(generalStops[i].distanceFromStart.replaceAll(' km', ''))).toStringAsFixed(1)} km',
+            estimatedTime: '${i * 6}:00',
+            isTerminal: i == 0 || i == generalStops.length - 1,
+            type: i == 0 ? 'Embarquement' : (i == generalStops.length - 1 ? 'Arrivée' : 'Intermédiaire'),
+          );
+        }
+      }
+
       return DetailedRoute(
-        routeId: 'AFTU_L25',
-        lineNumber: 25,
+        routeId: 'GEN_${stop.modeLabel}',
+        lineNumber: 1,
         operator: stop.modeLabel,
         color: stop.color,
-        origin: stop.name,
-        destination: stop.direction,
-        totalDistance: '9.2 km',
-        stops: [
-          DetailedStop(stopId: 'stop_001', name: stop.name, sequence: 1, location: stop.location, distanceFromStart: '0 km', estimatedTime: '00:00', isTerminal: true, type: 'Embarquement'),
-          DetailedStop(stopId: 'stop_002', name: stop.direction, sequence: 2, location: stop.location, distanceFromStart: '9.2 km', estimatedTime: '35:00', isTerminal: true, type: 'Arrivée'),
-        ],
+        origin: isReturnRoute ? destName : originName,
+        destination: isReturnRoute ? originName : destName,
+        totalDistance: '3.5 km',
+        stops: generalStops,
       );
     }
   }
@@ -424,19 +440,15 @@ class RouteSearchResult {
 }
 
 // ============================================================
-// STATIONS ET ARRETS STRICTEMENT SUR TERRE FERME (DAKAR & DIAMNIADIO)
+// STATIONS ET ARRETS STRICTEMENT SUR TERRE FERME (DAKAR)
 // ============================================================
 final List<Stop> terStations = [
-  // Gare TER Dakar : 1. Arrivée (Terminus), 2. Départ (Embarquement)
   Stop(name: 'Gare TER Dakar', direction: 'Terminus Dakar (Arrivée)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 0), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6792, -17.4407), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.arrival),
   Stop(name: 'Gare TER Dakar', direction: 'Dir. Diamniadio (Embarquement)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 3), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6795, -17.4405), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
-  
   Stop(name: 'Gare TER Colobane', direction: 'Dir. Diamniadio', distanceMeters: 1200, departureMinutesFromMidnight: _shift(_terBase, 5), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6937, -17.4441), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
   Stop(name: 'Gare TER Hann', direction: 'Dir. Diamniadio', distanceMeters: 3500, departureMinutesFromMidnight: _shift(_terBase, 9), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7190, -17.4450), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
   Stop(name: 'Gare TER Pikine', direction: 'Dir. Diamniadio', distanceMeters: 7200, departureMinutesFromMidnight: _shift(_terBase, 17), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7550, -17.3900), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
   Stop(name: 'Gare TER Keur Mbaye Fall', direction: 'Dir. Dakar / Diamniadio', distanceMeters: 14200, departureMinutesFromMidnight: _shift(_terBase, 27), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7750, -17.3100), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.correspondence),
-  
-  // Gare TER Diamniadio : 1. Départ (Embarquement) vers Dakar, 2. Arrivée (Terminus) venant de Dakar
   Stop(name: 'Gare TER Diamniadio', direction: 'Dir. Dakar (Embarquement)', distanceMeters: 35000, departureMinutesFromMidnight: _shift(_terBase, 50), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7160, -17.1986), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
   Stop(name: 'Gare TER Diamniadio', direction: 'Terminus Diamniadio (Arrivée)', distanceMeters: 35000, departureMinutesFromMidnight: _shift(_terBase, 48), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7163, -17.1980), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.arrival),
 ];
@@ -452,7 +464,7 @@ final List<Stop> aftuAndBusStations = [
   Stop(name: 'Parcelles Assainies (L1 à L10)', direction: 'Dir. Dakar Centre', distanceMeters: 300, departureMinutesFromMidnight: [], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.7645, -17.4420), modeLabel: 'AFTU', source: DataSourceInfo.aftuOfficial, stopType: StopType.boarding),
   Stop(name: 'Grand Yoff (L11 à L25)', direction: 'Dir. Petersen', distanceMeters: 1100, departureMinutesFromMidnight: [], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.7420, -17.4480), modeLabel: 'AFTU', source: DataSourceInfo.aftuOfficial, stopType: StopType.correspondence),
   Stop(name: 'Terminus Petersen (AFTU L25)', direction: 'Terminus central AFTU', distanceMeters: 450, departureMinutesFromMidnight: [], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.6720, -17.4400), modeLabel: 'AFTU', source: DataSourceInfo.aftuOfficial, stopType: StopType.terminus),
-  Stop(name: 'Mermoz (DDD)', direction: 'Dir. Sacré-Cœur', distanceMeters: 3500, departureMinutesFromMidnight: [360, 420, 480, 540, 600, 660, 720, 780, 840, 900], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: const LatLng(14.7120, -17.4650), modeLabel: 'DDD', source: DataSourceInfo.demdikk, stopType: StopType.boarding),
+  Stop(name: 'Mermoz', direction: 'Dir. Sacré-Cœur', distanceMeters: 3500, departureMinutesFromMidnight: [360, 420, 480, 540, 600, 660, 720, 780, 840, 900], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: const LatLng(14.7120, -17.4650), modeLabel: 'DDD', source: DataSourceInfo.demdikk, stopType: StopType.boarding),
   Stop(name: 'Arret Tata 12', direction: 'Dir. Guediawaye', distanceMeters: 600, departureMinutesFromMidnight: [], icon: Icons.directions_bus_filled, color: AppColors.tata, location: const LatLng(14.7200, -17.4700), modeLabel: 'Tata', source: DataSourceInfo.demo, stopType: StopType.boarding),
 ];
 
@@ -584,7 +596,7 @@ class RoutePlanner {
 }
 
 // ============================================================
-// UTILITAIRES
+// UTILITAIRES & GESTION DES DIRECTIONS
 // ============================================================
 class TimeHelper {
   static String formatRemaining(int minutes) {
@@ -623,33 +635,21 @@ class DistanceHelper {
   }
 }
 
-// ============================================================
-// INVERSEUR DE DIRECTION & PAIRES ALLER/RETOUR
-// ============================================================
 class DirectionHelper {
-  static String reverse(String direction) {
+  static String extractDestination(String direction) {
+    if (direction.contains('Dir.')) {
+      return direction.replaceAll('Dir.', '').trim();
+    }
     if (direction.contains('-')) {
       final parts = direction.split('-').map((s) => s.trim()).toList();
-      if (parts.length == 2) return '${parts[1]} - ${parts[0]}';
+      return parts.last;
     }
-    if (direction.contains('Dir. Dakar')) {
-      return direction.replaceAll('Dir. Dakar', 'Dir. Diamniadio');
-    }
-    if (direction.contains('Dir. Diamniadio')) {
-      return direction.replaceAll('Dir. Diamniadio', 'Dir. Dakar');
-    }
-    return 'Sens inverse - $direction';
+    return 'Terminus / Centre';
   }
 
-  static StopType oppositeType(StopType type) {
-    switch (type) {
-      case StopType.arrival: return StopType.boarding;
-      case StopType.boarding: return StopType.arrival;
-      case StopType.terminus: return StopType.terminus;
-      case StopType.correspondence: return StopType.correspondence;
-      case StopType.departure: return StopType.departure;
-      case StopType.intermediate: return StopType.intermediate;
-    }
+  static String reverseDirection(String currentName, String direction) {
+    final dest = extractDestination(direction);
+    return 'Sens inverse : Dir. $currentName (depuis $dest)';
   }
 }
 
@@ -1135,8 +1135,8 @@ class _TripsPageState extends State<TripsPage> {
                   _suggestionChip('Guédiawaye - Petersen (BRT)', () { 
                     Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(brtStations.last))));
                   }),
-                  _suggestionChip('Parcelles - Petersen (L25)', () { 
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(aftuAndBusStations.first))));
+                  _suggestionChip('Mermoz - Sacré-Cœur (DDD)', () { 
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(aftuAndBusStations[3]))));
                   }),
                 ],
               ),
@@ -1395,7 +1395,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   const Divider(height: 1),
                   SwitchListTile(secondary: const Icon(Icons.dark_mode_outlined, color: AppColors.primary), title: const Text('Mode sombre'), value: _darkMode, activeColor: AppColors.primary, onChanged: (v) => setState(() => _darkMode = v)),
                   const Divider(height: 1),
-                  const ListTile(leading: Icon(Icons.info_outline, color: AppColors.primary), title: Text('Version de l\'application'), subtitle: Text('Dakar Bus v6.9 (Sens aller/retour dynamiques multi-transport)')),
+                  const ListTile(leading: Icon(Icons.info_outline, color: AppColors.primary), title: Text('Version de l\'application'), subtitle: Text('Dakar Bus v7.0 (Gestion parfaite Aller / Retour multi-mobilité)')),
                 ],
               ),
             ),
@@ -1417,7 +1417,7 @@ class AIChatPage extends StatefulWidget {
 
 class _AIChatPageState extends State<AIChatPage> {
   final TextEditingController _msgCtrl = TextEditingController();
-  final List<Map<String, String>> _messages = [{'role': 'ai', 'text': 'Nanga def ! 👋 Interrogez-moi sur les correspondances et les sens aller/retour.'}];
+  final List<Map<String, String>> _messages = [{'role': 'ai', 'text': 'Nanga def ! 👋 Interrogez-moi sur les horaires et les sens de circulation.'}];
 
   void _sendMessage() {
     final text = _msgCtrl.text.trim();
@@ -1425,7 +1425,7 @@ class _AIChatPageState extends State<AIChatPage> {
     setState(() { _messages.add({'role': 'user', 'text': text}); _msgCtrl.clear(); });
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
-        setState(() { _messages.add({'role': 'ai', 'text': '🚆 Les sens de départ et d’arrivée s’adaptent automatiquement à votre position (Dakar ou Diamniadio / terminaux).'}); });
+        setState(() { _messages.add({'role': 'ai', 'text': '🚍 Les sens Aller et Retour sont maintenant parfaitement synchronisés pour tous les bus et trains.'}); });
       }
     });
   }
@@ -1475,7 +1475,7 @@ class DetailedRoutePage extends StatelessWidget {
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text('${route.origin} ➔ ${route.destination}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                   const SizedBox(height: 4),
-                  Text('${route.totalDistance} • ${route.stops.length} stations/gares', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                  Text('${route.totalDistance} • ${route.stops.length} stations/arrêts', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                 ])),
                 Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: route.color.withOpacity(0.15), borderRadius: BorderRadius.circular(8)), child: Text(route.operator, style: TextStyle(fontWeight: FontWeight.bold, color: route.color, fontSize: 11))),
               ],
@@ -1546,7 +1546,7 @@ class DetailedRoutePage extends StatelessWidget {
 }
 
 // ============================================================
-// DETAIL ARRET — ALLER / RETOUR DYNAMIQUE TOUT TRANSPORT
+// DETAIL ARRET — ALLER / RETOUR SYNCHRONISE ET PROPRE
 // ============================================================
 class DualStopDetailPage extends StatelessWidget {
   final Stop stop;
@@ -1554,32 +1554,32 @@ class DualStopDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Détermination dynamique des sens Aller et Retour selon l'arrêt sélectionné
-    final primaryCardStop = stop;
-    final secondaryCardStop = OppositeStopService.findOppositeStop(currentStop: stop, allStops: allStops) ?? stop.copyWith(
-      direction: DirectionHelper.reverse(stop.direction),
-      stopType: DirectionHelper.oppositeType(stop.stopType),
+    // Carte 1 : Sens Aller (ex: Mermoz -> Sacré-Cœur)
+    final allergenStop = stop;
+    
+    // Carte 2 : Sens Retour propre et inversé (ex: Sacré-Cœur -> Mermoz)
+    final destinationName = DirectionHelper.extractDestination(stop.direction);
+    final returnStop = stop.copyWith(
+      name: stop.name,
+      direction: DirectionHelper.reverseDirection(stop.name, stop.direction),
+      stopType: StopType.arrival,
     );
-
-    // Ajustement des libellés (Départ/Embarquement vs Arrivée/Terminus) pour chaque sens
-    final primaryInfo = _getSensConfig(primaryCardStop);
-    final secondaryInfo = _getSensConfig(secondaryCardStop);
 
     return Scaffold(
       appBar: AppBar(title: Text(stop.name), backgroundColor: stop.color, foregroundColor: Colors.white),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Carte Sens 1 (ex: Départ / Embarquement)
+          // Bouton Aller
           GestureDetector(
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(primaryCardStop)))),
-            child: _buildStopCard(context, primaryCardStop, primaryInfo.directionLabel, primaryCardStop.distanceMeters, primaryInfo.badgeText, showArrow: true),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(allergenStop, isReturnRoute: false)))),
+            child: _buildStopCard(context, allergenStop, allergenStop.direction, allergenStop.distanceMeters, 'Aller', showArrow: true),
           ),
           const SizedBox(height: 16),
-          // Carte Sens 2 (ex: Arrivée / Terminus sens opposé)
+          // Bouton Retour inversé
           GestureDetector(
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(secondaryCardStop)))),
-            child: _buildStopCard(context, secondaryCardStop, secondaryInfo.directionLabel, secondaryCardStop.distanceMeters, secondaryInfo.badgeText, showArrow: true),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(allergenStop, isReturnRoute: true)))),
+            child: _buildStopCard(context, returnStop, 'Sens inverse : Dir. ${stop.name} (depuis $destinationName)', allergenStop.distanceMeters, 'Retour', showArrow: true),
           ),
           const SizedBox(height: 24),
           Container(
@@ -1599,14 +1599,6 @@ class DualStopDetailPage extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  ({String directionLabel, String badgeText}) _getSensConfig(Stop s) {
-    if (s.stopType == StopType.arrival || s.direction.toLowerCase().contains('arrivée') || s.direction.toLowerCase().contains('terminus')) {
-      return (directionLabel: 'Terminus ${s.name} (Arrivée)', badgeText: 'Arrivée');
-    } else {
-      return (directionLabel: s.direction, badgeText: 'Départ');
-    }
   }
 
   Widget _buildStopCard(BuildContext context, Stop s, String direction, double distance, String badgeText, {bool showArrow = false}) {
