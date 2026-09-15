@@ -119,7 +119,7 @@ class AppColors {
 }
 
 // ============================================================
-// SOURCE DE DONNEES & STATUT (AVEC SYSTEME DE FIABILITE 4 NIVEAUX)
+// SOURCE DE DONNEES & STATUT
 // ============================================================
 enum DataOrigin { official, verified, indicative, unavailable }
 class DataSourceInfo {
@@ -193,7 +193,7 @@ class Stop {
 
   int? nextDepartureMinutes() {
     if (!_isServiceOpen()) return null;
-    if (isContinuousFlow) return 5; // Rotation continue estimée à ~5 min
+    if (isContinuousFlow) return 5;
     
     final now = DateTime.now(); 
     final currentMin = now.hour * 60 + now.minute;
@@ -257,7 +257,7 @@ class RouteSearchResult {
 }
 
 // ============================================================
-// DONNEES OFFICIELLES (TER, BRT, DDD, et les 72 lignes AFTU & Tata)
+// DONNEES OFFICIELLES (TER, BRT, DDD, AFTU & Tata)
 // ============================================================
 final List<Stop> terStations = [
   Stop(name: 'Gare TER Dakar', direction: 'Terminus Dakar (Arrivée)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 0), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6792, -17.4407), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.arrival),
@@ -276,21 +276,13 @@ final List<Stop> brtStations = [
   Stop(name: 'PEM Guediawaye', direction: 'Terminus nord BRT', distanceMeters: 10500, departureMinutesFromMidnight: _shift(_brtBase, 8), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.7735, -17.3977), modeLabel: 'BRT', source: DataSourceInfo.sunubrt, stopType: StopType.terminus),
 ];
 
-// Intégration des arrêts clés basés sur le catalogue officiel des 72 lignes AFTU
 final List<Stop> aftuAndBusStations = [
-  // Ligne 1 & 2 & 25 (Parcelles - Petersen)
   Stop(name: 'Terminus Parcelles Assainies (L25)', direction: 'Dir. Petersen', distanceMeters: 280, departureMinutesFromMidnight: [], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.6878, -17.4893), modeLabel: 'AFTU', source: DataSourceInfo.aftuOfficial, stopType: StopType.boarding),
   Stop(name: 'École Dior (L25)', direction: 'Dir. Petersen / Parcelles', distanceMeters: 1100, departureMinutesFromMidnight: [], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.7023, -17.5234), modeLabel: 'AFTU', source: DataSourceInfo.aftuOfficial, stopType: StopType.correspondence),
   Stop(name: 'Terminus Petersen (AFTU / L25)', direction: 'Terminus central AFTU', distanceMeters: 450, departureMinutesFromMidnight: [], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.7101, -17.4523), modeLabel: 'AFTU', source: DataSourceInfo.aftuOfficial, stopType: StopType.terminus),
-  
-  // Ligne 29 (Cité Nations Unies ↔ Petersen)
   Stop(name: 'Cité Nations Unies (L29)', direction: 'Dir. Petersen', distanceMeters: 3100, departureMinutesFromMidnight: [], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.7450, -17.4350), modeLabel: 'AFTU', source: DataSourceInfo.aftuOfficial, stopType: StopType.boarding),
-
-  // Ligne 46 & 72 & 80 (Lignes majeures)
   Stop(name: 'Guediawaye Notaire (L72)', direction: 'Dir. Kounoune', distanceMeters: 9200, departureMinutesFromMidnight: [], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.7700, -17.3900), modeLabel: 'AFTU', source: DataSourceInfo.aftuOfficial, stopType: StopType.boarding),
-  Stop(name: 'Arrêt Bambilor (L80)', direction: 'Dir. Dakar Plateau (44km)', distanceMeters: 22000, departureMinutesFromMidnight: [], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.7900, -17.2800), modeLabel: 'AFTU', source: DataSourceInfo.aftuOfficial, stopType: StopType.boarding),
-
-  // Bus Tata & DDD
+  Stop(name: 'Arrêt Bambilor (L80)', direction: 'Dir. Dakar Plateau', distanceMeters: 22000, departureMinutesFromMidnight: [], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.7900, -17.2800), modeLabel: 'AFTU', source: DataSourceInfo.aftuOfficial, stopType: StopType.boarding),
   Stop(name: 'Mermoz', direction: 'Dir. Mermoz / Sacré-Cœur', distanceMeters: 3500, departureMinutesFromMidnight: [360, 420, 480, 540, 600, 660, 720, 780, 840, 900], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: const LatLng(14.7120, -17.4650), modeLabel: 'DDD', source: DataSourceInfo.demdikk, stopType: StopType.boarding),
   Stop(name: 'Keur Massar', direction: 'Dir. Keur Massar Centre', distanceMeters: 15000, departureMinutesFromMidnight: [360, 420, 480, 540, 600, 660, 720, 780, 840, 900, 960], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: const LatLng(14.7900, -17.3500), modeLabel: 'DDD', source: DataSourceInfo.demdikk, stopType: StopType.boarding),
   Stop(name: 'Arret Tata 12', direction: 'Dir. Guediawaye (Rotation continue)', distanceMeters: 600, departureMinutesFromMidnight: [], icon: Icons.directions_bus_filled, color: AppColors.tata, location: const LatLng(14.7200, -17.4700), modeLabel: 'Tata', source: DataSourceInfo.demo, stopType: StopType.boarding),
@@ -299,7 +291,7 @@ final List<Stop> aftuAndBusStations = [
 final List<Stop> allStops = [...terStations, ...brtStations, ...aftuAndBusStations];
 
 // ============================================================
-// TRACES DES ROUTES (OPTIMISES POUR COMPILATEUR WEB)
+// TRACES DES ROUTES PROPRES ET CADRES SUR DAKAR
 // ============================================================
 final List<TransitRoute> demoRoutes = [
   TransitRoute(
@@ -324,16 +316,15 @@ final List<TransitRoute> demoRoutes = [
     ],
   ),
   TransitRoute(
-    name: 'AFTU Ligne 80', code: 'A80', type: 'AFTU', color: AppColors.aftu,
+    name: 'AFTU Ligne 72', code: 'A72', type: 'AFTU', color: AppColors.aftu,
     points: [
-      const LatLng(14.7900, -17.2800), const LatLng(14.7101, -17.4523),
+      const LatLng(14.7700, -17.3900), const LatLng(14.7550, -17.3900), const LatLng(14.7101, -17.4523),
     ],
   ),
   TransitRoute(
-    name: 'Tata', code: 'T12', type: 'Tata', color: AppColors.tata,
+    name: 'Tata / DDD', code: 'T12', type: 'Tata', color: AppColors.tata,
     points: [
-      const LatLng(14.6792, -17.4407), const LatLng(14.7200, -17.4700),
-      const LatLng(14.7550, -17.3900),
+      const LatLng(14.6792, -17.4407), const LatLng(14.7120, -17.4650), const LatLng(14.7900, -17.3500),
     ],
   ),
 ];
@@ -1410,7 +1401,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ListTile(
                     leading: const Icon(Icons.info_outline, color: AppColors.primary),
                     title: const Text('Version de l\'application'),
-                    subtitle: const Text('Dakar Bus v6.0 (72 Lignes AFTU intégrées)'),
+                    subtitle: const Text('Dakar Bus v6.1 (Clean Map & 72 AFTU Lines)'),
                   ),
                 ],
               ),
