@@ -9,9 +9,6 @@ import 'package:http/http.dart' as http;
 
 void main() => runApp(const DakarBusApp());
 
-// ============================================================
-// GEOFENCING STRICT TERRE FERME DAKAR (ANTI-OCEAN)
-// ============================================================
 class DakarBounds {
   static const double north = 14.7900;
   static const double south = 14.6500;
@@ -32,9 +29,6 @@ class DakarBounds {
   }
 }
 
-// ============================================================
-// SERVICE ROUTING REEL OSRM
-// ============================================================
 class RoutingService {
   static final Map<String, List<LatLng>> _cache = {};
 
@@ -69,9 +63,6 @@ class RoutingService {
   }
 }
 
-// ============================================================
-// GENERATEUR D HORAIRES DYNAMIQUES & ROTATIONS CONTINUES
-// ============================================================
 List<int> _generateSchedule({required int from, required int to, required int step}) {
   final list = <int>[];
   for (int m = from; m <= to; m += step) { list.add(m); }
@@ -83,17 +74,14 @@ List<int> _buildTerBase() => _generateSchedule(from: 330, to: 1320, step: _isSun
 final List<int> _brtBase = _generateSchedule(from: 360, to: 1260, step: 6);
 final List<int> _terBase = _buildTerBase();
 
-// ============================================================
-// PALETTE OFFICIELLE DES TRANSPORTS
-// ============================================================
 class AppColors {
   static const primary = Color(0xFF00B140);
   static const primaryDark = Color(0xFF008A32);
-  static const ter = Color(0xFF8B4513);    // Train Express Régional
-  static const brt = Color(0xFF22C55E);    // Bus Rapid Transit
-  static const aftu = Color(0xFFFF8C42);   // Autobus AFTU
-  static const tata = Color(0xFF87CEEB);   // Minibus Tata
-  static const ddd = Color(0xFF3B82F6);    // Dakar Dem Dikk
+  static const ter = Color(0xFF8B4513);
+  static const brt = Color(0xFF22C55E);
+  static const aftu = Color(0xFFFF8C42);
+  static const tata = Color(0xFF87CEEB);
+  static const ddd = Color(0xFF3B82F6);
   static const background = Color(0xFFF1F8F5);
   static const surface = Color(0xFFFFFFFF);
   static const textPrimary = Color(0xFF111111);
@@ -103,9 +91,6 @@ class AppColors {
   static const warning = Color(0xFFEF6C00);
 }
 
-// ============================================================
-// SOURCE DE DONNEES & STATUT
-// ============================================================
 enum DataOrigin { official, verified, indicative, unavailable }
 class DataSourceInfo {
   final DataOrigin origin; final String label; final String badgeEmoji;
@@ -117,9 +102,6 @@ class DataSourceInfo {
   static const demo = DataSourceInfo(origin: DataOrigin.indicative, label: 'Donnée Indicative (~)', badgeEmoji: '🟡');
 }
 
-// ============================================================
-// MODELES DE DONNEES ET ROUTES DETAILLEES OFFICIELLES
-// ============================================================
 enum StopType { arrival, departure, boarding, terminus, correspondence, intermediate }
 
 class DetailedStop {
@@ -397,9 +379,6 @@ class RouteSearchResult {
   bool get hasRoutes => routes.isNotEmpty;
 }
 
-// ============================================================
-// STATIONS ET ARRETS STRICTEMENT SUR TERRE FERME (DAKAR)
-// ============================================================
 final List<Stop> terStations = [
   Stop(name: 'Gare TER Dakar', direction: 'Terminus Dakar (Arrivée)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 0), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6792, -17.4407), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.arrival),
   Stop(name: 'Gare TER Dakar', direction: 'Dir. Diamniadio (Embarquement)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 3), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6795, -17.4405), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
@@ -430,9 +409,6 @@ final List<Stop> allStops = [...terStations, ...brtStations, ...aftuAndBusStatio
     .where((s) => DakarBounds.isValid(s.location))
     .toList();
 
-// ============================================================
-// TRACES DES ROUTES AUX COULEURS RESPECTIVES
-// ============================================================
 final List<TransitRoute> demoRoutes = [
   TransitRoute(
     name: 'TER', code: 'TER', type: 'TER', color: AppColors.ter,
@@ -466,9 +442,6 @@ final List<TransitRoute> demoRoutes = [
   ),
 ];
 
-// ============================================================
-// MOTEUR D ITINERAIRES INTELLIGENT
-// ============================================================
 class RoutePlanner {
   static RouteSearchResult plan({required String fromQuery, required String toQuery}) {
     final now = DateTime.now();
@@ -553,9 +526,6 @@ class RoutePlanner {
   }
 }
 
-// ============================================================
-// UTILITAIRES & GESTION DES DIRECTIONS
-// ============================================================
 class TimeHelper {
   static String formatRemaining(int minutes) {
     if (minutes <= 0) return 'Imminent';
@@ -611,9 +581,6 @@ class DirectionHelper {
   }
 }
 
-// ============================================================
-// APP SHELL
-// ============================================================
 class DakarBusApp extends StatelessWidget {
   const DakarBusApp({super.key});
   @override
@@ -716,9 +683,6 @@ class _MainShellState extends State<MainShell> {
   }
 }
 
-// ============================================================
-// EXPLORER
-// ============================================================
 class ExplorerPage extends StatefulWidget {
   final LatLng? userPosition; final GpsState gpsState; final String? gpsMessage; final Future<void> Function() onRequestLocation;
   const ExplorerPage({super.key, required this.userPosition, required this.gpsState, required this.gpsMessage, required this.onRequestLocation});
@@ -952,9 +916,6 @@ class _ExplorerPageState extends State<ExplorerPage> {
   Color _colorFor(String label) { switch (label) { case 'TER': return AppColors.ter; case 'BRT': return AppColors.brt; case 'DDD': return AppColors.ddd; case 'AFTU': return AppColors.aftu; case 'Tata': return AppColors.tata; default: return AppColors.primary; } }
 }
 
-// ============================================================
-// CARTE D ARRET
-// ============================================================
 class StopCard extends StatelessWidget {
   final Stop stop; final double distanceMeters;
   const StopCard({super.key, required this.stop, required this.distanceMeters});
@@ -1024,9 +985,6 @@ class StopCard extends StatelessWidget {
   }
 }
 
-// ============================================================
-// ONGLET TRAJETS
-// ============================================================
 class TripsPage extends StatefulWidget {
   const TripsPage({super.key});
   @override
@@ -1187,9 +1145,6 @@ class _TripsPageState extends State<TripsPage> {
   }
 }
 
-// ============================================================
-// ONGLET ALERTES OFFICIELLES & EN TEMPS REEL
-// ============================================================
 class AlertsPage extends StatelessWidget {
   const AlertsPage({super.key});
 
@@ -1264,9 +1219,6 @@ class AlertsPage extends StatelessWidget {
   }
 }
 
-// ============================================================
-// CROWDSOURCING & SIGNALEMENT DIRECT RUE
-// ============================================================
 class CommunityAlertsPage extends StatefulWidget {
   const CommunityAlertsPage({super.key});
 
@@ -1321,9 +1273,6 @@ class CommunityAlertsPageState extends State<CommunityAlertsPage> {
   }
 }
 
-// ============================================================
-// REGLAGES
-// ============================================================
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
   @override
@@ -1353,7 +1302,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   const Divider(height: 1),
                   SwitchListTile(secondary: const Icon(Icons.dark_mode_outlined, color: AppColors.primary), title: const Text('Mode sombre'), value: _darkMode, activeColor: AppColors.primary, onChanged: (v) => setState(() => _darkMode = v)),
                   const Divider(height: 1),
-                  const ListTile(leading: Icon(Icons.info_outline, color: AppColors.primary), title: Text('Version de l\'application'), subtitle: Text('Dakar Bus v7.6 (Build Web Validated)')),
+                  const ListTile(leading: Icon(Icons.info_outline, color: AppColors.primary), title: Text('Version de l\'application'), subtitle: Text('Dakar Bus v7.7 (Clean Web Build)')),
                 ],
               ),
             ),
@@ -1364,9 +1313,6 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 }
 
-// ============================================================
-// ASSISTANT IA INTELLIGENT
-// ============================================================
 class AIChatPage extends StatefulWidget {
   const AIChatPage({super.key});
   @override
@@ -1408,9 +1354,6 @@ class _AIChatPageState extends State<AIChatPage> {
   }
 }
 
-// ============================================================
-// PAGE DE ROUTE DETAILLEE AVEC MINI-CARTE ET TIMELINE
-// ============================================================
 class DetailedRoutePage extends StatelessWidget {
   final DetailedRoute route;
   const DetailedRoutePage({super.key, required this.route});
@@ -1527,9 +1470,6 @@ class DetailedRoutePage extends StatelessWidget {
   }
 }
 
-// ============================================================
-// DETAIL ARRET — ALLER / RETOUR SYNCHRONISE ET PROPRE
-// ============================================================
 class DualStopDetailPage extends StatelessWidget {
   final Stop stop;
   const DualStopDetailPage({super.key, required this.stop});
@@ -1550,13 +1490,11 @@ class DualStopDetailPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Bouton Aller
           GestureDetector(
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(allergenStop, isReturnRoute: false)))),
             child: _buildStopCard(context, allergenStop, allergenStop.direction, allergenStop.distanceMeters, 'Aller', showArrow: true),
           ),
           const SizedBox(height: 16),
-          // Bouton Retour inversé
           GestureDetector(
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(allergenStop, isReturnRoute: true)))),
             child: _buildStopCard(context, returnStop, 'Sens inverse : Dir. ${stop.name} (depuis $destinationName)', allergenStop.distanceMeters, 'Retour', showArrow: true),
