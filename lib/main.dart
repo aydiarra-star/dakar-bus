@@ -70,7 +70,7 @@ class RoutingService {
 }
 
 // ============================================================
-// SERVICE DE DETECTION DES DEUX SENS & INVERSION PROpre
+// SERVICE DE DETECTION DES DEUX SENS & INVERSION PROPRE
 // ============================================================
 class OppositeStopService {
   static const double _maxOppositeDistanceMeters = 500.0;
@@ -291,7 +291,6 @@ class DetailedRoute {
         stops: brtStops,
       );
     } else {
-      // Pour les bus urbains (DDD, AFTU, Tata) avec gestion propre de l'aller/retour
       final originName = stop.name;
       final destName = DirectionHelper.extractDestination(stop.direction);
       
@@ -645,11 +644,6 @@ class DirectionHelper {
       return parts.last;
     }
     return 'Terminus / Centre';
-  }
-
-  static String reverseDirection(String currentName, String direction) {
-    final dest = extractDestination(direction);
-    return 'Sens inverse : Dir. $currentName (depuis $dest)';
   }
 }
 
@@ -1135,9 +1129,6 @@ class _TripsPageState extends State<TripsPage> {
                   _suggestionChip('Guédiawaye - Petersen (BRT)', () { 
                     Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(brtStations.last))));
                   }),
-                  _suggestionChip('Mermoz - Sacré-Cœur (DDD)', () { 
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(aftuAndBusStations[3]))));
-                  }),
                 ],
               ),
             ],
@@ -1395,7 +1386,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   const Divider(height: 1),
                   SwitchListTile(secondary: const Icon(Icons.dark_mode_outlined, color: AppColors.primary), title: const Text('Mode sombre'), value: _darkMode, activeColor: AppColors.primary, onChanged: (v) => setState(() => _darkMode = v)),
                   const Divider(height: 1),
-                  const ListTile(leading: Icon(Icons.info_outline, color: AppColors.primary), title: Text('Version de l\'application'), subtitle: Text('Dakar Bus v7.0 (Gestion parfaite Aller / Retour multi-mobilité)')),
+                  const ListTile(leading: Icon(Icons.info_outline, color: AppColors.primary), title: Text('Version de l\'application'), subtitle: Text('Dakar Bus v7.1 (Libellés Aller/Retour optimisés)')),
                 ],
               ),
             ),
@@ -1417,7 +1408,7 @@ class AIChatPage extends StatefulWidget {
 
 class _AIChatPageState extends State<AIChatPage> {
   final TextEditingController _msgCtrl = TextEditingController();
-  final List<Map<String, String>> _messages = [{'role': 'ai', 'text': 'Nanga def ! 👋 Interrogez-moi sur les horaires et les sens de circulation.'}];
+  final List<Map<String, String>> _messages = [{'role': 'ai', 'text': 'Nanga def ! 👋 Interrogez-moi sur les horaires et les arrêts.'}];
 
   void _sendMessage() {
     final text = _msgCtrl.text.trim();
@@ -1425,7 +1416,7 @@ class _AIChatPageState extends State<AIChatPage> {
     setState(() { _messages.add({'role': 'user', 'text': text}); _msgCtrl.clear(); });
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
-        setState(() { _messages.add({'role': 'ai', 'text': '🚍 Les sens Aller et Retour sont maintenant parfaitement synchronisés pour tous les bus et trains.'}); });
+        setState(() { _messages.add({'role': 'ai', 'text': '🚆 Les libellés d’embarquement et de terminus (arrivée) s’affichent désormais de manière claire et structurée.'}); });
       }
     });
   }
@@ -1554,14 +1545,15 @@ class DualStopDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Carte 1 : Sens Aller (ex: Mermoz -> Sacré-Cœur)
-    final allergenStop = stop;
-    
-    // Carte 2 : Sens Retour propre et inversé (ex: Sacré-Cœur -> Mermoz)
-    final destinationName = DirectionHelper.extractDestination(stop.direction);
-    final returnStop = stop.copyWith(
-      name: stop.name,
-      direction: DirectionHelper.reverseDirection(stop.name, stop.direction),
+    // 1ère Carte (Aller) : Configurée en mode Départ (Embarquement) vers la destination
+    final allerStop = stop.copyWith(
+      direction: stop.direction.contains('Dir.') ? stop.direction : 'Dir. Diamniadio (Embarquement)',
+      stopType: StopType.boarding,
+    );
+
+    // 2ème Carte (Retour) : Configurée en mode Terminus / Arrivée (ex: Terminus Gare TER Dakar (Arrivée))
+    final retourStop = stop.copyWith(
+      direction: 'Terminus ${stop.name} (Arrivée)',
       stopType: StopType.arrival,
     );
 
@@ -1570,16 +1562,16 @@ class DualStopDetailPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Bouton Aller
+          // Bouton Aller (Départ / Embarquement) -> Ouvre le trajet direct
           GestureDetector(
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(allergenStop, isReturnRoute: false)))),
-            child: _buildStopCard(context, allergenStop, allergenStop.direction, allergenStop.distanceMeters, 'Aller', showArrow: true),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(stop, isReturnRoute: false)))),
+            child: _buildStopCard(context, allerStop, allerStop.direction, stop.distanceMeters, 'Aller', showArrow: true),
           ),
           const SizedBox(height: 16),
-          // Bouton Retour inversé
+          // Bouton Retour (Terminus / Arrivée) -> Ouvre le trajet inverse
           GestureDetector(
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(allergenStop, isReturnRoute: true)))),
-            child: _buildStopCard(context, returnStop, 'Sens inverse : Dir. ${stop.name} (depuis $destinationName)', allergenStop.distanceMeters, 'Retour', showArrow: true),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(stop, isReturnRoute: true)))),
+            child: _buildStopCard(context, retourStop, retourStop.direction, stop.distanceMeters, 'Retour', showArrow: true),
           ),
           const SizedBox(height: 24),
           Container(
