@@ -190,9 +190,13 @@ class Stop {
 
   int? nextDepartureMinutes() {
     if (!_isServiceOpen()) return null;
-    final now = DateTime.now(); final currentMin = now.hour * 60 + now.minute;
-    for (final d in departureMinutesFromMidnight) { if (d >= currentMin) return d; }
-    if (departureMinutesFromMidnight.isNotEmpty) return departureMinutesFromMidnight.first + 24 * 60;
+    final now = DateTime.now(); 
+    final currentMin = now.hour * 60 + now.minute;
+    
+    // On cherche le prochain départ dans les 3 heures max (180 min)
+    for (final d in departureMinutesFromMidnight) { 
+      if (d >= currentMin && (d - currentMin) <= 180) return d; 
+    }
     return null;
   }
 
@@ -206,7 +210,7 @@ class Stop {
   String? nextDepartureLabel() { 
     if (!_isServiceOpen()) return 'Fermé (Reprise 5h)';
     final d = nextDepartureMinutes(); 
-    if (d == null) return 'Fermé (Reprise 5h)'; 
+    if (d == null) return 'Prochainement'; 
     final normalized = d % (24 * 60); 
     return '${(normalized ~/ 60).toString().padLeft(2, '0')} h ${(normalized % 60).toString().padLeft(2, '0')}'; 
   }
@@ -841,7 +845,7 @@ class StopCard extends StatelessWidget {
     if (!isOpen) {
       timeWidget = const Text('Service fermé', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary));
     } else if (remaining == null) { 
-      timeWidget = const Text('Non dispo', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)); 
+      timeWidget = const Text('Prochainement', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)); 
     } else if (remaining <= 0) { 
       timeWidget = Text('Imminent', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: stop.color)); 
     } else { 
@@ -1013,7 +1017,7 @@ class _TripsPageState extends State<TripsPage> {
                 Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: r.segments.first.color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Icon(r.segments.first.icon, color: r.segments.first.color, size: 22)),
                 const SizedBox(width: 12),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('${r.fromName} - ${r.toName}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)), const SizedBox(height: 2), Text('${r.transferCount} correspondance(s) . ${r.segments.length} étape(s)', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))])),
-                Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Text('${r.totalMinutes} min', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 18)), const Text('Durée totale', style: TextStyle(fontSize: 10, color: AppColors.textSecondary))]),
+                Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Text('${r.totalMinutes} min', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 18)), const Text('Durée totale', style: TextStyle(fontSize: 10, color: AppColors.textSecondary))])),
               ],
             ),
             const SizedBox(height: 16),
@@ -1393,7 +1397,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ListTile(
                     leading: const Icon(Icons.info_outline, color: AppColors.primary),
                     title: const Text('Version de l\'application'),
-                    subtitle: const Text('Dakar Bus v5.9 (Night Service Control)'),
+                    subtitle: const Text('Dakar Bus v5.10 (Proximity Schedule Check)'),
                   ),
                 ],
               ),
@@ -1689,7 +1693,7 @@ class DualStopDetailPage extends StatelessWidget {
   }
 
   Widget _buildStopCard(Stop s, String direction, double distance, String badgeText) {
-    final nextTimeStr = s.nextDepartureLabel() ?? 'Fermé (Reprise 5h)';
+    final nextTimeStr = s.nextDepartureLabel() ?? 'Prochainement';
 
     return Container(
       padding: const EdgeInsets.all(18),
