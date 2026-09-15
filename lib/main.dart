@@ -111,7 +111,7 @@ class OppositeStopService {
 }
 
 // ============================================================
-// GENERATEUR D HORAIRES DYNAMIQUES
+// GENERATEUR D HORAIRES DYNAMIQUES & ROTATIONS CONTINUES
 // ============================================================
 List<int> _generateSchedule({required int from, required int to, required int step}) {
   final list = <int>[];
@@ -206,7 +206,6 @@ class DetailedRoute {
     required this.stops,
   });
 
-  // Générateur dynamique basé sur la mobilité et le sens (Aller / Retour)
   static DetailedRoute fromStop(Stop stop) {
     bool isReturn = stop.direction.contains('Diamniadio - Dakar') ||
         stop.direction.contains('Dakar (Arrivée)') ||
