@@ -70,47 +70,6 @@ class RoutingService {
 }
 
 // ============================================================
-// SERVICE DE DETECTION DES DEUX SENS & INVERSION PROPRE
-// ============================================================
-class OppositeStopService {
-  static const double _maxOppositeDistanceMeters = 500.0;
-
-  static Stop? findOppositeStop({required Stop currentStop, required List<Stop> allStops}) {
-    Stop? bestCandidate;
-    double minDistance = double.infinity;
-    final currentName = currentStop.name.toLowerCase();
-
-    for (final stop in allStops) {
-      if (identical(stop, currentStop)) continue;
-      if (stop.name == currentStop.name && stop.direction == currentStop.direction) continue;
-
-      final double distance = DistanceHelper.haversineMeters(currentStop.location, stop.location);
-      if (distance <= 50.0 && distance < minDistance) {
-        final stopName = stop.name.toLowerCase();
-        if (currentName.contains(stopName) || stopName.contains(currentName)) {
-          minDistance = distance;
-          bestCandidate = stop;
-        }
-      }
-    }
-    if (bestCandidate != null) return bestCandidate;
-
-    for (final stop in allStops) {
-      if (identical(stop, currentStop)) continue;
-      if (stop.modeLabel != currentStop.modeLabel) continue;
-      if (stop.direction == currentStop.direction) continue;
-
-      final double distance = DistanceHelper.haversineMeters(currentStop.location, stop.location);
-      if (distance <= _maxOppositeDistanceMeters && distance < minDistance) {
-        minDistance = distance;
-        bestCandidate = stop;
-      }
-    }
-    return bestCandidate;
-  }
-}
-
-// ============================================================
 // GENERATEUR D HORAIRES DYNAMIQUES & ROTATIONS CONTINUES
 // ============================================================
 List<int> _generateSchedule({required int from, required int to, required int step}) {
@@ -1394,7 +1353,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   const Divider(height: 1),
                   SwitchListTile(secondary: const Icon(Icons.dark_mode_outlined, color: AppColors.primary), title: const Text('Mode sombre'), value: _darkMode, activeColor: AppColors.primary, onChanged: (v) => setState(() => _darkMode = v)),
                   const Divider(height: 1),
-                  const ListTile(leading: Icon(Icons.info_outline, color: AppColors.primary), title: Text('Version de l\'application'), subtitle: Text('Dakar Bus v7.4 (Parfaitement équilibré)')),
+                  const ListTile(leading: Icon(Icons.info_outline, color: AppColors.primary), title: Text('Version de l\'application'), subtitle: Text('Dakar Bus v7.5 (Clean Build Web)')),
                 ],
               ),
             ),
@@ -1497,69 +1456,72 @@ class DetailedRoutePage extends StatelessWidget {
           const SizedBox(height: 20),
           Text('Arrêts & Gares alignés — ${route.operator}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
-          ...route.stops.asMap().entries.map((entry) {
-            final idx = entry.key;
-            final stop = entry.value;
-            final isLast = idx == route.stops.length - 1;
-            return IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Column(
+          for (int idx = 0; idx < route.stops.length; idx++) ...[
+            Builder(
+              builder: (context) {
+                final stop = route.stops[idx];
+                final isLast = idx == route.stops.length - 1;
+                return IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Container(
-                        width: 26,
-                        height: 26,
-                        decoration: BoxDecoration(color: route.color, shape: BoxShape.circle),
-                        child: Center(
-                          child: Text(
-                            '${idx + 1}',
-                            style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                      Column(
+                        children: [
+                          Container(
+                            width: 26,
+                            height: 26,
+                            decoration: BoxDecoration(color: route.color, shape: BoxShape.circle),
+                            child: Center(
+                              child: Text(
+                                '${idx + 1}',
+                                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                              ),
+                            ),
                           ),
-                        ),
+                          if (!isLast) Expanded(child: Container(width: 3, color: route.color.withOpacity(0.4))),
+                        ],
                       ),
-                      if (!isLast) Expanded(child: Container(width: 3, color: route.color.withOpacity(0.4))),
-                    ],
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 20),
-                      child: Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.divider)),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 20),
+                          child: Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.divider)),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Expanded(child: Text(stop.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(color: AppColors.success.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
-                                  child: const Text('[OFFICIEL]', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppColors.success)),
+                                Row(
+                                  children: [
+                                    Expanded(child: Text(stop.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(color: AppColors.success.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
+                                      child: const Text('[OFFICIEL]', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppColors.success)),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Icon(Icons.access_time, size: 12, color: route.color),
+                                    const SizedBox(width: 4),
+                                    Text('Heure : ${stop.estimatedTime}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                                    const Spacer(),
+                                    Text('📍 ${stop.distanceFromStart}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                                  ],
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                Icon(Icons.access_time, size: 12, color: route.color),
-                                const SizedBox(width: 4),
-                                Text('Heure : ${stop.estimatedTime}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
-                                const Spacer(),
-                                Text('📍 ${stop.distanceFromStart}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                              ],
-                            ),
-                          ],
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
-            );
-          }),
+                );
+              },
+            ),
+          ],
         ],
       ),
     );
