@@ -1550,85 +1550,121 @@ class DualStopDetailPage extends StatelessWidget {
       stopType: StopType.boarding,
     );
 
-    final retourStop = stop.copyWith(
-      direction: 'Terminus ${stop.name} (Arrivée)',
-      stopType: StopType.arrival,
+    final retourStop = OppositeStopService.findOppositeStop(currentStop: stop, allStops: allStops) ?? stop.copyWith(
+      direction: 'Dir. Dakar / Centre',
+      stopType: StopType.departure,
     );
 
-    return Scaffold(
-      appBar: AppBar(title: Text(stop.name), backgroundColor: stop.color, foregroundColor: Colors.white),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(stop, isReturnRoute: false)))),
-            child: _buildStopCard(context, allerStop, allerStop.direction, stop.distanceMeters, 'Aller', showArrow: true),
-          ),
-          const SizedBox(height: 16),
-          GestureDetector(
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(stop, isReturnRoute: true)))),
-            child: _buildStopCard(context, retourStop, retourStop.direction, stop.distanceMeters, 'Retour', showArrow: true),
-          ),
-          const SizedBox(height: 24),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider)),
-            child: Column(
-              children: [
-                const Row(children: [Icon(Icons.info_outline, color: AppColors.primary), SizedBox(width: 10), Text('Informations sur l\'arrêt', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))]),
-                const SizedBox(height: 12),
-                _buildInfoRow('Mode', stop.modeLabel),
-                _buildInfoRow('Distance', DistanceHelper.format(stop.distanceMeters)),
-                _buildInfoRow('Affluence', TimeHelper.getCrowdLevel(stop)),
-                _buildInfoRow('Source', stop.source.label),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStopCard(BuildContext context, Stop s, String direction, double distance, String badgeText, {bool showArrow = false}) {
-    final nextTimeStr = s.nextDepartureLabel() ?? 'Prochainement';
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: s.color.withOpacity(0.3), width: 1.5)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(children: [
-            CircleAvatar(backgroundColor: s.color, radius: 18, child: Icon(s.icon, color: Colors.white, size: 16)),
-            const SizedBox(width: 10),
-            Expanded(child: Text(s.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
-            Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: s.color.withOpacity(0.1), borderRadius: BorderRadius.circular(6)), child: Text(badgeText, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: s.color))),
-          ]),
-          const SizedBox(height: 12),
-          Row(children: [
-            Icon(Icons.arrow_forward_ios, size: 12, color: s.color),
-            const SizedBox(width: 6),
-            Expanded(child: Text(direction, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: s.color))),
-            if (showArrow) Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: s.color.withOpacity(0.15), borderRadius: BorderRadius.circular(8)), child: const Text('Voir le trajet →', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold))),
-          ]),
-          const SizedBox(height: 10),
-          const Divider(height: 1),
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('Prochain départ', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)), const SizedBox(height: 2), Text(nextTimeStr, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: s.color))]),
-              Column(crossAxisAlignment: CrossAxisAlignment.end, children: [const Text('Distance', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)), const SizedBox(height: 2), Text(DistanceHelper.format(distance), style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary))]),
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(stop.name),
+          backgroundColor: stop.color,
+          foregroundColor: Colors.white,
+          bottom: const TabBar(
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.white70,
+            indicatorColor: Colors.white,
+            tabs: [
+              Tab(text: 'Sens Aller / Départ', icon: Icon(Icons.arrow_forward, size: 16)),
+              Tab(text: 'Sens Retour', icon: Icon(Icons.arrow_back, size: 16)),
             ],
           ),
-        ],
+        ),
+        body: TabBarView(
+          children: [
+            SingleStopView(stop: allerStop),
+            SingleStopView(stop: retourStop),
+          ],
+        ),
       ),
     );
   }
+}
 
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(label, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)), Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600))]),
+// ============================================================
+// VUE UNIQUE POUR UN SENS DONNE (ALLER OU RETOUR)
+// ============================================================
+class SingleStopView extends StatelessWidget {
+  final Stop stop;
+  const SingleStopView({super.key, required this.stop});
+
+  @override
+  Widget build(BuildContext context) {
+    final nextMin = stop.nextDepartureMinutes();
+    final remaining = stop.remainingMinutes();
+    final crowd = TimeHelper.getCrowdLevel(stop);
+    final routeDetails = DetailedRoute.fromStop(stop);
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: stop.color.withOpacity(0.3), width: 1.5),
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(backgroundColor: stop.color, radius: 20, child: Icon(stop.icon, color: Colors.white, size: 18)),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(stop.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        const SizedBox(height: 2),
+                        Text(stop.direction, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textSecondary)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Divider(height: 1)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Prochain départ', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                      const SizedBox(height: 2),
+                      Text(stop.nextDepartureLabel() ?? 'Fermé', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: stop.color)),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      const Text('Affluence', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                      const SizedBox(height: 2),
+                      Text(crowd, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+        ElevatedButton.icon(
+          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: routeDetails))),
+          icon: const Icon(Icons.map_outlined, size: 18),
+          label: const Text('Voir la ligne complète & stations', style: TextStyle(fontWeight: FontWeight.bold)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: stop.color,
+            foregroundColor: Colors.white,
+            minimumSize: const Size(double.infinity, 48),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        ),
+      ],
     );
   }
 }
