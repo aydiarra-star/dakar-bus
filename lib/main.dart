@@ -10,15 +10,20 @@ import 'package:http/http.dart' as http;
 void main() => runApp(const DakarBusApp());
 
 // ============================================================
-// 1. GEOFENCING & LIMITES GEOGRAPHIQUES DE DAKAR
+// GEOFENCING STRICT TERRE FERME DAKAR (ANTI-OCEAN)
 // ============================================================
 class DakarBounds {
-  static const double north = 14.7800;
-  static const double south = 14.6500;
-  static const double east = -17.1500;
-  static const double west = -17.5500;
+  static const double north = 14.7900;
+  static const double south = 14.6600;
+  static const double east = -17.1800;
+  static const double west = -17.5300;
 
   static bool isValid(LatLng location) {
+    // Exclusion spécifique de la Baie de Hann (zone maritime intérieure)
+    if (location.latitude > 14.7000 && location.latitude < 14.7450 &&
+        location.longitude > -17.4350 && location.longitude < -17.3750) {
+      return false;
+    }
     return location.latitude >= south &&
         location.latitude <= north &&
         location.longitude >= west &&
@@ -121,7 +126,7 @@ final List<int> _brtBase = _generateSchedule(from: 360, to: 1260, step: 6);
 final List<int> _terBase = _buildTerBase();
 
 // ============================================================
-// 2. PALETTE OFFICIELLE DES TRANSPORTS
+// PALETTE OFFICIELLE DES TRANSPORTS
 // ============================================================
 class AppColors {
   static const primary = Color(0xFF00B140);
@@ -269,13 +274,13 @@ class RouteSearchResult {
 }
 
 // ============================================================
-// STATIONS ET ARRETS FILTRES STRICTEMENT SUR TERRE FERME
+// STATIONS ET ARRETS STRICTEMENT SUR TERRE FERME (DAKAR)
 // ============================================================
 final List<Stop> terStations = [
   Stop(name: 'Gare TER Dakar', direction: 'Terminus Dakar (Arrivée)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 0), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6792, -17.4407), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.arrival),
   Stop(name: 'Gare TER Dakar', direction: 'Dir. Diamniadio (Embarquement)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 3), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6795, -17.4405), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
   Stop(name: 'Gare TER Colobane', direction: 'Dir. Diamniadio', distanceMeters: 1200, departureMinutesFromMidnight: _shift(_terBase, 5), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6937, -17.4441), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
-  Stop(name: 'Gare TER Hann', direction: 'Dir. Diamniadio', distanceMeters: 3500, departureMinutesFromMidnight: _shift(_terBase, 9), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7222, -17.4321), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
+  Stop(name: 'Gare TER Hann', direction: 'Dir. Diamniadio', distanceMeters: 3500, departureMinutesFromMidnight: _shift(_terBase, 9), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7190, -17.4450), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
   Stop(name: 'Gare TER Pikine', direction: 'Dir. Diamniadio', distanceMeters: 7200, departureMinutesFromMidnight: _shift(_terBase, 17), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7550, -17.3900), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
   Stop(name: 'Gare TER Keur Mbaye Fall', direction: 'Dir. Dakar / Diamniadio', distanceMeters: 14200, departureMinutesFromMidnight: _shift(_terBase, 27), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7750, -17.3100), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.correspondence),
   Stop(name: 'Gare TER Diamniadio', direction: 'Terminus Diamniadio', distanceMeters: 35000, departureMinutesFromMidnight: _shift(_terBase, 50), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7160, -17.1986), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.terminus),
@@ -294,26 +299,26 @@ final List<Stop> aftuAndBusStations = [
   Stop(name: 'Terminus Petersen (AFTU L25)', direction: 'Terminus central AFTU', distanceMeters: 450, departureMinutesFromMidnight: [], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.6720, -17.4400), modeLabel: 'AFTU', source: DataSourceInfo.aftuOfficial, stopType: StopType.terminus),
   Stop(name: 'Ouakam / Ngor (L26 à L40)', direction: 'Dir. Plateau', distanceMeters: 3100, departureMinutesFromMidnight: [], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.7350, -17.4820), modeLabel: 'AFTU', source: DataSourceInfo.aftuOfficial, stopType: StopType.boarding),
   Stop(name: 'Guédiawaye Notaire (L41 à L55)', direction: 'Dir. Kounoune', distanceMeters: 9200, departureMinutesFromMidnight: [], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.7750, -17.3950), modeLabel: 'AFTU', source: DataSourceInfo.aftuOfficial, stopType: StopType.boarding),
-  Stop(name: 'Bambilor / Rufisque (L56 à L72)', direction: 'Dir. Dakar Plateau', distanceMeters: 12000, departureMinutesFromMidnight: [], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.7300, -17.3800), modeLabel: 'AFTU', source: DataSourceInfo.aftuOfficial, stopType: StopType.boarding),
+  Stop(name: 'Bambilor / Rufisque (L56 à L72)', direction: 'Dir. Dakar Plateau', distanceMeters: 12000, departureMinutesFromMidnight: [], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.7450, -17.3650), modeLabel: 'AFTU', source: DataSourceInfo.aftuOfficial, stopType: StopType.boarding),
   Stop(name: 'Mermoz (DDD)', direction: 'Dir. Sacré-Cœur', distanceMeters: 3500, departureMinutesFromMidnight: [360, 420, 480, 540, 600, 660, 720, 780, 840, 900], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: const LatLng(14.7120, -17.4650), modeLabel: 'DDD', source: DataSourceInfo.demdikk, stopType: StopType.boarding),
   Stop(name: 'Keur Massar (DDD)', direction: 'Dir. Keur Massar Centre', distanceMeters: 15000, departureMinutesFromMidnight: [360, 420, 480, 540, 600, 660, 720, 780, 840, 900, 960], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: const LatLng(14.7900, -17.3500), modeLabel: 'DDD', source: DataSourceInfo.demdikk, stopType: StopType.boarding),
   Stop(name: 'Arret Tata 12', direction: 'Dir. Guediawaye', distanceMeters: 600, departureMinutesFromMidnight: [], icon: Icons.directions_bus_filled, color: AppColors.tata, location: const LatLng(14.7200, -17.4700), modeLabel: 'Tata', source: DataSourceInfo.demo, stopType: StopType.boarding),
 ];
 
-// Application stricte du filtre de géofencing sur tous les arrêts
+// Application stricte du géofencing sur l'ensemble des arrêts
 final List<Stop> allStops = [...terStations, ...brtStations, ...aftuAndBusStations]
     .where((s) => DakarBounds.isValid(s.location))
     .toList();
 
 // ============================================================
-// TRACES DES ROUTES COLORISES
+// TRACES DES ROUTES AUX COULEURS RESPECTIVES
 // ============================================================
 final List<TransitRoute> demoRoutes = [
   TransitRoute(
     name: 'TER', code: 'TER', type: 'TER', color: AppColors.ter,
     points: [
       const LatLng(14.6792, -17.4407), const LatLng(14.6937, -17.4441),
-      const LatLng(14.7222, -17.4321), const LatLng(14.7550, -17.3900),
+      const LatLng(14.7190, -17.4450), const LatLng(14.7550, -17.3900),
       const LatLng(14.7750, -17.3100), const LatLng(14.7160, -17.1986),
     ],
   ),
@@ -1341,10 +1346,10 @@ class _SettingsPageState extends State<SettingsPage> {
         title: const Text('Comment utiliser Dakar Bus'),
         content: const SingleChildScrollView(
           child: Text(
-            '1. Explorer : Visualisez le réseau et les tracés de toutes les mobilités avec leurs couleurs officielles.\n'
+            '1. Explorer : Visualisez le réseau et les tracés de toutes les mobilités sans dépassement maritime.\n'
             '2. Trajets : Entrez votre point de départ et votre destination.\n'
-            '3. Alertes : Restez informé des perturbations en temps réel.\n'
-            '4. Assistant IA : Posez vos questions par écrit ou en vocal.',
+            '3. Lignes : Cliquez sur les flèches d\'un arrêt pour voir le détail séquentiel des arrêts.\n'
+            '4. Assistant IA : Interrogez l\'assistant vocal ou textuel.',
             style: TextStyle(fontSize: 14, height: 1.5, color: AppColors.textPrimary),
           ),
         ),
@@ -1403,7 +1408,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ListTile(
                     leading: const Icon(Icons.info_outline, color: AppColors.primary),
                     title: const Text('Version de l\'application'),
-                    subtitle: const Text('Dakar Bus v6.4 (Geofenced & Colorized)'),
+                    subtitle: const Text('Dakar Bus v6.5 (Timeline Stops & Safe Geofence)'),
                   ),
                 ],
               ),
@@ -1601,6 +1606,117 @@ class _AIChatPageState extends State<AIChatPage> {
 }
 
 // ============================================================
+// PAGE CHRONOLOGIQUE DES ARRETS DU TRAJET (ARRÊTS ALIGNÉS)
+// ============================================================
+class RouteStopsTimelinePage extends StatelessWidget {
+  final Stop stop;
+  const RouteStopsTimelinePage({super.key, required this.stop});
+
+  @override
+  Widget build(BuildContext context) {
+    // Filtrer les arrêts appartenant au même mode de transport ou ligne
+    final lineStops = allStops.where((s) => s.modeLabel == stop.modeLabel).toList();
+    if (lineStops.isEmpty) lineStops.add(stop);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Trajet — ${stop.modeLabel} (${stop.name})'),
+        backgroundColor: stop.color,
+        foregroundColor: Colors.white,
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: stop.color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: stop.color.withOpacity(0.3)),
+            ),
+            child: Row(
+              children: [
+                Icon(stop.icon, color: stop.color, size: 24),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Sens : ${stop.direction}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: stop.color)),
+                      const SizedBox(height: 2),
+                      Text('${lineStops.length} arrêts desservis sur cet axe.', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          const Text('Arrêts alignés sur le parcours :', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          ...lineStops.asMap().entries.map((entry) {
+            final idx = entry.key;
+            final s = entry.value;
+            final isLast = idx == lineStops.length - 1;
+
+            return IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Column(
+                    children: [
+                      Container(
+                        width: 24, height: 24,
+                        decoration: BoxDecoration(color: stop.color, shape: BoxShape.circle),
+                        child: Center(child: Text('${idx + 1}', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold))),
+                      ),
+                      if (!isLast) Expanded(child: Container(width: 3, color: stop.color.withOpacity(0.4))),
+                    ],
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 20),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.divider),
+                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4)],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(s.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                            const SizedBox(height: 2),
+                            Text(s.direction, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Icon(Icons.location_on, size: 12, color: stop.color),
+                                const SizedBox(width: 4),
+                                Text(DistanceHelper.format(s.distanceMeters), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600)),
+                                const Spacer(),
+                                Text(TimeHelper.getCrowdLevel(s), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600)),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================
 // DETAIL ARRET — ALLER / RETOUR
 // ============================================================
 class DualStopDetailPage extends StatelessWidget {
@@ -1622,9 +1738,15 @@ class DualStopDetailPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _buildStopCard(stop, stop.direction, stop.distanceMeters, currentBadge),
+          GestureDetector(
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => RouteStopsTimelinePage(stop: stop))),
+            child: _buildStopCard(context, stop, stop.direction, stop.distanceMeters, currentBadge, showArrow: true),
+          ),
           const SizedBox(height: 16),
-          _buildStopCard(opposite, opposite.direction, opposite.distanceMeters, oppositeBadge),
+          GestureDetector(
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => RouteStopsTimelinePage(stop: opposite))),
+            child: _buildStopCard(context, opposite, opposite.direction, opposite.distanceMeters, oppositeBadge, showArrow: true),
+          ),
           if (isVirtual) ...[
             const SizedBox(height: 8),
             Container(
@@ -1673,7 +1795,7 @@ class DualStopDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildStopCard(Stop s, String direction, double distance, String badgeText) {
+  Widget _buildStopCard(BuildContext context, Stop s, String direction, double distance, String badgeText, {bool showArrow = false}) {
     final nextTimeStr = s.nextDepartureLabel() ?? 'Prochainement';
 
     return Container(
@@ -1700,7 +1822,19 @@ class DualStopDetailPage extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Row(children: [const Icon(Icons.arrow_forward_ios, size: 12, color: AppColors.textSecondary), const SizedBox(width: 6), Expanded(child: Text(direction, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)))]),
+          Row(
+            children: [
+              Icon(Icons.arrow_forward_ios, size: 12, color: s.color),
+              const SizedBox(width: 6),
+              Expanded(child: Text(direction, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: s.color))),
+              if (showArrow)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(color: s.color.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
+                  child: const Text('Voir le trajet →', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                ),
+            ],
+          ),
           const SizedBox(height: 10),
           const Divider(height: 1),
           const SizedBox(height: 10),
