@@ -1033,7 +1033,7 @@ class StopCard extends StatelessWidget {
             children: [
               Text(stop.direction, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
               const SizedBox(height: 2),
-              Text('${DistanceHelper.format(distanceMeters)} . ${stop.modeLabel} (${stop.source.badgeEmoji}) . $crowd', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+              Text('${DistanceHelper.format(distanceMeters)} • ${stop.modeLabel} (${stop.source.badgeEmoji}) • $crowd', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
             ],
           ),
         ),
@@ -1181,7 +1181,7 @@ class _TripsPageState extends State<TripsPage> {
               children: [
                 Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: r.segments.first.color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Icon(r.segments.first.icon, color: r.segments.first.color, size: 22)),
                 const SizedBox(width: 12),
-                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('${r.fromName} - ${r.toName}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)), const SizedBox(height: 2), Text('${r.transferCount} correspondance(s) . ${r.segments.length} étape(s)', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))])),
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('${r.fromName} - ${r.toName}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)), const SizedBox(height: 2), Text('${r.transferCount} correspondance(s) • ${r.segments.length} étape(s)', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))])),
                 Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Text('${r.totalMinutes} min', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 18)), const Text('Durée totale', style: TextStyle(fontSize: 10, color: AppColors.textSecondary))]),
               ],
             ),
@@ -1545,13 +1545,11 @@ class DualStopDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 1ère Carte (Aller) : Configurée en mode Départ (Embarquement) vers la destination
     final allerStop = stop.copyWith(
       direction: stop.direction.contains('Dir.') ? stop.direction : 'Dir. Diamniadio (Embarquement)',
       stopType: StopType.boarding,
     );
 
-    // 2ème Carte (Retour) : Configurée en mode Terminus / Arrivée (ex: Terminus Gare TER Dakar (Arrivée))
     final retourStop = stop.copyWith(
       direction: 'Terminus ${stop.name} (Arrivée)',
       stopType: StopType.arrival,
@@ -1562,13 +1560,11 @@ class DualStopDetailPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Bouton Aller (Départ / Embarquement) -> Ouvre le trajet direct
           GestureDetector(
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(stop, isReturnRoute: false)))),
             child: _buildStopCard(context, allerStop, allerStop.direction, stop.distanceMeters, 'Aller', showArrow: true),
           ),
           const SizedBox(height: 16),
-          // Bouton Retour (Terminus / Arrivée) -> Ouvre le trajet inverse
           GestureDetector(
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(stop, isReturnRoute: true)))),
             child: _buildStopCard(context, retourStop, retourStop.direction, stop.distanceMeters, 'Retour', showArrow: true),
