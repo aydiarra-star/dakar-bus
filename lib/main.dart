@@ -1394,7 +1394,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   const Divider(height: 1),
                   SwitchListTile(secondary: const Icon(Icons.dark_mode_outlined, color: AppColors.primary), title: const Text('Mode sombre'), value: _darkMode, activeColor: AppColors.primary, onChanged: (v) => setState(() => _darkMode = v)),
                   const Divider(height: 1),
-                  const ListTile(leading: Icon(Icons.info_outline, color: AppColors.primary), title: Text('Version de l\'application'), subtitle: Text('Dakar Bus v7.3 (Compilation GitHub validée)')),
+                  const ListTile(leading: Icon(Icons.info_outline, color: AppColors.primary), title: Text('Version de l\'application'), subtitle: Text('Dakar Bus v7.4 (Parfaitement équilibré)')),
                 ],
               ),
             ),
@@ -1505,10 +1505,22 @@ class DetailedRoutePage extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Column(children: [
-                    Container(width: 26, height: 26, decoration: BoxDecoration(color: route.color, shape: BoxShape.circle), child: Center(child: Text('${idx + 1}', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)))),
-                    if (!isLast) Expanded(child: Container(width: 3, color: route.color.withOpacity(0.4))),
-                  ]),
+                  Column(
+                    children: [
+                      Container(
+                        width: 26,
+                        height: 26,
+                        decoration: BoxDecoration(color: route.color, shape: BoxShape.circle),
+                        child: Center(
+                          child: Text(
+                            '${idx + 1}',
+                            style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                      if (!isLast) Expanded(child: Container(width: 3, color: route.color.withOpacity(0.4))),
+                    ],
+                  ),
                   const SizedBox(width: 14),
                   Expanded(
                     child: Padding(
@@ -1519,18 +1531,26 @@ class DetailedRoutePage extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(children: [
-                              Expanded(child: Text(stop.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
-                              Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: AppColors.success.withOpacity(0.1), borderRadius: BorderRadius.circular(4)), child: const Text('[OFFICIEL]', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppColors.success))),
-                            ]),
+                            Row(
+                              children: [
+                                Expanded(child: Text(stop.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(color: AppColors.success.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
+                                  child: const Text('[OFFICIEL]', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppColors.success)),
+                                ),
+                              ],
+                            ),
                             const SizedBox(height: 4),
-                            Row(children: [
-                              Icon(Icons.access_time, size: 12, color: route.color),
-                              const SizedBox(width: 4),
-                              Text('Heure : ${stop.estimatedTime}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
-                              const Spacer(),
-                              Text('📍 ${stop.distanceFromStart}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                            ]),
+                            Row(
+                              children: [
+                                Icon(Icons.access_time, size: 12, color: route.color),
+                                const SizedBox(width: 4),
+                                Text('Heure : ${stop.estimatedTime}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                                const Spacer(),
+                                Text('📍 ${stop.distanceFromStart}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                              ],
+                            ),
                           ],
                         ),
                       ),
