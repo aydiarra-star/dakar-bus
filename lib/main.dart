@@ -1353,7 +1353,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   const Divider(height: 1),
                   SwitchListTile(secondary: const Icon(Icons.dark_mode_outlined, color: AppColors.primary), title: const Text('Mode sombre'), value: _darkMode, activeColor: AppColors.primary, onChanged: (v) => setState(() => _darkMode = v)),
                   const Divider(height: 1),
-                  const ListTile(leading: Icon(Icons.info_outline, color: AppColors.primary), title: Text('Version de l\'application'), subtitle: Text('Dakar Bus v7.5 (Clean Build Web)')),
+                  const ListTile(leading: Icon(Icons.info_outline, color: AppColors.primary), title: Text('Version de l\'application'), subtitle: Text('Dakar Bus v7.6 (Build Web Validated)')),
                 ],
               ),
             ),
@@ -1456,7 +1456,7 @@ class DetailedRoutePage extends StatelessWidget {
           const SizedBox(height: 20),
           Text('Arrêts & Gares alignés — ${route.operator}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
-          for (int idx = 0; idx < route.stops.length; idx++) ...[
+          for (int idx = 0; idx < route.stops.length; idx++)
             Builder(
               builder: (context) {
                 final stop = route.stops[idx];
@@ -1521,7 +1521,6 @@ class DetailedRoutePage extends StatelessWidget {
                 );
               },
             ),
-          ],
         ],
       ),
     );
