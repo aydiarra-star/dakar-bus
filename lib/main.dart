@@ -179,15 +179,44 @@ class Stop {
     stopType: stopType ?? this.stopType,
   );
 
+  bool _isServiceOpen() {
+    final now = DateTime.now();
+    final hour = now.hour;
+    // Service actif de 5h00 à 22h30
+    if (hour >= 5 && hour < 22) return true;
+    if (hour == 22 && now.minute <= 30) return true;
+    return false;
+  }
+
   int? nextDepartureMinutes() {
+    if (!_isServiceOpen()) return null;
     final now = DateTime.now(); final currentMin = now.hour * 60 + now.minute;
     for (final d in departureMinutesFromMidnight) { if (d >= currentMin) return d; }
     if (departureMinutesFromMidnight.isNotEmpty) return departureMinutesFromMidnight.first + 24 * 60;
     return null;
   }
-  int? remainingMinutes() { final d = nextDepartureMinutes(); if (d == null) return null; return d - (DateTime.now().hour * 60 + DateTime.now().minute); }
-  String? nextDepartureLabel() { final d = nextDepartureMinutes(); if (d == null) return null; final normalized = d % (24 * 60); return '${(normalized ~/ 60).toString().padLeft(2, '0')} h ${(normalized % 60).toString().padLeft(2, '0')}'; }
-  int? departureAfter(int minFromMidnight) { for (final d in departureMinutesFromMidnight) { if (d > minFromMidnight) return d; } if (departureMinutesFromMidnight.isNotEmpty) return departureMinutesFromMidnight.first + 24 * 60; return null; }
+
+  int? remainingMinutes() { 
+    if (!_isServiceOpen()) return null;
+    final d = nextDepartureMinutes(); 
+    if (d == null) return null; 
+    return d - (DateTime.now().hour * 60 + DateTime.now().minute); 
+  }
+
+  String? nextDepartureLabel() { 
+    if (!_isServiceOpen()) return 'Fermé (Reprise 5h)';
+    final d = nextDepartureMinutes(); 
+    if (d == null) return 'Fermé (Reprise 5h)'; 
+    final normalized = d % (24 * 60); 
+    return '${(normalized ~/ 60).toString().padLeft(2, '0')} h ${(normalized % 60).toString().padLeft(2, '0')}'; 
+  }
+
+  int? departureAfter(int minFromMidnight) { 
+    if (!_isServiceOpen()) return null;
+    for (final d in departureMinutesFromMidnight) { if (d > minFromMidnight) return d; } 
+    if (departureMinutesFromMidnight.isNotEmpty) return departureMinutesFromMidnight.first + 24 * 60; 
+    return null; 
+  }
 }
 
 enum DataStatus { scheduled, live, unknown }
@@ -297,13 +326,18 @@ final List<TransitRoute> demoRoutes = [
 // ============================================================
 class RoutePlanner {
   static RouteSearchResult plan({required String fromQuery, required String toQuery}) {
+    final now = DateTime.now();
+    final bool isOpen = (now.hour >= 5 && now.hour < 22) || (now.hour == 22 && now.minute <= 30);
+    if (!isOpen) {
+      return const RouteSearchResult(errorMessage: '🌙 Les réseaux TER, BRT et bus sont actuellement fermés (Service de 5h00 à 22h30). Reprise du trafic demain à 5h00.');
+    }
+
     final fromStop = _findNearestStop(fromQuery);
     final toStop = _findNearestStop(toQuery);
 
     if (fromStop == null) return const RouteSearchResult(errorMessage: 'Lieu de départ introuvable.');
     if (toStop == null) return const RouteSearchResult(errorMessage: 'Destination introuvable.');
 
-    final now = DateTime.now();
     final currentMin = now.hour * 60 + now.minute;
     final candidates = <PlannedRoute>[];
 
@@ -335,16 +369,17 @@ class RoutePlanner {
   }
 
   static PlannedRoute? _buildRoute(Stop from, Stop to, int currentMin) {
-    final safeCurrentMin = math.max(0, currentMin - 1);
-    final dep = from.departureAfter(safeCurrentMin);
-    if (dep == null) return null;
     final dist = DistanceHelper.haversineMeters(from.location, to.location);
-    final speed = (from.modeLabel == 'TER' || from.modeLabel == 'BRT') ? 30.0 : 15.0;
-    final dur = ((dist / 1000.0) / speed * 60).ceil();
+    final speed = (from.modeLabel == 'TER' || from.modeLabel == 'BRT') ? 35.0 : 20.0;
+    int dur = ((dist / 1000.0) / speed * 60).ceil();
+    if (dur < 5) dur = 5;
+
+    final safeCurrentMin = math.max(0, currentMin);
+    final dep = from.departureAfter(safeCurrentMin) ?? safeCurrentMin;
     final arr = dep + dur;
 
     return PlannedRoute(
-      fromName: from.name, toName: to.name, totalMinutes: arr - currentMin,
+      fromName: from.name, toName: to.name, totalMinutes: dur,
       transferCount: 0, status: DataStatus.scheduled,
       segments: [RouteSegment(modeLabel: from.modeLabel, color: from.color, icon: from.icon, from: from.name, to: to.name, durationMinutes: dur, departureTime: _formatMin(dep), arrivalTime: _formatMin(arr), status: DataStatus.scheduled)],
     );
@@ -799,9 +834,19 @@ class StopCard extends StatelessWidget {
     final remaining = stop.remainingMinutes();
     final crowd = TimeHelper.getCrowdLevel(stop);
     Widget timeWidget;
-    if (remaining == null) { timeWidget = const Text('Non dispo', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)); }
-    else if (remaining <= 0) { timeWidget = Text('Imminent', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: stop.color)); }
-    else { timeWidget = Text(TimeHelper.formatRemaining(remaining), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.success)); }
+
+    final now = DateTime.now();
+    final bool isOpen = (now.hour >= 5 && now.hour < 22) || (now.hour == 22 && now.minute <= 30);
+
+    if (!isOpen) {
+      timeWidget = const Text('Service fermé', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary));
+    } else if (remaining == null) { 
+      timeWidget = const Text('Non dispo', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)); 
+    } else if (remaining <= 0) { 
+      timeWidget = Text('Imminent', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: stop.color)); 
+    } else { 
+      timeWidget = Text(TimeHelper.formatRemaining(remaining), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.success)); 
+    }
 
     return Container(
       decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6)]),
@@ -1348,7 +1393,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ListTile(
                     leading: const Icon(Icons.info_outline, color: AppColors.primary),
                     title: const Text('Version de l\'application'),
-                    subtitle: const Text('Dakar Bus v5.8 (Optimized Web Release)'),
+                    subtitle: const Text('Dakar Bus v5.9 (Night Service Control)'),
                   ),
                 ],
               ),
@@ -1478,7 +1523,7 @@ class _AIChatPageState extends State<AIChatPage> {
           '🚶 Arrivée à ${r.toName} — 3 min de marche';
     }
 
-    return '🤔 J\'ai bien analysé votre demande ("$query"). Votre destination est connectée au réseau DDD de Dakar.';
+    return result.errorMessage ?? '🤔 J\'ai bien analysé votre demande ("$query").';
   }
 
   void _scrollToBottom() {
@@ -1644,7 +1689,7 @@ class DualStopDetailPage extends StatelessWidget {
   }
 
   Widget _buildStopCard(Stop s, String direction, double distance, String badgeText) {
-    final nextTimeStr = s.nextDepartureLabel() ?? 'Indisponible';
+    final nextTimeStr = s.nextDepartureLabel() ?? 'Fermé (Reprise 5h)';
 
     return Container(
       padding: const EdgeInsets.all(18),
