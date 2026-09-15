@@ -1394,7 +1394,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   const Divider(height: 1),
                   SwitchListTile(secondary: const Icon(Icons.dark_mode_outlined, color: AppColors.primary), title: const Text('Mode sombre'), value: _darkMode, activeColor: AppColors.primary, onChanged: (v) => setState(() => _darkMode = v)),
                   const Divider(height: 1),
-                  const ListTile(leading: Icon(Icons.info_outline, color: AppColors.primary), title: Text('Version de l\'application'), subtitle: Text('Dakar Bus v7.2 (Syntaxe vérifiée et validée)')),
+                  const ListTile(leading: Icon(Icons.info_outline, color: AppColors.primary), title: Text('Version de l\'application'), subtitle: Text('Dakar Bus v7.3 (Compilation GitHub validée)')),
                 ],
               ),
             ),
@@ -1424,7 +1424,7 @@ class _AIChatPageState extends State<AIChatPage> {
     setState(() { _messages.add({'role': 'user', 'text': text}); _msgCtrl.clear(); });
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
-        setState(() { _messages.add({'role': 'ai', 'text': '🚍 Les données et itinéraires du BRT et du TER sont parfaitement synchronisés.'}); });
+        setState(() { _messages.add({'role': 'ai', 'text': '🚍 Les services BRT et TER fonctionnent normalement.'}); });
       }
     });
   }
@@ -1498,7 +1498,9 @@ class DetailedRoutePage extends StatelessWidget {
           Text('Arrêts & Gares alignés — ${route.operator}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
           ...route.stops.asMap().entries.map((entry) {
-            final idx = entry.key; final stop = entry.value; final isLast = idx == route.stops.length - 1;
+            final idx = entry.key;
+            final stop = entry.value;
+            final isLast = idx == route.stops.length - 1;
             return IntrinsicHeight(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
