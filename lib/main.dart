@@ -10,6 +10,25 @@ import 'package:http/http.dart' as http;
 void main() => runApp(const DakarBusApp());
 
 // ============================================================
+// 1. GEOFENCING & LIMITES GEOGRAPHIQUES DE DAKAR
+// ============================================================
+class DakarBounds {
+  static const double north = 14.7800;
+  static const double south = 14.6500;
+  static const double east = -17.1500;
+  static const double west = -17.5500;
+
+  static bool isValid(LatLng location) {
+    return location.latitude >= south &&
+        location.latitude <= north &&
+        location.longitude >= west &&
+        location.longitude <= east &&
+        location.latitude != 0.0 &&
+        location.longitude != 0.0;
+  }
+}
+
+// ============================================================
 // SERVICE ROUTING REEL OSRM
 // ============================================================
 class RoutingService {
@@ -31,9 +50,12 @@ class RoutingService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final List coordinates = data['routes'][0]['geometry']['coordinates'];
-        final points = coordinates.map<LatLng>((coord) => LatLng(coord[1], coord[0])).toList();
-        _cache[key] = points;
-        return points;
+        final points = coordinates
+            .map<LatLng>((coord) => LatLng(coord[1], coord[0]))
+            .where((pt) => DakarBounds.isValid(pt))
+            .toList();
+        _cache[key] = points.isNotEmpty ? points : [start, end];
+        return _cache[key]!;
       }
     } catch (_) {}
     
@@ -99,16 +121,16 @@ final List<int> _brtBase = _generateSchedule(from: 360, to: 1260, step: 6);
 final List<int> _terBase = _buildTerBase();
 
 // ============================================================
-// COULEURS & THEME
+// 2. PALETTE OFFICIELLE DES TRANSPORTS
 // ============================================================
 class AppColors {
   static const primary = Color(0xFF00B140);
   static const primaryDark = Color(0xFF008A32);
-  static const ter = Color(0xFF8D4004); // Marron TER
-  static const brt = Color(0xFF00B140); // Vert BRT
-  static const aftu = Color(0xFFEF6C00); // Orange AFTU
-  static const tata = Color(0xFF1976D2); // Bleu Tata
-  static const ddd = Color(0xFF00ACC1); // Cyan DDD
+  static const ter = Color(0xFF8B4513);    // Train Express Régional
+  static const brt = Color(0xFF22C55E);    // Bus Rapid Transit
+  static const aftu = Color(0xFFFF8C42);   // Autobus AFTU
+  static const tata = Color(0xFF87CEEB);   // Minibus Tata
+  static const ddd = Color(0xFF3B82F6);    // Dakar Dem Dikk
   static const background = Color(0xFFF1F8F5);
   static const surface = Color(0xFFFFFFFF);
   static const textPrimary = Color(0xFF111111);
@@ -247,7 +269,7 @@ class RouteSearchResult {
 }
 
 // ============================================================
-// STATIONS ET ARRETS STRICTEMENT SUR TERRE FERME (DAKAR)
+// STATIONS ET ARRETS FILTRES STRICTEMENT SUR TERRE FERME
 // ============================================================
 final List<Stop> terStations = [
   Stop(name: 'Gare TER Dakar', direction: 'Terminus Dakar (Arrivée)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 0), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6792, -17.4407), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.arrival),
@@ -266,27 +288,29 @@ final List<Stop> brtStations = [
   Stop(name: 'PEM Guediawaye', direction: 'Terminus nord BRT', distanceMeters: 10500, departureMinutesFromMidnight: _shift(_brtBase, 8), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.7735, -17.3977), modeLabel: 'BRT', source: DataSourceInfo.sunubrt, stopType: StopType.terminus),
 ];
 
-// Génération complète et réaliste des 72 Lignes AFTU + Tata & DDD sur terre ferme à Dakar
 final List<Stop> aftuAndBusStations = [
-  Stop(name: 'Parcelles Assainies (L1 à L10)', direction: 'Dir. Dakar Centre / Colobane', distanceMeters: 300, departureMinutesFromMidnight: [], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.7645, -17.4420), modeLabel: 'AFTU', source: DataSourceInfo.aftuOfficial, stopType: StopType.boarding),
-  Stop(name: 'Grand Yoff (L11 à L25)', direction: 'Dir. Petersen / Liberté 6', distanceMeters: 1100, departureMinutesFromMidnight: [], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.7420, -17.4480), modeLabel: 'AFTU', source: DataSourceInfo.aftuOfficial, stopType: StopType.correspondence),
+  Stop(name: 'Parcelles Assainies (L1 à L10)', direction: 'Dir. Dakar Centre', distanceMeters: 300, departureMinutesFromMidnight: [], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.7645, -17.4420), modeLabel: 'AFTU', source: DataSourceInfo.aftuOfficial, stopType: StopType.boarding),
+  Stop(name: 'Grand Yoff (L11 à L25)', direction: 'Dir. Petersen', distanceMeters: 1100, departureMinutesFromMidnight: [], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.7420, -17.4480), modeLabel: 'AFTU', source: DataSourceInfo.aftuOfficial, stopType: StopType.correspondence),
   Stop(name: 'Terminus Petersen (AFTU L25)', direction: 'Terminus central AFTU', distanceMeters: 450, departureMinutesFromMidnight: [], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.6720, -17.4400), modeLabel: 'AFTU', source: DataSourceInfo.aftuOfficial, stopType: StopType.terminus),
-  Stop(name: 'Ouakam / Ngor (L26 à L40)', direction: 'Dir. Plateau / UCAD', distanceMeters: 3100, departureMinutesFromMidnight: [], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.7350, -17.4820), modeLabel: 'AFTU', source: DataSourceInfo.aftuOfficial, stopType: StopType.boarding),
-  Stop(name: 'Guédiawaye Notaire (L41 à L55)', direction: 'Dir. Kounoune / Pikine', distanceMeters: 9200, departureMinutesFromMidnight: [], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.7750, -17.3950), modeLabel: 'AFTU', source: DataSourceInfo.aftuOfficial, stopType: StopType.boarding),
+  Stop(name: 'Ouakam / Ngor (L26 à L40)', direction: 'Dir. Plateau', distanceMeters: 3100, departureMinutesFromMidnight: [], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.7350, -17.4820), modeLabel: 'AFTU', source: DataSourceInfo.aftuOfficial, stopType: StopType.boarding),
+  Stop(name: 'Guédiawaye Notaire (L41 à L55)', direction: 'Dir. Kounoune', distanceMeters: 9200, departureMinutesFromMidnight: [], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.7750, -17.3950), modeLabel: 'AFTU', source: DataSourceInfo.aftuOfficial, stopType: StopType.boarding),
   Stop(name: 'Bambilor / Rufisque (L56 à L72)', direction: 'Dir. Dakar Plateau', distanceMeters: 12000, departureMinutesFromMidnight: [], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.7300, -17.3800), modeLabel: 'AFTU', source: DataSourceInfo.aftuOfficial, stopType: StopType.boarding),
-  Stop(name: 'Mermoz (DDD)', direction: 'Dir. Mermoz / Sacré-Cœur', distanceMeters: 3500, departureMinutesFromMidnight: [360, 420, 480, 540, 600, 660, 720, 780, 840, 900], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: const LatLng(14.7120, -17.4650), modeLabel: 'DDD', source: DataSourceInfo.demdikk, stopType: StopType.boarding),
+  Stop(name: 'Mermoz (DDD)', direction: 'Dir. Sacré-Cœur', distanceMeters: 3500, departureMinutesFromMidnight: [360, 420, 480, 540, 600, 660, 720, 780, 840, 900], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: const LatLng(14.7120, -17.4650), modeLabel: 'DDD', source: DataSourceInfo.demdikk, stopType: StopType.boarding),
   Stop(name: 'Keur Massar (DDD)', direction: 'Dir. Keur Massar Centre', distanceMeters: 15000, departureMinutesFromMidnight: [360, 420, 480, 540, 600, 660, 720, 780, 840, 900, 960], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: const LatLng(14.7900, -17.3500), modeLabel: 'DDD', source: DataSourceInfo.demdikk, stopType: StopType.boarding),
-  Stop(name: 'Arret Tata 12', direction: 'Dir. Guediawaye (Rotation continue)', distanceMeters: 600, departureMinutesFromMidnight: [], icon: Icons.directions_bus_filled, color: AppColors.tata, location: const LatLng(14.7200, -17.4700), modeLabel: 'Tata', source: DataSourceInfo.demo, stopType: StopType.boarding),
+  Stop(name: 'Arret Tata 12', direction: 'Dir. Guediawaye', distanceMeters: 600, departureMinutesFromMidnight: [], icon: Icons.directions_bus_filled, color: AppColors.tata, location: const LatLng(14.7200, -17.4700), modeLabel: 'Tata', source: DataSourceInfo.demo, stopType: StopType.boarding),
 ];
 
-final List<Stop> allStops = [...terStations, ...brtStations, ...aftuAndBusStations];
+// Application stricte du filtre de géofencing sur tous les arrêts
+final List<Stop> allStops = [...terStations, ...brtStations, ...aftuAndBusStations]
+    .where((s) => DakarBounds.isValid(s.location))
+    .toList();
 
 // ============================================================
-// TRACES DES ROUTES AUX COULEURS RESPECTIVES ET STRICTEMENT SUR TERRE
+// TRACES DES ROUTES COLORISES
 // ============================================================
 final List<TransitRoute> demoRoutes = [
   TransitRoute(
-    name: 'TER', code: 'TER', type: 'TER', color: AppColors.ter, // Marron TER
+    name: 'TER', code: 'TER', type: 'TER', color: AppColors.ter,
     points: [
       const LatLng(14.6792, -17.4407), const LatLng(14.6937, -17.4441),
       const LatLng(14.7222, -17.4321), const LatLng(14.7550, -17.3900),
@@ -294,26 +318,20 @@ final List<TransitRoute> demoRoutes = [
     ],
   ),
   TransitRoute(
-    name: 'BRT', code: 'B1', type: 'BRT', color: AppColors.brt, // Vert BRT
+    name: 'BRT', code: 'B1', type: 'BRT', color: AppColors.brt,
     points: [
       const LatLng(14.6720, -17.4400), const LatLng(14.6950, -17.4420),
       const LatLng(14.7350, -17.4260), const LatLng(14.7735, -17.3977),
     ],
   ),
   TransitRoute(
-    name: 'AFTU 72 Lignes', code: 'A25', type: 'AFTU', color: AppColors.aftu, // Orange AFTU
+    name: 'AFTU 72 Lignes', code: 'A25', type: 'AFTU', color: AppColors.aftu,
     points: [
       const LatLng(14.7645, -17.4420), const LatLng(14.7420, -17.4480), const LatLng(14.6720, -17.4400),
     ],
   ),
   TransitRoute(
-    name: 'AFTU Ligne 72', code: 'A72', type: 'AFTU', color: AppColors.aftu, // Orange AFTU
-    points: [
-      const LatLng(14.7750, -17.3950), const LatLng(14.7550, -17.3900), const LatLng(14.6720, -17.4400),
-    ],
-  ),
-  TransitRoute(
-    name: 'Tata / DDD', code: 'T12', type: 'Tata', color: AppColors.tata, // Bleu Tata
+    name: 'Tata / DDD', code: 'T12', type: 'Tata', color: AppColors.tata,
     points: [
       const LatLng(14.6792, -17.4407), const LatLng(14.7120, -17.4650), const LatLng(14.7900, -17.3500),
     ],
@@ -328,7 +346,7 @@ class RoutePlanner {
     final now = DateTime.now();
     final bool isOpen = (now.hour >= 5 && now.hour < 22) || (now.hour == 22 && now.minute <= 30);
     if (!isOpen) {
-      return const RouteSearchResult(errorMessage: '🌙 Les réseaux TER, BRT et bus sont actuellement fermés (Service de 5h00 à 22h30). Reprise du trafic demain à 5h00.');
+      return const RouteSearchResult(errorMessage: '🌙 Les réseaux TER, BRT et bus sont actuellement fermés (Service de 5h00 à 22h30).');
     }
 
     final fromStop = _findNearestStop(fromQuery);
@@ -456,20 +474,8 @@ class DirectionHelper {
       final parts = direction.split('-').map((s) => s.trim()).toList();
       if (parts.length == 2) return '${parts[1]} - ${parts[0]}';
     }
-    if (direction.contains('Dir. Dakar / Diamniadio')) {
-      return direction.replaceAll('Dir. Dakar / Diamniadio', 'Dir. Diamniadio / Dakar');
-    }
-    if (direction.contains('Arrivée')) {
-      return direction.replaceAll('Arrivée', 'Embarquement');
-    }
-    if (direction.contains('Embarquement')) {
-      return direction.replaceAll('Embarquement', 'Arrivée');
-    }
-    if (direction.startsWith('Dir. ')) {
-      return direction.replaceFirst('Dir. ', 'Dir. retour vers ');
-    }
-    if (direction.startsWith('Terminus ')) {
-      return 'Dir. retour depuis ${direction.substring(9)}';
+    if (direction.contains('Dir. Dakar')) {
+      return direction.replaceAll('Dir. Dakar', 'Dir. retour');
     }
     return 'Sens inverse - $direction';
   }
@@ -543,7 +549,12 @@ class _MainShellState extends State<MainShell> {
         desiredAccuracy: LocationAccuracy.high,
         timeLimit: const Duration(seconds: 10),
       );
-      setState(() { _userPosition = LatLng(position.latitude, position.longitude); _gpsState = GpsState.granted; _gpsMessage = null; });
+      final latLng = LatLng(position.latitude, position.longitude);
+      if (DakarBounds.isValid(latLng)) {
+        setState(() { _userPosition = latLng; _gpsState = GpsState.granted; _gpsMessage = null; });
+      } else {
+        setState(() { _userPosition = const LatLng(14.7167, -17.4677); _gpsState = GpsState.granted; _gpsMessage = 'Position hors zone, recentré sur Dakar.'; });
+      }
     } catch (_) { setState(() { _gpsState = GpsState.error; _gpsMessage = 'Erreur GPS.'; }); }
   }
 
@@ -615,7 +626,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
       if (route.points.length < 2) continue;
       List<LatLng> fullRoutePoints = [];
       if (route.isDedicated) {
-        fullRoutePoints = List<LatLng>.from(route.points);
+        fullRoutePoints = route.points.where((pt) => DakarBounds.isValid(pt)).toList();
       } else {
         final List<Future<List<LatLng>>> futures = [];
         for (int i = 0; i < route.points.length - 1; i++) {
@@ -623,13 +634,14 @@ class _ExplorerPageState extends State<ExplorerPage> {
         }
         final List<List<LatLng>> segments = await Future.wait(futures);
         for (final segment in segments) {
-          if (fullRoutePoints.isNotEmpty && segment.isNotEmpty) {
-            fullRoutePoints.addAll(segment.skip(1));
+          final validSeg = segment.where((pt) => DakarBounds.isValid(pt)).toList();
+          if (fullRoutePoints.isNotEmpty && validSeg.isNotEmpty) {
+            fullRoutePoints.addAll(validSeg.skip(1));
           } else {
-            fullRoutePoints.addAll(segment);
+            fullRoutePoints.addAll(validSeg);
           }
         }
-        if (fullRoutePoints.isEmpty) fullRoutePoints = List<LatLng>.from(route.points);
+        if (fullRoutePoints.isEmpty) fullRoutePoints = route.points.where((pt) => DakarBounds.isValid(pt)).toList();
       }
       loaded.add(Polyline(points: fullRoutePoints, color: route.color, strokeWidth: 5.5));
     }
@@ -649,7 +661,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
     if (widget.userPosition != null) {
       base.sort((a, b) => DistanceHelper.haversineMeters(widget.userPosition!, a.location).compareTo(DistanceHelper.haversineMeters(widget.userPosition!, b.location)));
     }
-    return base;
+    return base.where((s) => DakarBounds.isValid(s.location)).toList();
   }
 
   double _distanceTo(Stop s) => widget.userPosition == null ? s.distanceMeters : DistanceHelper.haversineMeters(widget.userPosition!, s.location);
@@ -657,7 +669,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
   List<Stop> get _searchResults {
     final q = _searchCtrl.text.trim().toLowerCase();
     if (q.isEmpty) return [];
-    return allStops.where((s) => s.name.toLowerCase().contains(q) || s.direction.toLowerCase().contains(q)).take(8).toList();
+    return allStops.where((s) => (s.name.toLowerCase().contains(q) || s.direction.toLowerCase().contains(q)) && DakarBounds.isValid(s.location)).take(8).toList();
   }
 
   void _centerOnStop(Stop s) => _mapController.move(s.location, 14.5);
@@ -687,7 +699,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                       TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', userAgentPackageName: 'dakar_bus', maxZoom: 19),
                       PolylineLayer(polylines: activePolylines),
                       MarkerLayer(
-                        markers: mapStops.map((s) => Marker(
+                        markers: mapStops.where((s) => DakarBounds.isValid(s.location)).map((s) => Marker(
                           point: s.location, width: 24, height: 24,
                           child: GestureDetector(
                             onTap: () { _centerOnStop(s); Navigator.push(context, MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: s))); },
@@ -702,7 +714,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                           ),
                         )).toList(),
                       ),
-                      if (widget.userPosition != null)
+                      if (widget.userPosition != null && DakarBounds.isValid(widget.userPosition!))
                         MarkerLayer(markers: [Marker(point: widget.userPosition!, width: 20, height: 20, child: Container(decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 3), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 4)])))]),
                     ],
                   ),
@@ -1329,10 +1341,10 @@ class _SettingsPageState extends State<SettingsPage> {
         title: const Text('Comment utiliser Dakar Bus'),
         content: const SingleChildScrollView(
           child: Text(
-            '1. Explorer : Visualisez le réseau et les tracés de toutes les mobilités (TER, BRT, DDD, AFTU 72 lignes, Tata).\n'
+            '1. Explorer : Visualisez le réseau et les tracés de toutes les mobilités avec leurs couleurs officielles.\n'
             '2. Trajets : Entrez votre point de départ et votre destination.\n'
             '3. Alertes : Restez informé des perturbations en temps réel.\n'
-            '4. Assistant IA : Posez vos questions par écrit ou en vocal (ex: "Ligne 25", "Comment aller à Mermoz ?").',
+            '4. Assistant IA : Posez vos questions par écrit ou en vocal.',
             style: TextStyle(fontSize: 14, height: 1.5, color: AppColors.textPrimary),
           ),
         ),
@@ -1391,7 +1403,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ListTile(
                     leading: const Icon(Icons.info_outline, color: AppColors.primary),
                     title: const Text('Version de l\'application'),
-                    subtitle: const Text('Dakar Bus v6.3 (Clean UI & 72 AFTU Verified)'),
+                    subtitle: const Text('Dakar Bus v6.4 (Geofenced & Colorized)'),
                   ),
                 ],
               ),
@@ -1420,7 +1432,7 @@ class _AIChatPageState extends State<AIChatPage> {
   final List<Map<String, String>> _messages = [
     {
       'role': 'ai',
-      'text': 'Nanga def ! 👋 Je suis l\'assistant intelligent de Dakar Bus. Interrogez-moi sur les 72 lignes AFTU, le TER, le BRT ou vos trajets (ex: "Ligne 25", "Comment aller à Mermoz ?").',
+      'text': 'Nanga def ! 👋 Je suis l\'assistant intelligent de Dakar Bus. Interrogez-moi sur les 72 lignes AFTU, le TER, le BRT ou vos trajets.',
     },
   ];
 
@@ -1474,18 +1486,6 @@ class _AIChatPageState extends State<AIChatPage> {
           '• **Statut** : En rotation continue (6h00 - 22h00)';
     }
 
-    if (q.contains('ligne 72') || q.contains('l72')) {
-      return '🚌 **AFTU Ligne 72** (Source officielle AFTU) :\n'
-          '• **Parcours** : Guediawaye ➔ Kounoune (78 arrêts)\n'
-          '• **Statut** : En rotation continue';
-    }
-
-    if (q.contains('ligne 80') || q.contains('l80')) {
-      return '🚌 **AFTU Ligne 80** (Ligne la plus longue) :\n'
-          '• **Parcours** : Bambilor / Baux Maraîchers ➔ Dakar Plateau (44 km, 98 arrêts)\n'
-          '• **Statut** : En service';
-    }
-
     if (q.contains('retard') || q.contains('perturbation') || q.contains('trafic')) {
       return '📡 [État du réseau officiel]\n\n'
           '🟤 TER : Trafic régulier.\n'
@@ -1494,29 +1494,10 @@ class _AIChatPageState extends State<AIChatPage> {
     }
 
     String destination = 'Gare TER Dakar';
-    if (q.contains('mermoz')) {
-      destination = 'Mermoz';
-    } else if (q.contains('pikin') || q.contains('pikine')) {
-      destination = 'Gare TER Pikine';
-    } else if (q.contains('massar')) {
-      destination = 'Keur Massar';
-    } else if (q.contains('diamniadio')) {
-      destination = 'Gare TER Diamniadio';
-    } else if (q.contains('guediawaye')) {
-      destination = 'PEM Guediawaye';
-    } else if (q.contains('parcelles')) {
-      destination = 'Parcelles Assainies (L1 à L10)';
-    } else if (q.contains('petersen')) {
-      destination = 'Terminus Petersen (AFTU L25)';
-    }
+    if (q.contains('mermoz')) destination = 'Mermoz';
+    if (q.contains('pikine')) destination = 'Gare TER Pikine';
 
-    String depart = 'Parcelles Assainies';
-    if (q.contains('depuis')) {
-      if (q.contains('pikine')) depart = 'Gare TER Pikine';
-      if (q.contains('mermoz')) depart = 'Mermoz';
-    }
-
-    final result = RoutePlanner.plan(fromQuery: depart, toQuery: destination);
+    final result = RoutePlanner.plan(fromQuery: 'Parcelles Assainies', toQuery: destination);
     if (result.hasRoutes) {
       final r = result.routes.first;
       final seg = r.segments.first;
@@ -1527,7 +1508,7 @@ class _AIChatPageState extends State<AIChatPage> {
           '🚶 Arrivée à ${r.toName}';
     }
 
-    return result.errorMessage ?? '🤔 J\'ai bien analysé votre demande ("$query"). Le catalogue des 72 lignes AFTU est opérationnel.';
+    return result.errorMessage ?? '🤔 J\'ai bien analysé votre demande ("$query"). Le système de transport est opérationnel.';
   }
 
   void _scrollToBottom() {
