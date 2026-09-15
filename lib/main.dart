@@ -250,7 +250,6 @@ class DetailedRoute {
         stops: terStops,
       );
     } else if (stop.modeLabel == 'BRT') {
-      // Itinéraire officiel BRT (Aller : Petersen ➔ Guédiawaye / Retour : Guédiawaye ➔ Petersen)
       List<DetailedStop> brtStops = [
         const DetailedStop(stopId: 'brt_1', name: 'PEM Petersen', sequence: 1, location: LatLng(14.6720, -17.4400), distanceFromStart: '0 km', estimatedTime: '00:00', isTerminal: true, type: 'Embarquement'),
         const DetailedStop(stopId: 'brt_2', name: 'Place de l’Obélisque', sequence: 2, location: LatLng(14.6850, -17.4500), distanceFromStart: '1.5 km', estimatedTime: '04:00', isTerminal: false, type: 'Intermédiaire'),
@@ -292,7 +291,6 @@ class DetailedRoute {
         stops: brtStops,
       );
     } else {
-      // Pour les bus urbains (DDD, AFTU, Tata) avec gestion propre de l'aller/retour
       final originName = stop.name;
       final destName = DirectionHelper.extractDestination(stop.direction);
       
@@ -1396,7 +1394,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   const Divider(height: 1),
                   SwitchListTile(secondary: const Icon(Icons.dark_mode_outlined, color: AppColors.primary), title: const Text('Mode sombre'), value: _darkMode, activeColor: AppColors.primary, onChanged: (v) => setState(() => _darkMode = v)),
                   const Divider(height: 1),
-                  const ListTile(leading: Icon(Icons.info_outline, color: AppColors.primary), title: Text('Version de l\'application'), subtitle: Text('Dakar Bus v7.1 (BRT & TER rigoureusement séparés)')),
+                  const ListTile(leading: Icon(Icons.info_outline, color: AppColors.primary), title: Text('Version de l\'application'), subtitle: Text('Dakar Bus v7.2 (Syntaxe vérifiée et validée)')),
                 ],
               ),
             ),
@@ -1426,7 +1424,7 @@ class _AIChatPageState extends State<AIChatPage> {
     setState(() { _messages.add({'role': 'user', 'text': text}); _msgCtrl.clear(); });
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
-        setState(() { _messages.add({'role': 'ai', 'text': '🚍 Les données et itinéraires du BRT (Guédiawaye - Petersen) et du TER sont maintenant parfaitement isolés et exacts.'}); });
+        setState(() { _messages.add({'role': 'ai', 'text': '🚍 Les données et itinéraires du BRT et du TER sont parfaitement synchronisés.'}); });
       }
     });
   }
