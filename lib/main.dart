@@ -804,7 +804,7 @@ class _MainShellState extends State<MainShell> {
 }
 
 // ============================================================
-// EXPLORER (CARTE COMPACTE A 140 POUR UN RENDU PROPRE)
+// EXPLORER (CARTE REDUITE ET DEZOOMEE A 11.5)
 // ============================================================
 class ExplorerPage extends StatefulWidget {
   final LatLng? userPosition; final GpsState gpsState; final String? gpsMessage; final Future<void> Function() onRequestLocation;
@@ -818,8 +818,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
   final LatLng _dakarCenter = const LatLng(14.7200, -17.4300);
   String _selectedFilter = 'Tous';
   
-  // HAUTEUR COMPACTE FIXE A 140 POUR EVITER TOUT DEBORDEMENT
-  int _mapHeight = 140;
+  // HAUTEUR TRES COMPACTE (110) POUR QUE LA CARTE RESTE DISCRETE
+  int _mapHeight = 110;
   
   bool _searchFocused = false;
   final TextEditingController _searchCtrl = TextEditingController();
@@ -833,7 +833,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
     _loadDynamicRoutes(); 
     if (widget.userPosition != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _mapController.move(widget.userPosition!, 14.5);
+        _mapController.move(widget.userPosition!, 11.5);
       });
     }
   }
@@ -861,7 +861,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
         }
         if (fullRoutePoints.isEmpty) fullRoutePoints = route.points.where((pt) => DakarBounds.isValid(pt)).toList();
       }
-      loaded.add(Polyline(points: fullRoutePoints, color: route.color, strokeWidth: 4.5));
+      loaded.add(Polyline(points: fullRoutePoints, color: route.color, strokeWidth: 4.0));
     }
     if (mounted) setState(() { _dynamicPolylines = loaded; _isLoadingRoutes = false; });
   }
@@ -894,14 +894,14 @@ class _ExplorerPageState extends State<ExplorerPage> {
     return allStops.where((s) => (s.name.toLowerCase().contains(q) || s.direction.toLowerCase().contains(q)) && DakarBounds.isValid(s.location)).take(8).toList();
   }
 
-  void _centerOnStop(Stop s) => _mapController.move(s.location, 14.5);
+  void _centerOnStop(Stop s) => _mapController.move(s.location, 13.0);
   void _openAI() => Navigator.push(context, MaterialPageRoute(builder: (_) => const AIChatPage()));
 
   @override
   Widget build(BuildContext context) {
     final dark = globalState.darkMode;
     final stops = _filteredStops;
-    final activePolylines = _dynamicPolylines.isNotEmpty ? _dynamicPolylines : demoRoutes.map((r) => Polyline(points: r.points, color: r.color, strokeWidth: 4.5)).toList();
+    final activePolylines = _dynamicPolylines.isNotEmpty ? _dynamicPolylines : demoRoutes.map((r) => Polyline(points: r.points, color: r.color, strokeWidth: 4.0)).toList();
     final mapStops = _selectedFilter == 'Tous' ? allStops : _filteredStops;
 
     return AnimatedBuilder(
@@ -916,16 +916,16 @@ class _ExplorerPageState extends State<ExplorerPage> {
                 Container(
                   width: double.infinity,
                   color: AppColors.surface(dark),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
                   child: ElevatedButton.icon(
-                    onPressed: () => setState(() => _mapHeight = _mapHeight == 0 ? 140 : 0),
-                    icon: Icon(_mapHeight == 0 ? Icons.map : Icons.keyboard_arrow_up, size: 14),
-                    label: Text(_mapHeight == 0 ? 'Afficher la carte interactive' : 'Réduire la carte', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                    onPressed: () => setState(() => _mapHeight = _mapHeight == 0 ? 110 : 0),
+                    icon: Icon(_mapHeight == 0 ? Icons.map : Icons.keyboard_arrow_up, size: 12),
+                    label: Text(_mapHeight == 0 ? 'Afficher la carte' : 'Réduire la carte', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 3),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                       elevation: 0,
                     ),
                   ),
@@ -940,48 +940,49 @@ class _ExplorerPageState extends State<ExplorerPage> {
                           children: [
                             FlutterMap(
                               mapController: _mapController,
-                              options: MapOptions(initialCenter: widget.userPosition ?? _dakarCenter, initialZoom: 12.5, minZoom: 10, maxZoom: 17),
+                              // ZOOM REDUIT A 11.5 POUR ÉVITER QUE LA CARTE NE PRENNE TROP D'ESPACE INTERNE
+                              options: MapOptions(initialCenter: widget.userPosition ?? _dakarCenter, initialZoom: 11.5, minZoom: 9, maxZoom: 16),
                               children: [
                                 TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', userAgentPackageName: 'dakar_bus', maxZoom: 19),
                                 PolylineLayer(polylines: activePolylines),
                                 MarkerLayer(
                                   markers: mapStops.where((s) => DakarBounds.isValid(s.location)).map((s) => Marker(
-                                    point: s.location, width: 20, height: 20,
+                                    point: s.location, width: 18, height: 18,
                                     child: GestureDetector(
                                       onTap: () { _centerOnStop(s); Navigator.push(context, MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: s))); },
                                       child: Container(
                                         decoration: BoxDecoration(
                                           color: s.color, shape: BoxShape.circle,
-                                          border: Border.all(color: Colors.white, width: 1.5),
-                                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.25), blurRadius: 2)],
+                                          border: Border.all(color: Colors.white, width: 1),
+                                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 2)],
                                         ),
-                                        child: Icon(s.icon, color: Colors.white, size: 10),
+                                        child: Icon(s.icon, color: Colors.white, size: 8),
                                       ),
                                     ),
                                   )).toList(),
                                 ),
                                 if (widget.userPosition != null && DakarBounds.isValid(widget.userPosition!))
-                                  MarkerLayer(markers: [Marker(point: widget.userPosition!, width: 18, height: 18, child: Container(decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2.5), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 3)])))]),
+                                  MarkerLayer(markers: [Marker(point: widget.userPosition!, width: 16, height: 16, child: Container(decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 2)])))]),
                               ],
                             ),
 
                             Positioned(
-                              bottom: 6, left: 6,
+                              bottom: 4, left: 4,
                               child: Material(
-                                elevation: 2, borderRadius: BorderRadius.circular(20), color: AppColors.surface(dark),
+                                elevation: 2, borderRadius: BorderRadius.circular(16), color: AppColors.surface(dark),
                                 child: InkWell(
-                                  onTap: widget.gpsState == GpsState.granted ? () { if (widget.userPosition != null) _mapController.move(widget.userPosition!, 14.5); } : () => widget.onRequestLocation(),
-                                  borderRadius: BorderRadius.circular(20),
+                                  onTap: widget.gpsState == GpsState.granted ? () { if (widget.userPosition != null) _mapController.move(widget.userPosition!, 11.5); } : () => widget.onRequestLocation(),
+                                  borderRadius: BorderRadius.circular(16),
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         widget.gpsState == GpsState.loading
-                                          ? const SizedBox(width: 10, height: 10, child: CircularProgressIndicator(strokeWidth: 2))
-                                          : Icon(widget.gpsState == GpsState.granted ? Icons.my_location : Icons.location_searching, color: AppColors.primary, size: 12),
-                                        const SizedBox(width: 3),
-                                        Text(widget.gpsState == GpsState.granted ? 'GPS' : 'Activer', style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                                          ? const SizedBox(width: 8, height: 8, child: CircularProgressIndicator(strokeWidth: 1.5))
+                                          : Icon(widget.gpsState == GpsState.granted ? Icons.my_location : Icons.location_searching, color: AppColors.primary, size: 10),
+                                        const SizedBox(width: 2),
+                                        Text(widget.gpsState == GpsState.granted ? 'GPS' : 'Activer', style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppColors.primary)),
                                       ],
                                     ),
                                   ),
@@ -990,12 +991,12 @@ class _ExplorerPageState extends State<ExplorerPage> {
                             ),
 
                             Positioned(
-                              bottom: 6, right: 6,
+                              bottom: 4, right: 4,
                               child: ElevatedButton.icon(
                                 onPressed: _openAI,
-                                icon: const Icon(Icons.auto_awesome, size: 10),
-                                label: const Text('Assistant IA', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold)),
-                                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)), elevation: 2),
+                                icon: const Icon(Icons.auto_awesome, size: 9),
+                                label: const Text('Assistant IA', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold)),
+                                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), elevation: 2),
                               ),
                             ),
                           ],
@@ -1003,19 +1004,19 @@ class _ExplorerPageState extends State<ExplorerPage> {
                 ),
                 Expanded(
                   child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 90),
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
                     children: [
                       Row(children: [
-                        Container(width: 34, height: 34, decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.12), borderRadius: BorderRadius.circular(10)), child: const Icon(Icons.directions_bus, color: AppColors.primary, size: 18)),
-                        const SizedBox(width: 10),
+                        Container(width: 32, height: 32, decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.12), borderRadius: BorderRadius.circular(8)), child: const Icon(Icons.directions_bus, color: AppColors.primary, size: 16)),
+                        const SizedBox(width: 8),
                         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Text('Dakar Bus', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
+                          Text('Dakar Bus', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
                           Text('TER / BRT / DDD / TATA / AFTU', style: TextStyle(fontSize: 10, color: AppColors.textSecondary(dark)))
                         ])),
                       ]),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 8),
                       Container(
-                        decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.divider(dark)), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6)]),
+                        decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.divider(dark)), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 4)]),
                         child: TextField(
                           controller: _searchCtrl, 
                           onChanged: (_) => setState(() => _searchFocused = true), 
@@ -1023,30 +1024,30 @@ class _ExplorerPageState extends State<ExplorerPage> {
                           decoration: InputDecoration(
                             hintText: 'Où voulez-vous aller ? (ex: Colobane, Yoff...)', 
                             hintStyle: TextStyle(color: AppColors.textSecondary(dark)),
-                            prefixIcon: const Icon(Icons.search, color: AppColors.primary, size: 18), 
-                            suffixIcon: _searchFocused ? IconButton(icon: Icon(Icons.close, size: 16, color: AppColors.textSecondary(dark)), onPressed: () { _searchCtrl.clear(); setState(() => _searchFocused = false); }) : null, 
+                            prefixIcon: const Icon(Icons.search, color: AppColors.primary, size: 16), 
+                            suffixIcon: _searchFocused ? IconButton(icon: Icon(Icons.close, size: 14, color: AppColors.textSecondary(dark)), onPressed: () { _searchCtrl.clear(); setState(() => _searchFocused = false); }) : null, 
                             border: InputBorder.none, 
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10)
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8)
                           ),
                         ),
                       ),
                       if (_searchFocused && _searchResults.isNotEmpty) ...[
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 4),
                         Container(
-                          decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.divider(dark))),
-                          child: Column(children: _searchResults.map((s) => ListTile(dense: true, leading: Icon(s.icon, color: s.color, size: 18), title: Text(s.name, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary(dark))), subtitle: Text(s.direction, style: TextStyle(fontSize: 10, color: AppColors.textSecondary(dark))), onTap: () { _searchCtrl.text = s.name; setState(() => _searchFocused = false); _centerOnStop(s); })).toList()),
+                          decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(8), border: Border.all(color: AppColors.divider(dark))),
+                          child: Column(children: _searchResults.map((s) => ListTile(dense: true, leading: Icon(s.icon, color: s.color, size: 16), title: Text(s.name, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary(dark))), subtitle: Text(s.direction, style: TextStyle(fontSize: 10, color: AppColors.textSecondary(dark))), onTap: () { _searchCtrl.text = s.name; setState(() => _searchFocused = false); _centerOnStop(s); })).toList()),
                         ),
                       ],
+                      const SizedBox(height: 8),
+                      SizedBox(height: 34, child: ListView(scrollDirection: Axis.horizontal, children: [_chip('Tous'), _chip('⭐ Favoris'), _chip('TER'), _chip('BRT'), _chip('DDD'), _chip('TATA'), _chip('AFTU')])),
                       const SizedBox(height: 10),
-                      SizedBox(height: 36, child: ListView(scrollDirection: Axis.horizontal, children: [_chip('Tous'), _chip('⭐ Favoris'), _chip('TER'), _chip('BRT'), _chip('DDD'), _chip('TATA'), _chip('AFTU')])),
-                      const SizedBox(height: 12),
                       Row(children: [
-                        Text('${stops.length} arrêts', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))), 
+                        Text('${stops.length} arrêts', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))), 
                         const SizedBox(width: 6), 
                         Text('à proximité', style: TextStyle(fontSize: 10, color: AppColors.textSecondary(dark)))
                       ]),
-                      const SizedBox(height: 8),
-                      ...stops.map((s) => Padding(padding: const EdgeInsets.only(bottom: 10), child: GestureDetector(onTap: () => _centerOnStop(s), child: StopCard(stop: s, distanceMeters: _distanceTo(s))))),
+                      const SizedBox(height: 6),
+                      ...stops.map((s) => Padding(padding: const EdgeInsets.only(bottom: 8), child: GestureDetector(onTap: () => _centerOnStop(s), child: StopCard(stop: s, distanceMeters: _distanceTo(s))))),
                     ],
                   ),
                 ),
@@ -1067,13 +1068,13 @@ class _ExplorerPageState extends State<ExplorerPage> {
       child: GestureDetector(
         onTap: () => setState(() => _selectedFilter = label), 
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), 
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5), 
           decoration: BoxDecoration(
             color: sel ? color.withOpacity(0.15) : AppColors.surface(dark), 
-            borderRadius: BorderRadius.circular(20), 
+            borderRadius: BorderRadius.circular(16), 
             border: Border.all(color: sel ? color : AppColors.divider(dark), width: sel ? 1.5 : 1)
           ), 
-          child: Text(label, style: TextStyle(color: sel ? color : AppColors.textSecondary(dark), fontWeight: sel ? FontWeight.bold : FontWeight.normal, fontSize: 11))
+          child: Text(label, style: TextStyle(color: sel ? color : AppColors.textSecondary(dark), fontWeight: sel ? FontWeight.bold : FontWeight.normal, fontSize: 10))
         ),
       ),
     );
@@ -1114,13 +1115,13 @@ class StopCard extends StatelessWidget {
         final bool isOpen = (now.hour >= 5 && now.hour < 22) || (now.hour == 22 && now.minute <= 30);
 
         if (!isOpen) {
-          timeWidget = Text('Fermé', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary(dark)));
+          timeWidget = Text('Fermé', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textSecondary(dark)));
         } else if (remaining == null) { 
-          timeWidget = Text('Bientôt', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary(dark))); 
+          timeWidget = Text('Bientôt', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textSecondary(dark))); 
         } else if (remaining <= 0) { 
-          timeWidget = Text('Imminent', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: stop.color)); 
+          timeWidget = Text('Imminent', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: stop.color)); 
         } else { 
-          timeWidget = Text(TimeHelper.formatRemaining(remaining), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.success)); 
+          timeWidget = Text(TimeHelper.formatRemaining(remaining), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.success)); 
         }
 
         return GestureDetector(
@@ -1134,28 +1135,28 @@ class StopCard extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               color: isFav ? AppColors.primary.withOpacity(dark ? 0.15 : 0.05) : AppColors.surface(dark), 
-              borderRadius: BorderRadius.circular(14), 
+              borderRadius: BorderRadius.circular(12), 
               border: Border.all(color: isFav ? AppColors.primary : AppColors.divider(dark), width: isFav ? 1.5 : 1), 
               boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 4)]
             ),
             child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: stop))),
-              leading: CircleAvatar(backgroundColor: stop.color, radius: 22, child: Icon(stop.icon, color: Colors.white, size: 20)),
+              leading: CircleAvatar(backgroundColor: stop.color, radius: 20, child: Icon(stop.icon, color: Colors.white, size: 18)),
               title: Row(
                 children: [
-                  Expanded(child: Text(stop.name, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))),
+                  Expanded(child: Text(stop.name, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))),
                   _buildStopTypeBadge(stop.stopType),
                 ],
               ),
               subtitle: Padding(
-                padding: const EdgeInsets.only(top: 3),
+                padding: const EdgeInsets.only(top: 2),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(stop.direction, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.textSecondary(dark))),
+                    Text(stop.direction, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: AppColors.textSecondary(dark))),
                     const SizedBox(height: 2),
-                    Text('${DistanceHelper.format(distanceMeters)} • ${stop.modeLabel} (${stop.source.badgeEmoji}) • $crowd', style: TextStyle(fontSize: 10, color: AppColors.textSecondary(dark))),
+                    Text('${DistanceHelper.format(distanceMeters)} • ${stop.modeLabel} (${stop.source.badgeEmoji}) • $crowd', style: TextStyle(fontSize: 9, color: AppColors.textSecondary(dark))),
                   ],
                 ),
               ),
@@ -1178,9 +1179,9 @@ class StopCard extends StatelessWidget {
       case StopType.intermediate: color = Colors.grey; label = 'INTERM.'; break;
     }
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
       decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(4), border: Border.all(color: color.withOpacity(0.4), width: 0.8)),
-      child: Text(label, style: TextStyle(fontSize: 7, fontWeight: FontWeight.bold, color: color)),
+      child: Text(label, style: TextStyle(fontSize: 6, fontWeight: FontWeight.bold, color: color)),
     );
   }
 }
