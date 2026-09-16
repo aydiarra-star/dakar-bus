@@ -1,7 +1,7 @@
 name: dakar_bus
-description: "Application de mobilité urbaine à Dakar - TER, BRT, AFTU, Tata, DDD"
+description: "Application de mobilite urbaine pour Dakar (TER, BRT, DDD, TATA, AFTU)."
 publish_to: 'none'
-version: 5.1.0+1
+version: 9.1.0+1
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
