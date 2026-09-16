@@ -30,7 +30,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.19.0'
+          flutter-version: '3.24.5'
           channel: 'stable'
           cache: true
 
@@ -38,7 +38,7 @@ jobs:
         run: flutter pub get
 
       - name: Build Web
-        run: flutter build web --release --base-href "/dakar-bus/"
+        run: flutter build web --release --no-wasm-dry-run --base-href "/dakar-bus/"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
