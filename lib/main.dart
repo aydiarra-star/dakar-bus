@@ -810,7 +810,7 @@ class _MainShellState extends State<MainShell> {
 }
 
 // ============================================================
-// EXPLORER — AVEC ZOOM ADAPTÉ & CAMERA CONSTRAINT
+// EXPLORER — ZOOM DÉZOOMÉ, SANS CameraConstraint (WEB SAFE)
 // ============================================================
 class ExplorerPage extends StatefulWidget {
   final LatLng? userPosition; final GpsState gpsState; final String? gpsMessage; final Future<void> Function() onRequestLocation;
@@ -830,7 +830,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
   List<Polyline> _dynamicPolylines = [];
   bool _isLoadingRoutes = true;
 
-  // ✅ ZOOM INITIAL DÉZOOMÉ POUR VOIR TOUTE LA RÉGION DE DAKAR
+  // ✅ ZOOMS ADAPTÉS
   static const double _zoomOverview = 11.2;
   static const double _zoomOnStop = 13.5;
   static const double _zoomOnUser = 12.5;
@@ -945,17 +945,10 @@ class _ExplorerPageState extends State<ExplorerPage> {
                             initialCenter: (widget.userPosition != null && DakarBounds.isValid(widget.userPosition!))
                                 ? widget.userPosition!
                                 : _dakarCenter,
-                            // ✅ ZOOM INITIAL DÉZOOMÉ POUR VOIR TOUTE LA RÉGION DE DAKAR
                             initialZoom: _zoomOverview,
                             minZoom: 9,
                             maxZoom: 17,
-                            // ✅ EMPÊCHE LA CARTE DE SORTIR DES LIMITES DE DAKAR
-                            cameraConstraint: CameraConstraint.contain(
-                              bounds: LatLngBounds(
-                                const LatLng(DakarBounds.south, DakarBounds.west),
-                                const LatLng(DakarBounds.north, DakarBounds.east),
-                              ),
-                            ),
+                            // ✅ PAS de cameraConstraint → carte fluide sur web
                           ),
                           children: [
                             TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', userAgentPackageName: 'dakar_bus', maxZoom: 19),
@@ -1743,7 +1736,7 @@ class SettingsPage extends StatelessWidget {
                         onTap: () => _showInfoModal(context, 'Qui sommes-nous ?', 'Dakar Bus est la plateforme de référence multimodale conçue pour faciliter la mobilité urbaine à Dakar. Notre mission est d’offrir à chaque usager une visibilité totale sur les réseaux de transport et de fluidifier les déplacements quotidiens.'),
                       ),
                       Divider(height: 1, color: AppColors.divider(dark)),
-                      ListTile(leading: const Icon(Icons.verified, color: AppColors.primary), title: Text('Version de l’application', style: TextStyle(color: AppColors.textPrimary(dark))), subtitle: Text('Dakar Bus v9.3 (Zoom optimisé Web)', style: TextStyle(color: AppColors.textSecondary(dark)))),
+                      ListTile(leading: const Icon(Icons.verified, color: AppColors.primary), title: Text('Version de l’application', style: TextStyle(color: AppColors.textPrimary(dark))), subtitle: Text('Dakar Bus v9.4 (Web Fix)', style: TextStyle(color: AppColors.textSecondary(dark)))),
                     ],
                   ),
                 ),
