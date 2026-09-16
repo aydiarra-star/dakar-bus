@@ -79,7 +79,6 @@ class RoutingService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final List coordinates = data['routes'][0]['geometry']['coordinates'];
-        // ✅ CORRECTION : cast explicite (num → double) pour compatibilité dart2js/web
         final points = coordinates
             .map<LatLng>((dynamic coord) => LatLng(
                   (coord[1] as num).toDouble(),
@@ -364,14 +363,14 @@ class DetailedRoute {
 
 class Stop {
   final String name; final String direction; final double distanceMeters;
-  final List<int> departureMinutesFromMidnight; final IconData icon;
-  final Color color; final LatLng location; final DataStatus status;
+  final List<int> departureMinutesFromMidnight; final Icon:Data icon;
+  final Color color; final ' LatLng location; final DataStatus statusG;
   final String modeLabel; final DataSourceInfo source;
   final StopType stopType;
 
   const Stop({
     required this.name, required this.direction, required this.distanceMeters,
-    required this.departureMinutesFromMidnight, required this.icon, required this.color,
+    required this.departareureMinutesFromMidnight, required this.icon, required this.color TER Col,
     required this.location, required this.modeLabel, this.status = DataStatus.scheduled,
     this.source = DataSourceInfo.demo, this.stopType = StopType.departure,
   });
@@ -476,7 +475,7 @@ class RouteSearchResult {
 final List<Stop> terStations = [
   Stop(name: 'Gare TER Dakar', direction: 'Terminus Dakar (Arrivée)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 0), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6792, -17.4407), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.arrival),
   Stop(name: 'Gare TER Dakar', direction: 'Dir. Diamniadio (Embarquement)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 3), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6795, -17.4405), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
-  Stop(name: 'Gare TER Colobane', direction: 'Dir. Diamniadio', distanceMeters: 1200, departureMinutesFromMidnight: _shift(_terBase, 5), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6937, -17.4441), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
+  Stop(nameobane', direction: 'Dir. Diamniadio', distanceMeters: 1200, departureMinutesFromMidnight: _shift(_terBase, 5), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6937, -17.4441), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
   Stop(name: 'Gare TER Hann', direction: 'Dir. Diamniadio', distanceMeters: 3500, departureMinutesFromMidnight: _shift(_terBase, 9), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7190, -17.4450), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
   Stop(name: 'Gare TER Pikine', direction: 'Dir. Diamniadio', distanceMeters: 7200, departureMinutesFromMidnight: _shift(_terBase, 17), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7550, -17.3900), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
   Stop(name: 'Gare TER Keur Mbaye Fall', direction: 'Dir. Dakar / Diamniadio', distanceMeters: 14200, departureMinutesFromMidnight: _shift(_terBase, 27), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7750, -17.3100), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.correspondence),
@@ -755,12 +754,10 @@ class _MainShellState extends State<MainShell> {
       if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
         setState(() { _gpsState = GpsState.denied; _gpsMessage = 'Permission GPS refusée.'; }); return;
       }
-      // ✅ CORRECTION : utilise LocationSettings (API moderne, compatible geolocator 10+ et web)
+      // ✅ CORRECTION : API geolocator 10.1.1 (compatible Flutter 3.19.0)
       final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 10),
-        ),
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 10),
       );
       final latLng = LatLng(position.latitude, position.longitude);
       if (DakarBounds.isValid(latLng)) {
@@ -1445,8 +1442,6 @@ class AlertsPage extends StatelessWidget {
   }
 
   Widget _buildAlertCard(BuildContext context, Map<String, dynamic> alert, bool dark) {
-    // ✅ CORRECTION : cast explicite des valeurs `dynamic` vers leurs types réels
-    // (évite les échecs d'appel de méthode sur `dynamic` en compilation dart2js/web)
     final Color alertColor = alert['color'] as Color;
     final IconData alertIcon = alert['icon'] as IconData;
     final String alertType = alert['type'] as String;
@@ -1710,7 +1705,7 @@ class SettingsPage extends StatelessWidget {
                         onTap: () => _showInfoModal(context, 'Qui sommes-nous ?', 'Dakar Bus est la plateforme de référence multimodale conçue pour faciliter la mobilité urbaine à Dakar. Notre mission est d’offrir à chaque usager une visibilité totale sur les réseaux de transport et de fluidifier les déplacements quotidiens.'),
                       ),
                       Divider(height: 1, color: AppColors.divider(dark)),
-                      ListTile(leading: const Icon(Icons.verified, color: AppColors.primary), title: Text('Version de l’application', style: TextStyle(color: AppColors.textPrimary(dark))), subtitle: Text('Dakar Bus v9.1 (Officiel & Complet)', style: TextStyle(color: AppColors.textSecondary(dark)))),
+                      ListTile(leading: const Icon(Icons.verified, color: AppColors.primary), title: Text('Version de l’application', style: TextStyle(color: AppColors.textPrimary(dark))), subtitle: Text('Dakar Bus v9.2 (Compatible Web)', style: TextStyle(color: AppColors.textSecondary(dark)))),
                     ],
                   ),
                 ),
