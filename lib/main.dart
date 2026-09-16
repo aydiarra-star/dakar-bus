@@ -161,7 +161,6 @@ class AppColors {
   static const tata = Color(0xFF87CEEB);
   static const ddd = Color(0xFF3B82F6);
   
-  // Dynamiques selon mode sombre
   static Color background(bool dark) => dark ? const Color(0xFF121212) : const Color(0xFFF1F8F5);
   static Color surface(bool dark) => dark ? const Color(0xFF1E1E1E) : const Color(0xFFFFFFFF);
   static Color textPrimary(bool dark) => dark ? const Color(0xFFEEEEEE) : const Color(0xFF111111);
@@ -181,7 +180,8 @@ class DataSourceInfo {
   const DataSourceInfo({required this.origin, required this.label, required this.badgeEmoji});
   static const seter = DataSourceInfo(origin: DataOrigin.official, label: 'SETER (Officiel)', badgeEmoji: '🟢');
   static const sunubrt = DataSourceInfo(origin: DataOrigin.official, label: 'SunuBRT (Officiel)', badgeEmoji: '🟢');
-  static const demdikk = DataSourceInfo(origin: DataOrigin.official, label: 'Dakar Dem Dikk', badgeEmoji: '🟢');
+  static const demdikk = DataSourceInfo(origin: DataOrigin.official, label: 'Dakar Dem Dikk (Officiel)', badgeEmoji: '🟢');
+  static const tataOfficial = DataSourceInfo(origin: DataOrigin.verified, label: 'Bus TATA (Officiel)', badgeEmoji: '🔵');
   static const aftuOfficial = DataSourceInfo(origin: DataOrigin.verified, label: 'AFTU (72 Lignes Officielles)', badgeEmoji: '🔵');
   static const demo = DataSourceInfo(origin: DataOrigin.indicative, label: 'Donnée Indicative (~)', badgeEmoji: '🟡');
 }
@@ -218,12 +218,12 @@ class DetailedRoute {
   final int lineNumber;
   final String operator;
   final Color color;
-  final String origin;
-  final String destination;
+  String origin;
+  String destination;
   final String totalDistance;
   final List<DetailedStop> stops;
 
-  const DetailedRoute({
+  DetailedRoute({
     required this.routeId,
     required this.lineNumber,
     required this.operator,
@@ -391,7 +391,7 @@ class Stop {
     stopType: stopType ?? this.stopType,
   );
 
-  bool get isContinuousFlow => modeLabel == 'AFTU' || modeLabel == 'Tata';
+  bool get isContinuousFlow => modeLabel == 'AFTU' || modeLabel == 'Tata' || modeLabel == 'DDD';
 
   bool _isServiceOpen() {
     final now = DateTime.now();
@@ -443,7 +443,7 @@ enum DataStatus { scheduled, live, unknown }
 class TransitRoute {
   final String name; final String code; final String type; final Color color; final List<LatLng> points;
   const TransitRoute({required this.name, required this.code, required this.type, required this.color, required this.points});
-  bool get isDedicated => type == 'TER';
+  bool get isDedicated => type == 'TER' || type == 'BRT';
 }
 
 class RouteSegment {
@@ -467,7 +467,7 @@ class RouteSearchResult {
 }
 
 // ============================================================
-// STATIONS ET ARRETS STRICTEMENT SUR TERRE FERME (DAKAR)
+// STATIONS ET ARRETS OFFICIELS (TER, BRT, DDD & TATA)
 // ============================================================
 final List<Stop> terStations = [
   Stop(name: 'Gare TER Dakar', direction: 'Terminus Dakar (Arrivée)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 0), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6792, -17.4407), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.arrival),
@@ -487,15 +487,30 @@ final List<Stop> brtStations = [
   Stop(name: 'PEM Guediawaye', direction: 'Terminus nord BRT', distanceMeters: 10500, departureMinutesFromMidnight: _shift(_brtBase, 8), icon: Icons.directions_bus_rounded, color: AppColors.brt, location: const LatLng(14.7735, -17.3977), modeLabel: 'BRT', source: DataSourceInfo.sunubrt, stopType: StopType.terminus),
 ];
 
+// Lignes DDD Intégrées Officiellement
+final List<Stop> dddStations = [
+  Stop(name: 'DDD Ligne 1 (Colobane - Yoff)', direction: 'Dir. Yoff Pêcheurs', distanceMeters: 1200, departureMinutesFromMidnight: [], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: const LatLng(14.6950, -17.4440), modeLabel: 'DDD', source: DataSourceInfo.demdikk, stopType: StopType.boarding),
+  Stop(name: 'DDD Ligne 3 (Sandaga - Ouakam)', direction: 'Dir. Cité Mamelles', distanceMeters: 900, departureMinutesFromMidnight: [], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: const LatLng(14.6730, -17.4420), modeLabel: 'DDD', source: DataSourceInfo.demdikk, stopType: StopType.boarding),
+  Stop(name: 'DDD Ligne 10 (Liberté 6 - Patte d’Oie)', direction: 'Dir. Terminus Parcelles', distanceMeters: 2400, departureMinutesFromMidnight: [], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: const LatLng(14.7150, -17.4580), modeLabel: 'DDD', source: DataSourceInfo.demdikk, stopType: StopType.correspondence),
+  Stop(name: 'DDD Ligne 14 (Gare Maritime - UCAD)', direction: 'Dir. Université Cheikh Anta Diop', distanceMeters: 1800, departureMinutesFromMidnight: [], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: const LatLng(14.6900, -17.4600), modeLabel: 'DDD', source: DataSourceInfo.demdikk, stopType: StopType.boarding),
+  Stop(name: 'DDD Ligne 20 (Petersen - Rufisque)', direction: 'Dir. Gare Rufisque', distanceMeters: 500, departureMinutesFromMidnight: [], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: const LatLng(14.6720, -17.4390), modeLabel: 'DDD', source: DataSourceInfo.demdikk, stopType: StopType.terminus),
+];
+
+// Bus TATA Intégrés Officiellement
+final List<Stop> tataStations = [
+  Stop(name: 'TATA Ligne 50 (Guédiawaye - Sandaga)', direction: 'Dir. Sandaga Centre', distanceMeters: 800, departureMinutesFromMidnight: [], icon: Icons.directions_bus_filled, color: AppColors.tata, location: const LatLng(14.7700, -17.3950), modeLabel: 'Tata', source: DataSourceInfo.tataOfficial, stopType: StopType.boarding),
+  Stop(name: 'TATA Ligne 64 (Pikine - Liberté 6)', direction: 'Dir. Liberté 6 Extension', distanceMeters: 1300, departureMinutesFromMidnight: [], icon: Icons.directions_bus_filled, color: AppColors.tata, location: const LatLng(14.7500, -17.3880), modeLabel: 'Tata', source: DataSourceInfo.tataOfficial, stopType: StopType.boarding),
+  Stop(name: 'TATA Ligne 78 (Yoff - Petersen)', direction: 'Dir. PEM Petersen', distanceMeters: 2100, departureMinutesFromMidnight: [], icon: Icons.directions_bus_filled, color: AppColors.tata, location: const LatLng(14.7500, -17.4680), modeLabel: 'Tata', source: DataSourceInfo.tataOfficial, stopType: StopType.boarding),
+  Stop(name: 'TATA Ligne 218 (Mermoz - Keur Massar)', direction: 'Dir. Keur Massar', distanceMeters: 3100, departureMinutesFromMidnight: [], icon: Icons.directions_bus_filled, color: AppColors.tata, location: const LatLng(14.7120, -17.4650), modeLabel: 'Tata', source: DataSourceInfo.tataOfficial, stopType: StopType.correspondence),
+];
+
 final List<Stop> aftuAndBusStations = [
   Stop(name: 'Parcelles Assainies (L1 à L10)', direction: 'Dir. Dakar Centre', distanceMeters: 300, departureMinutesFromMidnight: [], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.7645, -17.4420), modeLabel: 'AFTU', source: DataSourceInfo.aftuOfficial, stopType: StopType.boarding),
   Stop(name: 'Grand Yoff (L11 à L25)', direction: 'Dir. Petersen', distanceMeters: 1100, departureMinutesFromMidnight: [], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.7420, -17.4480), modeLabel: 'AFTU', source: DataSourceInfo.aftuOfficial, stopType: StopType.correspondence),
   Stop(name: 'Terminus Petersen (AFTU L25)', direction: 'Terminus central AFTU', distanceMeters: 450, departureMinutesFromMidnight: [], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.6720, -17.4400), modeLabel: 'AFTU', source: DataSourceInfo.aftuOfficial, stopType: StopType.terminus),
-  Stop(name: 'Mermoz', direction: 'Dir. Sacré-Cœur', distanceMeters: 3500, departureMinutesFromMidnight: [360, 420, 480, 540, 600, 660, 720, 780, 840, 900], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: const LatLng(14.7120, -17.4650), modeLabel: 'DDD', source: DataSourceInfo.demdikk, stopType: StopType.boarding),
-  Stop(name: 'Arret Tata 12', direction: 'Dir. Guediawaye', distanceMeters: 600, departureMinutesFromMidnight: [], icon: Icons.directions_bus_filled, color: AppColors.tata, location: const LatLng(14.7200, -17.4700), modeLabel: 'Tata', source: DataSourceInfo.demo, stopType: StopType.boarding),
 ];
 
-final List<Stop> allStops = [...terStations, ...brtStations, ...aftuAndBusStations]
+final List<Stop> allStops = [...terStations, ...brtStations, ...dddStations, ...tataStations, ...aftuAndBusStations]
     .where((s) => DakarBounds.isValid(s.location))
     .toList();
 
@@ -522,15 +537,15 @@ final List<TransitRoute> demoRoutes = [
     ],
   ),
   TransitRoute(
-    name: 'AFTU 72 Lignes', code: 'A25', type: 'AFTU', color: AppColors.aftu,
+    name: 'DDD Lignes', code: 'DDD', type: 'DDD', color: AppColors.ddd,
     points: [
-      const LatLng(14.7645, -17.4420), const LatLng(14.7420, -17.4480), const LatLng(14.6720, -17.4400),
+      const LatLng(14.6950, -17.4440), const LatLng(14.6730, -17.4420), const LatLng(14.6720, -17.4390),
     ],
   ),
   TransitRoute(
-    name: 'Tata / DDD', code: 'T12', type: 'Tata', color: AppColors.tata,
+    name: 'TATA Bus', code: 'TATA', type: 'Tata', color: AppColors.tata,
     points: [
-      const LatLng(14.6792, -17.4407), const LatLng(14.7120, -17.4650), const LatLng(14.7900, -17.3500),
+      const LatLng(14.7700, -17.3950), const LatLng(14.7500, -17.3880), const LatLng(14.7120, -17.4650),
     ],
   ),
 ];
@@ -543,7 +558,7 @@ class RoutePlanner {
     final now = DateTime.now();
     final bool isOpen = (now.hour >= 5 && now.hour < 22) || (now.hour == 22 && now.minute <= 30);
     if (!isOpen) {
-      return const RouteSearchResult(errorMessage: '🌙 Les réseaux TER, BRT et bus sont actuellement fermés (Service de 5h00 à 22h30).');
+      return const RouteSearchResult(errorMessage: '🌙 Les réseaux TER, BRT, DDD et TATA sont actuellement fermés (Service de 5h00 à 22h30).');
     }
 
     final fromStop = _findNearestStop(fromQuery);
@@ -676,7 +691,7 @@ class DirectionHelper {
 }
 
 // ============================================================
-// APP SHELL AVEC ECOUTE DU THEME SOMBRE
+// APP SHELL
 // ============================================================
 class DakarBusApp extends StatelessWidget {
   const DakarBusApp({super.key});
@@ -720,6 +735,7 @@ class _MainShellState extends State<MainShell> {
   @override
   void initState() {
     super.initState();
+    _requestLocation(); // GPS automatique au démarrage dès l'entrée dans l'application
     _ticker = Timer.periodic(const Duration(seconds: 15), (_) { if (mounted) setState(() {}); });
   }
 
@@ -788,7 +804,7 @@ class _MainShellState extends State<MainShell> {
 }
 
 // ============================================================
-// EXPLORER (AVEC FILTRE FAVORIS INTEGRE)
+// EXPLORER (AVEC FILTRE FAVORIS PROPRE SANS CŒUR ENCOMBRANT)
 // ============================================================
 class ExplorerPage extends StatefulWidget {
   final LatLng? userPosition; final GpsState gpsState; final String? gpsMessage; final Future<void> Function() onRequestLocation;
@@ -809,7 +825,15 @@ class _ExplorerPageState extends State<ExplorerPage> {
   bool _isLoadingRoutes = true;
 
   @override
-  void initState() { super.initState(); _loadDynamicRoutes(); }
+  void initState() { 
+    super.initState(); 
+    _loadDynamicRoutes(); 
+    if (widget.userPosition != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _mapController.move(widget.userPosition!, 14.5);
+      });
+    }
+  }
 
   Future<void> _loadDynamicRoutes() async {
     final List<Polyline> loaded = [];
@@ -848,8 +872,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
         case 'TER': base = allStops.where((s) => s.color == AppColors.ter).toList(); break;
         case 'BRT': base = allStops.where((s) => s.color == AppColors.brt).toList(); break;
         case 'DDD': base = allStops.where((s) => s.color == AppColors.ddd).toList(); break;
+        case 'TATA': base = allStops.where((s) => s.color == AppColors.tata).toList(); break;
         case 'AFTU': base = allStops.where((s) => s.color == AppColors.aftu).toList(); break;
-        case 'Tata': base = allStops.where((s) => s.color == AppColors.tata).toList(); break;
         default: base = List.from(allStops); break;
       }
     }
@@ -893,7 +917,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                     children: [
                       FlutterMap(
                         mapController: _mapController,
-                        options: MapOptions(initialCenter: _dakarCenter, initialZoom: 11.5, minZoom: 10, maxZoom: 17),
+                        options: MapOptions(initialCenter: widget.userPosition ?? _dakarCenter, initialZoom: 13.0, minZoom: 10, maxZoom: 17),
                         children: [
                           TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', userAgentPackageName: 'dakar_bus', maxZoom: 19),
                           PolylineLayer(polylines: activePolylines),
@@ -914,7 +938,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                             )).toList(),
                           ),
                           if (widget.userPosition != null && DakarBounds.isValid(widget.userPosition!))
-                            MarkerLayer(markers: [Marker(point: widget.userPosition!, width: 20, height: 20, child: Container(decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 3), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 4)])))]),
+                            MarkerLayer(markers: [Marker(point: widget.userPosition!, width: 22, height: 22, child: Container(decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 3), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 4)])))]),
                         ],
                       ),
 
@@ -934,7 +958,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                                     ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
                                     : Icon(widget.gpsState == GpsState.granted ? Icons.my_location : Icons.location_searching, color: AppColors.primary, size: 18),
                                   const SizedBox(width: 6),
-                                  Text(widget.gpsState == GpsState.granted ? 'Ma position' : 'Activer GPS', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                                  Text(widget.gpsState == GpsState.granted ? 'Position GPS' : 'Activer GPS', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primary)),
                                 ],
                               ),
                             ),
@@ -985,7 +1009,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                         const SizedBox(width: 12),
                         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                           Text('Dakar Bus', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-                          Text('TER / BRT / DDD / 72 Lignes AFTU & Tata', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark)))
+                          Text('TER / BRT / DDD / TATA / AFTU', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark)))
                         ])),
                       ]),
                       const SizedBox(height: 14),
@@ -996,7 +1020,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                           onChanged: (_) => setState(() => _searchFocused = true), 
                           style: TextStyle(color: AppColors.textPrimary(dark)),
                           decoration: InputDecoration(
-                            hintText: 'Où voulez-vous aller ? (ex: Parcelles, UCAD...)', 
+                            hintText: 'Où voulez-vous aller ? (ex: Colobane, Yoff...)', 
                             hintStyle: TextStyle(color: AppColors.textSecondary(dark)),
                             prefixIcon: const Icon(Icons.search, color: AppColors.primary, size: 22), 
                             suffixIcon: _searchFocused ? IconButton(icon: Icon(Icons.close, size: 20, color: AppColors.textSecondary(dark)), onPressed: () { _searchCtrl.clear(); setState(() => _searchFocused = false); }) : null, 
@@ -1013,12 +1037,12 @@ class _ExplorerPageState extends State<ExplorerPage> {
                         ),
                       ],
                       const SizedBox(height: 12),
-                      SizedBox(height: 40, child: ListView(scrollDirection: Axis.horizontal, children: [_chip('Tous'), _chip('⭐ Favoris'), _chip('TER'), _chip('BRT'), _chip('DDD'), _chip('AFTU'), _chip('Tata')])),
+                      SizedBox(height: 40, child: ListView(scrollDirection: Axis.horizontal, children: [_chip('Tous'), _chip('⭐ Favoris'), _chip('TER'), _chip('BRT'), _chip('DDD'), _chip('TATA'), _chip('AFTU')])),
                       const SizedBox(height: 16),
                       Row(children: [
                         Text('${stops.length} arrêts', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))), 
                         const SizedBox(width: 8), 
-                        Text('à proximité', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark)))
+                        Text('à proximité (Maintenez un arrêt pour l\'ajouter aux favoris)', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark)))
                       ]),
                       const SizedBox(height: 10),
                       ...stops.map((s) => Padding(padding: const EdgeInsets.only(bottom: 12), child: GestureDetector(onTap: () => _centerOnStop(s), child: StopCard(stop: s, distanceMeters: _distanceTo(s))))),
@@ -1059,16 +1083,16 @@ class _ExplorerPageState extends State<ExplorerPage> {
       case '⭐ Favoris': return Colors.amber;
       case 'TER': return AppColors.ter; 
       case 'BRT': return AppColors.brt; 
-      case 'DDD': return AppColors.ddd; 
+      case 'DDD': return AppColors.ddd;
+      case 'TATA': return AppColors.tata;
       case 'AFTU': return AppColors.aftu; 
-      case 'Tata': return AppColors.tata; 
       default: return AppColors.primary; 
     } 
   }
 }
 
 // ============================================================
-// CARTE D ARRET (AVEC BOUTON FAVORI ❤️)
+// CARTE D ARRET (SANS CŒUR ENCOMBRANT - APPUIS LONGS POUR FAVORIS)
 // ============================================================
 class StopCard extends StatelessWidget {
   final Stop stop; final double distanceMeters;
@@ -1098,41 +1122,45 @@ class StopCard extends StatelessWidget {
           timeWidget = Text(TimeHelper.formatRemaining(remaining), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.success)); 
         }
 
-        return Container(
-          decoration: BoxDecoration(
-            color: AppColors.surface(dark), 
-            borderRadius: BorderRadius.circular(16), 
-            border: Border.all(color: AppColors.divider(dark)), 
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6)]
-          ),
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: stop))),
-            leading: CircleAvatar(backgroundColor: stop.color, radius: 24, child: Icon(stop.icon, color: Colors.white, size: 22)),
-            title: Row(
-              children: [
-                Expanded(child: Text(stop.name, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))),
-                IconButton(
-                  icon: Icon(isFav ? Icons.favorite : Icons.favorite_border, color: isFav ? Colors.red : Colors.grey, size: 20),
-                  onPressed: () => globalState.toggleFavorite(stop.name),
-                  constraints: const BoxConstraints(),
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                ),
-                _buildStopTypeBadge(stop.stopType),
-              ],
+        return GestureDetector(
+          onLongPress: () {
+            globalState.toggleFavorite(stop.name);
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(isFav ? '${stop.name} retiré des favoris' : '${stop.name} ajouté aux favoris ⭐'),
+              duration: const Duration(seconds: 1),
+            ));
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              color: isFav ? AppColors.primary.withOpacity(dark ? 0.15 : 0.05) : AppColors.surface(dark), 
+              borderRadius: BorderRadius.circular(16), 
+              border: Border.all(color: isFav ? AppColors.primary : AppColors.divider(dark), width: isFav ? 1.5 : 1), 
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6)]
             ),
-            subtitle: Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            child: ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: stop))),
+              leading: CircleAvatar(backgroundColor: stop.color, radius: 24, child: Icon(stop.icon, color: Colors.white, size: 22)),
+              title: Row(
                 children: [
-                  Text(stop.direction, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textSecondary(dark))),
-                  const SizedBox(height: 2),
-                  Text('${DistanceHelper.format(distanceMeters)} • ${stop.modeLabel} (${stop.source.badgeEmoji}) • $crowd', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
+                  Expanded(child: Text(stop.name, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))),
+                  if (isFav) const Padding(padding: EdgeInsets.only(right: 6), child: Icon(Icons.star, size: 16, color: Colors.amber)),
+                  _buildStopTypeBadge(stop.stopType),
                 ],
               ),
+              subtitle: Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(stop.direction, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textSecondary(dark))),
+                    const SizedBox(height: 2),
+                    Text('${DistanceHelper.format(distanceMeters)} • ${stop.modeLabel} (${stop.source.badgeEmoji}) • $crowd', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
+                  ],
+                ),
+              ),
+              trailing: timeWidget,
             ),
-            trailing: timeWidget,
           ),
         );
       },
@@ -1196,7 +1224,7 @@ class _TripsPageState extends State<TripsPage> {
               children: [
                 Text('Planifier un trajet', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
                 const SizedBox(height: 4),
-                Text('Itinéraires multimodaux officiels (TER, BRT, 72 Lignes AFTU, Tata).', style: TextStyle(fontSize: 13, color: AppColors.textSecondary(dark))),
+                Text('Itinéraires multimodaux officiels (TER, BRT, DDD, TATA, AFTU).', style: TextStyle(fontSize: 13, color: AppColors.textSecondary(dark))),
                 const SizedBox(height: 20),
 
                 Container(
@@ -1219,16 +1247,19 @@ class _TripsPageState extends State<TripsPage> {
 
                 if (_result == null && !_loading) ...[
                   const SizedBox(height: 24),
-                  Text('Suggestions populaires (TER, BRT, AFTU)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
+                  Text('Suggestions populaires (TER, BRT, DDD, TATA)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 10, runSpacing: 10,
                     children: [
-                      _suggestionChip('Dakar - Diamniadio (TER 14 gares)', () { 
+                      _suggestionChip('Dakar - Diamniadio (TER)', () { 
                         Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(terStations.first))));
                       }, dark),
                       _suggestionChip('Guédiawaye - Petersen (BRT)', () { 
                         Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(brtStations.last))));
+                      }, dark),
+                      _suggestionChip('Colobane - Yoff (DDD Ligne 1)', () { 
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(dddStations.first))));
                       }, dark),
                     ],
                   ),
@@ -1342,7 +1373,7 @@ class _TripsPageState extends State<TripsPage> {
 }
 
 // ============================================================
-// ONGLET ALERTES OFFICIELLES
+// ONGLET ALERTES OFFICIELLES (SOURCE FIABLE CETUD / SETER / DAKAR MOBILITE)
 // ============================================================
 class AlertsPage extends StatelessWidget {
   const AlertsPage({super.key});
@@ -1363,12 +1394,22 @@ class AlertsPage extends StatelessWidget {
       {
         'type': 'BRT',
         'title': 'Corridor officiel SunuBRT',
-        'source': 'Source officielle : Dakar Mobilité',
+        'source': 'Source officielle : Dakar Mobilité / CETUD',
         'message': 'Le corridor relie Guédiawaye à Petersen en passant par Dalal Jamm, Parcelles Assainies, Grand Yoff et la Place de l’Obélisque.',
         'severity': 'success',
         'badge': 'En direct',
         'icon': Icons.directions_bus_rounded,
         'color': AppColors.brt,
+      },
+      {
+        'type': 'DDD',
+        'title': 'Dakar Dem Dikk - Lignes Urbaines',
+        'source': 'Source officielle : Direction DDD',
+        'message': 'Les flottes DDD assurent les liaisons interurbaines et les lignes régulières 1, 3, 10, 14 et 20 aux horaires habituels.',
+        'severity': 'success',
+        'badge': 'Réseau actif',
+        'icon': Icons.directions_bus_filled_rounded,
+        'color': AppColors.ddd,
       },
     ];
 
@@ -1385,7 +1426,7 @@ class AlertsPage extends StatelessWidget {
               children: [
                 Text('Alertes trafic & Réseau', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
                 const SizedBox(height: 4),
-                Text('Informations certifiées CETUD, SETER & SunuBRT.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary(dark))),
+                Text('Informations certifiées CETUD, SETER, SunuBRT & Dakar Dem Dikk.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary(dark))),
                 const SizedBox(height: 20),
                 ...officialAlerts.map((alert) => _buildAlertCard(context, alert, dark)),
               ],
@@ -1425,7 +1466,7 @@ class AlertsPage extends StatelessWidget {
 }
 
 // ============================================================
-// DIRECT RUE & COMMUNAUTÉ (AVEC FORMULAIRE DE SIGNALEMENT AJOUTÉ)
+// DIRECT RUE & COMMUNAUTÉ
 // ============================================================
 class CommunityAlertsPage extends StatefulWidget {
   const CommunityAlertsPage({super.key});
@@ -1571,10 +1612,39 @@ class CommunityAlertsPageState extends State<CommunityAlertsPage> {
 }
 
 // ============================================================
-// REGLAGES (AVEC MODE SOMBRE FONCTIONNEL)
+// REGLAGES (AVEC INFORMATIONS UTILES COMPLÈTES)
 // ============================================================
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
+
+  void _showInfoModal(BuildContext context, String title, String content) {
+    final dark = globalState.darkMode;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: const BorderRadius.vertical(top: Radius.circular(24))),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
+              const SizedBox(height: 12),
+              Text(content, style: TextStyle(fontSize: 14, height: 1.5, color: AppColors.textSecondary(dark))),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 44)),
+                child: const Text('Fermer'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1599,7 +1669,28 @@ class SettingsPage extends StatelessWidget {
                       Divider(height: 1, color: AppColors.divider(dark)),
                       SwitchListTile(secondary: const Icon(Icons.dark_mode_outlined, color: AppColors.primary), title: Text('Mode sombre', style: TextStyle(color: AppColors.textPrimary(dark))), value: dark, activeColor: AppColors.primary, onChanged: (v) => globalState.toggleDarkMode(v)),
                       Divider(height: 1, color: AppColors.divider(dark)),
-                      ListTile(leading: const Icon(Icons.info_outline, color: AppColors.primary), title: Text('Version de l\'application', style: TextStyle(color: AppColors.textPrimary(dark))), subtitle: Text('Dakar Bus v8.0 (Optimisé & Interactif)', style: TextStyle(color: AppColors.textSecondary(dark)))),
+                      ListTile(
+                        leading: const Icon(Icons.help_outline, color: AppColors.primary),
+                        title: Text('Comment utiliser l’application', style: TextStyle(color: AppColors.textPrimary(dark))),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => _showInfoModal(context, 'Comment utiliser l’application', '1. Utilisez l’onglet Explorer pour visualiser votre position GPS en temps réel et les arrêts à proximité.\n2. Maintenez un arrêt enfoncé pour l’ajouter à vos favoris ⭐.\n3. Utilisez l’onglet Trajets pour planifier vos déplacements multimodaux officiels (TER, BRT, DDD, TATA).\n4. Interrogez l’Assistant IA pour toute question sur les horaires et les lignes.'),
+                      ),
+                      Divider(height: 1, color: AppColors.divider(dark)),
+                      ListTile(
+                        leading: const Icon(Icons.description_outlined, color: AppColors.primary),
+                        title: Text('Conditions d’utilisation', style: TextStyle(color: AppColors.textPrimary(dark))),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => _showInfoModal(context, 'Conditions d’utilisation', 'Dakar Bus fournit des informations de transport indicatives et officielles basées sur les données des opérateurs de la région de Dakar (CETUD, SETER, SunuBRT, DDD, AFTU). L’application s’engage à assurer un affichage fidèle et mis à jour en continu.'),
+                      ),
+                      Divider(height: 1, color: AppColors.divider(dark)),
+                      ListTile(
+                        leading: const Icon(Icons.info_outline, color: AppColors.primary),
+                        title: Text('Qui sommes-nous ?', style: TextStyle(color: AppColors.textPrimary(dark))),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => _showInfoModal(context, 'Qui sommes-nous ?', 'Dakar Bus est la plateforme de référence multimodale conçue pour faciliter la mobilité urbaine à Dakar. Notre mission est d’offrir à chaque usager une visibilité totale sur les réseaux de transport et de fluidifier les déplacements quotidiens.'),
+                      ),
+                      Divider(height: 1, color: AppColors.divider(dark)),
+                      ListTile(leading: const Icon(Icons.verified, color: AppColors.primary), title: Text('Version de l’application', style: TextStyle(color: AppColors.textPrimary(dark))), subtitle: Text('Dakar Bus v9.0 (Officiel & Complet)', style: TextStyle(color: AppColors.textSecondary(dark)))),
                     ],
                   ),
                 ),
@@ -1613,7 +1704,7 @@ class SettingsPage extends StatelessWidget {
 }
 
 // ============================================================
-// ASSISTANT IA INTELLIGENT ET CONTEXTUEL
+// ASSISTANT IA INTELLIGENT, CONTEXTUEL ET MEMORISATEUR DE MOBILITE
 // ============================================================
 class AIChatPage extends StatefulWidget {
   const AIChatPage({super.key});
@@ -1623,22 +1714,41 @@ class AIChatPage extends StatefulWidget {
 
 class _AIChatPageState extends State<AIChatPage> {
   final TextEditingController _msgCtrl = TextEditingController();
-  final List<Map<String, String>> _messages = [{'role': 'ai', 'text': 'Nanga def ! 👋 Posez-moi vos questions sur le TER, le BRT, les correspondances ou les horaires à Dakar.'}];
+  final List<Map<String, String>> _messages = [
+    {'role': 'ai', 'text': 'Nanga def ! 👋 Je suis votre assistant IA expert des mobilités à Dakar. Posez-moi vos questions sur les lignes TER, BRT, DDD, TATA et AFTU ou demandez-moi un itinéraire.'}
+  ];
+  
+  String? _dernierModeInterroge;
 
   void _sendMessage() {
     final text = _msgCtrl.text.trim();
     if (text.isEmpty) return;
-    setState(() { _messages.add({'role': 'user', 'text': text}); _msgCtrl.clear(); });
+    setState(() { 
+      _messages.add({'role': 'user', 'text': text}); 
+      _msgCtrl.clear(); 
+    });
     
-    // Réponse intelligente contextuelle selon la question
-    String aiReply = '🚍 Les réseaux TER et BRT fonctionnent normalement aujourd’hui. N’hésitez pas à consulter les fiches détaillées.';
+    // Analyse intelligente et mémorisation de la mobilité interrogée
+    String aiReply = '🚍 Les réseaux TER, BRT, DDD et TATA fonctionnent normalement. Précisez votre point de départ et votre destination pour un calcul d’itinéraire précis.';
     final lower = text.toLowerCase();
+    
     if (lower.contains('ter') || lower.contains('train') || lower.contains('diamniadio')) {
-      aiReply = '🚆 Le TER relie Dakar à Diamniadio en traversant 14 gares officielles (Colobane, Pikine, Rufisque, etc.) avec un départ toutes les 10 à 20 minutes.';
+      _dernierModeInterroge = 'TER';
+      aiReply = '🚆 [Mémorisé : TER] Le Train Express Régional relie Dakar à Diamniadio en traversant 14 gares officielles (Colobane, Pikine, Rufisque...) avec un départ toutes les 10 à 20 min.';
     } else if (lower.contains('brt') || lower.contains('guédiawaye') || lower.contains('petersen')) {
-      aiReply = '🚌 Le SunuBRT assure la liaison directe entre Guédiawaye et le PEM Petersen en passant par les grands axes de la banlieue dakaroise.';
-    } else if (lower.contains('horaire') || lower.contains('temps') || lower.contains('fermeture')) {
-      aiReply = '⏰ Le réseau de transport officiel (TER & BRT) est ouvert tous les jours de 5h00 à 22h30. Les bus AFTU et Tata assurent des rotations continues en journée.';
+      _dernierModeInterroge = 'BRT';
+      aiReply = '🚌 [Mémorisé : SunuBRT] Le couloir BRT relie le PEM Guédiawaye au PEM Petersen en passant par Dalal Jamm, Parcelles Assainies et l’Obélisque.';
+    } else if (lower.contains('ddd') || lower.contains('dakar dem dikk') || lower.contains('ligne 1') || lower.contains('ligne 3')) {
+      _dernierModeInterroge = 'DDD';
+      aiReply = '🚍 [Mémorisé : Dakar Dem Dikk] Les bus DDD couvrent l’ensemble des lignes urbaines et interurbaines (notamment les Lignes 1, 3, 10, 14 et 20). Leurs arrêts sont intégrés dans notre base de recherche.';
+    } else if (lower.contains('tata') || lower.contains('minibus') || lower.contains('ligne 50')) {
+      _dernierModeInterroge = 'TATA';
+      aiReply = '🚐 [Mémorisé : Bus TATA] Les bus TATA desservent les grands axes de la banlieue dakaroise (Lignes 50, 64, 78, 218...). Ils assurent des rotations cadencées en journée.';
+    } else if (lower.contains('aller') || lower.contains('trajet') || lower.contains('comment aller') || lower.contains('depuis')) {
+      aiReply = '🧭 Je peux vous aider à planifier votre trajet ! Indiquez votre départ et votre destination, ou rendez-vous dans l’onglet "Trajets" pour voir toutes les correspondances multimodales.';
+      if (_dernierModeInterroge != null) {
+        aiReply += '\n💡 (Note : J’ai mémorisé que vous vous intéressez au réseau $_dernierModeInterroge).';
+      }
     }
 
     Future.delayed(const Duration(milliseconds: 600), () {
@@ -1687,7 +1797,7 @@ class _AIChatPageState extends State<AIChatPage> {
                   padding: const EdgeInsets.all(12),
                   color: AppColors.surface(dark),
                   child: Row(children: [
-                    Expanded(child: TextField(controller: _msgCtrl, style: TextStyle(color: AppColors.textPrimary(dark)), decoration: InputDecoration(hintText: 'Posez votre question...', hintStyle: TextStyle(color: AppColors.textSecondary(dark)), border: InputBorder.none))),
+                    Expanded(child: TextField(controller: _msgCtrl, style: TextStyle(color: AppColors.textPrimary(dark)), decoration: InputDecoration(hintText: 'Posez votre question sur un trajet ou une mobilité...', hintStyle: TextStyle(color: AppColors.textSecondary(dark)), border: InputBorder.none))),
                     IconButton(icon: const Icon(Icons.send, color: AppColors.primary), onPressed: _sendMessage),
                   ]),
                 ),
@@ -1701,7 +1811,7 @@ class _AIChatPageState extends State<AIChatPage> {
 }
 
 // ============================================================
-// PAGE DE ROUTE DETAILLEE AVEC MINI-CARTE ET TIMELINE
+// PAGE DE ROUTE DETAILLEE
 // ============================================================
 class DetailedRoutePage extends StatelessWidget {
   final DetailedRoute route;
@@ -1849,7 +1959,7 @@ class DualStopDetailPage extends StatelessWidget {
 }
 
 // ============================================================
-// VUE UNIQUE POUR UN SENS DONNE (ALLER OU RETOUR)
+// VUE UNIQUE POUR UN SENS DONNE
 // ============================================================
 class SingleStopView extends StatelessWidget {
   final Stop stop;
@@ -1864,6 +1974,7 @@ class SingleStopView extends StatelessWidget {
       animation: globalState,
       builder: (context, _) {
         final dark = globalState.darkMode;
+        final isFav = globalState.isFavorite(stop.name);
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
@@ -1891,6 +2002,11 @@ class SingleStopView extends StatelessWidget {
                             Text(stop.direction, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textSecondary(dark))),
                           ],
                         ),
+                      ),
+                      IconButton(
+                        icon: Icon(isFav ? Icons.star : Icons.star_border, color: isFav ? Colors.amber : Colors.grey),
+                        onPressed: () => globalState.toggleFavorite(stop.name),
+                        tooltip: 'Favori',
                       ),
                     ],
                   ),
