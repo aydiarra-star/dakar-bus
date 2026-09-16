@@ -804,7 +804,7 @@ class _MainShellState extends State<MainShell> {
 }
 
 // ============================================================
-// EXPLORER (ZONE CARTE AGRANDIE À 150 ET ZOOM DÉZOOMÉ À 10.2)
+// EXPLORER (CADRE CARTE ÉLARGI À 210 ET ZOOM DÉZOOMÉ À 9.8)
 // ============================================================
 class ExplorerPage extends StatefulWidget {
   final LatLng? userPosition; final GpsState gpsState; final String? gpsMessage; final Future<void> Function() onRequestLocation;
@@ -818,8 +818,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
   final LatLng _dakarCenter = const LatLng(14.7200, -17.4300);
   String _selectedFilter = 'Tous';
   
-  // HAUTEUR DE LA ZONE CARTE AGRANDIE À 150 PIXELS
-  int _mapHeight = 150;
+  // HAUTEUR DU CADRE CARTE ÉLARGI À 210 PIXELS
+  int _mapHeight = 210;
   
   bool _searchFocused = false;
   final TextEditingController _searchCtrl = TextEditingController();
@@ -833,7 +833,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
     _loadDynamicRoutes(); 
     if (widget.userPosition != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _mapController.move(widget.userPosition!, 10.2);
+        _mapController.move(widget.userPosition!, 9.8);
       });
     }
   }
@@ -918,7 +918,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                   color: AppColors.surface(dark),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
                   child: ElevatedButton.icon(
-                    onPressed: () => setState(() => _mapHeight = _mapHeight == 0 ? 150 : 0),
+                    onPressed: () => setState(() => _mapHeight = _mapHeight == 0 ? 210 : 0),
                     icon: Icon(_mapHeight == 0 ? Icons.map : Icons.keyboard_arrow_up, size: 13),
                     label: Text(_mapHeight == 0 ? 'Afficher la carte' : 'Réduire la carte', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
                     style: ElevatedButton.styleFrom(
@@ -940,8 +940,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
                           children: [
                             FlutterMap(
                               mapController: _mapController,
-                              // ZOOM DÉZOOMÉ À 10.2 POUR UN AFFICHAGE TRÈS LARGE DE LA ZONE
-                              options: MapOptions(initialCenter: widget.userPosition ?? _dakarCenter, initialZoom: 10.2, minZoom: 8, maxZoom: 15),
+                              // ZOOM DÉZOOMÉ À 9.8 POUR AFFICHER TOUTE LA RÉGION DE DAKAR PARFAITEMENT
+                              options: MapOptions(initialCenter: widget.userPosition ?? _dakarCenter, initialZoom: 9.8, minZoom: 8, maxZoom: 15),
                               children: [
                                 TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', userAgentPackageName: 'dakar_bus', maxZoom: 19),
                                 PolylineLayer(polylines: activePolylines),
@@ -967,22 +967,22 @@ class _ExplorerPageState extends State<ExplorerPage> {
                             ),
 
                             Positioned(
-                              bottom: 6, left: 6,
+                              bottom: 8, left: 8,
                               child: Material(
                                 elevation: 2, borderRadius: BorderRadius.circular(16), color: AppColors.surface(dark),
                                 child: InkWell(
-                                  onTap: widget.gpsState == GpsState.granted ? () { if (widget.userPosition != null) _mapController.move(widget.userPosition!, 10.2); } : () => widget.onRequestLocation(),
+                                  onTap: widget.gpsState == GpsState.granted ? () { if (widget.userPosition != null) _mapController.move(widget.userPosition!, 9.8); } : () => widget.onRequestLocation(),
                                   borderRadius: BorderRadius.circular(16),
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         widget.gpsState == GpsState.loading
-                                          ? const SizedBox(width: 8, height: 8, child: CircularProgressIndicator(strokeWidth: 1.5))
-                                          : Icon(widget.gpsState == GpsState.granted ? Icons.my_location : Icons.location_searching, color: AppColors.primary, size: 10),
-                                        const SizedBox(width: 2),
-                                        Text(widget.gpsState == GpsState.granted ? 'GPS' : 'Activer', style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                                          ? const SizedBox(width: 9, height: 9, child: CircularProgressIndicator(strokeWidth: 1.5))
+                                          : Icon(widget.gpsState == GpsState.granted ? Icons.my_location : Icons.location_searching, color: AppColors.primary, size: 11),
+                                        const SizedBox(width: 3),
+                                        Text(widget.gpsState == GpsState.granted ? 'GPS' : 'Activer', style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppColors.primary)),
                                       ],
                                     ),
                                   ),
@@ -991,12 +991,12 @@ class _ExplorerPageState extends State<ExplorerPage> {
                             ),
 
                             Positioned(
-                              bottom: 6, right: 6,
+                              bottom: 8, right: 8,
                               child: ElevatedButton.icon(
                                 onPressed: _openAI,
-                                icon: const Icon(Icons.auto_awesome, size: 9),
-                                label: const Text('Assistant IA', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold)),
-                                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), elevation: 2),
+                                icon: const Icon(Icons.auto_awesome, size: 10),
+                                label: const Text('Assistant IA', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold)),
+                                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), elevation: 2),
                               ),
                             ),
                           ],
