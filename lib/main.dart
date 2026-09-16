@@ -362,7 +362,7 @@ class DetailedRoute {
 }
 
 // ============================================================
-// ✅ CLASSE STOP — CORRIGÉE (les 5 corruptions réparées)
+// CLASSE STOP — CORRIGÉE
 // ============================================================
 class Stop {
   final String name; final String direction; final double distanceMeters;
@@ -478,7 +478,6 @@ class RouteSearchResult {
 final List<Stop> terStations = [
   Stop(name: 'Gare TER Dakar', direction: 'Terminus Dakar (Arrivée)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 0), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6792, -17.4407), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.arrival),
   Stop(name: 'Gare TER Dakar', direction: 'Dir. Diamniadio (Embarquement)', distanceMeters: 350, departureMinutesFromMidnight: _shift(_terBase, 3), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6795, -17.4405), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
-  // ✅ LIGNE CORRIGÉE — Colobane
   Stop(name: 'Gare TER Colobane', direction: 'Dir. Diamniadio', distanceMeters: 1200, departureMinutesFromMidnight: _shift(_terBase, 5), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.6937, -17.4441), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
   Stop(name: 'Gare TER Hann', direction: 'Dir. Diamniadio', distanceMeters: 3500, departureMinutesFromMidnight: _shift(_terBase, 9), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7190, -17.4450), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
   Stop(name: 'Gare TER Pikine', direction: 'Dir. Diamniadio', distanceMeters: 7200, departureMinutesFromMidnight: _shift(_terBase, 17), icon: Icons.train_rounded, color: AppColors.ter, location: const LatLng(14.7550, -17.3900), modeLabel: 'TER', source: DataSourceInfo.seter, stopType: StopType.boarding),
@@ -811,7 +810,7 @@ class _MainShellState extends State<MainShell> {
 }
 
 // ============================================================
-// EXPLORER (AVEC FILTRE FAVORIS PROPRE SANS CŒUR ENCOMBRANT)
+// EXPLORER — AVEC ZOOM ADAPTÉ & CAMERA CONSTRAINT
 // ============================================================
 class ExplorerPage extends StatefulWidget {
   final LatLng? userPosition; final GpsState gpsState; final String? gpsMessage; final Future<void> Function() onRequestLocation;
@@ -831,14 +830,30 @@ class _ExplorerPageState extends State<ExplorerPage> {
   List<Polyline> _dynamicPolylines = [];
   bool _isLoadingRoutes = true;
 
+  // ✅ ZOOM INITIAL DÉZOOMÉ POUR VOIR TOUTE LA RÉGION DE DAKAR
+  static const double _zoomOverview = 11.2;
+  static const double _zoomOnStop = 13.5;
+  static const double _zoomOnUser = 12.5;
+
   @override
   void initState() {
     super.initState();
     _loadDynamicRoutes();
-    if (widget.userPosition != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _mapController.move(widget.userPosition!, 14.5);
-      });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final target = (widget.userPosition != null && DakarBounds.isValid(widget.userPosition!))
+          ? widget.userPosition!
+          : _dakarCenter;
+      _mapController.move(target, _zoomOverview);
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant ExplorerPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.userPosition != null &&
+        widget.userPosition != oldWidget.userPosition &&
+        DakarBounds.isValid(widget.userPosition!)) {
+      _mapController.move(widget.userPosition!, _zoomOverview);
     }
   }
 
@@ -898,7 +913,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
     return allStops.where((s) => (s.name.toLowerCase().contains(q) || s.direction.toLowerCase().contains(q)) && DakarBounds.isValid(s.location)).take(8).toList();
   }
 
-  void _centerOnStop(Stop s) => _mapController.move(s.location, 14.5);
+  void _centerOnStop(Stop s) => _mapController.move(s.location, _zoomOnStop);
   void _openAI() => Navigator.push(context, MaterialPageRoute(builder: (_) => const AIChatPage()));
 
   @override
@@ -920,33 +935,51 @@ class _ExplorerPageState extends State<ExplorerPage> {
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 250),
                   height: _mapHeight.toDouble(),
+                  clipBehavior: Clip.antiAlias,
                   child: Stack(
                     children: [
-                      FlutterMap(
-                        mapController: _mapController,
-                        options: MapOptions(initialCenter: widget.userPosition ?? _dakarCenter, initialZoom: 13.0, minZoom: 10, maxZoom: 17),
-                        children: [
-                          TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', userAgentPackageName: 'dakar_bus', maxZoom: 19),
-                          PolylineLayer(polylines: activePolylines),
-                          MarkerLayer(
-                            markers: mapStops.where((s) => DakarBounds.isValid(s.location)).map((s) => Marker(
-                              point: s.location, width: 24, height: 24,
-                              child: GestureDetector(
-                                onTap: () { _centerOnStop(s); Navigator.push(context, MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: s))); },
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: s.color, shape: BoxShape.circle,
-                                    border: Border.all(color: Colors.white, width: 2),
-                                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.25), blurRadius: 3)],
-                                  ),
-                                  child: Icon(s.icon, color: Colors.white, size: 12),
-                                ),
+                      ClipRect(
+                        child: FlutterMap(
+                          mapController: _mapController,
+                          options: MapOptions(
+                            initialCenter: (widget.userPosition != null && DakarBounds.isValid(widget.userPosition!))
+                                ? widget.userPosition!
+                                : _dakarCenter,
+                            // ✅ ZOOM INITIAL DÉZOOMÉ POUR VOIR TOUTE LA RÉGION DE DAKAR
+                            initialZoom: _zoomOverview,
+                            minZoom: 9,
+                            maxZoom: 17,
+                            // ✅ EMPÊCHE LA CARTE DE SORTIR DES LIMITES DE DAKAR
+                            cameraConstraint: CameraConstraint.contain(
+                              bounds: LatLngBounds(
+                                const LatLng(DakarBounds.south, DakarBounds.west),
+                                const LatLng(DakarBounds.north, DakarBounds.east),
                               ),
-                            )).toList(),
+                            ),
                           ),
-                          if (widget.userPosition != null && DakarBounds.isValid(widget.userPosition!))
-                            MarkerLayer(markers: [Marker(point: widget.userPosition!, width: 22, height: 22, child: Container(decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 3), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 4)])))]),
-                        ],
+                          children: [
+                            TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', userAgentPackageName: 'dakar_bus', maxZoom: 19),
+                            PolylineLayer(polylines: activePolylines),
+                            MarkerLayer(
+                              markers: mapStops.where((s) => DakarBounds.isValid(s.location)).map((s) => Marker(
+                                point: s.location, width: 24, height: 24,
+                                child: GestureDetector(
+                                  onTap: () { _centerOnStop(s); Navigator.push(context, MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: s))); },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: s.color, shape: BoxShape.circle,
+                                      border: Border.all(color: Colors.white, width: 2),
+                                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.25), blurRadius: 3)],
+                                    ),
+                                    child: Icon(s.icon, color: Colors.white, size: 12),
+                                  ),
+                                ),
+                              )).toList(),
+                            ),
+                            if (widget.userPosition != null && DakarBounds.isValid(widget.userPosition!))
+                              MarkerLayer(markers: [Marker(point: widget.userPosition!, width: 22, height: 22, child: Container(decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 3), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 4)])))]),
+                          ],
+                        ),
                       ),
 
                       Positioned(
@@ -954,7 +987,9 @@ class _ExplorerPageState extends State<ExplorerPage> {
                         child: Material(
                           elevation: 4, borderRadius: BorderRadius.circular(24), color: AppColors.surface(dark),
                           child: InkWell(
-                            onTap: widget.gpsState == GpsState.granted ? () { if (widget.userPosition != null) _mapController.move(widget.userPosition!, 14.5); } : () => widget.onRequestLocation(),
+                            onTap: widget.gpsState == GpsState.granted
+                                ? () { if (widget.userPosition != null) _mapController.move(widget.userPosition!, _zoomOnUser); }
+                                : () => widget.onRequestLocation(),
                             borderRadius: BorderRadius.circular(24),
                             child: Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -1708,7 +1743,7 @@ class SettingsPage extends StatelessWidget {
                         onTap: () => _showInfoModal(context, 'Qui sommes-nous ?', 'Dakar Bus est la plateforme de référence multimodale conçue pour faciliter la mobilité urbaine à Dakar. Notre mission est d’offrir à chaque usager une visibilité totale sur les réseaux de transport et de fluidifier les déplacements quotidiens.'),
                       ),
                       Divider(height: 1, color: AppColors.divider(dark)),
-                      ListTile(leading: const Icon(Icons.verified, color: AppColors.primary), title: Text('Version de l’application', style: TextStyle(color: AppColors.textPrimary(dark))), subtitle: Text('Dakar Bus v9.2 (Compatible Web)', style: TextStyle(color: AppColors.textSecondary(dark)))),
+                      ListTile(leading: const Icon(Icons.verified, color: AppColors.primary), title: Text('Version de l’application', style: TextStyle(color: AppColors.textPrimary(dark))), subtitle: Text('Dakar Bus v9.3 (Zoom optimisé Web)', style: TextStyle(color: AppColors.textSecondary(dark)))),
                     ],
                   ),
                 ),
