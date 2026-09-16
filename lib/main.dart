@@ -745,7 +745,7 @@ class _MainShellState extends State<MainShell> {
       if (DakarBounds.isValid(latLng)) {
         setState(() { _userPosition = latLng; _gpsState = GpsState.granted; _gpsMessage = null; });
       } else {
-        setState(() { _userPosition = const LatLng(14.7300, -17.3200); _gpsState = GpsState.granted; _gpsMessage = 'Centré sur la région de Dakar.'; });
+        setState(() { _userPosition = const LatLng(14.7250, -17.3800); _gpsState = GpsState.granted; _gpsMessage = 'Centré sur la région de Dakar.'; });
       }
     } catch (_) { setState(() { _gpsState = GpsState.error; _gpsMessage = 'Erreur GPS.'; }); }
   }
@@ -790,7 +790,7 @@ class _MainShellState extends State<MainShell> {
 }
 
 // ============================================================
-// EXPLORER (CENTRE SUR LE TER DE DAKAR À DIAMNIADIO - ZOOM 10.6)
+// EXPLORER (CENTRE RÉGION DE DAKAR PARFAIT - HAUTEUR 380 - ZOOM 11.2)
 // ============================================================
 class ExplorerPage extends StatefulWidget {
   final LatLng? userPosition; final GpsState gpsState; final String? gpsMessage; final Future<void> Function() onRequestLocation;
@@ -802,13 +802,13 @@ class ExplorerPage extends StatefulWidget {
 class _ExplorerPageState extends State<ExplorerPage> {
   final MapController _mapController = MapController();
   
-  // CENTRE EXACT SUR LE PARCOURS DU TER (ENTRE DAKAR ET DIAMNIADIO)
-  final LatLng _dakarRegionalCenter = const LatLng(14.7300, -17.3200);
+  // CENTRE IDÉAL POUR OCCUPER TOUTE LA RÉGION DE DAKAR (DE DAKAR À DIAMNIADIO)
+  final LatLng _dakarRegionalCenter = const LatLng(14.7250, -17.3800);
   
   String _selectedFilter = 'Tous';
   
-  // HAUTEUR DE LA CARTE PLEIN ESPACE FIXÉE À 330 PIXELS
-  int _mapHeight = 330;
+  // HAUTEUR DE LA CARTE AGRANDIE À 380 PIXELS
+  int _mapHeight = 380;
   
   bool _searchFocused = false;
   final TextEditingController _searchCtrl = TextEditingController();
@@ -821,7 +821,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
     super.initState(); 
     _loadDynamicRoutes(); 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _mapController.move(_dakarRegionalCenter, 10.6);
+      _mapController.move(_dakarRegionalCenter, 11.2);
     });
   }
 
@@ -848,7 +848,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
         }
         if (fullRoutePoints.isEmpty) fullRoutePoints = route.points.where((pt) => DakarBounds.isValid(pt)).toList();
       }
-      loaded.add(Polyline(points: fullRoutePoints, color: route.color, strokeWidth: 4.5));
+      // ÉPAISSEUR DES LIGNES AUGMENTÉE À 5.5 POUR UNE VISIBILITÉ PARFAITE
+      loaded.add(Polyline(points: fullRoutePoints, color: route.color, strokeWidth: 5.5));
     }
     if (mounted) setState(() { _dynamicPolylines = loaded; _isLoadingRoutes = false; });
   }
@@ -881,14 +882,14 @@ class _ExplorerPageState extends State<ExplorerPage> {
     return allStops.where((s) => (s.name.toLowerCase().contains(q) || s.direction.toLowerCase().contains(q)) && DakarBounds.isValid(s.location)).take(8).toList();
   }
 
-  void _centerOnStop(Stop s) => _mapController.move(s.location, 13.0);
+  void _centerOnStop(Stop s) => _mapController.move(s.location, 13.5);
   void _openAI() => Navigator.push(context, MaterialPageRoute(builder: (_) => const AIChatPage()));
 
   @override
   Widget build(BuildContext context) {
     final dark = globalState.darkMode;
     final stops = _filteredStops;
-    final activePolylines = _dynamicPolylines.isNotEmpty ? _dynamicPolylines : demoRoutes.map((r) => Polyline(points: r.points, color: r.color, strokeWidth: 4.5)).toList();
+    final activePolylines = _dynamicPolylines.isNotEmpty ? _dynamicPolylines : demoRoutes.map((r) => Polyline(points: r.points, color: r.color, strokeWidth: 5.5)).toList();
     final mapStops = _selectedFilter == 'Tous' ? allStops : _filteredStops;
 
     return AnimatedBuilder(
@@ -906,7 +907,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                   color: AppColors.surface(dark),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   child: ElevatedButton.icon(
-                    onPressed: () => setState(() => _mapHeight = _mapHeight == 0 ? 330 : 0),
+                    onPressed: () => setState(() => _mapHeight = _mapHeight == 0 ? 380 : 0),
                     icon: Icon(_mapHeight == 0 ? Icons.map : Icons.keyboard_arrow_up, size: 14),
                     label: Text(_mapHeight == 0 ? 'Afficher la carte' : 'Réduire la carte', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                     style: ElevatedButton.styleFrom(
@@ -919,7 +920,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                   ),
                 ),
 
-                // CARTE PLEINE LARGEUR (330 PIXELS)
+                // CARTE PLEINE LARGEUR (380 PIXELS)
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 250),
                   height: _mapHeight.toDouble(),
@@ -930,14 +931,14 @@ class _ExplorerPageState extends State<ExplorerPage> {
                           children: [
                             FlutterMap(
                               mapController: _mapController,
-                              // ZOOM IDÉAL DE 10.6 POUR OCCUPER TOUTE LA LIGNE MARRON ET RENDRE LES ARRÊTS LISIBLES
-                              options: MapOptions(initialCenter: _dakarRegionalCenter, initialZoom: 10.6, minZoom: 8, maxZoom: 16),
+                              // ZOOM IDÉAL DE 11.2 POUR QUE LA RÉGION DE DAKAR OCCUPE TOUTE LA CARTE
+                              options: MapOptions(initialCenter: _dakarRegionalCenter, initialZoom: 11.2, minZoom: 8, maxZoom: 16),
                               children: [
                                 TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', userAgentPackageName: 'dakar_bus', maxZoom: 19),
                                 PolylineLayer(polylines: activePolylines),
                                 MarkerLayer(
                                   markers: mapStops.where((s) => DakarBounds.isValid(s.location)).map((s) => Marker(
-                                    point: s.location, width: 14, height: 14,
+                                    point: s.location, width: 16, height: 16,
                                     child: GestureDetector(
                                       onTap: () { _centerOnStop(s); Navigator.push(context, MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: s))); },
                                       child: Container(
@@ -946,7 +947,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                                           border: Border.all(color: Colors.white, width: 1.5),
                                           boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 3)],
                                         ),
-                                        child: Icon(s.icon, color: Colors.white, size: 7),
+                                        child: Icon(s.icon, color: Colors.white, size: 8),
                                       ),
                                     ),
                                   )).toList(),
@@ -961,7 +962,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                               child: Material(
                                 elevation: 3, borderRadius: BorderRadius.circular(16), color: AppColors.surface(dark),
                                 child: InkWell(
-                                  onTap: () => _mapController.move(_dakarRegionalCenter, 10.6),
+                                  onTap: () => _mapController.move(_dakarRegionalCenter, 11.2),
                                   borderRadius: BorderRadius.circular(16),
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
