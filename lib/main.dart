@@ -745,7 +745,7 @@ class _MainShellState extends State<MainShell> {
       if (DakarBounds.isValid(latLng)) {
         setState(() { _userPosition = latLng; _gpsState = GpsState.granted; _gpsMessage = null; });
       } else {
-        setState(() { _userPosition = const LatLng(14.7250, -17.3800); _gpsState = GpsState.granted; _gpsMessage = 'Centré sur la région de Dakar.'; });
+        setState(() { _userPosition = const LatLng(14.7100, -17.4200); _gpsState = GpsState.granted; _gpsMessage = 'Centré sur Dakar.'; });
       }
     } catch (_) { setState(() { _gpsState = GpsState.error; _gpsMessage = 'Erreur GPS.'; }); }
   }
@@ -790,7 +790,7 @@ class _MainShellState extends State<MainShell> {
 }
 
 // ============================================================
-// EXPLORER (CENTRE RÉGION DE DAKAR PARFAIT - HAUTEUR 380 - ZOOM 11.2)
+// EXPLORER (CADRAGE PARFAIT & SERRÉ SUR DAKAR - ZOOM 12.0 - HAUTEUR 330)
 // ============================================================
 class ExplorerPage extends StatefulWidget {
   final LatLng? userPosition; final GpsState gpsState; final String? gpsMessage; final Future<void> Function() onRequestLocation;
@@ -802,13 +802,13 @@ class ExplorerPage extends StatefulWidget {
 class _ExplorerPageState extends State<ExplorerPage> {
   final MapController _mapController = MapController();
   
-  // CENTRE IDÉAL POUR OCCUPER TOUTE LA RÉGION DE DAKAR (DE DAKAR À DIAMNIADIO)
-  final LatLng _dakarRegionalCenter = const LatLng(14.7250, -17.3800);
+  // CENTRE EXACT CENTRÉ SUR LA PRESQU'ÎLE DE DAKAR ET LE RÉSEAU PRINCIPAL
+  final LatLng _dakarCenter = const LatLng(14.7100, -17.4200);
   
   String _selectedFilter = 'Tous';
   
-  // HAUTEUR DE LA CARTE AGRANDIE À 380 PIXELS
-  int _mapHeight = 380;
+  // HAUTEUR DE LA CARTE RÉDUITE À 330 PIXELS POUR LAISSER PLUS DE PLACE AUX LISTES
+  int _mapHeight = 330;
   
   bool _searchFocused = false;
   final TextEditingController _searchCtrl = TextEditingController();
@@ -821,7 +821,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
     super.initState(); 
     _loadDynamicRoutes(); 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _mapController.move(_dakarRegionalCenter, 11.2);
+      _mapController.move(_dakarCenter, 12.0);
     });
   }
 
@@ -848,7 +848,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
         }
         if (fullRoutePoints.isEmpty) fullRoutePoints = route.points.where((pt) => DakarBounds.isValid(pt)).toList();
       }
-      // ÉPAISSEUR DES LIGNES AUGMENTÉE À 5.5 POUR UNE VISIBILITÉ PARFAITE
+      // ÉPAISSEUR DE LIGNE 5.5 POUR UNE LISIBILITÉ OPTIMALE
       loaded.add(Polyline(points: fullRoutePoints, color: route.color, strokeWidth: 5.5));
     }
     if (mounted) setState(() { _dynamicPolylines = loaded; _isLoadingRoutes = false; });
@@ -882,7 +882,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
     return allStops.where((s) => (s.name.toLowerCase().contains(q) || s.direction.toLowerCase().contains(q)) && DakarBounds.isValid(s.location)).take(8).toList();
   }
 
-  void _centerOnStop(Stop s) => _mapController.move(s.location, 13.5);
+  void _centerOnStop(Stop s) => _mapController.move(s.location, 14.0);
   void _openAI() => Navigator.push(context, MaterialPageRoute(builder: (_) => const AIChatPage()));
 
   @override
@@ -907,7 +907,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                   color: AppColors.surface(dark),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   child: ElevatedButton.icon(
-                    onPressed: () => setState(() => _mapHeight = _mapHeight == 0 ? 380 : 0),
+                    onPressed: () => setState(() => _mapHeight = _mapHeight == 0 ? 330 : 0),
                     icon: Icon(_mapHeight == 0 ? Icons.map : Icons.keyboard_arrow_up, size: 14),
                     label: Text(_mapHeight == 0 ? 'Afficher la carte' : 'Réduire la carte', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                     style: ElevatedButton.styleFrom(
@@ -920,7 +920,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                   ),
                 ),
 
-                // CARTE PLEINE LARGEUR (380 PIXELS)
+                // CARTE PLEINE LARGEUR (330 PIXELS)
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 250),
                   height: _mapHeight.toDouble(),
@@ -931,8 +931,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
                           children: [
                             FlutterMap(
                               mapController: _mapController,
-                              // ZOOM IDÉAL DE 11.2 POUR QUE LA RÉGION DE DAKAR OCCUPE TOUTE LA CARTE
-                              options: MapOptions(initialCenter: _dakarRegionalCenter, initialZoom: 11.2, minZoom: 8, maxZoom: 16),
+                              // ZOOM IDÉAL DE 12.0 POUR ENCADRER PARFAITEMENT DAKAR
+                              options: MapOptions(initialCenter: _dakarCenter, initialZoom: 12.0, minZoom: 9, maxZoom: 16),
                               children: [
                                 TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', userAgentPackageName: 'dakar_bus', maxZoom: 19),
                                 PolylineLayer(polylines: activePolylines),
@@ -962,7 +962,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                               child: Material(
                                 elevation: 3, borderRadius: BorderRadius.circular(16), color: AppColors.surface(dark),
                                 child: InkWell(
-                                  onTap: () => _mapController.move(_dakarRegionalCenter, 11.2),
+                                  onTap: () => _mapController.move(_dakarCenter, 12.0),
                                   borderRadius: BorderRadius.circular(16),
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -971,7 +971,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                                       children: [
                                         const Icon(Icons.map, color: AppColors.primary, size: 12),
                                         const SizedBox(width: 4),
-                                        const Text('Centrer Région', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                                        const Text('Centrer Dakar', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primary)),
                                       ],
                                     ),
                                   ),
