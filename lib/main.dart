@@ -804,7 +804,7 @@ class _MainShellState extends State<MainShell> {
 }
 
 // ============================================================
-// EXPLORER (CARTE REDUITE PAR DEFAUT AU LANCEMENT)
+// EXPLORER (CARTE MASQUEE/MINIMISEE PAR DEFAUT A 0 OU PETITE HAUTEUR)
 // ============================================================
 class ExplorerPage extends StatefulWidget {
   final LatLng? userPosition; final GpsState gpsState; final String? gpsMessage; final Future<void> Function() onRequestLocation;
@@ -818,8 +818,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
   final LatLng _dakarCenter = const LatLng(14.7200, -17.4300);
   String _selectedFilter = 'Tous';
   
-  // CORRECTION : Carte réduite par défaut au démarrage (hauteur de 130 au lieu de 260/340)
-  int _mapHeight = 130;
+  // CORRECTION RADICALE : Hauteur à 0 par défaut pour que la carte soit totalement fermée / masquée au démarrage
+  int _mapHeight = 0;
   
   bool _searchFocused = false;
   final TextEditingController _searchCtrl = TextEditingController();
@@ -913,95 +913,117 @@ class _ExplorerPageState extends State<ExplorerPage> {
             bottom: false,
             child: Column(
               children: [
+                // Bouton permanent ou bandeau discret pour ouvrir la carte si elle est masquée (hauteur 0)
+                if (_mapHeight == 0)
+                  Container(
+                    width: double.infinity,
+                    color: AppColors.surface(dark),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: ElevatedButton.icon(
+                      onPressed: () => setState(() => _mapHeight = 280),
+                      icon: const Icon(Icons.map, size: 16),
+                      label: const Text('Afficher la carte interactive', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        elevation: 0,
+                      ),
+                    ),
+                  ),
+
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 250),
                   height: _mapHeight.toDouble(),
-                  child: Stack(
-                    children: [
-                      FlutterMap(
-                        mapController: _mapController,
-                        options: MapOptions(initialCenter: widget.userPosition ?? _dakarCenter, initialZoom: 13.0, minZoom: 10, maxZoom: 17),
-                        children: [
-                          TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', userAgentPackageName: 'dakar_bus', maxZoom: 19),
-                          PolylineLayer(polylines: activePolylines),
-                          MarkerLayer(
-                            markers: mapStops.where((s) => DakarBounds.isValid(s.location)).map((s) => Marker(
-                              point: s.location, width: 24, height: 24,
-                              child: GestureDetector(
-                                onTap: () { _centerOnStop(s); Navigator.push(context, MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: s))); },
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: s.color, shape: BoxShape.circle,
-                                    border: Border.all(color: Colors.white, width: 2),
-                                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.25), blurRadius: 3)],
+                  child: _mapHeight == 0 
+                      ? const SizedBox.shrink() 
+                      : Stack(
+                          children: [
+                            FlutterMap(
+                              mapController: _mapController,
+                              options: MapOptions(initialCenter: widget.userPosition ?? _dakarCenter, initialZoom: 13.0, minZoom: 10, maxZoom: 17),
+                              children: [
+                                TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', userAgentPackageName: 'dakar_bus', maxZoom: 19),
+                                PolylineLayer(polylines: activePolylines),
+                                MarkerLayer(
+                                  markers: mapStops.where((s) => DakarBounds.isValid(s.location)).map((s) => Marker(
+                                    point: s.location, width: 24, height: 24,
+                                    child: GestureDetector(
+                                      onTap: () { _centerOnStop(s); Navigator.push(context, MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: s))); },
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: s.color, shape: BoxShape.circle,
+                                          border: Border.all(color: Colors.white, width: 2),
+                                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.25), blurRadius: 3)],
+                                        ),
+                                        child: Icon(s.icon, color: Colors.white, size: 12),
+                                      ),
+                                    ),
+                                  )).toList(),
+                                ),
+                                if (widget.userPosition != null && DakarBounds.isValid(widget.userPosition!))
+                                  MarkerLayer(markers: [Marker(point: widget.userPosition!, width: 22, height: 22, child: Container(decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 3), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 4)])))]),
+                              ],
+                            ),
+
+                            Positioned(
+                              bottom: 12, left: 12,
+                              child: Material(
+                                elevation: 4, borderRadius: BorderRadius.circular(24), color: AppColors.surface(dark),
+                                child: InkWell(
+                                  onTap: widget.gpsState == GpsState.granted ? () { if (widget.userPosition != null) _mapController.move(widget.userPosition!, 14.5); } : () => widget.onRequestLocation(),
+                                  borderRadius: BorderRadius.circular(24),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        widget.gpsState == GpsState.loading
+                                          ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                                          : Icon(widget.gpsState == GpsState.granted ? Icons.my_location : Icons.location_searching, color: AppColors.primary, size: 16),
+                                        const SizedBox(width: 4),
+                                        Text(widget.gpsState == GpsState.granted ? 'GPS' : 'Activer', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                                      ],
+                                    ),
                                   ),
-                                  child: Icon(s.icon, color: Colors.white, size: 12),
                                 ),
                               ),
-                            )).toList(),
-                          ),
-                          if (widget.userPosition != null && DakarBounds.isValid(widget.userPosition!))
-                            MarkerLayer(markers: [Marker(point: widget.userPosition!, width: 22, height: 22, child: Container(decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 3), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 4)])))]),
-                        ],
-                      ),
+                            ),
 
-                      Positioned(
-                        bottom: 12, left: 12,
-                        child: Material(
-                          elevation: 4, borderRadius: BorderRadius.circular(24), color: AppColors.surface(dark),
-                          child: InkWell(
-                            onTap: widget.gpsState == GpsState.granted ? () { if (widget.userPosition != null) _mapController.move(widget.userPosition!, 14.5); } : () => widget.onRequestLocation(),
-                            borderRadius: BorderRadius.circular(24),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  widget.gpsState == GpsState.loading
-                                    ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
-                                    : Icon(widget.gpsState == GpsState.granted ? Icons.my_location : Icons.location_searching, color: AppColors.primary, size: 16),
-                                  const SizedBox(width: 4),
-                                  Text(widget.gpsState == GpsState.granted ? 'GPS' : 'Activer', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primary)),
-                                ],
+                            Positioned(
+                              bottom: 12, right: 12,
+                              child: ElevatedButton.icon(
+                                onPressed: _openAI,
+                                icon: const Icon(Icons.auto_awesome, size: 14),
+                                label: const Text('Assistant IA', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)), elevation: 4),
                               ),
                             ),
-                          ),
-                        ),
-                      ),
 
-                      Positioned(
-                        bottom: 12, right: 12,
-                        child: ElevatedButton.icon(
-                          onPressed: _openAI,
-                          icon: const Icon(Icons.auto_awesome, size: 14),
-                          label: const Text('Assistant IA', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)), elevation: 4),
-                        ),
-                      ),
-
-                      Positioned(
-                        top: 10, right: 10,
-                        child: Material(
-                          elevation: 4, borderRadius: BorderRadius.circular(24), color: AppColors.surface(dark),
-                          child: InkWell(
-                            onTap: () => setState(() => _mapHeight = _mapHeight == 130 ? 280 : (_mapHeight == 280 ? 360 : 130)),
-                            borderRadius: BorderRadius.circular(24),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(_mapHeight == 130 ? Icons.expand_more : Icons.expand_less, color: AppColors.primary, size: 16),
-                                  const SizedBox(width: 4),
-                                  Text(_mapHeight == 130 ? 'Agrandir' : 'Réduire', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primary)),
-                                ],
+                            Positioned(
+                              top: 10, right: 10,
+                              child: Material(
+                                elevation: 4, borderRadius: BorderRadius.circular(24), color: AppColors.surface(dark),
+                                child: InkWell(
+                                  onTap: () => setState(() => _mapHeight = 0), // Bouton pour fermer/masquer la carte
+                                  borderRadius: BorderRadius.circular(24),
+                                  child: const Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.close, color: AppColors.primary, size: 16),
+                                        SizedBox(width: 4),
+                                        Text('Masquer', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                                      ],
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
                 ),
                 Expanded(
                   child: ListView(
@@ -1095,7 +1117,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
 }
 
 // ============================================================
-// CARTE D ARRET (SANS CŒUR ENCOMBRANT - APPUIS LONGS POUR FAVORIS)
+// CARTE D ARRET
 // ============================================================
 class StopCard extends StatelessWidget {
   final Stop stop; final double distanceMeters;
@@ -1987,7 +2009,7 @@ class _AIChatPageState extends State<AIChatPage> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(14),
                   color: AppColors.surface(dark),
                   child: Row(
                     children: [
