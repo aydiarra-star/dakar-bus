@@ -804,7 +804,7 @@ class _MainShellState extends State<MainShell> {
 }
 
 // ============================================================
-// EXPLORER (CARTE MASQUEE/MINIMISEE PAR DEFAUT A 0 OU PETITE HAUTEUR)
+// EXPLORER (CARTE AFFICHEE DIRECTEMENT PAR DEFAUT A 280)
 // ============================================================
 class ExplorerPage extends StatefulWidget {
   final LatLng? userPosition; final GpsState gpsState; final String? gpsMessage; final Future<void> Function() onRequestLocation;
@@ -818,8 +818,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
   final LatLng _dakarCenter = const LatLng(14.7200, -17.4300);
   String _selectedFilter = 'Tous';
   
-  // CORRECTION RADICALE : Hauteur à 0 par défaut pour que la carte soit totalement fermée / masquée au démarrage
-  int _mapHeight = 0;
+  // MODIFICATION ICI : Hauteur à 280 par défaut pour afficher directement la carte interactive au lancement
+  int _mapHeight = 280;
   
   bool _searchFocused = false;
   final TextEditingController _searchCtrl = TextEditingController();
@@ -913,25 +913,24 @@ class _ExplorerPageState extends State<ExplorerPage> {
             bottom: false,
             child: Column(
               children: [
-                // Bouton permanent ou bandeau discret pour ouvrir la carte si elle est masquée (hauteur 0)
-                if (_mapHeight == 0)
-                  Container(
-                    width: double.infinity,
-                    color: AppColors.surface(dark),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: ElevatedButton.icon(
-                      onPressed: () => setState(() => _mapHeight = 280),
-                      icon: const Icon(Icons.map, size: 16),
-                      label: const Text('Afficher la carte interactive', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        elevation: 0,
-                      ),
+                // Bouton discret pour afficher/masquer dynamiquement la carte
+                Container(
+                  width: double.infinity,
+                  color: AppColors.surface(dark),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  child: ElevatedButton.icon(
+                    onPressed: () => setState(() => _mapHeight = _mapHeight == 0 ? 280 : 0),
+                    icon: Icon(_mapHeight == 0 ? Icons.map : Icons.keyboard_arrow_up, size: 16),
+                    label: Text(_mapHeight == 0 ? 'Afficher la carte interactive' : 'Réduire la carte', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      elevation: 0,
                     ),
                   ),
+                ),
 
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 250),
@@ -1006,7 +1005,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                               child: Material(
                                 elevation: 4, borderRadius: BorderRadius.circular(24), color: AppColors.surface(dark),
                                 child: InkWell(
-                                  onTap: () => setState(() => _mapHeight = 0), // Bouton pour fermer/masquer la carte
+                                  onTap: () => setState(() => _mapHeight = 0),
                                   borderRadius: BorderRadius.circular(24),
                                   child: const Padding(
                                     padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -1067,7 +1066,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                       Row(children: [
                         Text('${stops.length} arrêts', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))), 
                         const SizedBox(width: 8), 
-                        Text('à proximité (Maintenez un arrêt pour l\'ajouter aux favoris)', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark)))
+                        Text('à proximité', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark)))
                       ]),
                       const SizedBox(height: 10),
                       ...stops.map((s) => Padding(padding: const EdgeInsets.only(bottom: 12), child: GestureDetector(onTap: () => _centerOnStop(s), child: StopCard(stop: s, distanceMeters: _distanceTo(s))))),
@@ -1117,7 +1116,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
 }
 
 // ============================================================
-// CARTE D ARRET
+// CARTE D ARRET (SANS CŒUR, FAVORIS CONSERVES SUR LONG PRESS)
 // ============================================================
 class StopCard extends StatelessWidget {
   final Stop stop; final double distanceMeters;
@@ -1169,7 +1168,6 @@ class StopCard extends StatelessWidget {
               title: Row(
                 children: [
                   Expanded(child: Text(stop.name, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))),
-                  if (isFav) const Padding(padding: EdgeInsets.only(right: 6), child: Icon(Icons.star, size: 16, color: Colors.amber)),
                   _buildStopTypeBadge(stop.stopType),
                 ],
               ),
