@@ -1972,7 +1972,7 @@ class _AIChatPageState extends State<AIChatPage> {
                         alignment: isAi ? Alignment.centerLeft : Alignment.centerRight,
                         child: Container(
                           margin: const EdgeInsets.symmetric(vertical: 4),
-                          padding: const EdgeInsets.all(Й),
+                          padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             color: isAi ? AppColors.surface(dark) : AppColors.primary,
                             borderRadius: BorderRadius.circular(12),
