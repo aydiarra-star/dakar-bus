@@ -802,17 +802,13 @@ class ExplorerPage extends StatefulWidget {
 class _ExplorerPageState extends State<ExplorerPage> {
   final MapController _mapController = MapController();
   
-  // CENTRE EXACT SUR LA POSITION DE L'USAGER OU DAKAR PAR DÉFAUT
   LatLng get _currentCenter => (widget.userPosition != null && DakarBounds.isValid(widget.userPosition!)) 
       ? widget.userPosition! 
       : const LatLng(14.7100, -17.4200);
 
   String _selectedFilter = 'Tous';
-  
-  // ÉTAT D'AFFICHAGE DE LA CARTE (TRUE = OUVERT, FALSE = RÉDUIT)
   bool _mapVisible = true;
 
-  // HAUTEUR ADAPTATIVE COMPACTE (ENTRE 160 ET 200 PIXELS MAX POUR NE PAS MANGER L'INTERFACE)
   double _mapTargetHeight(BuildContext context) {
     final h = MediaQuery.of(context).size.height;
     return (h * 0.20).clamp(160.0, 200.0);
@@ -916,7 +912,6 @@ class _ExplorerPageState extends State<ExplorerPage> {
             bottom: false,
             child: Column(
               children: [
-                // BOUTON "RÉDUIRE / AFFICHER LA CARTE" (STYLE CITYMAPPER COMPACT)
                 Container(
                   width: double.infinity,
                   color: AppColors.surface(dark),
@@ -940,8 +935,6 @@ class _ExplorerPageState extends State<ExplorerPage> {
                     ),
                   ),
                 ),
-
-                // ENCADRÉ CARTE COMPACT (CLIP ANTI-ALIAS SANS DÉBORDEMENT)
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 250),
                   height: _mapVisible ? _mapTargetHeight(context) : 0,
@@ -1033,8 +1026,6 @@ class _ExplorerPageState extends State<ExplorerPage> {
                                     ]),
                                 ],
                               ),
-
-                              // BOUTON "MA POSITION"
                               Positioned(
                                 bottom: 8, left: 8,
                                 child: Material(
@@ -1068,8 +1059,6 @@ class _ExplorerPageState extends State<ExplorerPage> {
                                   ),
                                 ),
                               ),
-
-                              // BOUTON "ASSISTANT IA"
                               Positioned(
                                 bottom: 8, right: 8,
                                 child: ElevatedButton.icon(
@@ -1091,8 +1080,6 @@ class _ExplorerPageState extends State<ExplorerPage> {
                           ),
                         ),
                 ),
-
-                // INTERFACE EN DESSOUS (BARRE DE RECHERCHE & LISTE DES ARRÊTS STYLE CITYMAPPER)
                 Expanded(
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 90),
@@ -1567,7 +1554,7 @@ class SettingsPage extends StatelessWidget {
 }
 
 class AIChatPage extends StatelessWidget {
-  const AIChatPoint({super.key});
+  const AIChatPage({super.key}); // Corrigé ici (AIChatPage au lieu de AIChatPoint)
   @override
   Widget build(BuildContext context) {
     return Scaffold(
