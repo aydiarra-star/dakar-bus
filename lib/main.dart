@@ -6,8 +6,27 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
+import 'models/transport_network.dart';
+import 'services/data_service.dart';
 
-void main() => runApp(const DakarBusApp());
+// ============================================================
+// SERVICE GLOBAL RESEAU DAKAR — Connecté à assets/data/dakar_network.json
+// ============================================================
+final DataService appDataService = DataService();
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await appDataService.loadNetworkData();
+    // Intégration après chargement : les listes allStops / demoRoutes existent déjà
+    // On les enrichit dynamiquement juste avant le runApp
+    _integrateNetworkData();
+  } catch (e) {
+    // Fallback silencieux : on garde les données en dur
+    debugPrint('⚠️ DataService init failed: $e');
+  }
+  runApp(const DakarBusApp());
+}
 
 // ============================================================
 // NOTIFIER GLOBAL POUR LE MODE SOMBRE & FAVORIS
@@ -519,6 +538,165 @@ final List<Stop> aftuAndBusStations = [
 final List<Stop> allStops = [...terStations, ...brtStations, ...dddStations, ...tataStations, ...aftuAndBusStations]
     .where((s) => DakarBounds.isValid(s.location))
     .toList();
+
+// ============================================================
+// INTEGRATION DataService → Stop / TransitRoute (Appelé depuis main())
+// ============================================================
+void _integrateNetworkData() {
+  if (!appDataService.isLoaded) return;
+  if (appDataService.stops.isEmpty || appDataService.routes.isEmpty) return;
+
+  // Evite les doublons par nom+location
+  final existingKeys = allStops.map((s) => '${s.name}_${s.location.latitude}_${s.location.longitude}').toSet();
+  int addedStops = 0;
+
+  // Helper : map operatorId → couleur / icône / label / source
+  Color colorForOperator(String opId) {
+    switch (opId) {
+      case 'ter': return AppColors.ter;
+      case 'brt': return AppColors.brt;
+      case 'ddd': return AppColors.ddd;
+      case 'aftu': return AppColors.aftu;
+      case 'tata': return AppColors.tata;
+      default: return AppColors.primary;
+    }
+  }
+  IconData iconForOperator(String opId, String type) {
+    switch (opId) {
+      case 'ter': return Icons.train_rounded;
+      case 'brt': return Icons.directions_bus_rounded;
+      case 'ddd': return Icons.directions_bus_filled_rounded;
+      case 'aftu': return type == 'TATA' ? Icons.directions_bus_filled : Icons.directions_bus_outlined;
+      case 'tata': return Icons.directions_bus_filled;
+      default: return Icons.directions_bus;
+    }
+  }
+  String labelForOperator(String opId, String type) {
+    switch (opId) {
+      case 'ter': return 'TER';
+      case 'brt': return 'BRT';
+      case 'ddd': return 'DDD';
+      case 'aftu': return type.toUpperCase().contains('TATA') ? 'Tata' : 'AFTU';
+      case 'tata': return 'Tata';
+      default: return type.toUpperCase();
+    }
+  }
+  DataSourceInfo sourceForOperator(String opId) {
+    switch (opId) {
+      case 'ter': return DataSourceInfo.seter;
+      case 'brt': return DataSourceInfo.sunubrt;
+      case 'ddd': return DataSourceInfo.demdikk;
+      case 'aftu': return DataSourceInfo.aftuOfficial;
+      case 'tata': return DataSourceInfo.tataOfficial;
+      default: return DataSourceInfo.demo;
+    }
+  }
+  StopType stopTypeForIndex(int idx, int total) {
+    if (total == 1) return StopType.boarding;
+    if (idx == 0) return StopType.boarding;
+    if (idx == total - 1) return StopType.terminus;
+    return StopType.intermediate;
+  }
+
+  for (final route in appDataService.routes) {
+    final stopIds = route.stopIds;
+    for (int i = 0; i < stopIds.length; i++) {
+      final busStop = appDataService.stops.where((s) => s.id == stopIds[i]).isEmpty
+          ? null
+          : appDataService.stops.firstWhere((s) => s.id == stopIds[i]);
+      if (busStop == null) continue;
+      if (!DakarBounds.isValid(LatLng(busStop.latitude, busStop.longitude))) continue;
+
+      final color = colorForOperator(route.operatorId);
+      final icon = iconForOperator(route.operatorId, route.type);
+      final label = labelForOperator(route.operatorId, route.type);
+      final source = sourceForOperator(route.operatorId);
+      final key = '${busStop.name}_${busStop.latitude}_${busStop.longitude}';
+      if (existingKeys.contains(key)) continue;
+
+      // Horaires : TER/BRT avec base, AFTU/DDD en rotation continue (liste vide)
+      List<int> schedule = [];
+      if (label == 'TER') {
+        schedule = _shift(_terBase, i * 2);
+      } else if (label == 'BRT') {
+        schedule = _shift(_brtBase, i * 2);
+      } else {
+        schedule = []; // AFTU/DDD/Tata → isContinuousFlow = true
+      }
+
+      final stop = Stop(
+        name: busStop.name,
+        direction: i == stopIds.length - 1
+            ? 'Terminus ${busStop.name} (Arrivée)'
+            : 'Dir. ${appDataService.stops.lastWhere((s) => s.id == stopIds.last, orElse: () => busStop).name}',
+        distanceMeters: 300 + (i * 800).toDouble(),
+        departureMinutesFromMidnight: schedule,
+        icon: icon,
+        color: color,
+        location: LatLng(busStop.latitude, busStop.longitude),
+        modeLabel: label,
+        source: source,
+        stopType: stopTypeForIndex(i, stopIds.length),
+      );
+      allStops.add(stop);
+      existingKeys.add(key);
+      addedStops++;
+    }
+
+    // Ajoute aussi un TransitRoute pour la carte si >=2 points
+    final points = stopIds
+        .map((id) {
+          try { return appDataService.stops.firstWhere((s) => s.id == id); } catch (_) { return null; }
+        })
+        .whereType<BusStop>()
+        .map((s) => LatLng(s.latitude, s.longitude))
+        .where((p) => DakarBounds.isValid(p))
+        .toList();
+    if (points.length >= 2) {
+      final color = colorForOperator(route.operatorId);
+      // Evite les doublons de TransitRoute (même code)
+      final exists = demoRoutes.any((r) => r.code == route.shortName);
+      if (!exists) {
+        demoRoutes.add(TransitRoute(
+          name: route.shortName,
+          code: route.shortName,
+          type: labelForOperator(route.operatorId, route.type),
+          color: color,
+          points: points,
+        ));
+      }
+    }
+  }
+
+  // --- Ajoute les arrêts orphelins (présents dans stops mais jamais dans routes) ---
+  for (final bs in appDataService.stops) {
+    final key = '${bs.name}_${bs.latitude}_${bs.longitude}';
+    if (existingKeys.contains(key)) continue;
+    if (!DakarBounds.isValid(LatLng(bs.latitude, bs.longitude))) continue;
+    // Détermine le label/ couleur par défaut : AFTU si non trouvé
+    const label = 'AFTU';
+    const color = AppColors.aftu;
+    const icon = Icons.directions_bus_outlined;
+    const source = DataSourceInfo.aftuOfficial;
+    final stop = Stop(
+      name: bs.name,
+      direction: 'Dir. Centre Dakar',
+      distanceMeters: 500,
+      departureMinutesFromMidnight: [],
+      icon: icon,
+      color: color,
+      location: LatLng(bs.latitude, bs.longitude),
+      modeLabel: label,
+      source: source,
+      stopType: StopType.boarding,
+    );
+    allStops.add(stop);
+    existingKeys.add(key);
+    addedStops++;
+  }
+
+  debugPrint('✅ DataService intégré : $addedStops arrêts JSON ajoutés → total allStops=${allStops.length}, demoRoutes=${demoRoutes.length}');
+}
 
 // ============================================================
 // TRACES DES ROUTES
@@ -1077,7 +1255,10 @@ class _ExplorerPageState extends State<ExplorerPage> {
                       Row(children: [
                         Text('${stops.length} arrêts', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
                         const SizedBox(width: 8),
-                        Text('à proximité (Maintenez un arrêt pour l\'ajouter aux favoris)', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark)))
+                        if (_isLoadingRoutes)
+                          const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary))
+                        else
+                          Text('à proximité (Maintenez un arrêt pour l\'ajouter aux favoris)', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark)))
                       ]),
                       const SizedBox(height: 10),
                       ...stops.map((s) => Padding(padding: const EdgeInsets.only(bottom: 12), child: GestureDetector(onTap: () => _centerOnStop(s), child: StopCard(stop: s, distanceMeters: _distanceTo(s))))),

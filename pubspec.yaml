@@ -1,52 +1,28 @@
 name: dakar_bus
-description: Application multimodale de transport en commun à Dakar (TER, BRT, DDD, TATA, AFTU).
+description: Application multimodale de transport en commun à Dakar - TER, BRT, DDD, AFTU, Tata (92 arrêts, 105 lignes (72 AFTU complètes + 13 nouvelles communes)) - Réseau complet CETUD/SETER.
 publish_to: 'none'
 
-# 🔑 Version de l'app (modifiable à chaque release)
-version: 9.0.0+1
+version: 9.3.0+4
 
 environment:
-  # 🔑 Doit matcher Flutter 3.24.5 (Dart 3.5.4) tout en restant permissif
   sdk: '>=3.3.0 <4.0.0'
   flutter: '>=3.19.0'
 
 dependencies:
   flutter:
     sdk: flutter
-
-  # Icônes iOS (optionnel mais recommandé)
   cupertino_icons: ^1.0.8
-
-  # 🌍 Cartographie
   flutter_map: ^6.1.0
   latlong2: ^0.9.1
-
-  # 📍 Géolocalisation (compatible Flutter 3.24.5)
   geolocator: ^12.0.0
-
-  # 🌐 Requêtes HTTP (pour OSRM routing)
   http: ^1.2.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
-  # Lints recommandés par Flutter
   flutter_lints: ^4.0.0
 
 flutter:
   uses-material-design: true
-
-  # 🔑 NE PAS déclarer d'assets qui n'existent pas (sinon build web échoue)
-  # Décommente et adapte SEULEMENT si tu ajoutes des fichiers :
-  #
-  # assets:
-  #   - assets/images/
-  #   - assets/icons/
-  #
-  # fonts:
-  #   - family: Poppins
-  #     fonts:
-  #       - asset: assets/fonts/Poppins-Regular.ttf
-  #       - asset: assets/fonts/Poppins-Bold.ttf
-  #         weight: 700
+  assets:
+    - assets/data/dakar_network.json
