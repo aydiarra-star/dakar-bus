@@ -790,7 +790,7 @@ class _MainShellState extends State<MainShell> {
 }
 
 // ============================================================
-// EXPLORER (CADRAGE PARFAIT & SERRÉ SUR DAKAR - ZOOM 12.0 - HAUTEUR 330)
+// EXPLORER (STYLE CITYMAPPER : CADRE CARTE + POSITION USAGER AU CENTRE)
 // ============================================================
 class ExplorerPage extends StatefulWidget {
   final LatLng? userPosition; final GpsState gpsState; final String? gpsMessage; final Future<void> Function() onRequestLocation;
@@ -802,13 +802,15 @@ class ExplorerPage extends StatefulWidget {
 class _ExplorerPageState extends State<ExplorerPage> {
   final MapController _mapController = MapController();
   
-  // CENTRE EXACT CENTRÉ SUR LA PRESQU'ÎLE DE DAKAR ET LE RÉSEAU PRINCIPAL
-  final LatLng _dakarCenter = const LatLng(14.7100, -17.4200);
-  
+  // CENTRE PAR DEFAUT SUR LA POSITION USAGER OU COEUR DE DAKAR
+  LatLng get _currentCenter => (widget.userPosition != null && DakarBounds.isValid(widget.userPosition!)) 
+      ? widget.userPosition! 
+      : const LatLng(14.7100, -17.4200);
+
   String _selectedFilter = 'Tous';
   
-  // HAUTEUR DE LA CARTE RÉDUITE À 330 PIXELS POUR LAISSER PLUS DE PLACE AUX LISTES
-  int _mapHeight = 330;
+  // HAUTEUR DE LA CARTE COMPACTE (STYLE CITYMAPPER)
+  int _mapHeight = 310;
   
   bool _searchFocused = false;
   final TextEditingController _searchCtrl = TextEditingController();
@@ -821,8 +823,16 @@ class _ExplorerPageState extends State<ExplorerPage> {
     super.initState(); 
     _loadDynamicRoutes(); 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _mapController.move(_dakarCenter, 12.0);
+      _mapController.move(_currentCenter, 13.0);
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant ExplorerPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.userPosition != null && widget.userPosition != oldWidget.userPosition) {
+      _mapController.move(widget.userPosition!, 13.0);
+    }
   }
 
   Future<void> _loadDynamicRoutes() async {
@@ -848,7 +858,6 @@ class _ExplorerPageState extends State<ExplorerPage> {
         }
         if (fullRoutePoints.isEmpty) fullRoutePoints = route.points.where((pt) => DakarBounds.isValid(pt)).toList();
       }
-      // ÉPAISSEUR DE LIGNE 5.5 POUR UNE LISIBILITÉ OPTIMALE
       loaded.add(Polyline(points: fullRoutePoints, color: route.color, strokeWidth: 5.5));
     }
     if (mounted) setState(() { _dynamicPolylines = loaded; _isLoadingRoutes = false; });
@@ -882,7 +891,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
     return allStops.where((s) => (s.name.toLowerCase().contains(q) || s.direction.toLowerCase().contains(q)) && DakarBounds.isValid(s.location)).take(8).toList();
   }
 
-  void _centerOnStop(Stop s) => _mapController.move(s.location, 14.0);
+  void _centerOnStop(Stop s) => _mapController.move(s.location, 14.5);
   void _openAI() => Navigator.push(context, MaterialPageRoute(builder: (_) => const AIChatPage()));
 
   @override
@@ -901,15 +910,15 @@ class _ExplorerPageState extends State<ExplorerPage> {
             bottom: false,
             child: Column(
               children: [
-                // BOUTON TOGGLE CARTE PLEINE LARGEUR
+                // BOUTON "RÉDUIRE LA CARTE" (STYLE CITYMAPPER)
                 Container(
                   width: double.infinity,
                   color: AppColors.surface(dark),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   child: ElevatedButton.icon(
-                    onPressed: () => setState(() => _mapHeight = _mapHeight == 0 ? 330 : 0),
+                    onPressed: () => setState(() => _mapHeight = _mapHeight == 0 ? 310 : 0),
                     icon: Icon(_mapHeight == 0 ? Icons.map : Icons.keyboard_arrow_up, size: 14),
-                    label: Text(_mapHeight == 0 ? 'Afficher la carte' : 'Réduire la carte', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                    label: Text(_mapHeight == 0 ? 'Afficher la carte' : 'Réduire', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
@@ -920,7 +929,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                   ),
                 ),
 
-                // CARTE PLEINE LARGEUR (330 PIXELS)
+                // CADRE CONTENANT UNIQUEMENT LA CARTE ET LES ITINÉRAIRES (STYLE CITYMAPPER)
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 250),
                   height: _mapHeight.toDouble(),
@@ -931,8 +940,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                           children: [
                             FlutterMap(
                               mapController: _mapController,
-                              // ZOOM IDÉAL DE 12.0 POUR ENCADRER PARFAITEMENT DAKAR
-                              options: MapOptions(initialCenter: _dakarCenter, initialZoom: 12.0, minZoom: 9, maxZoom: 16),
+                              options: MapOptions(initialCenter: _currentCenter, initialZoom: 13.0, minZoom: 9, maxZoom: 17),
                               children: [
                                 TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', userAgentPackageName: 'dakar_bus', maxZoom: 19),
                                 PolylineLayer(polylines: activePolylines),
@@ -953,25 +961,32 @@ class _ExplorerPageState extends State<ExplorerPage> {
                                   )).toList(),
                                 ),
                                 if (widget.userPosition != null && DakarBounds.isValid(widget.userPosition!))
-                                  MarkerLayer(markers: [Marker(point: widget.userPosition!, width: 16, height: 16, child: Container(decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 3)])))]),
+                                  MarkerLayer(markers: [Marker(point: widget.userPosition!, width: 18, height: 18, child: Container(decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2.5), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 4)])))]),
                               ],
                             ),
 
+                            // BOUTON CENTRER SUR L'USAGER (POSITION ACTUELLE)
                             Positioned(
                               bottom: 10, left: 10,
                               child: Material(
                                 elevation: 3, borderRadius: BorderRadius.circular(16), color: AppColors.surface(dark),
                                 child: InkWell(
-                                  onTap: () => _mapController.move(_dakarCenter, 12.0),
+                                  onTap: () {
+                                    if (widget.userPosition != null) {
+                                      _mapController.move(widget.userPosition!, 14.0);
+                                    } else {
+                                      widget.onRequestLocation();
+                                    }
+                                  },
                                   borderRadius: BorderRadius.circular(16),
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        const Icon(Icons.map, color: AppColors.primary, size: 12),
+                                        const Icon(Icons.my_location, color: AppColors.primary, size: 12),
                                         const SizedBox(width: 4),
-                                        const Text('Centrer Dakar', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                                        const Text('Ma position', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primary)),
                                       ],
                                     ),
                                   ),
@@ -992,7 +1007,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                         ),
                 ),
 
-                // LISTE DES ARRÊTS SOUS LA CARTE
+                // INTERFACE EN DESSOUS (BARRE DE RECHERCHE & LISTE DES ARRÊTS STYLE CITYMAPPER)
                 Expanded(
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 90),
@@ -1007,18 +1022,18 @@ class _ExplorerPageState extends State<ExplorerPage> {
                       ]),
                       const SizedBox(height: 10),
                       Container(
-                        decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.divider(dark)), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 4)]),
+                        decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.divider(dark)), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6)]),
                         child: TextField(
                           controller: _searchCtrl, 
                           onChanged: (_) => setState(() => _searchFocused = true), 
                           style: TextStyle(color: AppColors.textPrimary(dark)),
                           decoration: InputDecoration(
-                            hintText: 'Où voulez-vous aller ? (ex: Colobane, Yoff...)', 
+                            hintText: 'On va où ? (ex: Colobane, Yoff...)', 
                             hintStyle: TextStyle(color: AppColors.textSecondary(dark)),
-                            prefixIcon: const Icon(Icons.search, color: AppColors.primary, size: 16), 
+                            prefixIcon: const Icon(Icons.search, color: AppColors.primary, size: 18), 
                             suffixIcon: _searchFocused ? IconButton(icon: Icon(Icons.close, size: 14, color: AppColors.textSecondary(dark)), onPressed: () { _searchCtrl.clear(); setState(() => _searchFocused = false); }) : null, 
                             border: InputBorder.none, 
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10)
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12)
                           ),
                         ),
                       ),
@@ -1029,7 +1044,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                           child: Column(children: _searchResults.map((s) => ListTile(dense: true, leading: Icon(s.icon, color: s.color, size: 16), title: Text(s.name, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary(dark))), subtitle: Text(s.direction, style: TextStyle(fontSize: 10, color: AppColors.textSecondary(dark))), onTap: () { _searchCtrl.text = s.name; setState(() => _searchFocused = false); _centerOnStop(s); })).toList()),
                         ),
                       ],
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 12),
                       SizedBox(height: 36, child: ListView(scrollDirection: Axis.horizontal, children: [_chip('Tous'), _chip('⭐ Favoris'), _chip('TER'), _chip('BRT'), _chip('DDD'), _chip('TATA'), _chip('AFTU')])),
                       const SizedBox(height: 12),
                       Row(children: [
