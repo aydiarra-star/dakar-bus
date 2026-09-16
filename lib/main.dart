@@ -804,7 +804,7 @@ class _MainShellState extends State<MainShell> {
 }
 
 // ============================================================
-// EXPLORER (CARTE REDUITE ET DEZOOMEE A 11.5)
+// EXPLORER (ZONE CARTE AGRANDIE À 150 ET ZOOM DÉZOOMÉ À 10.2)
 // ============================================================
 class ExplorerPage extends StatefulWidget {
   final LatLng? userPosition; final GpsState gpsState; final String? gpsMessage; final Future<void> Function() onRequestLocation;
@@ -818,8 +818,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
   final LatLng _dakarCenter = const LatLng(14.7200, -17.4300);
   String _selectedFilter = 'Tous';
   
-  // HAUTEUR TRES COMPACTE (110) POUR QUE LA CARTE RESTE DISCRETE
-  int _mapHeight = 110;
+  // HAUTEUR DE LA ZONE CARTE AGRANDIE À 150 PIXELS
+  int _mapHeight = 150;
   
   bool _searchFocused = false;
   final TextEditingController _searchCtrl = TextEditingController();
@@ -833,7 +833,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
     _loadDynamicRoutes(); 
     if (widget.userPosition != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _mapController.move(widget.userPosition!, 11.5);
+        _mapController.move(widget.userPosition!, 10.2);
       });
     }
   }
@@ -861,7 +861,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
         }
         if (fullRoutePoints.isEmpty) fullRoutePoints = route.points.where((pt) => DakarBounds.isValid(pt)).toList();
       }
-      loaded.add(Polyline(points: fullRoutePoints, color: route.color, strokeWidth: 4.0));
+      loaded.add(Polyline(points: fullRoutePoints, color: route.color, strokeWidth: 3.5));
     }
     if (mounted) setState(() { _dynamicPolylines = loaded; _isLoadingRoutes = false; });
   }
@@ -894,14 +894,14 @@ class _ExplorerPageState extends State<ExplorerPage> {
     return allStops.where((s) => (s.name.toLowerCase().contains(q) || s.direction.toLowerCase().contains(q)) && DakarBounds.isValid(s.location)).take(8).toList();
   }
 
-  void _centerOnStop(Stop s) => _mapController.move(s.location, 13.0);
+  void _centerOnStop(Stop s) => _mapController.move(s.location, 12.0);
   void _openAI() => Navigator.push(context, MaterialPageRoute(builder: (_) => const AIChatPage()));
 
   @override
   Widget build(BuildContext context) {
     final dark = globalState.darkMode;
     final stops = _filteredStops;
-    final activePolylines = _dynamicPolylines.isNotEmpty ? _dynamicPolylines : demoRoutes.map((r) => Polyline(points: r.points, color: r.color, strokeWidth: 4.0)).toList();
+    final activePolylines = _dynamicPolylines.isNotEmpty ? _dynamicPolylines : demoRoutes.map((r) => Polyline(points: r.points, color: r.color, strokeWidth: 3.5)).toList();
     final mapStops = _selectedFilter == 'Tous' ? allStops : _filteredStops;
 
     return AnimatedBuilder(
@@ -916,15 +916,15 @@ class _ExplorerPageState extends State<ExplorerPage> {
                 Container(
                   width: double.infinity,
                   color: AppColors.surface(dark),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
                   child: ElevatedButton.icon(
-                    onPressed: () => setState(() => _mapHeight = _mapHeight == 0 ? 110 : 0),
-                    icon: Icon(_mapHeight == 0 ? Icons.map : Icons.keyboard_arrow_up, size: 12),
+                    onPressed: () => setState(() => _mapHeight = _mapHeight == 0 ? 150 : 0),
+                    icon: Icon(_mapHeight == 0 ? Icons.map : Icons.keyboard_arrow_up, size: 13),
                     label: Text(_mapHeight == 0 ? 'Afficher la carte' : 'Réduire la carte', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      padding: const EdgeInsets.symmetric(vertical: 3),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                       elevation: 0,
                     ),
@@ -940,14 +940,14 @@ class _ExplorerPageState extends State<ExplorerPage> {
                           children: [
                             FlutterMap(
                               mapController: _mapController,
-                              // ZOOM REDUIT A 11.5 POUR ÉVITER QUE LA CARTE NE PRENNE TROP D'ESPACE INTERNE
-                              options: MapOptions(initialCenter: widget.userPosition ?? _dakarCenter, initialZoom: 11.5, minZoom: 9, maxZoom: 16),
+                              // ZOOM DÉZOOMÉ À 10.2 POUR UN AFFICHAGE TRÈS LARGE DE LA ZONE
+                              options: MapOptions(initialCenter: widget.userPosition ?? _dakarCenter, initialZoom: 10.2, minZoom: 8, maxZoom: 15),
                               children: [
                                 TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', userAgentPackageName: 'dakar_bus', maxZoom: 19),
                                 PolylineLayer(polylines: activePolylines),
                                 MarkerLayer(
                                   markers: mapStops.where((s) => DakarBounds.isValid(s.location)).map((s) => Marker(
-                                    point: s.location, width: 18, height: 18,
+                                    point: s.location, width: 16, height: 16,
                                     child: GestureDetector(
                                       onTap: () { _centerOnStop(s); Navigator.push(context, MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: s))); },
                                       child: Container(
@@ -956,25 +956,25 @@ class _ExplorerPageState extends State<ExplorerPage> {
                                           border: Border.all(color: Colors.white, width: 1),
                                           boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 2)],
                                         ),
-                                        child: Icon(s.icon, color: Colors.white, size: 8),
+                                        child: Icon(s.icon, color: Colors.white, size: 7),
                                       ),
                                     ),
                                   )).toList(),
                                 ),
                                 if (widget.userPosition != null && DakarBounds.isValid(widget.userPosition!))
-                                  MarkerLayer(markers: [Marker(point: widget.userPosition!, width: 16, height: 16, child: Container(decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 2)])))]),
+                                  MarkerLayer(markers: [Marker(point: widget.userPosition!, width: 14, height: 14, child: Container(decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 2)])))]),
                               ],
                             ),
 
                             Positioned(
-                              bottom: 4, left: 4,
+                              bottom: 6, left: 6,
                               child: Material(
                                 elevation: 2, borderRadius: BorderRadius.circular(16), color: AppColors.surface(dark),
                                 child: InkWell(
-                                  onTap: widget.gpsState == GpsState.granted ? () { if (widget.userPosition != null) _mapController.move(widget.userPosition!, 11.5); } : () => widget.onRequestLocation(),
+                                  onTap: widget.gpsState == GpsState.granted ? () { if (widget.userPosition != null) _mapController.move(widget.userPosition!, 10.2); } : () => widget.onRequestLocation(),
                                   borderRadius: BorderRadius.circular(16),
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
@@ -991,7 +991,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                             ),
 
                             Positioned(
-                              bottom: 4, right: 4,
+                              bottom: 6, right: 6,
                               child: ElevatedButton.icon(
                                 onPressed: _openAI,
                                 icon: const Icon(Icons.auto_awesome, size: 9),
@@ -1972,7 +1972,7 @@ class _AIChatPageState extends State<AIChatPage> {
                         alignment: isAi ? Alignment.centerLeft : Alignment.centerRight,
                         child: Container(
                           margin: const EdgeInsets.symmetric(vertical: 4),
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(Й),
                           decoration: BoxDecoration(
                             color: isAi ? AppColors.surface(dark) : AppColors.primary,
                             borderRadius: BorderRadius.circular(12),
