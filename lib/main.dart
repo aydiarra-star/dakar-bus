@@ -804,7 +804,7 @@ class _MainShellState extends State<MainShell> {
 }
 
 // ============================================================
-// EXPLORER (CARTE AFFICHEE DIRECTEMENT PAR DEFAUT A 280)
+// EXPLORER (CARTE AJUSTEE A 190 POUR NE PAS DEBORDER)
 // ============================================================
 class ExplorerPage extends StatefulWidget {
   final LatLng? userPosition; final GpsState gpsState; final String? gpsMessage; final Future<void> Function() onRequestLocation;
@@ -818,8 +818,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
   final LatLng _dakarCenter = const LatLng(14.7200, -17.4300);
   String _selectedFilter = 'Tous';
   
-  // MODIFICATION ICI : Hauteur à 280 par défaut pour afficher directement la carte interactive au lancement
-  int _mapHeight = 280;
+  // MODIFICATION ICI : Hauteur ajustée à 190 pour éviter tout débordement visuel
+  int _mapHeight = 190;
   
   bool _searchFocused = false;
   final TextEditingController _searchCtrl = TextEditingController();
@@ -913,19 +913,18 @@ class _ExplorerPageState extends State<ExplorerPage> {
             bottom: false,
             child: Column(
               children: [
-                // Bouton discret pour afficher/masquer dynamiquement la carte
                 Container(
                   width: double.infinity,
                   color: AppColors.surface(dark),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   child: ElevatedButton.icon(
-                    onPressed: () => setState(() => _mapHeight = _mapHeight == 0 ? 280 : 0),
+                    onPressed: () => setState(() => _mapHeight = _mapHeight == 0 ? 190 : 0),
                     icon: Icon(_mapHeight == 0 ? Icons.map : Icons.keyboard_arrow_up, size: 16),
                     label: Text(_mapHeight == 0 ? 'Afficher la carte interactive' : 'Réduire la carte', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      padding: const EdgeInsets.symmetric(vertical: 4),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       elevation: 0,
                     ),
@@ -967,20 +966,20 @@ class _ExplorerPageState extends State<ExplorerPage> {
                             ),
 
                             Positioned(
-                              bottom: 12, left: 12,
+                              bottom: 8, left: 8,
                               child: Material(
                                 elevation: 4, borderRadius: BorderRadius.circular(24), color: AppColors.surface(dark),
                                 child: InkWell(
                                   onTap: widget.gpsState == GpsState.granted ? () { if (widget.userPosition != null) _mapController.move(widget.userPosition!, 14.5); } : () => widget.onRequestLocation(),
                                   borderRadius: BorderRadius.circular(24),
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         widget.gpsState == GpsState.loading
-                                          ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
-                                          : Icon(widget.gpsState == GpsState.granted ? Icons.my_location : Icons.location_searching, color: AppColors.primary, size: 16),
+                                          ? const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2))
+                                          : Icon(widget.gpsState == GpsState.granted ? Icons.my_location : Icons.location_searching, color: AppColors.primary, size: 14),
                                         const SizedBox(width: 4),
                                         Text(widget.gpsState == GpsState.granted ? 'GPS' : 'Activer', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primary)),
                                       ],
@@ -991,34 +990,12 @@ class _ExplorerPageState extends State<ExplorerPage> {
                             ),
 
                             Positioned(
-                              bottom: 12, right: 12,
+                              bottom: 8, right: 8,
                               child: ElevatedButton.icon(
                                 onPressed: _openAI,
-                                icon: const Icon(Icons.auto_awesome, size: 14),
-                                label: const Text('Assistant IA', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)), elevation: 4),
-                              ),
-                            ),
-
-                            Positioned(
-                              top: 10, right: 10,
-                              child: Material(
-                                elevation: 4, borderRadius: BorderRadius.circular(24), color: AppColors.surface(dark),
-                                child: InkWell(
-                                  onTap: () => setState(() => _mapHeight = 0),
-                                  borderRadius: BorderRadius.circular(24),
-                                  child: const Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(Icons.close, color: AppColors.primary, size: 16),
-                                        SizedBox(width: 4),
-                                        Text('Masquer', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primary)),
-                                      ],
-                                    ),
-                                  ),
-                                ),
+                                icon: const Icon(Icons.auto_awesome, size: 12),
+                                label: const Text('Assistant IA', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)), elevation: 4),
                               ),
                             ),
                           ],
@@ -1029,14 +1006,14 @@ class _ExplorerPageState extends State<ExplorerPage> {
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
                     children: [
                       Row(children: [
-                        Container(width: 40, height: 40, decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.12), borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.directions_bus, color: AppColors.primary, size: 22)),
-                        const SizedBox(width: 12),
+                        Container(width: 36, height: 36, decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.12), borderRadius: BorderRadius.circular(10)), child: const Icon(Icons.directions_bus, color: AppColors.primary, size: 20)),
+                        const SizedBox(width: 10),
                         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Text('Dakar Bus', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-                          Text('TER / BRT / DDD / TATA / AFTU', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark)))
+                          Text('Dakar Bus', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
+                          Text('TER / BRT / DDD / TATA / AFTU', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark)))
                         ])),
                       ]),
-                      const SizedBox(height: 14),
+                      const SizedBox(height: 12),
                       Container(
                         decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider(dark)), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)]),
                         child: TextField(
@@ -1046,10 +1023,10 @@ class _ExplorerPageState extends State<ExplorerPage> {
                           decoration: InputDecoration(
                             hintText: 'Où voulez-vous aller ? (ex: Colobane, Yoff...)', 
                             hintStyle: TextStyle(color: AppColors.textSecondary(dark)),
-                            prefixIcon: const Icon(Icons.search, color: AppColors.primary, size: 22), 
-                            suffixIcon: _searchFocused ? IconButton(icon: Icon(Icons.close, size: 20, color: AppColors.textSecondary(dark)), onPressed: () { _searchCtrl.clear(); setState(() => _searchFocused = false); }) : null, 
+                            prefixIcon: const Icon(Icons.search, color: AppColors.primary, size: 20), 
+                            suffixIcon: _searchFocused ? IconButton(icon: Icon(Icons.close, size: 18, color: AppColors.textSecondary(dark)), onPressed: () { _searchCtrl.clear(); setState(() => _searchFocused = false); }) : null, 
                             border: InputBorder.none, 
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14)
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12)
                           ),
                         ),
                       ),
@@ -1057,14 +1034,14 @@ class _ExplorerPageState extends State<ExplorerPage> {
                         const SizedBox(height: 8),
                         Container(
                           decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.divider(dark))),
-                          child: Column(children: _searchResults.map((s) => ListTile(dense: true, leading: Icon(s.icon, color: s.color, size: 22), title: Text(s.name, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textPrimary(dark))), subtitle: Text(s.direction, style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark))), onTap: () { _searchCtrl.text = s.name; setState(() => _searchFocused = false); _centerOnStop(s); })).toList()),
+                          child: Column(children: _searchResults.map((s) => ListTile(dense: true, leading: Icon(s.icon, color: s.color, size: 20), title: Text(s.name, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary(dark))), subtitle: Text(s.direction, style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))), onTap: () { _searchCtrl.text = s.name; setState(() => _searchFocused = false); _centerOnStop(s); })).toList()),
                         ),
                       ],
                       const SizedBox(height: 12),
-                      SizedBox(height: 40, child: ListView(scrollDirection: Axis.horizontal, children: [_chip('Tous'), _chip('⭐ Favoris'), _chip('TER'), _chip('BRT'), _chip('DDD'), _chip('TATA'), _chip('AFTU')])),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 38, child: ListView(scrollDirection: Axis.horizontal, children: [_chip('Tous'), _chip('⭐ Favoris'), _chip('TER'), _chip('BRT'), _chip('DDD'), _chip('TATA'), _chip('AFTU')])),
+                      const SizedBox(height: 14),
                       Row(children: [
-                        Text('${stops.length} arrêts', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))), 
+                        Text('${stops.length} arrêts', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))), 
                         const SizedBox(width: 8), 
                         Text('à proximité', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark)))
                       ]),
@@ -1090,13 +1067,13 @@ class _ExplorerPageState extends State<ExplorerPage> {
       child: GestureDetector(
         onTap: () => setState(() => _selectedFilter = label), 
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10), 
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8), 
           decoration: BoxDecoration(
             color: sel ? color.withOpacity(0.15) : AppColors.surface(dark), 
             borderRadius: BorderRadius.circular(24), 
             border: Border.all(color: sel ? color : AppColors.divider(dark), width: sel ? 2 : 1)
           ), 
-          child: Text(label, style: TextStyle(color: sel ? color : AppColors.textSecondary(dark), fontWeight: sel ? FontWeight.bold : FontWeight.normal, fontSize: 13))
+          child: Text(label, style: TextStyle(color: sel ? color : AppColors.textSecondary(dark), fontWeight: sel ? FontWeight.bold : FontWeight.normal, fontSize: 12))
         ),
       ),
     );
