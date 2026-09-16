@@ -30,12 +30,19 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.5'   # 🔑 version stable qui build sans souci
+          flutter-version: '3.24.5'
           channel: 'stable'
           cache: true
 
       - name: Install dependencies
         run: flutter pub get
+
+      - name: Analyze (0 error exigé, infos tolérées)
+        run: flutter analyze
+
+      - name: Run tests (si présents)
+        run: |
+          if [ -d test ]; then flutter test; else echo "No tests — skip"; fi
 
       - name: Build Web
         run: flutter build web --release --base-href "/dakar-bus/"
