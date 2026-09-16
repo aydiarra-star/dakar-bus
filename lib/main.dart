@@ -735,7 +735,7 @@ class _MainShellState extends State<MainShell> {
   @override
   void initState() {
     super.initState();
-    _requestLocation(); // GPS automatique au démarrage dès l'entrée dans l'application
+    _requestLocation();
     _ticker = Timer.periodic(const Duration(seconds: 15), (_) { if (mounted) setState(() {}); });
   }
 
@@ -1186,6 +1186,197 @@ class StopCard extends StatelessWidget {
 }
 
 // ============================================================
+// PAGE DETAIL ARRET & SENS OPPOSE
+// ============================================================
+class DualStopDetailPage extends StatelessWidget {
+  final Stop stop;
+  const DualStopDetailPage({super.key, required this.stop});
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = globalState.darkMode;
+    final opposite = OppositeStopService.findOppositeStop(currentStop: stop, allStops: allStops);
+
+    return Scaffold(
+      backgroundColor: AppColors.background(dark),
+      appBar: AppBar(title: Text(stop.name), backgroundColor: stop.color, foregroundColor: Colors.white),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          _buildStopSection(context, stop, 'Sens Actuel / Direction', dark),
+          if (opposite != null) ...[
+            const SizedBox(height: 20),
+            Row(children: [const Icon(Icons.swap_horiz, color: AppColors.primary), const SizedBox(width: 8), Text('Sens Opposé Détecté', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))]),
+            const SizedBox(height: 10),
+            _buildStopSection(context, opposite, 'Sens Retour / Croisement', dark),
+          ],
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(stop)))),
+            icon: const Icon(Icons.alt_route),
+            label: const Text('Voir le parcours complet de la ligne'),
+            style: ElevatedButton.styleFrom(backgroundColor: stop.color, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 50), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStopSection(BuildContext context, Stop s, String title, bool dark) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(16), border: Border.all(color: s.color.withOpacity(0.4), width: 1.5)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: s.color)),
+          const SizedBox(height: 8),
+          Text(s.direction, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
+          const SizedBox(height: 6),
+          Text('Opérateur : ${s.source.label}', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark))),
+          const SizedBox(height: 12),
+          const Divider(),
+          const SizedBox(height: 8),
+          Text('Prochains départs :', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 8, runSpacing: 8,
+            children: s.isContinuousFlow 
+              ? [Chip(label: const Text('En rotation continue (~5 min)'), backgroundColor: s.color.withOpacity(0.1))]
+              : s.departureMinutesFromMidnight.take(6).map((m) => Chip(
+                  label: Text('${(m ~/ 60).toString().padLeft(2, '0')}h${(m % 60).toString().padLeft(2, '0')}'),
+                  backgroundColor: AppColors.surface(dark),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: BorderSide(color: AppColors.divider(dark))),
+                )).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================
+// PAGE PARCOURS DETAILLE DE LA LIGNE
+// ============================================================
+class DetailedRoutePage extends StatefulWidget {
+  final DetailedRoute route;
+  const DetailedRoutePage({super.key, required this.route});
+
+  @override
+  State<DetailedRoutePage> createState() => _DetailedRoutePageState();
+}
+
+class _DetailedRoutePageState extends State<DetailedRoutePage> {
+  late DetailedRoute _currentRoute;
+  bool _isReturn = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentRoute = widget.route;
+  }
+
+  void _toggleDirection() {
+    setState(() {
+      _isReturn = !_isReturn;
+      final dummyStop = Stop(name: _currentRoute.origin, direction: _currentRoute.destination, distanceMeters: 0, departureMinutesFromMidnight: [], icon: Icons.directions_bus, color: _currentRoute.color, location: _currentRoute.stops.first.location, modeLabel: _currentRoute.operator.contains('TER') ? 'TER' : (_currentRoute.operator.contains('BRT') ? 'BRT' : 'DDD'));
+      _currentRoute = DetailedRoute.fromStop(dummyStop, isReturnRoute: _isReturn);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = globalState.darkMode;
+
+    return Scaffold(
+      backgroundColor: AppColors.background(dark),
+      appBar: AppBar(
+        title: Text('${_currentRoute.operator} (Ligne ${_currentRoute.lineNumber})'),
+        backgroundColor: _currentRoute.color,
+        foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.swap_vert),
+            tooltip: 'Inverser sens',
+            onPressed: _toggleDirection,
+          ),
+        ],
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(16), border: Border.all(color: _currentRoute.color.withOpacity(0.5), width: 1.5)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(children: [Icon(Icons.trip_origin, color: _currentRoute.color, size: 18), const SizedBox(width: 8), Text('Origine : ${_currentRoute.origin}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textPrimary(dark)))]),
+                const Padding(padding: EdgeInsets.only(left: 8), child: SizedBox(height: 16, child: VerticalDivider(color: Colors.grey))),
+                Row(children: [Icon(Icons.location_on, color: _currentRoute.color, size: 18), const SizedBox(width: 8), Text('Destination : ${_currentRoute.destination}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textPrimary(dark)))]),
+                const SizedBox(height: 12),
+                Text('Distance totale : ${_currentRoute.totalDistance} • ${_currentRoute.stops.length} stations', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text('Arrêts desservis', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
+          const SizedBox(height: 10),
+          ..._currentRoute.stops.asMap().entries.map((entry) {
+            final idx = entry.key;
+            final stop = entry.value;
+            final isLast = idx == _currentRoute.stops.length - 1;
+
+            return IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Column(
+                    children: [
+                      Container(width: 14, height: 14, decoration: BoxDecoration(color: stop.isTerminal ? _currentRoute.color : AppColors.surface(dark), shape: BoxShape.circle, border: Border.all(color: _currentRoute.color, width: 3))),
+                      if (!isLast) Expanded(child: Container(width: 3, color: _currentRoute.color.withOpacity(0.4))),
+                    ],
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 18),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.divider(dark))),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(stop.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary(dark))),
+                                  const SizedBox(height: 2),
+                                  Text('Distance: ${stop.distanceFromStart} • Temps estimé: ${stop.estimatedTime}', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(color: _currentRoute.color.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
+                              child: Text(stop.type, style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: _currentRoute.color)),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================
 // ONGLET TRAJETS
 // ============================================================
 class TripsPage extends StatefulWidget {
@@ -1202,169 +1393,123 @@ class _TripsPageState extends State<TripsPage> {
 
   Future<void> _search() async {
     FocusScope.of(context).unfocus();
-    setState(() { _loading = true; _result = null; });
-    await Future.delayed(const Duration(milliseconds: 500));
+    setState(() => _loading = true);
+    await Future.delayed(const Duration(milliseconds: 400));
     final res = RoutePlanner.plan(fromQuery: _fromCtrl.text, toQuery: _toCtrl.text);
-    if (!mounted) return;
-    setState(() { _loading = false; _result = res; });
+    setState(() { _result = res; _loading = false; });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _search();
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: globalState,
-      builder: (context, _) {
-        final dark = globalState.darkMode;
-        return Scaffold(
-          backgroundColor: AppColors.background(dark),
-          body: SafeArea(
-            bottom: false,
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                Text('Planifier un trajet', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-                const SizedBox(height: 4),
-                Text('Itinéraires multimodaux officiels (TER, BRT, DDD, TATA, AFTU).', style: TextStyle(fontSize: 13, color: AppColors.textSecondary(dark))),
-                const SizedBox(height: 20),
-
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, 4))]),
-                  child: Column(
-                    children: [
-                      _buildInputField(controller: _fromCtrl, label: 'Départ', icon: Icons.my_location, color: AppColors.primary, dark: dark),
-                      const SizedBox(height: 12),
-                      _buildInputField(controller: _toCtrl, label: 'Destination', icon: Icons.location_on, color: AppColors.ter, dark: dark),
-                      const SizedBox(height: 20),
-                      ElevatedButton(
-                        onPressed: _loading ? null : _search,
-                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 52), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)), elevation: 2),
-                        child: _loading ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5)) : const Text('Rechercher mon itinéraire', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                      ),
-                    ],
-                  ),
-                ),
-
-                if (_result == null && !_loading) ...[
-                  const SizedBox(height: 24),
-                  Text('Suggestions populaires (TER, BRT, DDD, TATA)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 10, runSpacing: 10,
-                    children: [
-                      _suggestionChip('Dakar - Diamniadio (TER)', () { 
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(terStations.first))));
-                      }, dark),
-                      _suggestionChip('Guédiawaye - Petersen (BRT)', () { 
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(brtStations.last))));
-                      }, dark),
-                      _suggestionChip('Colobane - Yoff (DDD Ligne 1)', () { 
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(dddStations.first))));
-                      }, dark),
-                    ],
-                  ),
-                ],
-
-                if (_result != null) ...[
-                  const SizedBox(height: 24),
-                  Row(children: [
-                    Text('Itinéraires proposés', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))), 
-                    const Spacer(), 
-                    Text('${_result!.routes.length} résultat(s)', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark)))
-                  ]),
-                  const SizedBox(height: 12),
-                  if (_result!.hasRoutes)
-                    ..._result!.routes.map((r) => _buildRouteCard(r, dark))
-                  else
-                    Container(padding: const EdgeInsets.all(20), decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(16)), child: Column(children: [const Icon(Icons.error_outline, color: AppColors.warning, size: 40), const SizedBox(height: 10), Text(_result!.errorMessage ?? 'Aucun trajet trouvé', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: AppColors.textSecondary(dark)))]))
-                ],
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildInputField({required TextEditingController controller, required String label, required IconData icon, required Color color, required bool dark}) {
-    return TextField(
-      controller: controller,
-      style: TextStyle(color: AppColors.textPrimary(dark)),
-      decoration: InputDecoration(
-        labelText: label, labelStyle: TextStyle(color: AppColors.textSecondary(dark)),
-        prefixIcon: Icon(icon, color: color, size: 22),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: AppColors.divider(dark))),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: color, width: 2)),
-        filled: true, fillColor: AppColors.background(dark), contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      ),
-    );
-  }
-
-  Widget _suggestionChip(String label, VoidCallback onTap, bool dark) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10), 
-        decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.divider(dark)), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4)]), 
-        child: Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.textPrimary(dark)))
-      ),
-    );
-  }
-
-  Widget _buildRouteCard(PlannedRoute r, bool dark) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 14),
-      color: AppColors.surface(dark),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    final dark = globalState.darkMode;
+    return Scaffold(
+      backgroundColor: AppColors.background(dark),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(16),
           children: [
-            Row(
-              children: [
-                Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: r.segments.first.color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Icon(r.segments.first.icon, color: r.segments.first.color, size: 22)),
-                const SizedBox(width: 12),
-                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('${r.fromName} - ${r.toName}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textPrimary(dark))), 
-                  const SizedBox(height: 2), 
-                  Text('${r.transferCount} correspondance(s) • ${r.segments.length} étape(s)', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark)))
-                ])),
-                Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                  Text('${r.totalMinutes} min', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 18)), 
-                  Text('Durée totale', style: TextStyle(fontSize: 10, color: AppColors.textSecondary(dark)))
-                ]),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Divider(height: 1, color: AppColors.divider(dark)),
-            const SizedBox(height: 12),
-            ...r.segments.asMap().entries.map((entry) {
-              final s = entry.value;
-              final isLast = entry.key == r.segments.length - 1;
-              return IntrinsicHeight(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Column(children: [Container(width: 10, height: 10, decoration: BoxDecoration(color: s.color, shape: BoxShape.circle)), if (!isLast) Expanded(child: Container(width: 2, color: AppColors.divider(dark)))]),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.only(bottom: isLast ? 0 : 16),
-                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Row(children: [Icon(s.icon, size: 14, color: s.color), const SizedBox(width: 6), Text(s.modeLabel, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: s.color)), const Spacer(), Text(s.departureTime ?? '', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))]),
-                          const SizedBox(height: 4),
-                          Text('${s.from} - ${s.to}', style: TextStyle(fontSize: 12, color: AppColors.textPrimary(dark))),
-                          const SizedBox(height: 2),
-                          Text('Durée: ${s.durationMinutes} min', style: TextStyle(fontSize: 10, color: AppColors.textSecondary(dark))),
-                        ]),
-                      ),
+            Text('Calculateur d’itinéraire', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider(dark))),
+              child: Column(
+                children: [
+                  TextField(
+                    controller: _fromCtrl,
+                    style: TextStyle(color: AppColors.textPrimary(dark)),
+                    decoration: InputDecoration(
+                      labelText: 'Point de départ',
+                      labelStyle: TextStyle(color: AppColors.textSecondary(dark)),
+                      prefixIcon: const Icon(Icons.trip_origin, color: AppColors.primary),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                     ),
-                  ],
-                ),
-              );
-            }),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _toCtrl,
+                    style: TextStyle(color: AppColors.textPrimary(dark)),
+                    decoration: InputDecoration(
+                      labelText: 'Destination',
+                      labelStyle: TextStyle(color: AppColors.textSecondary(dark)),
+                      prefixIcon: const Icon(Icons.location_on, color: AppColors.warning),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  ElevatedButton.icon(
+                    onPressed: _loading ? null : _search,
+                    icon: _loading ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.search),
+                    label: const Text('Rechercher le meilleur trajet'),
+                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 46), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            if (_loading)
+              const Center(child: Padding(padding: EdgeInsets.all(30), child: CircularProgressIndicator()))
+            else if (_result != null) ...[
+              if (_result!.errorMessage != null)
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(color: AppColors.warning.withOpacity(0.1), borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.warning)),
+                  child: Text(_result!.errorMessage!, style: TextStyle(color: AppColors.textPrimary(dark), fontWeight: FontWeight.bold)),
+                )
+              else
+                ..._result!.routes.map((route) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(16), border: Border.all(color: route.isBest ? AppColors.primary : AppColors.divider(dark), width: route.isBest ? 2 : 1)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            if (route.isBest) ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(4)),
+                                child: const Text('LE PLUS RAPIDE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white)),
+                              ),
+                              const SizedBox(width: 8),
+                            ],
+                            Text('${route.totalMinutes} min', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                            const Spacer(),
+                            Text('${route.transferCount} correspondance(s)', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark))),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        ...route.segments.map((seg) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            children: [
+                              CircleAvatar(backgroundColor: seg.color, radius: 14, child: Icon(seg.icon, size: 14, color: Colors.white)),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('${seg.from} ➔ ${seg.to}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textPrimary(dark))),
+                                    Text('${seg.modeLabel} • ${seg.durationMinutes} min (${seg.departureTime ?? ""} - ${seg.arrivalTime ?? ""})', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        )),
+                      ],
+                    ),
+                  ),
+                )),
+            ],
           ],
         ),
       ),
@@ -1373,89 +1518,187 @@ class _TripsPageState extends State<TripsPage> {
 }
 
 // ============================================================
-// ONGLET ALERTES OFFICIELLES (SOURCE FIABLE CETUD / SETER / DAKAR MOBILITE)
+// ONGLET ALERTES TRAFIC
 // ============================================================
 class AlertsPage extends StatelessWidget {
   const AlertsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, dynamic>> officialAlerts = [
-      {
-        'type': 'TER',
-        'title': 'Réseau CETUD & SETER (14 Gares)',
-        'source': 'Source officielle : CETUD / SETER',
-        'message': 'Le TER dessert officiellement 14 gares de Dakar à Diamniadio en passant par Colobane, Hann, Pikine, Keur Massar et Rufisque.',
-        'severity': 'success',
-        'badge': '14 Gares Officielles',
-        'icon': Icons.train_rounded,
-        'color': AppColors.ter,
-      },
-      {
-        'type': 'BRT',
-        'title': 'Corridor officiel SunuBRT',
-        'source': 'Source officielle : Dakar Mobilité / CETUD',
-        'message': 'Le corridor relie Guédiawaye à Petersen en passant par Dalal Jamm, Parcelles Assainies, Grand Yoff et la Place de l’Obélisque.',
-        'severity': 'success',
-        'badge': 'En direct',
-        'icon': Icons.directions_bus_rounded,
-        'color': AppColors.brt,
-      },
-      {
-        'type': 'DDD',
-        'title': 'Dakar Dem Dikk - Lignes Urbaines',
-        'source': 'Source officielle : Direction DDD',
-        'message': 'Les flottes DDD assurent les liaisons interurbaines et les lignes régulières 1, 3, 10, 14 et 20 aux horaires habituels.',
-        'severity': 'success',
-        'badge': 'Réseau actif',
-        'icon': Icons.directions_bus_filled_rounded,
-        'color': AppColors.ddd,
-      },
-    ];
-
-    return AnimatedBuilder(
-      animation: globalState,
-      builder: (context, _) {
-        final dark = globalState.darkMode;
-        return Scaffold(
-          backgroundColor: AppColors.background(dark),
-          body: SafeArea(
-            bottom: false,
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                Text('Alertes trafic & Réseau', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-                const SizedBox(height: 4),
-                Text('Informations certifiées CETUD, SETER, SunuBRT & Dakar Dem Dikk.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary(dark))),
-                const SizedBox(height: 20),
-                ...officialAlerts.map((alert) => _buildAlertCard(context, alert, dark)),
-              ],
-            ),
-          ),
-        );
-      },
+    final dark = globalState.darkMode;
+    return Scaffold(
+      backgroundColor: AppColors.background(dark),
+      appBar: AppBar(title: const Text('Alertes & État du Trafic'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          _alertCard('TER (Train Express Régional)', '🟢 Trafic fluide sur l’ensemble de la ligne Dakar - Diamniadio. Respect des horaires officiels SETER.', AppColors.ter, dark),
+          const SizedBox(height: 12),
+          _alertCard('SunuBRT', '🟢 Trafic normal entre Guédiawaye et Petersen. Aucune perturbation signalée.', AppColors.brt, dark),
+          const SizedBox(height: 12),
+          _alertCard('Dakar Dem Dikk (DDD)', '🟠 Légers ralentissements signalés sur l’axe Corniche Ouest / Colobane aux heures de pointe.', AppColors.ddd, dark),
+          const SizedBox(height: 12),
+          _alertCard('Réseau TATA & AFTU', '🔵 Trafic dense sur les grands axes de banlieue (Route de Rufisque, Pikine).', AppColors.aftu, dark),
+        ],
+      ),
     );
   }
 
-  Widget _buildAlertCard(BuildContext context, Map<String, dynamic> alert, bool dark) {
+  Widget _alertCard(String title, String message, Color color, bool dark) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(16), border: Border.all(color: alert['color'].withOpacity(0.3), width: 1.5), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)]),
-      child: Row(
+      decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(16), border: Border.all(color: color.withOpacity(0.5), width: 1.5)),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: alert['color'].withOpacity(0.1), shape: BoxShape.circle), child: Icon(alert['icon'], color: alert['color'], size: 22)),
-          const SizedBox(width: 14),
-          Expanded(
+          Row(children: [CircleAvatar(backgroundColor: color, radius: 6), const SizedBox(width: 8), Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimary(dark)))]),
+          const SizedBox(height: 8),
+          Text(message, style: TextStyle(fontSize: 13, color: AppColors.textSecondary(dark))),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================
+// ONGLET DIRECT RUE (COMMUNITY ALERTS)
+// ============================================================
+class CommunityAlertsPage extends StatefulWidget {
+  const CommunityAlertsPage({super.key});
+
+  @override
+  State<CommunityAlertsPage> createState() => _CommunityAlertsPageState();
+}
+
+class _CommunityAlertsPageState extends State<CommunityAlertsPage> {
+  final List<Map<String, String>> _alerts = [
+    {'user': 'Mamadou S.', 'location': 'Colobane', 'text': 'Gros embouteillage suite à une panne de bus sur la voie BRT.', 'time': 'Il y a 5 min'},
+    {'user': 'Awa N.', 'location': 'Pikine Tally Boubakar', 'text': 'Bus TATA Ligne 50 très rapides ce matin, places disponibles.', 'time': 'Il y a 12 min'},
+    {'user': 'Cheikh B.', 'location': 'Liberté 6', 'text': 'Contrôle de police au rond-point, circulation fluide.', 'time': 'Il y a 25 min'},
+  ];
+
+  final _locationCtrl = TextEditingController();
+  final _textCtrl = TextEditingController();
+
+  void _postAlert() {
+    if (_locationCtrl.text.isEmpty || _textCtrl.text.isEmpty) return;
+    setState(() {
+      _alerts.insert(0, {
+        'user': 'Vous (Voyageur)',
+        'location': _locationCtrl.text,
+        'text': _textCtrl.text,
+        'time': 'À l\'instant',
+      });
+    });
+    _locationCtrl.clear();
+    _textCtrl.clear();
+    Navigator.pop(context);
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Alerte publiée avec succès !')));
+  }
+
+  void _showAddDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Signaler une info trafic'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: _locationCtrl, decoration: const InputDecoration(labelText: 'Lieu / Station (ex: Colobane)')),
+            const SizedBox(height: 10),
+            TextField(controller: _textCtrl, decoration: const InputDecoration(labelText: 'Description (ex: Embouteillage, Manifestation...)'), maxLines: 2),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Annuler')),
+          ElevatedButton(onPressed: _postAlert, child: const Text('Publier')),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = globalState.darkMode;
+    return Scaffold(
+      backgroundColor: AppColors.background(dark),
+      appBar: AppBar(title: const Text('Direct Rue (Communauté)'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: _alerts.length,
+        itemBuilder: (context, index) {
+          final a = _alerts[index];
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider(dark))),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(children: [Text(alert['type'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: alert['color'])), const Spacer(), Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: AppColors.success.withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Text(alert['badge'], style: const TextStyle(fontSize: 10, color: AppColors.success, fontWeight: FontWeight.bold)))]),
-                const SizedBox(height: 4),
-                Text(alert['source'], style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                Row(
+                  children: [
+                    const Icon(Icons.person_pin, color: AppColors.primary, size: 18),
+                    const SizedBox(width: 6),
+                    Text(a['user']!, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textPrimary(dark))),
+                    const Spacer(),
+                    Text(a['time']!, style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
+                  ],
+                ),
                 const SizedBox(height: 6),
-                Text(alert['message'], style: TextStyle(fontSize: 13, height: 1.4, color: AppColors.textPrimary(dark))),
+                Row(children: [const Icon(Icons.location_on, size: 14, color: AppColors.warning), const SizedBox(width: 4), Text(a['location']!, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.warning))]),
+                const SizedBox(height: 8),
+                Text(a['text']!, style: TextStyle(fontSize: 13, color: AppColors.textPrimary(dark))),
+              ],
+            ),
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _showAddDialog,
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.add_comment),
+        label: const Text('Signaler'),
+      ),
+    );
+  }
+}
+
+// ============================================================
+// ONGLET REGLAGES & PARAMETRES
+// ============================================================
+class SettingsPage extends StatelessWidget {
+  const SettingsPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = globalState.darkMode;
+    return Scaffold(
+      backgroundColor: AppColors.background(dark),
+      appBar: AppBar(title: const Text('Réglages & Application'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Container(
+            decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider(dark))),
+            child: SwitchListTile(
+              secondary: Icon(dark ? Icons.dark_mode : Icons.light_mode, color: AppColors.primary),
+              title: Text('Mode Sombre', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
+              subtitle: Text('Activer le thème sombre de l’interface', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark))),
+              value: dark,
+              onChanged: (val) => globalState.toggleDarkMode(val),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider(dark))),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('À propos de Dakar Bus', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimary(dark))),
+                const SizedBox(height: 8),
+                Text('Application intelligente de transport urbain à Dakar (TER, BRT, DDD, TATA, AFTU).\nVersion 2.4.0 - Optimisée pour le géofencing et la navigation temps réel.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary(dark))),
               ],
             ),
           ),
@@ -1466,590 +1709,81 @@ class AlertsPage extends StatelessWidget {
 }
 
 // ============================================================
-// DIRECT RUE & COMMUNAUTÉ
-// ============================================================
-class CommunityAlertsPage extends StatefulWidget {
-  const CommunityAlertsPage({super.key});
-
-  @override
-  State<CommunityAlertsPage> createState() => CommunityAlertsPageState();
-}
-
-class CommunityAlertsPageState extends State<CommunityAlertsPage> {
-  final List<Map<String, String>> _communityReports = [
-    {'user': 'Mamadou S.', 'location': 'Parcelles Assainies (BRT)', 'type': 'Trafic fluide', 'time': 'Il y a 3 min', 'status': '🟢 Fluide'},
-    {'user': 'Aïssatou N.', 'location': 'Gare de Dakar (TER)', 'type': 'Embarquement régulier', 'time': 'Il y a 6 min', 'status': '🟢 Fluide'},
-  ];
-
-  void _showAddReportModal() {
-    final locCtrl = TextEditingController();
-    String selectedType = '🟢 Trafic fluide';
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        final dark = globalState.darkMode;
-        return Container(
-          padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
-          decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: const BorderRadius.vertical(top: Radius.circular(24))),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Nouveau signalement rue', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-              const SizedBox(height: 14),
-              TextField(
-                controller: locCtrl,
-                style: TextStyle(color: AppColors.textPrimary(dark)),
-                decoration: InputDecoration(
-                  labelText: 'Lieu / Station (ex: Colobane, UCAD...)',
-                  labelStyle: TextStyle(color: AppColors.textSecondary(dark)),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  filled: true, fillColor: AppColors.background(dark),
-                ),
-              ),
-              const SizedBox(height: 14),
-              DropdownButtonFormField<String>(
-                value: selectedType,
-                dropdownColor: AppColors.surface(dark),
-                style: TextStyle(color: AppColors.textPrimary(dark)),
-                items: ['🟢 Trafic fluide', '🟠 Ralentissement / Dense', '🔴 Gros bouchon / Bloqué', '🚌 Bus plein / Attente longue']
-                    .map((val) => DropdownMenuItem(value: val, child: Text(val))).toList(),
-                onChanged: (val) => selectedType = val!,
-                decoration: InputDecoration(
-                  labelText: 'État constaté',
-                  labelStyle: TextStyle(color: AppColors.textSecondary(dark)),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  filled: true, fillColor: AppColors.background(dark),
-                ),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  if (locCtrl.text.trim().isNotEmpty) {
-                    setState(() {
-                      _communityReports.insert(0, {
-                        'user': 'Moi (Usager)',
-                        'location': locCtrl.text.trim(),
-                        'type': selectedType,
-                        'time': 'À l’instant',
-                        'status': selectedType.substring(0, 2),
-                      });
-                    });
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Signalement publié avec succès !')));
-                  }
-                },
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 48), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                child: const Text('Publier mon signalement', style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: globalState,
-      builder: (context, _) {
-        final dark = globalState.darkMode;
-        return Scaffold(
-          backgroundColor: AppColors.background(dark),
-          body: SafeArea(
-            bottom: false,
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                Row(
-                  children: [
-                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text('Direct rue & Communauté', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-                      const SizedBox(height: 4),
-                      Text('Signalements en temps réel par les usagistes à Dakar.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary(dark))),
-                    ])),
-                    ElevatedButton.icon(
-                      onPressed: _showAddReportModal,
-                      icon: const Icon(Icons.add, size: 16),
-                      label: const Text('Signaler'),
-                      style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                ..._communityReports.map((report) => Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider(dark))),
-                  child: Row(
-                    children: [
-                      const CircleAvatar(backgroundColor: AppColors.primary, child: Icon(Icons.person, color: Colors.white)),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(children: [Text(report['user']!, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary(dark))), const Spacer(), Text(report['time']!, style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark)))]),
-                            const SizedBox(height: 4),
-                            Text('📍 ${report['location']} — ${report['type']}', style: TextStyle(fontSize: 13, color: AppColors.textPrimary(dark))),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                )),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-// ============================================================
-// REGLAGES (AVEC INFORMATIONS UTILES COMPLÈTES)
-// ============================================================
-class SettingsPage extends StatelessWidget {
-  const SettingsPage({super.key});
-
-  void _showInfoModal(BuildContext context, String title, String content) {
-    final dark = globalState.darkMode;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: const BorderRadius.vertical(top: Radius.circular(24))),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-              const SizedBox(height: 12),
-              Text(content, style: TextStyle(fontSize: 14, height: 1.5, color: AppColors.textSecondary(dark))),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 44)),
-                child: const Text('Fermer'),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: globalState,
-      builder: (context, _) {
-        final dark = globalState.darkMode;
-        return Scaffold(
-          backgroundColor: AppColors.background(dark),
-          body: SafeArea(
-            bottom: false,
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                Text('Réglages & Préférences', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-                const SizedBox(height: 20),
-                Container(
-                  decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)]),
-                  child: Column(
-                    children: [
-                      SwitchListTile(secondary: const Icon(Icons.notifications_outlined, color: AppColors.primary), title: Text('Notifications trafic', style: TextStyle(color: AppColors.textPrimary(dark))), value: true, activeColor: AppColors.primary, onChanged: (_) {}),
-                      Divider(height: 1, color: AppColors.divider(dark)),
-                      SwitchListTile(secondary: const Icon(Icons.dark_mode_outlined, color: AppColors.primary), title: Text('Mode sombre', style: TextStyle(color: AppColors.textPrimary(dark))), value: dark, activeColor: AppColors.primary, onChanged: (v) => globalState.toggleDarkMode(v)),
-                      Divider(height: 1, color: AppColors.divider(dark)),
-                      ListTile(
-                        leading: const Icon(Icons.help_outline, color: AppColors.primary),
-                        title: Text('Comment utiliser l’application', style: TextStyle(color: AppColors.textPrimary(dark))),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () => _showInfoModal(context, 'Comment utiliser l’application', '1. Utilisez l’onglet Explorer pour visualiser votre position GPS en temps réel et les arrêts à proximité.\n2. Maintenez un arrêt enfoncé pour l’ajouter à vos favoris ⭐.\n3. Utilisez l’onglet Trajets pour planifier vos déplacements multimodaux officiels (TER, BRT, DDD, TATA).\n4. Interrogez l’Assistant IA pour toute question sur les horaires et les lignes.'),
-                      ),
-                      Divider(height: 1, color: AppColors.divider(dark)),
-                      ListTile(
-                        leading: const Icon(Icons.description_outlined, color: AppColors.primary),
-                        title: Text('Conditions d’utilisation', style: TextStyle(color: AppColors.textPrimary(dark))),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () => _showInfoModal(context, 'Conditions d’utilisation', 'Dakar Bus fournit des informations de transport indicatives et officielles basées sur les données des opérateurs de la région de Dakar (CETUD, SETER, SunuBRT, DDD, AFTU). L’application s’engage à assurer un affichage fidèle et mis à jour en continu.'),
-                      ),
-                      Divider(height: 1, color: AppColors.divider(dark)),
-                      ListTile(
-                        leading: const Icon(Icons.info_outline, color: AppColors.primary),
-                        title: Text('Qui sommes-nous ?', style: TextStyle(color: AppColors.textPrimary(dark))),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () => _showInfoModal(context, 'Qui sommes-nous ?', 'Dakar Bus est la plateforme de référence multimodale conçue pour faciliter la mobilité urbaine à Dakar. Notre mission est d’offrir à chaque usager une visibilité totale sur les réseaux de transport et de fluidifier les déplacements quotidiens.'),
-                      ),
-                      Divider(height: 1, color: AppColors.divider(dark)),
-                      ListTile(leading: const Icon(Icons.verified, color: AppColors.primary), title: Text('Version de l’application', style: TextStyle(color: AppColors.textPrimary(dark))), subtitle: Text('Dakar Bus v9.0 (Officiel & Complet)', style: TextStyle(color: AppColors.textSecondary(dark)))),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-// ============================================================
-// ASSISTANT IA INTELLIGENT, CONTEXTUEL ET MEMORISATEUR DE MOBILITE
+// ASSISTANT IA (CHATBOT TRANSPORT)
 // ============================================================
 class AIChatPage extends StatefulWidget {
   const AIChatPage({super.key});
+
   @override
   State<AIChatPage> createState() => _AIChatPageState();
 }
 
 class _AIChatPageState extends State<AIChatPage> {
-  final TextEditingController _msgCtrl = TextEditingController();
   final List<Map<String, String>> _messages = [
-    {'role': 'ai', 'text': 'Nanga def ! 👋 Je suis votre assistant IA expert des mobilités à Dakar. Posez-moi vos questions sur les lignes TER, BRT, DDD, TATA et AFTU ou demandez-moi un itinéraire.'}
+    {'sender': 'ai', 'text': 'Nalaw nala ak jam! Je suis votre assistant virtuel Dakar Bus. Comment puis-je vous aider à vous déplacer aujourd\'hui dans Dakar ?'}
   ];
-  
-  String? _dernierModeInterroge;
+  final TextEditingController _ctrl = TextEditingController();
 
-  void _sendMessage() {
-    final text = _msgCtrl.text.trim();
+  void _send() {
+    final text = _ctrl.text.trim();
     if (text.isEmpty) return;
-    setState(() { 
-      _messages.add({'role': 'user', 'text': text}); 
-      _msgCtrl.clear(); 
-    });
-    
-    // Analyse intelligente et mémorisation de la mobilité interrogée
-    String aiReply = '🚍 Les réseaux TER, BRT, DDD et TATA fonctionnent normalement. Précisez votre point de départ et votre destination pour un calcul d’itinéraire précis.';
-    final lower = text.toLowerCase();
-    
-    if (lower.contains('ter') || lower.contains('train') || lower.contains('diamniadio')) {
-      _dernierModeInterroge = 'TER';
-      aiReply = '🚆 [Mémorisé : TER] Le Train Express Régional relie Dakar à Diamniadio en traversant 14 gares officielles (Colobane, Pikine, Rufisque...) avec un départ toutes les 10 à 20 min.';
-    } else if (lower.contains('brt') || lower.contains('guédiawaye') || lower.contains('petersen')) {
-      _dernierModeInterroge = 'BRT';
-      aiReply = '🚌 [Mémorisé : SunuBRT] Le couloir BRT relie le PEM Guédiawaye au PEM Petersen en passant par Dalal Jamm, Parcelles Assainies et l’Obélisque.';
-    } else if (lower.contains('ddd') || lower.contains('dakar dem dikk') || lower.contains('ligne 1') || lower.contains('ligne 3')) {
-      _dernierModeInterroge = 'DDD';
-      aiReply = '🚍 [Mémorisé : Dakar Dem Dikk] Les bus DDD couvrent l’ensemble des lignes urbaines et interurbaines (notamment les Lignes 1, 3, 10, 14 et 20). Leurs arrêts sont intégrés dans notre base de recherche.';
-    } else if (lower.contains('tata') || lower.contains('minibus') || lower.contains('ligne 50')) {
-      _dernierModeInterroge = 'TATA';
-      aiReply = '🚐 [Mémorisé : Bus TATA] Les bus TATA desservent les grands axes de la banlieue dakaroise (Lignes 50, 64, 78, 218...). Ils assurent des rotations cadencées en journée.';
-    } else if (lower.contains('aller') || lower.contains('trajet') || lower.contains('comment aller') || lower.contains('depuis')) {
-      aiReply = '🧭 Je peux vous aider à planifier votre trajet ! Indiquez votre départ et votre destination, ou rendez-vous dans l’onglet "Trajets" pour voir toutes les correspondances multimodales.';
-      if (_dernierModeInterroge != null) {
-        aiReply += '\n💡 (Note : J’ai mémorisé que vous vous intéressez au réseau $_dernierModeInterroge).';
-      }
-    }
-
-    Future.delayed(const Duration(milliseconds: 600), () {
-      if (mounted) {
-        setState(() { _messages.add({'role': 'ai', 'text': aiReply}); });
-      }
+    setState(() {
+      _messages.add({'sender': 'user', 'text': text});
+      _ctrl.clear();
+      _messages.add({'sender': 'ai', 'text': 'Je traite votre demande de trajet ou d\'horaires pour "$text". Le réseau TER et BRT fonctionne normalement avec des départs régulières !'});
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: globalState,
-      builder: (context, _) {
-        final dark = globalState.darkMode;
-        return Scaffold(
-          appBar: AppBar(title: const Text('Assistant IA - Dakar Bus'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-          body: Container(
-            color: AppColors.background(dark),
-            child: Column(
+    final dark = globalState.darkMode;
+    return Scaffold(
+      backgroundColor: AppColors.background(dark),
+      appBar: AppBar(title: const Text('Assistant IA Dakar Bus'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: _messages.length,
+              itemBuilder: (context, index) {
+                final m = _messages[index];
+                final isUser = m['sender'] == 'user';
+                return Align(
+                  alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(12),
+                    constraints: const BoxConstraints(maxWidth: 280),
+                    decoration: BoxDecoration(
+                      color: isUser ? AppColors.primary : AppColors.surface(dark),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: isUser ? AppColors.primary : AppColors.divider(dark)),
+                    ),
+                    child: Text(m['text']!, style: TextStyle(color: isUser ? Colors.white : AppColors.textPrimary(dark), fontSize: 13)),
+                  ),
+                );
+              },
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            color: AppColors.surface(dark),
+            child: Row(
               children: [
                 Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16), 
-                    itemCount: _messages.length, 
-                    itemBuilder: (c, i) {
-                      final msg = _messages[i];
-                      final isAi = msg['role'] == 'ai';
-                      return Align(
-                        alignment: isAi ? Alignment.centerLeft : Alignment.centerRight,
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(vertical: 4),
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: isAi ? AppColors.surface(dark) : AppColors.primary,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: AppColors.divider(dark)),
-                          ),
-                          child: Text(msg['text']!, style: TextStyle(color: isAi ? AppColors.textPrimary(dark) : Colors.white)),
-                        ),
-                      );
-                    },
+                  child: TextField(
+                    controller: _ctrl,
+                    style: TextStyle(color: AppColors.textPrimary(dark)),
+                    decoration: const InputDecoration(hintText: 'Posez votre question (ex: Quel bus pour aller à Yoff ?)', border: InputBorder.none),
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  color: AppColors.surface(dark),
-                  child: Row(children: [
-                    Expanded(child: TextField(controller: _msgCtrl, style: TextStyle(color: AppColors.textPrimary(dark)), decoration: InputDecoration(hintText: 'Posez votre question sur un trajet ou une mobilité...', hintStyle: TextStyle(color: AppColors.textSecondary(dark)), border: InputBorder.none))),
-                    IconButton(icon: const Icon(Icons.send, color: AppColors.primary), onPressed: _sendMessage),
-                  ]),
-                ),
+                IconButton(icon: const Icon(Icons.send, color: AppColors.primary), onPressed: _send),
               ],
             ),
           ),
-        );
-      },
-    );
-  }
-}
-
-// ============================================================
-// PAGE DE ROUTE DETAILLEE
-// ============================================================
-class DetailedRoutePage extends StatelessWidget {
-  final DetailedRoute route;
-  const DetailedRoutePage({super.key, required this.route});
-
-  @override
-  Widget build(BuildContext context) {
-    final validPoints = route.stops.map((s) => s.location).where((pt) => DakarBounds.isValid(pt)).toList();
-
-    return AnimatedBuilder(
-      animation: globalState,
-      builder: (context, _) {
-        final dark = globalState.darkMode;
-        return Scaffold(
-          appBar: AppBar(title: Text('${route.operator} — ${route.origin}'), backgroundColor: route.color, foregroundColor: Colors.white),
-          body: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(16), border: Border.all(color: route.color.withOpacity(0.3), width: 1.5)),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text('${route.origin} ➔ ${route.destination}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textPrimary(dark))),
-                      const SizedBox(height: 4),
-                      Text('${route.totalDistance} • ${route.stops.length} stations/arrêts', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark))),
-                    ])),
-                    Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: route.color.withOpacity(0.15), borderRadius: BorderRadius.circular(8)), child: Text(route.operator, style: TextStyle(fontWeight: FontWeight.bold, color: route.color, fontSize: 11))),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              Container(
-                height: 200,
-                decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider(dark))),
-                clipBehavior: Clip.antiAlias,
-                child: FlutterMap(
-                  options: MapOptions(initialCenter: validPoints.isNotEmpty ? validPoints.first : const LatLng(14.7167, -17.4677), initialZoom: 11.5),
-                  children: [
-                    TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', userAgentPackageName: 'dakar_bus', maxZoom: 19),
-                    if (validPoints.length > 1) PolylineLayer(polylines: [Polyline(points: validPoints, color: route.color, strokeWidth: 5.0)]),
-                    MarkerLayer(markers: route.stops.where((s) => DakarBounds.isValid(s.location)).map((s) => Marker(point: s.location, width: 24, height: 24, child: Container(decoration: BoxDecoration(color: route.color, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2)), child: const Icon(Icons.location_on, color: Colors.white, size: 12)))).toList()),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text('Arrêts & Gares alignés — ${route.operator}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-              const SizedBox(height: 12),
-              ...route.stops.asMap().entries.map((entry) {
-                final idx = entry.key; final stop = entry.value; final isLast = idx == route.stops.length - 1;
-                return IntrinsicHeight(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Column(children: [
-                        Container(width: 26, height: 26, decoration: BoxDecoration(color: route.color, shape: BoxShape.circle), child: Center(child: Text('${idx + 1}', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)))),
-                        if (!isLast) Expanded(child: Container(width: 3, color: route.color.withOpacity(0.4))),
-                      ]),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 20),
-                          child: Container(
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.divider(dark))),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(children: [
-                                  Expanded(child: Text(stop.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary(dark)))),
-                                  Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: AppColors.success.withOpacity(0.1), borderRadius: BorderRadius.circular(4)), child: const Text('[OFFICIEL]', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppColors.success))),
-                                ]),
-                                const SizedBox(height: 4),
-                                Row(children: [
-                                  Icon(Icons.access_time, size: 12, color: route.color),
-                                  const SizedBox(width: 4),
-                                  Text('Heure : ${stop.estimatedTime}', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textPrimary(dark))),
-                                  const Spacer(),
-                                  Text('📍 ${stop.distanceFromStart}', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
-                                ]),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-// ============================================================
-// DETAIL ARRET — ALLER / RETOUR SYNCHRONISE
-// ============================================================
-class DualStopDetailPage extends StatelessWidget {
-  final Stop stop;
-  const DualStopDetailPage({super.key, required this.stop});
-
-  @override
-  Widget build(BuildContext context) {
-    final allerStop = stop.copyWith(
-      direction: stop.direction.contains('Dir.') ? stop.direction : 'Dir. Diamniadio (Embarquement)',
-      stopType: StopType.boarding,
-    );
-
-    final retourStop = OppositeStopService.findOppositeStop(currentStop: stop, allStops: allStops) ?? stop.copyWith(
-      direction: 'Dir. Dakar / Centre',
-      stopType: StopType.departure,
-    );
-
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(stop.name),
-          backgroundColor: stop.color,
-          foregroundColor: Colors.white,
-          bottom: const TabBar(
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white70,
-            indicatorColor: Colors.white,
-            tabs: [
-              Tab(text: 'Sens Aller / Départ', icon: Icon(Icons.arrow_forward, size: 16)),
-              Tab(text: 'Sens Retour', icon: Icon(Icons.arrow_back, size: 16)),
-            ],
-          ),
-        ),
-        body: TabBarView(
-          children: [
-            SingleStopView(stop: allerStop),
-            SingleStopView(stop: retourStop),
-          ],
-        ),
+        ],
       ),
-    );
-  }
-}
-
-// ============================================================
-// VUE UNIQUE POUR UN SENS DONNE
-// ============================================================
-class SingleStopView extends StatelessWidget {
-  final Stop stop;
-  const SingleStopView({super.key, required this.stop});
-
-  @override
-  Widget build(BuildContext context) {
-    final crowd = TimeHelper.getCrowdLevel(stop);
-    final routeDetails = DetailedRoute.fromStop(stop);
-
-    return AnimatedBuilder(
-      animation: globalState,
-      builder: (context, _) {
-        final dark = globalState.darkMode;
-        final isFav = globalState.isFavorite(stop.name);
-        return ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.surface(dark),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: stop.color.withOpacity(0.3), width: 1.5),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      CircleAvatar(backgroundColor: stop.color, radius: 20, child: Icon(stop.icon, color: Colors.white, size: 18)),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(stop.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimary(dark))),
-                            const SizedBox(height: 2),
-                            Text(stop.direction, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textSecondary(dark))),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(isFav ? Icons.star : Icons.star_border, color: isFav ? Colors.amber : Colors.grey),
-                        onPressed: () => globalState.toggleFavorite(stop.name),
-                        tooltip: 'Favori',
-                      ),
-                    ],
-                  ),
-                  Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Divider(height: 1, color: AppColors.divider(dark))),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Prochain départ', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
-                          const SizedBox(height: 2),
-                          Text(stop.nextDepartureLabel() ?? 'Fermé', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: stop.color)),
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text('Affluence', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
-                          const SizedBox(height: 2),
-                          Text(crowd, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: routeDetails))),
-              icon: const Icon(Icons.map_outlined, size: 18),
-              label: const Text('Voir la ligne complète & stations', style: TextStyle(fontWeight: FontWeight.bold)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: stop.color,
-                foregroundColor: Colors.white,
-                minimumSize: const Size(double.infinity, 48),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-            ),
-          ],
-        );
-      },
     );
   }
 }
