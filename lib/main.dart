@@ -1,49 +1,42 @@
 import 'package:flutter/material.dart';
 
+void main() {
+  runApp(const DakarBusApp());
+}
+
 // ============================================================
-// ETAT GLOBAL DE L'APPLICATION (Dark Mode, Favoris, etc.)
+// ETAT GLOBAL DE L'APPLICATION
 // ============================================================
 class GlobalState extends ChangeNotifier {
   bool _darkMode = false;
-  final List<String> _favorites = [];
-
   bool get darkMode => _darkMode;
-  List<String> get favorites => _favorites;
 
   void toggleDarkMode(bool value) {
     _darkMode = value;
     notifyListeners();
   }
-
-  void toggleFavorite(String stopName) {
-    if (_favorites.contains(stopName)) {
-      _favorites.remove(stopName);
-    } else {
-      _favorites.add(stopName);
-    }
-    notifyListeners();
-  }
-
-  bool isFavorite(String stopName) => _favorites.contains(stopName);
 }
 
 final GlobalState globalState = GlobalState();
 
 // ============================================================
-// PALETTE DE COULEURS ADAPTATIVE (Clair / Sombre)
+// CONFIGURATION DES COULEURS ET THÈMES
 // ============================================================
 class AppColors {
-  static const primary = Color(0xFF10B981); // Vert principal Dakar Bus
-  static const ter = Color(0xFF8B4513);     // Marron TER
-  static const brt = Color(0xFF3B82F6);     // Bleu BRT
-  static const ddd = Color(0xFFEF4444);     // Rouge DDD
-  static const tata = Color(0xFFF59E0B);    // Orange TATA / AFTU
+  static const primary = Color(0xFF008037); // Vert drapeau / Transport
+  static const secondary = Color(0xFFFCD116); // Jaune Sénégal
+  static const ter = Color(0xFF8E44AD);
+  static const brt = Color(0xFFE67E22);
+  static const ddd = Color(0xFF2980B9);
+  static const tata = Color(0xFFC0392B);
+  static const aftu = Color(0xFF16A085);
+  static const warning = Color(0xFFE74C3C);
 
-  static Color background(bool dark) => dark ? const Color(0xFF121212) : const Color(0xFFF8FAFC);
+  static Color background(bool dark) => dark ? const Color(0xFF121212) : const Color(0xFFF8F9FA);
   static Color surface(bool dark) => dark ? const Color(0xFF1E1E1E) : Colors.white;
-  static Color textPrimary(bool dark) => dark ? Colors.white : const Color(0xFF0F172A);
-  static Color textSecondary(bool dark) => dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-  static Color divider(bool dark) => dark ? const Color(0xFF2D2D2D) : const Color(0xFFE2E8F0);
+  static Color textPrimary(bool dark) => dark ? Colors.white : const Color(0xFF2C3E50);
+  static Color textSecondary(bool dark) => dark ? Colors.white70 : const Color(0xFF7F8C8D);
+  static Color divider(bool dark) => dark ? Colors.white12 : const Color(0xFFE0E0E0);
 }
 
 // ============================================================
@@ -54,11 +47,31 @@ enum TransportSource { ter, brt, ddd, tata, aftu }
 extension TransportSourceExt on TransportSource {
   String get label {
     switch (this) {
-      case TransportSource.ter: return 'TER Dakar';
-      case TransportSource.brt: return 'SunuBRT';
-      case TransportSource.ddd: return 'Dakar Dem Dikk';
-      case TransportSource.tata: return 'AFTU / TATA';
-      case TransportSource.aftu: return 'AFTU';
+      case TransportSource.ter:
+        return 'TER (Train Express Régional)';
+      case TransportSource.brt:
+        return 'SunuBRT (Bus Rapid Transit)';
+      case TransportSource.ddd:
+        return 'Dakar Dem Dikk';
+      case TransportSource.tata:
+        return 'Bus Tata';
+      case TransportSource.aftu:
+        return 'AFTU (Car Rapide / Minibus)';
+    }
+  }
+
+  Color get color {
+    switch (this) {
+      case TransportSource.ter:
+        return AppColors.ter;
+      case TransportSource.brt:
+        return AppColors.brt;
+      case TransportSource.ddd:
+        return AppColors.ddd;
+      case TransportSource.tata:
+        return AppColors.tata;
+      case TransportSource.aftu:
+        return AppColors.aftu;
     }
   }
 }
@@ -70,11 +83,12 @@ class Stop {
   final List<int> departureMinutesFromMidnight;
   final IconData icon;
   final Color color;
-  final Offset location; // Coordonnées simulées pour la carte
+  final String location;
   final String modeLabel;
   final TransportSource source;
+  final bool isTerminal;
 
-  Stop({
+  const Stop({
     required this.name,
     required this.direction,
     required this.distanceMeters,
@@ -83,8 +97,22 @@ class Stop {
     required this.color,
     required this.location,
     required this.modeLabel,
-    required this.source,
+    this.source = TransportSource.ddd,
+    this.isTerminal = false,
   });
+
+  String nextDepartureLabel() {
+    if (departureMinutesFromMidnight.isEmpty) return 'Fréquence continue';
+    final now = DateTime.now();
+    final currentMinutes = now.hour * 60 + now.minute;
+    for (var m in departureMinutesFromMidnight) {
+      if (m >= currentMinutes) {
+        final diff = m - currentMinutes;
+        return diff <= 0 ? 'À l\'approche' : 'Dans $diff min';
+      }
+    }
+    return 'Terminé pour aujourd\'hui';
+  }
 }
 
 class DetailedRoute {
@@ -94,7 +122,7 @@ class DetailedRoute {
   final String destination;
   final Color color;
   final String totalDistance;
-  final List<RouteStop> stops;
+  final List<StopDetailItem> stops;
 
   DetailedRoute({
     required this.operator,
@@ -107,161 +135,132 @@ class DetailedRoute {
   });
 
   factory DetailedRoute.fromStop(Stop stop, {bool isReturnRoute = false}) {
-    final orig = isReturnRoute ? stop.direction : 'Gare Colobane';
-    final dest = isReturnRoute ? 'Gare Colobane' : stop.direction;
+    final orig = isReturnRoute ? stop.direction : stop.name;
+    final dest = isReturnRoute ? stop.name : stop.direction;
     return DetailedRoute(
       operator: stop.modeLabel,
-      lineNumber: '14',
+      lineNumber: stop.source == TransportSource.ter ? 'T1' : (stop.source == TransportSource.brt ? 'B1' : 'L12'),
       origin: orig,
       destination: dest,
       color: stop.color,
-      totalDistance: '12.5 km',
+      totalDistance: '${(stop.distanceMeters + 3500) / 1000} km',
       stops: [
-        RouteStop(name: orig, distanceFromStart: '0 km', estimatedTime: '0 min', type: 'Départ', isTerminal: true),
-        RouteStop(name: 'Sandaga / Pompidou', distanceFromStart: '3.2 km', estimatedTime: '10 min', type: 'Correspondance', isTerminal: false),
-        RouteStop(name: 'Gare Routière', distanceFromStart: '7.8 km', estimatedTime: '22 min', type: 'Passage', isTerminal: false),
-        RouteStop(name: dest, distanceFromStart: '12.5 km', estimatedTime: '35 min', type: 'Terminus', isTerminal: true),
+        StopDetailItem(name: orig, sequence: 1, type: 'Origine / Terminus', estimatedTime: '00:00', distanceFromStart: '0 km', isTerminal: true),
+        StopDetailItem(name: 'Station Intermédiaire Colobane', sequence: 2, type: 'Correspondance', estimatedTime: '+12 min', distanceFromStart: '2.5 km'),
+        StopDetailItem(name: 'Station Lycée Limamou Laye', sequence: 3, type: 'Arrêt Standard', estimatedTime: '+22 min', distanceFromStart: '5.1 km'),
+        StopDetailItem(name: dest, sequence: 4, type: 'Terminus', estimatedTime: '+35 min', distanceFromStart: '8.4 km', isTerminal: true),
       ],
     );
   }
 }
 
-class RouteStop {
+class StopDetailItem {
   final String name;
-  final String distanceFromStart;
-  final String estimatedTime;
+  final int sequence;
   final String type;
+  final String estimatedTime;
+  final String distanceFromStart;
   final bool isTerminal;
 
-  RouteStop({required this.name, required this.distanceFromStart, required this.estimatedTime, required this.type, required this.isTerminal});
+  StopDetailItem({
+    required this.name,
+    required this.sequence,
+    required this.type,
+    required this.estimatedTime,
+    required this.distanceFromStart,
+    this.isTerminal = false,
+  });
 }
 
 // ============================================================
-// DONNEES MOCKÉES (24 arrêts officiels Dakar)
+// DONNEES DE TEST & SERVICES UTILITAIRES
 // ============================================================
-final List<Stop> allStops = [
+const List<Stop> allStops = [
   Stop(
-    name: 'Gare TER Dakar',
-    direction: 'Terminus Dakar (Arrivée)',
-    distanceMeters: 350,
-    departureMinutesFromMidnight: [360, 390, 420, 450, 480, 510, 540],
+    name: 'Gare de Dakar',
+    direction: 'Diamniadio',
+    distanceMeters: 250,
+    departureMinutesFromMidnight: [360, 390, 420, 450, 480, 510, 540, 600, 660, 720, 780, 840, 900, 960, 1020, 1080],
     icon: Icons.train,
     color: AppColors.ter,
-    location: const Offset(120, 150),
-    modeLabel: 'TER',
+    location: 'Plateau, Dakar',
+    modeLabel: 'TER Dakar',
     source: TransportSource.ter,
+    isTerminal: true,
   ),
   Stop(
-    name: 'Colobane BRT',
-    direction: 'Guédiawaye / Dalifort',
-    distanceMeters: 650,
-    departureMinutesFromMidnight: [365, 375, 385, 400],
-    icon: Icons.directions_bus,
+    name: 'Guédiawaye (Préfecture)',
+    direction: 'Terminus BHC / Petersen',
+    distanceMeters: 600,
+    departureMinutesFromMidnight: [370, 375, 385, 400, 415, 430, 450, 480, 520, 560, 600, 650, 700, 750, 800, 850, 900],
+    icon: Icons.directions_bus_filled,
     color: AppColors.brt,
-    location: const Offset(150, 200),
-    modeLabel: 'BRT',
+    location: 'Guédiawaye',
+    modeLabel: 'SunuBRT',
     source: TransportSource.brt,
+    isTerminal: true,
   ),
   Stop(
-    name: 'Sandaga AFTU',
-    direction: 'Parcelles Assainies U22',
+    name: 'Université Cheikh Anta Diop (UCAD)',
+    direction: 'Centre-Ville / Sandaga',
     distanceMeters: 900,
-    departureMinutesFromMidnight: [370, 390, 410],
-    icon: Icons.group,
-    color: AppColors.tata,
-    location: const Offset(100, 180),
-    modeLabel: 'AFTU',
-    source: TransportSource.tata,
-  ),
-  Stop(
-    name: 'Grand Yoff TATA',
-    direction: 'Terminus Liberté 5',
-    distanceMeters: 1200,
-    departureMinutesFromMidnight: [380, 410, 440],
-    icon: Icons.directions_bus,
-    color: AppColors.tata,
-    location: const Offset(80, 100),
-    modeLabel: 'TATA',
-    source: TransportSource.tata,
-  ),
-  Stop(
-    name: 'Hann Maristes DDD',
-    direction: 'Pikine Icotaf',
-    distanceMeters: 1500,
-    departureMinutesFromMidnight: [360, 400, 450],
+    departureMinutesFromMidnight: [380, 395, 410, 425, 440, 460, 490, 530, 570, 610, 660, 710, 760, 810, 860, 910],
     icon: Icons.directions_bus,
     color: AppColors.ddd,
-    location: const Offset(200, 160),
-    modeLabel: 'DDD',
+    location: 'Avenue Cheikh Anta Diop',
+    modeLabel: 'Dakar Dem Dikk',
     source: TransportSource.ddd,
   ),
-  // Génération complémentaire pour atteindre 24 arrêts
-  ...List.generate(19, (index) {
-    const modes = ['TER', 'BRT', 'DDD', 'TATA', 'AFTU'];
-    const colors = [AppColors.ter, AppColors.brt, AppColors.ddd, AppColors.tata, AppColors.tata];
-    const sources = [TransportSource.ter, TransportSource.brt, TransportSource.ddd, TransportSource.tata, TransportSource.aftu];
-    final mIndex = index % 5;
-    return Stop(
-      name: 'Station Dakar ${index + 6}',
-      direction: 'Direction Nord / Banlieue ${index + 1}',
-      distanceMeters: 1800.0 + (index * 120),
-      departureMinutesFromMidnight: [360 + (index * 15)],
-      icon: mIndex == 0 ? Icons.train : Icons.directions_bus,
-      color: colors[mIndex],
-      location: Offset(50.0 + (index * 15) % 250, 50.0 + (index * 20) % 250),
-      modeLabel: modes[mIndex],
-      source: sources[mIndex],
-    );
-  }),
+  Stop(
+    name: 'Parcelles Assainies (Unité 15)',
+    direction: 'Colobane / Liberté 6',
+    distanceMeters: 1200,
+    departureMinutesFromMidnight: [],
+    icon: Icons.airport_shuttle,
+    color: AppColors.tata,
+    location: 'Parcelles Assainies',
+    modeLabel: 'Bus Tata - Ligne 21',
+    source: TransportSource.tata,
+  ),
+  Stop(
+    name: 'Grand Yoff (Lycée John F. Kennedy)',
+    direction: 'Pikine / Thiaroye',
+    distanceMeters: 1500,
+    departureMinutesFromMidnight: [],
+    icon: Icons.directions_bus,
+    color: AppColors.aftu,
+    location: 'Grand Yoff',
+    modeLabel: 'AFTU Minibus',
+    source: TransportSource.aftu,
+  ),
 ];
 
-// ============================================================
-// SERVICE GESTION SENS OPPOSE
-// ============================================================
 class OppositeStopService {
   static Stop? findOppositeStop({required Stop currentStop, required List<Stop> allStops}) {
-    for (var s in allStops) {
-      if (s.name != currentStop.name && s.modeLabel == currentStop.modeLabel) {
-        return s;
+    for (var stop in allStops) {
+      if (stop.name != currentStop.name && stop.source == currentStop.source) {
+        return stop;
       }
     }
-    return null;
+    return allStops.isNotEmpty ? allStops.first : null;
   }
 }
 
-// ============================================================
-// UTILITAIRES TEMPS & AFFLUENCE
-// ============================================================
 class TimeHelper {
-  static String getWaitTimeFormatted(Stop stop) {
-    final now = DateTime.now();
-    final currentMinutes = now.hour * 60 + now.minute;
-    for (var dep in stop.departureMinutesFromMidnight) {
-      if (dep >= currentMinutes) {
-        final diff = dep - currentMinutes;
-        if (diff == 0) return 'Immédiat';
-        return '$diff min';
-      }
-    }
-    return '5 min';
-  }
-
   static String getCrowdLevel(Stop stop) {
-    final now = DateTime.now();
-    if ((now.hour >= 7 && now.hour <= 9) || (now.hour >= 17 && now.hour <= 20)) {
-      return 'Forte affluence ⚠️';
+    final hour = DateTime.now().hour;
+    if ((hour >= 7 && hour <= 9) || (hour >= 17 && hour <= 20)) {
+      return 'Forte affluence (Heure de pointe)';
+    } else if (hour >= 11 && hour <= 15) {
+      return 'Modérée';
     }
-    return 'Fluide 🟢';
+    return 'Fluide';
   }
 }
 
 // ============================================================
-// POINT D'ENTREE DE L'APPLICATION
+// APPLICATION PRINCIPALE & NAVIGATION
 // ============================================================
-void main() {
-  runApp(const DakarBusApp());
-}
-
 class DakarBusApp extends StatelessWidget {
   const DakarBusApp({super.key});
 
@@ -271,12 +270,16 @@ class DakarBusApp extends StatelessWidget {
       animation: globalState,
       builder: (context, _) {
         return MaterialApp(
-          title: 'Dakar Bus',
+          title: 'Dakar Bus Official',
           debugShowCheckedModeBanner: false,
+          themeMode: globalState.darkMode ? ThemeMode.dark : ThemeMode.light,
           theme: ThemeData(
             useMaterial3: true,
-            brightness: globalState.darkMode ? Brightness.dark : Brightness.light,
-            colorSchemeSeed: AppColors.primary,
+            colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary, brightness: Brightness.light),
+          ),
+          darkTheme: ThemeData(
+            useMaterial3: true,
+            colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary, brightness: Brightness.dark),
           ),
           home: const MainNavigationShell(),
         );
@@ -285,9 +288,6 @@ class DakarBusApp extends StatelessWidget {
   }
 }
 
-// ============================================================
-// SHELL DE NAVIGATION PRINCIPAL (5 ONGLETS)
-// ============================================================
 class MainNavigationShell extends StatefulWidget {
   const MainNavigationShell({super.key});
 
@@ -299,8 +299,8 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
   int _currentIndex = 0;
 
   final List<Widget> _pages = const [
-    ExplorerPage(),
-    AlertsPage(), // Remplacé ici par l'onglet Trafic
+    HomePage(),
+    AlertsPage(),
     CommunityAlertsPage(),
     SettingsPage(),
   ];
@@ -309,531 +309,176 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
   Widget build(BuildContext context) {
     final dark = globalState.darkMode;
     return Scaffold(
-      body: _pages[_currentIndex < _pages.length ? _currentIndex : 0],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex > 3 ? 0 : _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-        type: BottomNavigationBarType.fixed,
+      body: _pages[_currentIndex],
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _currentIndex,
+        onDestinationSelected: (idx) => setState(() => _currentIndex = idx),
         backgroundColor: AppColors.surface(dark),
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor: AppColors.textSecondary(dark),
-        selectedFontSize: 11,
-        unselectedFontSize: 11,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.explore_rounded), label: 'Explorer'),
-          BottomNavigationBarItem(icon: Icon(Icons.alt_route), label: 'Trajets'),
-          BottomNavigationBarItem(icon: Icon(Icons.campaign_rounded), label: 'Direct rue'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings_rounded), label: 'Réglages'),
+        indicatorColor: AppColors.primary.withOpacity(0.2),
+        destinations: const [
+          NavigationDestination(icon: Icon(Icons.directions_bus), label: 'Trajets'),
+          NavigationDestination(icon: Icon(Icons.notifications_active), label: 'Alertes'),
+          NavigationDestination(icon: Icon(Icons.forum), label: 'Direct Rue'),
+          NavigationDestination(icon: Icon(Icons.settings), label: 'Réglages'),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AppColors.secondary,
+        foregroundColor: Colors.black,
+        tooltip: 'Assistant IA',
+        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AIChatPage())),
+        child: const Icon(Icons.smart_toy),
       ),
     );
   }
 }
 
 // ============================================================
-// ONGLET EXPLORER (CARTE REDUITE + LISTE DES 24 ARRETS)
+// PAGE D'ACCUEIL & RECHERCHE INTERACTIVE
 // ============================================================
-class ExplorerPage extends StatefulWidget {
-  const ExplorerPage({super.key});
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
 
   @override
-  State<ExplorerPage> createState() => _ExplorerPageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _ExplorerPageState extends State<ExplorerPage> {
-  String _selectedFilter = 'Tous';
+class _HomePageState extends State<HomePage> {
   String _searchQuery = '';
+  TransportSource? _selectedFilter;
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: globalState,
-      builder: (context, _) {
-        final dark = globalState.darkMode;
+    final dark = globalState.darkMode;
+    final filteredStops = allStops.where((stop) {
+      final matchesQuery = stop.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          stop.location.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          stop.modeLabel.toLowerCase().contains(_searchQuery.toLowerCase());
+      final matchesFilter = _selectedFilter == null || stop.source == _selectedFilter;
+      return matchesQuery && matchesFilter;
+    }).toList();
 
-        // Filtrage des arrêts
-        final filteredStops = allStops.where((stop) {
-          final matchesSearch = stop.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-              stop.direction.toLowerCase().contains(_searchQuery.toLowerCase());
-          if (_selectedFilter == 'Tous') return matchesSearch;
-          if (_selectedFilter == 'Favoris') return matchesSearch && globalState.isFavorite(stop.name);
-          return matchesSearch && stop.modeLabel.toUpperCase() == _selectedFilter.toUpperCase();
-        }).toList();
-
-        return Scaffold(
-          backgroundColor: AppColors.background(dark),
-          body: SafeArea(
-            bottom: false,
-            child: ListView(
-              padding: EdgeInsets.zero,
+    return Scaffold(
+      backgroundColor: AppColors.background(dark),
+      appBar: AppBar(
+        title: Row(
+          children: const [
+            Icon(Icons.directions_transit, color: AppColors.secondary),
+            SizedBox(width: 10),
+            Text('Dakar Bus & Multimodal', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          ],
+        ),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+      ),
+      body: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            color: AppColors.primary,
+            child: Column(
               children: [
-                // ============================================================
-                // CARTE INTERACTIVE - HAUTEUR REDUITE ET PROPRE (env. 200px)
-                // ============================================================
-                SizedBox(
-                  height: 200,
-                  child: Stack(
-                    children: [
-                      // Fond carte simulé avec style web/map
-                      Container(
-                        color: dark ? const Color(0xFF1A202C) : const Color(0xFFE2E8F0),
-                        child: Stack(
-                          children: [
-                            // Lignes de transport fictives sur la carte
-                            Center(
-                              child: CustomPaint(
-                                size: const Size(double.infinity, 200),
-                                painter: MapLinesPainter(),
-                              ),
-                            ),
-                            // Marqueurs sur la carte
-                            ...allStops.take(6).map((stop) {
-                              return Positioned(
-                                left: stop.location.dx * 1.2,
-                                top: stop.location.dy * 0.6,
-                                child: GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(context, MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: stop)));
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.all(4),
-                                    decoration: BoxDecoration(
-                                      color: stop.color,
-                                      shape: BoxShape.circle,
-                                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 4)],
-                                    ),
-                                    child: Icon(stop.icon, color: Colors.white, size: 14),
-                                  ),
-                                ),
-                              );
-                            }),
-                          ],
-                        ),
-                      ),
-                      // Bouton Assistant IA Flottant sur la carte
-                      Positioned(
-                        bottom: 12,
-                        right: 12,
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => const AIChatPage()));
-                          },
-                          icon: const Icon(Icons.auto_awesome, size: 16, color: Colors.white),
-                          label: const Text('Assistant IA', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          ),
-                        ),
-                      ),
-                    ],
+                TextField(
+                  onChanged: (val) => setState(() => _searchQuery = val),
+                  style: const TextStyle(color: Colors.black),
+                  decoration: InputDecoration(
+                    hintText: 'Rechercher une station, un quartier (Ex: Colobane)...',
+                    filled: true,
+                    fillColor: Colors.white,
+                    prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                   ),
                 ),
-
-                // ============================================================
-                // CONTENU PRINCIPAL SOUS LA CARTE
-                // ============================================================
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                const SizedBox(height: 12),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
                     children: [
-                      // En-tête titre application
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.15), borderRadius: BorderRadius.circular(10)),
-                            child: const Icon(Icons.directions_bus_rounded, color: AppColors.primary, size: 22),
-                          ),
-                          const SizedBox(width: 12),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Dakar Bus', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-                              Text('TER / BRT / DDD / TATA / AFTU', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Barre de recherche
-                      Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.surface(dark),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.divider(dark)),
-                        ),
-                        child: TextField(
-                          onChanged: (val) => setState(() => _searchQuery = val),
-                          style: TextStyle(color: AppColors.textPrimary(dark), fontSize: 14),
-                          decoration: InputDecoration(
-                            hintText: 'Où voulez-vous aller ? (ex: Colobane...)',
-                            hintStyle: TextStyle(color: AppColors.textSecondary(dark), fontSize: 13),
-                            prefixIcon: const Icon(Icons.search, color: AppColors.primary),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Filtres horizontaux (Tous, Favoris, TER, BRT, DDD, TATA, AFTU)
-                      SizedBox(
-                        height: 38,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          children: ['Tous', 'Favoris', 'TER', 'BRT', 'DDD', 'TATA', 'AFTU'].map((filter) {
-                            final isSelected = _selectedFilter == filter;
-                            return Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: ChoiceChip(
-                                label: Text(filter, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: isSelected ? Colors.white : AppColors.textPrimary(dark))),
-                                selected: isSelected,
-                                selectedColor: AppColors.primary,
-                                backgroundColor: AppColors.surface(dark),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: isSelected ? AppColors.primary : AppColors.divider(dark))),
-                                onSelected: (_) => setState(() => _selectedFilter = filter),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Compteur d'arrêts
-                      Text(
-                        '${filteredStops.length} arrêts à proximité',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)),
-                      ),
-                      const SizedBox(height: 10),
-
-                      // Liste des arrêts
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: filteredStops.length,
-                        itemBuilder: (context, index) {
-                          final stop = filteredStops[index];
-                          final waitTime = TimeHelper.getWaitTimeFormatted(stop);
-                          final isFav = globalState.isFavorite(stop.name);
-
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            decoration: BoxDecoration(
-                              color: AppColors.surface(dark),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: AppColors.divider(dark)),
-                              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 6)],
-                            ),
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(16),
-                                onTap: () {
-                                  Navigator.push(context, MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: stop)));
-                                },
-                                onLongPress: () {
-                                  globalState.toggleFavorite(stop.name);
-                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                    content: Text(isFav ? '${stop.name} retiré des favoris' : '${stop.name} ajouté aux favoris ⭐'),
-                                    duration: const Duration(seconds: 1),
-                                  ));
-                                },
-                                child: Padding(
-                                  padding: const EdgeInsets.all(14),
-                                  child: Row(
-                                    children: [
-                                      CircleAvatar(
-                                        backgroundColor: stop.color,
-                                        radius: 20,
-                                        child: Icon(stop.icon, color: Colors.white, size: 18),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                Expanded(
-                                                  child: Text(
-                                                    stop.name,
-                                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary(dark)),
-                                                  ),
-                                                ),
-                                                if (isFav) const Icon(Icons.star, size: 14, color: Colors.amber),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 2),
-                                            Text(stop.direction, style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark)), maxLines: 1, overflow: TextOverflow.ellipsis),
-                                            const SizedBox(height: 4),
-                                            Row(
-                                              children: [
-                                                Text('${stop.distanceMeters.toInt()} m', style: TextStyle(fontSize: 10, color: AppColors.textSecondary(dark))),
-                                                const Text(' • ', style: TextStyle(color: Colors.grey)),
-                                                Text(stop.modeLabel, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: stop.color)),
-                                                const Text(' • ', style: TextStyle(color: Colors.grey)),
-                                                Text(TimeHelper.getCrowdLevel(stop), style: TextStyle(fontSize: 10, color: AppColors.textSecondary(dark))),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.end,
-                                        children: [
-                                          Text(
-                                            waitTime,
-                                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.primary),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                            decoration: BoxDecoration(
-                                              color: AppColors.primary.withOpacity(0.1),
-                                              borderRadius: BorderRadius.circular(6),
-                                            ),
-                                            child: const Text('En direct', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppColors.primary)),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                      _filterChip('Tous', null),
+                      _filterChip('TER', TransportSource.ter),
+                      _filterChip('SunuBRT', TransportSource.brt),
+                      _filterChip('DDD', TransportSource.ddd),
+                      _filterChip('Tata', TransportSource.tata),
+                      _filterChip('AFTU', TransportSource.aftu),
                     ],
                   ),
                 ),
               ],
             ),
           ),
-        );
-      },
-    );
-  }
-}
-
-// Peintre personnalisé pour dessiner des lignes de transport fictives sur la mini-carte
-class MapLinesPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paintTer = Paint()..color = AppColors.ter..strokeWidth = 3..style = PaintingStyle.stroke;
-    final paintBrt = Paint()..color = AppColors.brt..strokeWidth = 3..style = PaintingStyle.stroke;
-
-    final pathTer = Path()
-      ..moveTo(0, size.height * 0.2)
-      ..quadraticBezierTo(size.width * 0.5, size.height * 0.8, size.width, size.height * 0.4);
-
-    final pathBrt = Path()
-      ..moveTo(size.width * 0.2, 0)
-      ..quadraticBezierTo(size.width * 0.3, size.height * 0.5, size.width * 0.8, size.height);
-
-    canvas.drawPath(pathTer, paintTer);
-    canvas.drawPath(pathBrt, paintBrt);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-// ============================================================
-// DETAIL D'UN ARRET & SENS OPPOSE (TER, BRT, TATA, AFTU, DDD)
-// ============================================================
-class DualStopDetailPage extends StatelessWidget {
-  final Stop stop;
-  const DualStopDetailPage({super.key, required this.stop});
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: globalState,
-      builder: (context, _) {
-        final dark = globalState.darkMode;
-        final opposite = OppositeStopService.findOppositeStop(currentStop: stop, allStops: allStops);
-        final isFav = globalState.isFavorite(stop.name);
-        final detailedRoute = DetailedRoute.fromStop(stop);
-
-        return Scaffold(
-          backgroundColor: AppColors.background(dark),
-          appBar: AppBar(
-            backgroundColor: stop.color,
-            foregroundColor: Colors.white,
-            title: Text(stop.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            actions: [
-              IconButton(
-                icon: Icon(isFav ? Icons.star : Icons.star_border, color: Colors.white),
-                onPressed: () {
-                  globalState.toggleFavorite(stop.name);
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text(isFav ? '${stop.name} retiré des favoris' : '${stop.name} ajouté aux favoris ⭐'),
-                    duration: const Duration(seconds: 1),
-                  ));
-                },
-              ),
-            ],
-          ),
-          body: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.surface(dark),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.divider(dark)),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8)],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        CircleAvatar(backgroundColor: stop.color, radius: 22, child: Icon(stop.icon, color: Colors.white, size: 20)),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
+          Expanded(
+            child: filteredStops.isEmpty
+                ? Center(
+                    child: Text('Aucune station trouvée', style: TextStyle(color: AppColors.textSecondary(dark))),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: filteredStops.length,
+                    itemBuilder: (context, index) {
+                      final stop = filteredStops[index];
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface(dark),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.divider(dark)),
+                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8)],
+                        ),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          leading: CircleAvatar(
+                            backgroundColor: stop.color,
+                            child: Icon(stop.icon, color: Colors.white, size: 20),
+                          ),
+                          title: Text(stop.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textPrimary(dark))),
+                          subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(stop.modeLabel, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: stop.color)),
+                              const SizedBox(height: 4),
+                              Text('Direction : ${stop.direction}', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark))),
                               const SizedBox(height: 2),
-                              Text(stop.direction, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary(dark))),
+                              Text('Prochain : ${stop.nextDepartureLabel()}', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: stop.color)),
                             ],
                           ),
-                        ),
-                      ],
-                    ),
-                    const Divider(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Source officielle :', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark))),
-                        Text(stop.source.label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Affluence estimée :', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark))),
-                        Text(TimeHelper.getCrowdLevel(stop), style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: detailedRoute)));
-                },
-                icon: const Icon(Icons.alt_route, size: 18),
-                label: const Text('Voir le parcours complet et arrêts', style: TextStyle(fontWeight: FontWeight.bold)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: stop.color,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(double.infinity, 48),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text('Sens opposé / Retour suggéré', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-              const SizedBox(height: 10),
-              if (opposite != null)
-                GestureDetector(
-                  onTap: () {
-                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: opposite)));
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface(dark),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.divider(dark)),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.swap_horiz, color: stop.color, size: 24),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(opposite.name, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-                              Text(opposite.direction, style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark))),
-                            ],
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: stop)),
                           ),
                         ),
-                        const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
-                      ],
-                    ),
+                      );
+                    },
                   ),
-                )
-              else
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface(dark),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.divider(dark)),
-                  ),
-                  child: Text('Aucun arrêt retour direct détecté à proximité.', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark))),
-                ),
-            ],
           ),
-        );
-      },
+        ],
+      ),
+    );
+  }
+
+  Widget _filterChip(String label, TransportSource? source) {
+    final isSelected = _selectedFilter == source;
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: ChoiceChip(
+        label: Text(label),
+        selected: isSelected,
+        onSelected: (selected) => setState(() => _selectedFilter = selected ? source : null),
+        selectedColor: AppColors.secondary,
+        labelStyle: TextStyle(color: isSelected ? Colors.black : Colors.white, fontWeight: FontWeight.bold),
+        backgroundColor: Colors.white.withOpacity(0.2),
+      ),
     );
   }
 }
 
 // ============================================================
-// PAGE DETAIL DU PARCOURS COMPLET & INVERSION DE SENS
+// PAGE DETAIL D'UNE ROUTE OFFICIELLE
 // ============================================================
-class DetailedRoutePage extends StatefulWidget {
+class DetailedRoutePage extends StatelessWidget {
   final DetailedRoute route;
   const DetailedRoutePage({super.key, required this.route});
 
   @override
-  State<DetailedRoutePage> createState() => _DetailedRoutePageState();
-}
-
-class _DetailedRoutePageState extends State<DetailedRoutePage> {
-  late DetailedRoute _currentRoute;
-  bool _isReturn = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _currentRoute = widget.route;
-  }
-
-  void _toggleDirection() {
-    setState(() {
-      _isReturn = !_isReturn;
-      final dummyStop = Stop(
-        name: _currentRoute.origin,
-        direction: _currentRoute.destination,
-        distanceMeters: 0,
-        departureMinutesFromMidnight: [],
-        icon: Icons.directions_bus,
-        color: _currentRoute.color,
-        location: _currentRoute.stops.first.location,
-        modeLabel: _currentRoute.operator.contains('TER') ? 'TER' : (_currentRoute.operator.contains('BRT') ? 'BRT' : 'DDD'),
-        source: TransportSource.ter,
-      );
-      _currentRoute = DetailedRoute.fromStop(dummyStop, isReturnRoute: _isReturn);
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: globalState,
@@ -842,14 +487,32 @@ class _DetailedRoutePageState extends State<DetailedRoutePage> {
         return Scaffold(
           backgroundColor: AppColors.background(dark),
           appBar: AppBar(
-            backgroundColor: _currentRoute.color,
+            title: Text('${route.operator} (L${route.lineNumber})'),
+            backgroundColor: route.color,
             foregroundColor: Colors.white,
-            title: Text('${_currentRoute.operator} (L${_currentRoute.lineNumber})', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             actions: [
               IconButton(
-                icon: const Icon(Icons.swap_vert),
+                icon: const Icon(Icons.swap_horiz),
                 tooltip: 'Inverser le sens',
-                onPressed: _toggleDirection,
+                onPressed: () {
+                  final inverted = DetailedRoute.fromStop(
+                    Stop(
+                      name: route.origin,
+                      direction: route.destination,
+                      distanceMeters: 0,
+                      departureMinutesFromMidnight: [],
+                      icon: Icons.directions_bus,
+                      color: route.color,
+                      location: route.stops.first.name,
+                      modeLabel: route.operator,
+                    ),
+                    isReturnRoute: true,
+                  );
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => DetailedRoutePage(route: inverted)),
+                  );
+                },
               ),
             ],
           ),
@@ -862,54 +525,43 @@ class _DetailedRoutePageState extends State<DetailedRoutePage> {
                   color: AppColors.surface(dark),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: AppColors.divider(dark)),
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6)],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.trip_origin, color: _currentRoute.color, size: 18),
-                        const SizedBox(width: 8),
-                        Expanded(child: Text('Départ : ${_currentRoute.origin}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textPrimary(dark)))),
+                        Icon(Icons.route, color: route.color, size: 24),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            '${route.origin} ➔ ${route.destination}',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)),
+                          ),
+                        ),
                       ],
                     ),
-                    const Padding(
-                      padding: EdgeInsets.only(left: 8),
-                      child: SizedBox(height: 16, child: VerticalDivider(thickness: 2, color: Colors.grey)),
-                    ),
-                    Row(
-                      children: [
-                        Icon(Icons.location_on, color: _currentRoute.color, size: 18),
-                        const SizedBox(width: 8),
-                        Expanded(child: Text('Arrivée : ${_currentRoute.destination}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textPrimary(dark)))),
-                      ],
-                    ),
-                    const Divider(height: 24),
+                    const SizedBox(height: 12),
+                    Divider(color: AppColors.divider(dark)),
+                    const SizedBox(height: 8),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Distance totale :', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark))),
-                        Text(_currentRoute.totalDistance, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Sens du parcours :', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark))),
-                        Text(_isReturn ? 'Retour / Inversé' : 'Aller / Direct', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _currentRoute.color)),
+                        Text('Distance totale : ${route.totalDistance}', style: TextStyle(fontSize: 13, color: AppColors.textSecondary(dark))),
+                        Text('${route.stops.length} arrêts desservis', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: route.color)),
                       ],
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
-              Text('Liste des arrêts desservis (${_currentRoute.stops.length})', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
+              const SizedBox(height: 16),
+              Text('Liste des stations et arrêts', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
               const SizedBox(height: 12),
-              ..._currentRoute.stops.asMap().entries.map((entry) {
-                final index = entry.key;
+              ...route.stops.asMap().entries.map((entry) {
+                final idx = entry.key;
                 final stop = entry.value;
-                final isLast = index == _currentRoute.stops.length - 1;
+                final isLast = idx == route.stops.length - 1;
 
                 return IntrinsicHeight(
                   child: Row(
@@ -918,15 +570,15 @@ class _DetailedRoutePageState extends State<DetailedRoutePage> {
                       Column(
                         children: [
                           Container(
-                            width: 14,
-                            height: 14,
+                            width: 16,
+                            height: 16,
                             decoration: BoxDecoration(
-                              color: stop.isTerminal ? _currentRoute.color : AppColors.surface(dark),
+                              color: stop.isTerminal ? route.color : AppColors.surface(dark),
                               shape: BoxShape.circle,
-                              border: Border.all(color: _currentRoute.color, width: 3),
+                              border: Border.all(color: route.color, width: 3),
                             ),
                           ),
-                          if (!isLast) Expanded(child: Container(width: 2, color: _currentRoute.color.withOpacity(0.4))),
+                          if (!isLast) Expanded(child: Container(width: 3, color: route.color.withOpacity(0.5))),
                         ],
                       ),
                       const SizedBox(width: 12),
@@ -946,19 +598,18 @@ class _DetailedRoutePageState extends State<DetailedRoutePage> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(stop.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary(dark))),
+                                      Text(stop.name, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
                                       const SizedBox(height: 2),
-                                      Text('Distance : ${stop.distanceFromStart} • Estimé : ${stop.estimatedTime}', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
+                                      Text('Séquence ${stop.sequence} • ${stop.type}', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
                                     ],
                                   ),
                                 ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: _currentRoute.color.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(stop.type, style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: _currentRoute.color)),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(stop.estimatedTime, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: route.color)),
+                                    Text(stop.distanceFromStart, style: TextStyle(fontSize: 10, color: AppColors.textSecondary(dark))),
+                                  ],
                                 ),
                               ],
                             ),
@@ -978,93 +629,84 @@ class _DetailedRoutePageState extends State<DetailedRoutePage> {
 }
 
 // ============================================================
-// ONGLET ALERTES TRAFIC EN TEMPS REEL
+// PAGES SECONDAIRES (DETAIL ARRET, ALERTES, REGLAGES, IA)
 // ============================================================
-class AlertsPage extends StatelessWidget {
-  const AlertsPage({super.key});
+class DualStopDetailPage extends StatelessWidget {
+  final Stop stop;
+  const DualStopDetailPage({super.key, required this.stop});
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: globalState,
-      builder: (context, _) {
-        final dark = globalState.darkMode;
-        return Scaffold(
-          backgroundColor: AppColors.background(dark),
-          body: SafeArea(
-            bottom: false,
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                Text('Alertes Trafic', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-                const SizedBox(height: 4),
-                Text('Informations en direct des réseaux de transport à Dakar.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary(dark))),
-                const SizedBox(height: 20),
-                _alertCard(
-                  title: 'TER - Trafic Fluide',
-                  description: 'Les navettes entre Dakar et Diamniadio circulent normalement selon les horaires établis.',
-                  time: 'Il y a 10 min',
-                  color: AppColors.ter,
-                  icon: Icons.train,
-                  dark: dark,
-                ),
-                _alertCard(
-                  title: 'SunuBRT - Travaux mineurs',
-                  description: 'Léger ralentissement signalé aux abords de Colobane. Circulation régulée.',
-                  time: 'Il y a 35 min',
-                  color: AppColors.brt,
-                  icon: Icons.directions_bus,
-                  dark: dark,
-                ),
-                _alertCard(
-                  title: 'AFTU / TATA - Heure de pointe',
-                  description: 'Forte affluence sur les axes menant vers Petersen et Sandaga. Prévoyez un léger décalage.',
-                  time: 'Il y a 1 h',
-                  color: AppColors.aftu,
-                  icon: Icons.group,
-                  dark: dark,
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
+    final opposite = OppositeStopService.findOppositeStop(currentStop: stop, allStops: allStops);
+    final dark = globalState.darkMode;
 
-  Widget _alertCard({required String title, required String description, required String time, required Color color, required IconData icon, required bool dark}) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface(dark),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider(dark)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6)],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Scaffold(
+      backgroundColor: AppColors.background(dark),
+      appBar: AppBar(title: Text(stop.name), backgroundColor: stop.color, foregroundColor: Colors.white),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: color.withOpacity(0.12), borderRadius: BorderRadius.circular(12)),
-            child: Icon(icon, color: color, size: 22),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.surface(dark),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.divider(dark)),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    Expanded(child: Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textPrimary(dark)))),
-                    Text(time, style: TextStyle(fontSize: 10, color: AppColors.textSecondary(dark))),
+                    CircleAvatar(backgroundColor: stop.color, radius: 20, child: Icon(stop.icon, color: Colors.white, size: 18)),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(stop.name, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
+                          Text(stop.direction, style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark))),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 6),
-                Text(description, style: TextStyle(fontSize: 13, color: AppColors.textSecondary(dark), height: 1.3)),
+                const SizedBox(height: 16),
+                Divider(color: AppColors.divider(dark)),
+                const SizedBox(height: 8),
+                Text('Prochain passage : ${stop.nextDepartureLabel()}', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: stop.color)),
+                const SizedBox(height: 4),
+                Text('Affluence estimée : ${TimeHelper.getCrowdLevel(stop)}', style: TextStyle(fontSize: 13, color: AppColors.textSecondary(dark))),
+                const SizedBox(height: 4),
+                Text('Source officielle : ${stop.source.label}', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark))),
               ],
             ),
+          ),
+          if (opposite != null) ...[
+            const SizedBox(height: 20),
+            Text('Arrêt opposé (Sens retour)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
+            const SizedBox(height: 10),
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.surface(dark),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.divider(dark)),
+              ),
+              child: ListTile(
+                leading: CircleAvatar(backgroundColor: opposite.color, child: Icon(opposite.icon, color: Colors.white, size: 18)),
+                title: Text(opposite.name, style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
+                subtitle: Text(opposite.direction, style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark))),
+                trailing: Text(opposite.nextDepartureLabel(), style: TextStyle(fontWeight: FontWeight.bold, color: opposite.color)),
+                onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: opposite))),
+              ),
+            ),
+          ],
+          const SizedBox(height: 20),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(backgroundColor: stop.color, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 48)),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(stop)))),
+            icon: const Icon(Icons.map),
+            label: const Text('Voir l\'itinéraire complet et les correspondances'),
           ),
         ],
       ),
@@ -1072,197 +714,132 @@ class AlertsPage extends StatelessWidget {
   }
 }
 
-// ============================================================
-// ONGLET DIRECT RUE / COMMUNAUTE
-// ============================================================
-class CommunityAlertsPage extends StatelessWidget {
-  const CommunityAlertsPage({super.key});
-
+class AlertsPage extends StatelessWidget {
+  const AlertsPage({super.key});
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: globalState,
-      builder: (context, _) {
-        final dark = globalState.darkMode;
-        return Scaffold(
-          backgroundColor: AppColors.background(dark),
-          body: SafeArea(
-            bottom: false,
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                Text('Direct Rue & Communauté', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-                const SizedBox(height: 4),
-                Text('Partagez ou consultez les signalements en temps réel des usagers.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary(dark))),
-                const SizedBox(height: 20),
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface(dark),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: AppColors.divider(dark)),
-                  ),
-                  child: Column(
-                    children: [
-                      const Icon(Icons.campaign_rounded, size: 48, color: AppColors.primary),
-                      const SizedBox(height: 12),
-                      Text('Signaler un incident', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-                      const SizedBox(height: 6),
-                      Text('Embouteillage, bus plein, panne ou contrôle sur votre ligne ?', textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark))),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Signalement envoyé à la communauté !')));
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                        child: const Text('Faire un signalement rapide'),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Text('Derniers signalements usagers', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-                const SizedBox(height: 12),
-                _communityPost('Mamadou S.', 'Route de l’Ouakam', 'Ralentissement important niveau rond-point suite à un accrochage.', 'Il y a 12 min', dark),
-                _communityPost('Aminata D.', 'Gare Colobane', 'BRT direction Guédiawaye à l’heure, fluide.', 'Il y a 25 min', dark),
-              ],
-            ),
-          ),
-        );
-      },
+    final dark = globalState.darkMode;
+    return Scaffold(
+      backgroundColor: AppColors.background(dark),
+      appBar: AppBar(title: const Text('Alertes Trafic Officielles')),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          _alertCard('TER', 'Trafic normal sur l\'ensemble de la ligne Dakar - Diamniadio.', 'Il y a 10 min', AppColors.ter, dark),
+          _alertCard('SunuBRT', 'Fluidité parfaite entre Guédiawaye et Petersen.', 'Il y a 30 min', AppColors.brt, dark),
+          _alertCard('Dakar Dem Dikk', 'Renforcement des dessertes universitaires (UCAD).', 'Il y a 1 heure', AppColors.ddd, dark),
+        ],
+      ),
     );
   }
 
-  Widget _communityPost(String author, String location, String text, String time, bool dark) {
+  Widget _alertCard(String title, String desc, String time, Color color, bool dark) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.surface(dark),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.divider(dark)),
-      ),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider(dark))),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              CircleAvatar(backgroundColor: AppColors.primary.withOpacity(0.2), radius: 14, child: Text(author[0], style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primary))),
-              const SizedBox(width: 8),
-              Text(author, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textPrimary(dark))),
-              const Spacer(),
-              Text(time, style: TextStyle(fontSize: 10, color: AppColors.textSecondary(dark))),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text('📍 $location', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primary)),
-          const SizedBox(height: 4),
-          Text(text, style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark), height: 1.3)),
+          Row(children: [
+            Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(6)), child: Text(title, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12))),
+            const Spacer(),
+            Text(time, style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
+          ]),
+          const SizedBox(height: 10),
+          Text(desc, style: TextStyle(fontSize: 14, color: AppColors.textPrimary(dark))),
         ],
       ),
     );
   }
 }
 
-// ============================================================
-// ONGLET REGLAGES & PREFERENCES
-// ============================================================
-class SettingsPage extends StatelessWidget {
-  const SettingsPage({super.key});
-
+class CommunityAlertsPage extends StatelessWidget {
+  const CommunityAlertsPage({super.key});
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: globalState,
-      builder: (context, _) {
-        final dark = globalState.darkMode;
-        return Scaffold(
-          backgroundColor: AppColors.background(dark),
-          body: SafeArea(
-            bottom: false,
-            child: ListView(
-              padding: const EdgeInsets.all(16),
+    final dark = globalState.darkMode;
+    return Scaffold(
+      backgroundColor: AppColors.background(dark),
+      appBar: AppBar(title: const Text('Direct Rue (Communauté)')),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider(dark))),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Réglages', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-                const SizedBox(height: 4),
-                Text('Personnalisez votre application Dakar Bus.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary(dark))),
-                const SizedBox(height: 20),
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.surface(dark),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.divider(dark)),
-                  ),
-                  child: SwitchListTile(
-                    title: Text('Mode Sombre (Dark Mode)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary(dark))),
-                    subtitle: Text('Optimise l’affichage de nuit', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
-                    secondary: const Icon(Icons.dark_mode_rounded, color: AppColors.primary),
-                    value: dark,
-                    activeColor: AppColors.primary,
-                    onChanged: (val) => globalState.toggleDarkMode(val),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.surface(dark),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.divider(dark)),
-                  ),
-                  child: Column(
-                    children: [
-                      ListTile(
-                        leading: const Icon(Icons.info_outline, color: AppColors.primary),
-                        title: Text('À propos de Dakar Bus', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary(dark))),
-                        subtitle: Text('TER, BRT, DDD, TATA, AFTU (Version officielle 2026)', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
-                      ),
-                      const Divider(height: 1),
-                      ListTile(
-                        leading: const Icon(Icons.privacy_tip_outlined, color: AppColors.primary),
-                        title: Text('Confidentialité & Données GPS', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary(dark))),
-                        subtitle: Text('Vos données de géolocalisation restent strictement locales', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
-                      ),
-                    ],
-                  ),
-                ),
+                Row(children: const [
+                  Icon(Icons.warning_amber_rounded, color: AppColors.warning, size: 20),
+                  SizedBox(width: 8),
+                  Text('Ralentissement à Colobane', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                ]),
+                const SizedBox(height: 6),
+                const Text('Embouteillage important au niveau du rond-point suite à un camion en panne. Prévoyez 10 min de plus.'),
+                const SizedBox(height: 8),
+                Text('Signalé par un utilisateur • Il y a 5 min', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
               ],
             ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 }
 
-// ============================================================
-// ASSISTANT IA (INTEGRE)
-// ============================================================
+class SettingsPage extends StatelessWidget {
+  const SettingsPage({super.key});
+  @override
+  Widget build(BuildContext context) {
+    final dark = globalState.darkMode;
+    return Scaffold(
+      backgroundColor: AppColors.background(dark),
+      appBar: AppBar(title: const Text('Réglages & Préférences')),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          SwitchListTile(
+            title: Text('Mode Sombre (Dark Mode)', style: TextStyle(color: AppColors.textPrimary(dark), fontWeight: FontWeight.bold)),
+            subtitle: Text('Basculer entre le thème clair et sombre', style: TextStyle(color: AppColors.textSecondary(dark), fontSize: 12)),
+            value: dark,
+            activeColor: AppColors.primary,
+            onChanged: (val) => globalState.toggleDarkMode(val),
+          ),
+          Divider(color: AppColors.divider(dark)),
+          ListTile(
+            leading: const Icon(Icons.info_outline, color: AppColors.primary),
+            title: Text('À propos de Dakar Bus', style: TextStyle(color: AppColors.textPrimary(dark), fontWeight: FontWeight.bold)),
+            subtitle: Text('Version 2.5.0 - Multimodal officiel Dakar', style: TextStyle(color: AppColors.textSecondary(dark), fontSize: 12)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class AIChatPage extends StatefulWidget {
   const AIChatPage({super.key});
-
   @override
   State<AIChatPage> createState() => _AIChatPageState();
 }
 
 class _AIChatPageState extends State<AIChatPage> {
-  final TextEditingController _msgCtrl = TextEditingController();
+  final TextEditingController _ctrl = TextEditingController();
   final List<Map<String, String>> _messages = [
-    {'sender': 'ai', 'text': 'Nànga def ! Je suis votre assistant intelligent pour les transports à Dakar. Comment puis-je vous aider à planifier votre trajet aujourd’hui ?'}
+    {'role': 'ai', 'content': 'Bonjour ! Je suis votre assistant IA spécialisé dans les transports à Dakar (TER, BRT, DDD, TATA, AFTU). Comment puis-je vous aider ?'}
   ];
 
   void _send() {
-    final text = _msgCtrl.text.trim();
+    final text = _ctrl.text.trim();
     if (text.isEmpty) return;
     setState(() {
-      _messages.add({'sender': 'user', 'text': text});
-      _msgCtrl.clear();
+      _messages.add({'role': 'user', 'content': text});
+      _ctrl.clear();
       _messages.add({
-        'sender': 'ai',
-        'text': 'J’analyse votre demande concernant "$text". Les lignes TER, BRT et Tata fonctionnent normalement sur cet axe en ce moment.'
+        'role': 'ai',
+        'content': 'Je traite votre demande concernant "$text". Pour aller plus vite, utilisez l\'onglet "Trajets" ou consultez directement les stations sur la carte interactive !'
       });
     });
   }
@@ -1272,37 +849,30 @@ class _AIChatPageState extends State<AIChatPage> {
     final dark = globalState.darkMode;
     return Scaffold(
       backgroundColor: AppColors.background(dark),
-      appBar: AppBar(
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        title: const Text('Assistant IA Transport', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-      ),
+      appBar: AppBar(title: const Text('Assistant IA Dakar Bus')),
       body: Column(
         children: [
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final m = _messages[index];
-                final isUser = m['sender'] == 'user';
+              itemBuilder: (context, i) {
+                final m = _messages[i];
+                final isUser = m['role'] == 'user';
                 return Align(
                   alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
                   child: Container(
-                    margin: const EdgeInsets.only(bottom: 10),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    constraints: const BoxConstraints(maxWidth: 280),
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(12),
+                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
                     decoration: BoxDecoration(
                       color: isUser ? AppColors.primary : AppColors.surface(dark),
-                      borderRadius: BorderRadius.circular(14),
-                      border: isUser ? null : Border.all(color: AppColors.divider(dark)),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: isUser ? AppColors.primary : AppColors.divider(dark)),
                     ),
                     child: Text(
-                      m['text']!,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: isUser ? Colors.white : AppColors.textPrimary(dark),
-                      ),
+                      m['content']!,
+                      style: TextStyle(color: isUser ? Colors.white : AppColors.textPrimary(dark), fontSize: 14),
                     ),
                   ),
                 );
@@ -1310,26 +880,18 @@ class _AIChatPageState extends State<AIChatPage> {
             ),
           ),
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             color: AppColors.surface(dark),
             child: Row(
               children: [
                 Expanded(
                   child: TextField(
-                    controller: _msgCtrl,
+                    controller: _ctrl,
                     style: TextStyle(color: AppColors.textPrimary(dark)),
-                    decoration: InputDecoration(
-                      hintText: 'Posez votre question sur les bus...',
-                      hintStyle: TextStyle(color: AppColors.textSecondary(dark)),
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                    ),
+                    decoration: const InputDecoration(hintText: 'Posez votre question sur les transports...', border: InputBorder.none),
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.send, color: AppColors.primary),
-                  onPressed: _send,
-                ),
+                IconButton(icon: const Icon(Icons.send, color: AppColors.primary), onPressed: _send),
               ],
             ),
           ),
