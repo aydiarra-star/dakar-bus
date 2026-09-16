@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
+import 'dart:ui';
 import 'package:http/http.dart' as http;
 import 'models/transport_network.dart';
 import 'services/data_service.dart';
@@ -16,16 +17,29 @@ final DataService appDataService = DataService();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    debugPrint('🔴 FlutterError: ${details.exception}');
+    debugPrint('${details.stack}');
+  };
+  PlatformDispatcher.instance.onError = (error, stack) {
+    debugPrint('🔴 Platform error: $error');
+    debugPrint('$stack');
+    return true;
+  };
   try {
     await appDataService.loadNetworkData();
-    // Intégration après chargement : les listes allStops / demoRoutes existent déjà
-    // On les enrichit dynamiquement juste avant le runApp
     _integrateNetworkData();
-  } catch (e) {
-    // Fallback silencieux : on garde les données en dur
+  } catch (e, st) {
     debugPrint('⚠️ DataService init failed: $e');
+    debugPrint('$st');
   }
-  runApp(const DakarBusApp());
+  runZonedGuarded(() {
+    runApp(const DakarBusApp());
+  }, (error, stack) {
+    debugPrint('🔴 Uncaught zone error: $error');
+    debugPrint('$stack');
+  });
 }
 
 // ============================================================
@@ -1017,12 +1031,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
   void initState() {
     super.initState();
     _loadDynamicRoutes();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final target = (widget.userPosition != null && DakarBounds.isValid(widget.userPosition!))
-          ? widget.userPosition!
-          : _dakarCenter;
-      _mapController.move(target, _zoomOverview);
-    });
+    // ✅ Fix: ne pas appeler _mapController.move() avant que la map soit prête
+    // initialCenter gère déjà le centrage initial. Le move est reporté à onMapReady si besoin.
   }
 
   @override
@@ -1031,7 +1041,14 @@ class _ExplorerPageState extends State<ExplorerPage> {
     if (widget.userPosition != null &&
         widget.userPosition != oldWidget.userPosition &&
         DakarBounds.isValid(widget.userPosition!)) {
-      _mapController.move(widget.userPosition!, _zoomOverview);
+      // ✅ Fix: guard move avec try + postFrame pour éviter LateInitializationError
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        try {
+          if (mounted) _mapController.move(widget.userPosition!, _zoomOverview);
+        } catch (e) {
+          debugPrint('Map move skipped (not ready): $e');
+        }
+      });
     }
   }
 
@@ -1091,7 +1108,13 @@ class _ExplorerPageState extends State<ExplorerPage> {
     return allStops.where((s) => (s.name.toLowerCase().contains(q) || s.direction.toLowerCase().contains(q)) && DakarBounds.isValid(s.location)).take(8).toList();
   }
 
-  void _centerOnStop(Stop s) => _mapController.move(s.location, _zoomOnStop);
+  void _centerOnStop(Stop s) {
+    try {
+      _mapController.move(s.location, _zoomOnStop);
+    } catch (e) {
+      debugPrint('centerOnStop skipped (map not ready): $e');
+    }
+  }
   void _openAI() => Navigator.push(context, MaterialPageRoute(builder: (_) => const AIChatPage()));
 
   @override
@@ -1113,6 +1136,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 250),
                   height: _mapHeight.toDouble(),
+                  decoration: const BoxDecoration(),
                   clipBehavior: Clip.antiAlias,
                   child: Stack(
                     children: [
@@ -1159,7 +1183,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                           elevation: 4, borderRadius: BorderRadius.circular(24), color: AppColors.surface(dark),
                           child: InkWell(
                             onTap: widget.gpsState == GpsState.granted
-                                ? () { if (widget.userPosition != null) _mapController.move(widget.userPosition!, _zoomOnUser); }
+                                ? () { if (widget.userPosition != null) { try { _mapController.move(widget.userPosition!, _zoomOnUser); } catch (e) { debugPrint('GPS move skipped: $e'); } } }
                                 : () => widget.onRequestLocation(),
                             borderRadius: BorderRadius.circular(24),
                             child: Padding(
