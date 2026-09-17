@@ -248,6 +248,10 @@ tailwind.config = {
           <div class="flex gap-2"><span class="px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-[12px] font-medium">● 127 véhicules actifs</span><span class="px-3 py-1.5 rounded-full bg-slate-100 dark:bg-zinc-800 text-[12px]">PWA cache 30s</span><button id="toggle-vehicles" class="px-4 h-8 rounded-full bg-slate-900 text-white text-[12px]">Afficher sur carte</button></div>
         </div>
         <div id="transport-cards" class="md:col-span-3 grid md:grid-cols-3 gap-4"></div>
+        <div id="aftu-list" class="md:col-span-3 rounded-[24px] bg-white dark:bg-zinc-900 border border-slate-200/60 dark:border-zinc-800 p-6 hidden">
+          <h3 class="font-bold text-[18px] mb-4 flex items-center gap-2">🚐 64 Lignes AFTU Dakar <span class="text-[11px] px-2 py-1 rounded-full bg-pink-50 text-pink-700">GTFS Static</span></h3>
+          <div id="aftu-lines-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 text-[12px] max-h-[320px] overflow-y-auto pr-2"></div>
+        </div>
         <div class="md:col-span-3 rounded-[20px] bg-[#0f172a] text-white p-6">
           <h3 class="font-semibold mb-4">Performances aujourd'hui + PWA stats</h3>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
@@ -1113,22 +1117,44 @@ function renderArrets() {
 
 function renderTransports() {
   const cards = [
-    { name:'BRT SunuBRT', id:'BRT 01', count:23, punctual:'94%', speed:'22 km/h', status:'Opérationnel', color:'bg-violet-600', desc:'Guédiawaye → Petersen • Voie dédiée • GTFS-RT', icon:'🚌' },
-    { name:'Dakar Dem Dikk', id:'DDD', count:67, punctual:'88%', speed:'18 km/h', status:'Dense', color:'bg-blue-600', desc:'Réseau principal • 12 lignes • GTFS-RT', icon:'🚍' },
-    { name:'Car Rapide & Ndiaga', id:'TATA', count:34, punctual:'72%', speed:'26 km/h', status:'Fluide', color:'bg-amber-500', desc:'Artisanal • GPS crowd + cache offline', icon:'🚐' },
-    { name:'TER Dakar', id:'TER', count:3, punctual:'99%', speed:'68 km/h', status:'À l\'heure', color:'bg-emerald-600', desc:'Dakar → Diamniadio → AIBD • GTFS-RT', icon:'🚆' },
+    { name:'BRT SunuBRT', id:'BRT 01', count:23, punctual:'94%', speed:'22 km/h', status:'23 stations réelles', color:'bg-violet-600', desc:'Guédiawaye → Petersen • 23 stations réelles • Voie dédiée • GTFS-RT', icon:'🚌' },
+    { name:'Dakar Dem Dikk', id:'DDD', count:12, punctual:'88%', speed:'18 km/h', status:'12 lignes', color:'bg-blue-600', desc:'Réseau principal DDD • 12 lignes actives • GTFS-RT', icon:'🚍' },
+    { name:'AFTU - 64 lignes', id:'AFTU', count:64, punctual:'76%', speed:'19 km/h', status:'64 lignes', color:'bg-pink-600', desc:'AFTU - 64 lignes urbaines • Dakar → Banlieue • GTFS Static 76 routes', icon:'🚐' },
+    { name:'Car Rapide & Ndiaga', id:'TATA', count:34, punctual:'72%', speed:'26 km/h', status:'Fluide', color:'bg-amber-500', desc:'Transport artisanal • 2 lignes TATA • GPS crowd', icon:'🚐' },
+    { name:'TER Dakar', id:'TER', count:13, punctual:'99%', speed:'68 km/h', status:'13 gares', color:'bg-emerald-600', desc:'Dakar → Diamniadio → AIBD • 13 gares • GTFS-RT', icon:'🚆' },
   ];
   document.getElementById('transport-cards').innerHTML = cards.map(c=>`
     <div class="rounded-[20px] bg-white dark:bg-zinc-900 border border-slate-200/60 dark:border-zinc-800 p-5 hover:shadow-lg transition">
       <div class="flex items-start justify-between"><div class="flex gap-3"><div class="w-12 h-12 rounded-xl ${c.color} text-white flex items-center justify-center text-[20px]">${c.icon}</div><div><div class="font-bold text-[15px]">${c.name}</div><div class="text-[11px] opacity-60">${c.desc}</div></div></div><span class="text-[11px] px-2 py-1 rounded-full bg-emerald-50 text-emerald-700">${c.status}</span></div>
       <div class="grid grid-cols-3 gap-3 mt-5 text-center">
-        <div class="rounded-xl bg-slate-50 dark:bg-zinc-800 p-3"><div class="text-[18px] font-bold">${c.count}</div><div class="text-[10px] uppercase tracking-widest opacity-60">Véhicules</div></div>
+        <div class="rounded-xl bg-slate-50 dark:bg-zinc-800 p-3"><div class="text-[18px] font-bold">${c.count}</div><div class="text-[10px] uppercase tracking-widest opacity-60">${c.id==='AFTU'?'Lignes':c.id==='BRT 01'?'Stations':'Véhicules'}</div></div>
         <div class="rounded-xl bg-slate-50 dark:bg-zinc-800 p-3"><div class="text-[18px] font-bold">${c.punctual}</div><div class="text-[10px] uppercase tracking-widest opacity-60">Ponctuel</div></div>
         <div class="rounded-xl bg-slate-50 dark:bg-zinc-800 p-3"><div class="text-[18px] font-bold">${c.speed}</div><div class="text-[10px] uppercase tracking-widest opacity-60">Vitesse</div></div>
       </div>
-      <button class="mt-4 w-full h-10 rounded-full bg-slate-100 dark:bg-zinc-800 text-[13px] font-medium">Voir sur carte live GTFS-RT →</button>
+      <button onclick="if('${c.id}'==='AFTU'){document.getElementById('aftu-list').classList.toggle('hidden'); renderAFTU();} else {switchTab('explorer'); showToast('Véhicules ${c.name} affichés');}" class="mt-4 w-full h-10 rounded-full bg-slate-100 dark:bg-zinc-800 text-[13px] font-medium">${c.id==='AFTU'?'Voir les 64 lignes →':'Voir sur carte live GTFS-RT →'}</button>
     </div>
   `).join('');
+}
+
+function renderAFTU() {
+  const grid = document.getElementById('aftu-lines-grid');
+  if (!grid) return;
+  if (gtfsStaticData && gtfsStaticData.routes) {
+    const aftuRoutes = gtfsStaticData.routes.filter(r => r.agency_id === 'AFTU');
+    grid.innerHTML = aftuRoutes.map(r => `
+      <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-100 dark:border-zinc-700 hover:bg-white dark:hover:bg-zinc-700 transition">
+        <div class="font-bold text-[13px]">${r.route_short_name}</div>
+        <div class="text-[11px] opacity-70 truncate">${r.route_long_name}</div>
+        <div class="text-[10px] opacity-50 mt-1">${r.route_desc.substring(0,30)}</div>
+      </div>
+    `).join('');
+  } else {
+    // Fallback hardcoded 64 lines
+    const lines = Array.from({length:64}, (_,i)=>i+1).filter(n=>[10].includes(n)?false:true);
+    grid.innerHTML = lines.slice(0,64).map(n=>`
+      <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-zinc-800 border">Ligne ${n}</div>
+    `).join('');
+  }
 }
 
 function renderArrivals() {
