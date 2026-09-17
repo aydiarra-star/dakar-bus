@@ -2040,9 +2040,13 @@ class _AIChatPageState extends State<AIChatPage> {
       to = m3.group(1)?.trim().replaceAll(RegExp(r"[\?\.!]+$"), "");
       // cherche un "je suis à X" avant
       final mFrom = RegExp(r"je\s+suis\s+(?:à|a)\s+(.+?)(?:\s+je\s+veux|$)", caseSensitive: false).firstMatch(text);
-      if (mFrom != null) from = mFrom.group(1)?.trim();
-      else if (lower.contains("dakar") && !lower.contains("keur") && !lower.contains("petersen")) from = "Dakar";
-      else from = null; // sera remplacé par GPS si dispo
+      if (mFrom != null) {
+        from = mFrom.group(1)?.trim();
+      } else if (lower.contains("dakar") && !lower.contains("keur") && !lower.contains("petersen")) {
+        from = "Dakar";
+      } else {
+        from = null; // sera remplacé par GPS si dispo
+      }
       return {'from': from, 'to': to};
     }
     return {'from': null, 'to': null};
@@ -2094,9 +2098,13 @@ class _AIChatPageState extends State<AIChatPage> {
           final d = DistanceHelper.haversineMeters(widget.userPosition!, s.location);
           if (d < best) { best = d; nearest = s; }
         }
-        if (nearest != null) from = nearest.name;
+        if (nearest != null) {
+          from = nearest.name;
+        }
       }
-      if (from == null || from.isEmpty) from = "Dakar";
+      if (from == null || from.isEmpty) {
+        from = "Dakar";
+      }
       if (to == null || to.isEmpty) {
         aiReply = '🧭 Pour calculer ton itinéraire, précise ta destination. Exemple : "Je suis à Petersen, je veux aller à Keur Mbaye Fall" ou "De Colobane à Yoff"';
       } else {
