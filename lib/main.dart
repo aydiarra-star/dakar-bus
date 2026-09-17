@@ -1053,31 +1053,50 @@ class _ExplorerPageState extends State<ExplorerPage> {
   }
 
   Future<void> _loadDynamicRoutes() async {
+    // ✅ Fluidité : charge uniquement TER/BRT (dédié) au démarrage — instantané, pas d'OSRM
     final List<Polyline> loaded = [];
-    for (final route in demoRoutes) {
+    final initialRoutes = demoRoutes.where((r) => r.isDedicated).toList();
+    for (final route in initialRoutes) {
+      final points = route.points.where((pt) => DakarBounds.isValid(pt)).toList();
+      if (points.length >= 2) loaded.add(Polyline(points: points, color: route.color, strokeWidth: 5.5));
+    }
+    if (mounted) setState(() { _dynamicPolylines = loaded; _isLoadingRoutes = false; });
+    // Charge le reste en arrière-plan, paresseusement et par petits lots (cache OSRM)
+    _lazyLoadRemainingRoutes();
+  }
+
+  Future<void> _lazyLoadRemainingRoutes() async {
+    // Ne charge les autres tracés que si besoin et de manière non bloquante
+    await Future.delayed(const Duration(milliseconds: 800));
+    final List<Polyline> extra = [];
+    final remaining = demoRoutes.where((r) => !r.isDedicated).take(20).toList(); // limite à 20 pour ne pas surcharger
+    for (final route in remaining) {
       if (route.points.length < 2) continue;
+      // Utilise le cache OSRM, mais sans bloquer l'UI
       List<LatLng> fullRoutePoints = [];
-      if (route.isDedicated) {
-        fullRoutePoints = route.points.where((pt) => DakarBounds.isValid(pt)).toList();
-      } else {
-        final List<Future<List<LatLng>>> futures = [];
+      try {
+        final futures = <Future<List<LatLng>>>[];
         for (int i = 0; i < route.points.length - 1; i++) {
           futures.add(RoutingService.getRealRoute(route.points[i], route.points[i + 1]));
         }
-        final List<List<LatLng>> segments = await Future.wait(futures);
-        for (final segment in segments) {
-          final validSeg = segment.where((pt) => DakarBounds.isValid(pt)).toList();
+        final segments = await Future.wait(futures).timeout(const Duration(seconds: 3), onTimeout: () => []);
+        for (final seg in segments) {
+          final validSeg = seg.where((pt) => DakarBounds.isValid(pt)).toList();
           if (fullRoutePoints.isNotEmpty && validSeg.isNotEmpty) {
             fullRoutePoints.addAll(validSeg.skip(1));
           } else {
             fullRoutePoints.addAll(validSeg);
           }
         }
-        if (fullRoutePoints.isEmpty) fullRoutePoints = route.points.where((pt) => DakarBounds.isValid(pt)).toList();
-      }
-      loaded.add(Polyline(points: fullRoutePoints, color: route.color, strokeWidth: 5.5));
+      } catch (_) {}
+      if (fullRoutePoints.isEmpty) fullRoutePoints = route.points.where((pt) => DakarBounds.isValid(pt)).toList();
+      if (fullRoutePoints.length >= 2) extra.add(Polyline(points: fullRoutePoints, color: route.color, strokeWidth: 4.5));
+      // Petite pause pour ne pas saturer
+      await Future.delayed(const Duration(milliseconds: 50));
     }
-    if (mounted) setState(() { _dynamicPolylines = loaded; _isLoadingRoutes = false; });
+    if (mounted && extra.isNotEmpty) {
+      setState(() => _dynamicPolylines = [..._dynamicPolylines, ...extra]);
+    }
   }
 
   List<Stop> get _filteredStops {
@@ -1097,6 +1116,16 @@ class _ExplorerPageState extends State<ExplorerPage> {
     if (widget.userPosition != null) {
       base.sort((a, b) => DistanceHelper.haversineMeters(widget.userPosition!, a.location).compareTo(DistanceHelper.haversineMeters(widget.userPosition!, b.location)));
     }
+    // ✅ Fluidité : n'affiche que les arrêts proches (5km, 20 max) pour éviter la surcharge carte/liste
+    if (widget.userPosition != null) {
+      base.sort((a, b) => DistanceHelper.haversineMeters(widget.userPosition!, a.location).compareTo(DistanceHelper.haversineMeters(widget.userPosition!, b.location)));
+      final nearby = base.where((s) => DistanceHelper.haversineMeters(widget.userPosition!, s.location) < 5000).take(20).toList();
+      base = nearby.isNotEmpty ? nearby : base.take(20).toList();
+    } else {
+      const dakarCenter = LatLng(14.7167, -17.4677);
+      base.sort((a, b) => DistanceHelper.haversineMeters(dakarCenter, a.location).compareTo(DistanceHelper.haversineMeters(dakarCenter, b.location)));
+      base = base.take(20).toList();
+    }
     return base.where((s) => DakarBounds.isValid(s.location)).toList();
   }
 
@@ -1115,14 +1144,19 @@ class _ExplorerPageState extends State<ExplorerPage> {
       debugPrint('centerOnStop skipped (map not ready): $e');
     }
   }
-  void _openAI() => Navigator.push(context, MaterialPageRoute(builder: (_) => const AIChatPage()));
+  void _openAI() => Navigator.push(context, MaterialPageRoute(builder: (_) => AIChatPage(userPosition: widget.userPosition)));
 
   @override
   Widget build(BuildContext context) {
     final dark = globalState.darkMode;
     final stops = _filteredStops;
-    final activePolylines = _dynamicPolylines.isNotEmpty ? _dynamicPolylines : demoRoutes.map((r) => Polyline(points: r.points, color: r.color, strokeWidth: 5.0)).toList();
-    final mapStops = _selectedFilter == 'Tous' ? allStops : _filteredStops;
+    // ✅ Filtre les tracés par mobilité pour éviter le spaghetti orange : n'affiche que la couleur sélectionnée
+    final Color? filterColor = _selectedFilter == 'Tous' ? null : _colorFor(_selectedFilter);
+    final basePolylines = _dynamicPolylines.isNotEmpty ? _dynamicPolylines : demoRoutes.map((r) => Polyline(points: r.points, color: r.color, strokeWidth: 5.0)).toList();
+    final activePolylines = filterColor == null
+        ? basePolylines.where((p) => p.color == AppColors.ter || p.color == AppColors.brt).toList() // Tous : seulement TER/BRT (tracés dédiés, pas le spaghetti)
+        : basePolylines.where((p) => p.color == filterColor).toList();
+    final mapStops = _filteredStops; // ✅ Toujours filtré à proximité (20 max), pas allStops
 
     return AnimatedBuilder(
       animation: globalState,
@@ -1958,7 +1992,8 @@ class SettingsPage extends StatelessWidget {
 // ASSISTANT IA INTELLIGENT, CONTEXTUEL ET MEMORISATEUR DE MOBILITE
 // ============================================================
 class AIChatPage extends StatefulWidget {
-  const AIChatPage({super.key});
+  final LatLng? userPosition;
+  const AIChatPage({super.key, this.userPosition});
   @override
   State<AIChatPage> createState() => _AIChatPageState();
 }
@@ -1966,10 +2001,73 @@ class AIChatPage extends StatefulWidget {
 class _AIChatPageState extends State<AIChatPage> {
   final TextEditingController _msgCtrl = TextEditingController();
   final List<Map<String, String>> _messages = [
-    {'role': 'ai', 'text': 'Nanga def ! 👋 Je suis votre assistant IA expert des mobilités à Dakar. Posez-moi vos questions sur les lignes TER, BRT, DDD, TATA et AFTU ou demandez-moi un itinéraire.'}
+    {'role': 'ai', 'text': 'Nanga def ! 👋 Je suis votre assistant IA expert des mobilités à Dakar. Posez-moi vos questions sur les lignes TER, BRT, DDD, TATA et AFTU ou demandez-moi un itinéraire. Ex: « Je suis à Petersen, je veux aller à Keur Mbaye Fall »'}
   ];
 
   String? _dernierModeInterroge;
+
+  // Extrait départ/destination d’un message naturel
+  Map<String, String?> _extractTrip(String text) {
+    String? from;
+    String? to;
+    final lower = text.toLowerCase();
+    // Patterns fréquents
+    // 1) "je suis à X je veux aller à Y" / "je suis a X je veux aller a Y"
+    final m1 = RegExp(r"je\s+suis\s+(?:à|a)\s+(.+?)\s+je\s+veux\s+aller\s+(?:à|a)\s+(.+)", caseSensitive: false).firstMatch(text);
+    if (m1 != null) {
+      from = m1.group(1)?.trim();
+      to = m1.group(2)?.trim();
+      return {'from': from, 'to': to};
+    }
+    // 2) "de X à Y" / "de X a Y"
+    final m2 = RegExp(r"de\s+(.+?)\s+(?:à|a)\s+(.+)", caseSensitive: false).firstMatch(text);
+    if (m2 != null) {
+      // évite de capter "depuis" tout seul
+      final candFrom = m2.group(1)?.trim() ?? "";
+      final candTo = m2.group(2)?.trim() ?? "";
+      if (candFrom.length > 2 && candTo.length > 2 && !candFrom.toLowerCase().contains("puis")) {
+        from = candFrom;
+        to = candTo;
+        // Nettoie "je veux aller" ou "comment aller" devant
+        from = from.replaceAll(RegExp(r"^(je\s+veux\s+aller|comment\s+aller|aller)\s+", caseSensitive: false), "").trim();
+        to = to.replaceAll(RegExp(r"[\?\.!]+$"), "").trim();
+        return {'from': from, 'to': to};
+      }
+    }
+    // 3) "je veux aller à Y" (sans from explicite) -> from = position GPS ou "Ma position"
+    final m3 = RegExp(r"je\s+veux\s+aller\s+(?:à|a)\s+(.+)", caseSensitive: false).firstMatch(text);
+    if (m3 != null) {
+      to = m3.group(1)?.trim().replaceAll(RegExp(r"[\?\.!]+$"), "");
+      // cherche un "je suis à X" avant
+      final mFrom = RegExp(r"je\s+suis\s+(?:à|a)\s+(.+?)(?:\s+je\s+veux|$)", caseSensitive: false).firstMatch(text);
+      if (mFrom != null) from = mFrom.group(1)?.trim();
+      else if (lower.contains("dakar") && !lower.contains("keur") && !lower.contains("petersen")) from = "Dakar";
+      else from = null; // sera remplacé par GPS si dispo
+      return {'from': from, 'to': to};
+    }
+    return {'from': null, 'to': null};
+  }
+
+  String _formatRouteResult(RouteSearchResult res, String from, String to) {
+    if (res.errorMessage != null) return '⚠️ ${res.errorMessage}';
+    if (!res.hasRoutes) return 'Aucun itinéraire trouvé entre $from et $to.';
+    final r = res.routes.first;
+    final buf = StringBuffer();
+    buf.writeln('🧭 Itinéraire trouvé : $from → $to');
+    buf.writeln('⏱️ Durée totale : ${r.totalMinutes} min • ${r.transferCount} correspondance(s)');
+    buf.writeln('');
+    for (int i = 0; i < r.segments.length; i++) {
+      final s = r.segments[i];
+      buf.writeln('${i+1}. ${s.modeLabel} : ${s.from} → ${s.to}');
+      buf.writeln('   🕒 ${s.departureTime} → ${s.arrivalTime} • ${s.durationMinutes} min • ${s.modeLabel == 'TER' || s.modeLabel == 'BRT' ? 'Direct' : 'Rotation ~5 min'}');
+    }
+    buf.writeln('');
+    buf.writeln('💡 Astuce : ouvre l\'onglet "Trajets" pour voir le détail sur la carte.');
+    if (widget.userPosition != null) {
+      buf.writeln('📍 Position GPS prise en compte pour le tri des arrêts proches.');
+    }
+    return buf.toString();
+  }
 
   void _sendMessage() {
     final text = _msgCtrl.text.trim();
@@ -1979,29 +2077,69 @@ class _AIChatPageState extends State<AIChatPage> {
       _msgCtrl.clear();
     });
 
-    String aiReply = '🚍 Les réseaux TER, BRT, DDD et TATA fonctionnent normalement. Précisez votre point de départ et votre destination pour un calcul d’itinéraire précis.';
     final lower = text.toLowerCase();
+    String aiReply;
+    bool isTripRequest = lower.contains('aller') || lower.contains('trajet') || lower.contains('veux aller') || lower.contains('comment aller') || RegExp(r"de\s+.+\s+(?:à|a)\s+.+").hasMatch(lower);
 
-    if (lower.contains('ter') || lower.contains('train') || lower.contains('diamniadio')) {
+    if (isTripRequest) {
+      final trip = _extractTrip(text);
+      String? from = trip['from'];
+      String? to = trip['to'];
+      // Si from manquant mais GPS dispo, utilise l'arrêt le plus proche
+      if ((from == null || from.isEmpty) && widget.userPosition != null) {
+        // trouve l'arrêt le plus proche de la position
+        Stop? nearest;
+        double best = double.infinity;
+        for (final s in allStops) {
+          final d = DistanceHelper.haversineMeters(widget.userPosition!, s.location);
+          if (d < best) { best = d; nearest = s; }
+        }
+        if (nearest != null) from = nearest.name;
+      }
+      if (from == null || from.isEmpty) from = "Dakar";
+      if (to == null || to.isEmpty) {
+        aiReply = '🧭 Pour calculer ton itinéraire, précise ta destination. Exemple : "Je suis à Petersen, je veux aller à Keur Mbaye Fall" ou "De Colobane à Yoff"';
+      } else {
+        final res = RoutePlanner.plan(fromQuery: from, toQuery: to);
+        aiReply = _formatRouteResult(res, from, to);
+        // Mémorise le mode du premier segment
+        if (res.hasRoutes && res.routes.first.segments.isNotEmpty) {
+          _dernierModeInterroge = res.routes.first.segments.first.modeLabel;
+        }
+      }
+    } else if (lower.contains('ter') || lower.contains('train') || lower.contains('diamniadio')) {
       _dernierModeInterroge = 'TER';
-      aiReply = '🚆 [Mémorisé : TER] Le Train Express Régional relie Dakar à Diamniadio en traversant 14 gares officielles (Colobane, Pikine, Rufisque...) avec un départ toutes les 10 à 20 min.';
-    } else if (lower.contains('brt') || lower.contains('guédiawaye') || lower.contains('petersen')) {
+      aiReply = '🚆 [Mémorisé : TER] Le Train Express Régional relie Dakar à Diamniadio en traversant 14 gares officielles (Colobane, Pikine, Rufisque...) avec un départ toutes les 10 à 20 min. Dis-moi ton départ et arrivée pour un itinéraire TER.';
+    } else if (lower.contains('brt') || lower.contains('guédiawaye') || lower.contains('petersen') || lower.contains('sunu')) {
       _dernierModeInterroge = 'BRT';
-      aiReply = '🚌 [Mémorisé : SunuBRT] Le couloir BRT relie le PEM Guédiawaye au PEM Petersen en passant par Dalal Jamm, Parcelles Assainies et l’Obélisque.';
+      aiReply = '🚌 [Mémorisé : SunuBRT] Le couloir BRT relie le PEM Guédiawaye au PEM Petersen en passant par Dalal Jamm, Parcelles Assainies et l’Obélisque. Donne-moi un trajet pour te guider.';
     } else if (lower.contains('ddd') || lower.contains('dakar dem dikk') || lower.contains('ligne 1') || lower.contains('ligne 3')) {
       _dernierModeInterroge = 'DDD';
-      aiReply = '🚍 [Mémorisé : Dakar Dem Dikk] Les bus DDD couvrent l’ensemble des lignes urbaines et interurbaines (notamment les Lignes 1, 3, 10, 14 et 20). Leurs arrêts sont intégrés dans notre base de recherche.';
+      aiReply = '🚍 [Mémorisé : Dakar Dem Dikk] Les bus DDD couvrent les lignes urbaines et interurbaines (L1 Colobane-Yoff, L3 Sandaga-Ouakam, etc.). Précise ton trajet DDD et je te le planifie.';
     } else if (lower.contains('tata') || lower.contains('minibus') || lower.contains('ligne 50')) {
       _dernierModeInterroge = 'TATA';
-      aiReply = '🚐 [Mémorisé : Bus TATA] Les bus TATA desservent les grands axes de la banlieue dakaroise (Lignes 50, 64, 78, 218...). Ils assurent des rotations cadencées en journée.';
-    } else if (lower.contains('aller') || lower.contains('trajet') || lower.contains('comment aller') || lower.contains('depuis')) {
-      aiReply = '🧭 Je peux vous aider à planifier votre trajet ! Indiquez votre départ et votre destination, ou rendez-vous dans l’onglet "Trajets" pour voir toutes les correspondances multimodales.';
+      aiReply = '🚐 [Mémorisé : Bus TATA] Les bus TATA desservent Guédiawaye, Pikine, Yoff, Mermoz, Keur Massar... Dis-moi où tu veux aller.';
+    } else if (lower.contains('aftu') || lower.contains('parcelles') || lower.contains('grand yoff')) {
+      _dernierModeInterroge = 'AFTU';
+      aiReply = '🚐 [Mémorisé : AFTU] 72 lignes AFTU couvrent tout Dakar (Parcelles, Grand Yoff, Petersen...). Donne-moi départ/arrivée pour un itinéraire AFTU.';
+    } else if (lower.contains('où suis-je') || lower.contains('ou suis je') || lower.contains('autour de moi') || lower.contains('proche')) {
+      if (widget.userPosition != null) {
+        final nearby = allStops.map((s) => MapEntry(s, DistanceHelper.haversineMeters(widget.userPosition!, s.location))).toList()..sort((a,b)=>a.value.compareTo(b.value));
+        final top = nearby.take(3).map((e)=> '- ${e.key.name} (${DistanceHelper.format(e.value)} • ${e.key.modeLabel})').join('\n');
+        aiReply = '📍 Tu es près de :\n$top\n\nJe peux te guider vers une destination. Où veux-tu aller ?';
+      } else {
+        aiReply = '📍 Active ton GPS via "Activer GPS" sur la carte, puis je pourrai te montrer les arrêts autour de toi et planifier un trajet.';
+      }
+    } else if (lower.contains('alerte') || lower.contains('bouchon') || lower.contains('trafic') || lower.contains('direct rue')) {
+      aiReply = '🚨 Alertes en temps réel : consulte l\'onglet "Alertes" (CETUD/SETER) et "Direct rue" (signalements usagers). Tu peux aussi publier un signalement. Veux-tu que je vérifie le trafic autour de toi ? Active ton GPS et dis-moi ta position.';
+    } else {
+      aiReply = '🚍 Les réseaux TER, BRT, DDD, TATA, AFTU fonctionnent normalement. Pour un itinéraire précis, dis-moi : "Je suis à X, je veux aller à Y" ou "De X à Y". Exemple testé : "Je suis à Dakar, je veux aller à Keur Mbaye Fall" → je te donne le trajet TER direct.';
       if (_dernierModeInterroge != null) {
-        aiReply += '\n💡 (Note : J’ai mémorisé que vous vous intéressez au réseau $_dernierModeInterroge).';
+        aiReply += '\n💡 (Mémorisé : $_dernierModeInterroge)';
       }
     }
 
-    Future.delayed(const Duration(milliseconds: 600), () {
+    Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
         setState(() { _messages.add({'role': 'ai', 'text': aiReply}); });
       }
