@@ -17,6 +17,20 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+// www → apex redirect for dakarmobilite.sn
+(function(){
+  var h = location.hostname;
+  if (h === 'www.dakarmobilite.sn' || h === 'www.dakar-mobilite.sn') {
+    var newHost = h.replace(/^www\./, '');
+    location.replace(location.protocol + '//' + newHost + location.pathname + location.search + location.hash);
+  }
+  // GitHub Pages project site redirect: if on aydiarra-star.github.io/dakar-bus and custom domain set, try apex
+  if (h.endsWith('github.io') && localStorage.getItem('preferCustomDomain') === 'true') {
+    // optional
+  }
+})();
+</script>
+<script>
 tailwind.config = {
   darkMode: 'class',
   theme: {
@@ -339,6 +353,26 @@ tailwind.config = {
     </div>
   </aside>
 </main>
+
+<!-- Footer Contact + www redirect -->
+<footer class="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8 pb-8 mt-8">
+  <div class="rounded-[20px] bg-white dark:bg-zinc-900 border border-slate-200/60 dark:border-zinc-800 p-6 flex flex-wrap gap-6 justify-between items-center">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-[#0f172a] dark:bg-white text-white dark:text-black flex items-center justify-center font-bold">D</div>
+      <div>
+        <div class="font-display font-bold text-[14px]">DAKAR MOBILITÉ • dakarmobilite.sn</div>
+        <div class="text-[11px] opacity-60">23 BRT réelles • 64 AFTU • 42 arrêts • GTFS-RT CETUD • PWA offline</div>
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-3 text-[12px]">
+      <a href="mailto:contact@dakarmobilite.sn" class="px-4 h-9 rounded-full bg-slate-900 dark:bg-white text-white dark:text-black flex items-center gap-2 font-medium hover:opacity-90">✉️ contact@dakarmobilite.sn</a>
+      <a href="mailto:support@dakarmobilite.sn" class="px-4 h-9 rounded-full border flex items-center gap-2">Support</a>
+      <a href="https://github.com/aydiarra-star/dakar-bus" target="_blank" class="px-4 h-9 rounded-full border flex items-center gap-2">GitHub</a>
+      <span class="px-3 h-9 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center text-[11px]">● www → dakarmobilite.sn (redirect auto)</span>
+    </div>
+  </div>
+  <div class="text-center mt-4 text-[11px] opacity-50">© 2026 Dakar Mobilité • CETUD • Dakar Dem Dikk • SunuBRT • TER • AFTU • PWA offline • GTFS-RT • GitHub Pages</div>
+</footer>
 
 <!-- Toast container -->
 <div id="toast-container" class="fixed bottom-4 right-4 z-[2000] space-y-2 pointer-events-none"></div>
