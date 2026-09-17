@@ -1,0 +1,12 @@
+route_id,service_id,trip_id,trip_headsign,direction_id,shape_id
+BRT_01,BRT_DAILY,BRT_01_001,Petersen,0,BRT_01_shape
+BRT_01,BRT_DAILY,BRT_01_002,Guédiawaye,1,BRT_01_shape_rev
+DDD_10,WEEKDAY,DDD_10_001,Yoff,0,DDD_10_shape
+DDD_10,WEEKDAY,DDD_10_002,Petersen,1,DDD_10_shape_rev
+DDD_07,WEEKDAY,DDD_07_001,Keur Massar,0,DDD_07_shape
+DDD_07,WEEKDAY,DDD_07_002,Colobane,1,DDD_07_shape_rev
+DDD_12,DAILY,DDD_12_001,Petersen,0,DDD_12_shape
+TATA_01,DAILY,TATA_01_001,Pikine,0,TATA_01_shape
+TER_01,TER_DAILY,TER_01_001,AIBD,0,TER_01_shape
+TER_01,TER_DAILY,TER_01_002,Dakar,1,TER_01_shape_rev
+AFTU_01,DAILY,AFTU_01_001,Yoff,0,AFTU_01_shape

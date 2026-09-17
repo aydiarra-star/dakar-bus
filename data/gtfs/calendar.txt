@@ -1,0 +1,6 @@
+service_id,monday,tuesday,wednesday,thursday,friday,saturday,sunday,start_date,end_date
+WEEKDAY,1,1,1,1,1,1,0,20260101,20261231
+WEEKEND,0,0,0,0,0,0,1,20260101,20261231
+DAILY,1,1,1,1,1,1,1,20260101,20261231
+BRT_DAILY,1,1,1,1,1,1,1,20260101,20261231
+TER_DAILY,1,1,1,1,1,1,1,20260101,20261231

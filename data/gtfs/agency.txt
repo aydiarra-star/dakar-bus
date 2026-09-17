@@ -1,0 +1,6 @@
+agency_id,agency_name,agency_url,agency_timezone,agency_lang,agency_phone
+CETUD,CETUD - Conseil Exécutif des Transports Urbains de Dakar,https://cetud.sn,Africa/Dakar,fr,+221338595000
+DDD,Dakar Dem Dikk,https://demdikk.sn,Africa/Dakar,fr,+221338595000
+BRT,SunuBRT - BRT Dakar,https://brt.sn,Africa/Dakar,fr,+221338595000
+TER,TER Dakar - Train Express Régional,https://ter.sn,Africa/Dakar,fr,+221338595000
+AFTU,AFTU - Association de Financement des Transports Urbains,https://aftu.sn,Africa/Dakar,fr,+221338595000

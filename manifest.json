@@ -1,0 +1,55 @@
+{
+  "name": "Dakar Mobilité - Transport Temps Réel",
+  "short_name": "DakarMobilité",
+  "description": "Mobilité urbaine à Dakar en temps réel - BRT, DDD, TER, Car Rapide avec GPS live et alertes GTFS-RT CETUD",
+  "start_url": "/?source=pwa&utm_source=homescreen",
+  "display": "standalone",
+  "background_color": "#f8f7f4",
+  "theme_color": "#0f172a",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "fr",
+  "categories": ["navigation", "travel", "utilities"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%230f172a'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-weight='800' font-size='48' fill='white'>D</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%230f172a'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-weight='800' font-size='48' fill='white'>D</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Explorer Carte Live",
+      "url": "/#explorer",
+      "description": "Voir la carte en temps réel",
+      "icons": [{ "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2'><circle cx='12' cy='12' r='10'/><path d='M12 2a15 15 0 0 1 0 20'/></svg>", "sizes": "96x96" }]
+    },
+    {
+      "name": "Mes Trajets",
+      "url": "/#trajets",
+      "description": "Planifier un trajet",
+      "icons": [{ "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2'><path d='M12 2L2 7l10 5 10-5-10-5z'/><path d='M2 17l10 5 10-5'/><path d='M2 12l10 5 10-5'/></svg>", "sizes": "96x96" }]
+    },
+    {
+      "name": "Alertes",
+      "url": "/#alertes",
+      "description": "Voir les alertes temps réel",
+      "icons": [{ "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2'><path d='M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z'/><line x1='12' y1='9' x2='12' y2='13'/><line x1='12' y1='17' x2='12.01' y2='17'/></svg>", "sizes": "96x96" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1280 720'><rect width='1280' height='720' fill='%23f8f7f4'/><rect x='40' y='40' width='1200' height='640' rx='24' fill='white' stroke='%23e2e8f0'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='32' fill='%230f172a'>Dakar Mobilité - Carte Live</text></svg>",
+      "sizes": "1280x720",
+      "type": "image/svg+xml",
+      "form_factor": "wide"
+    }
+  ]
+}

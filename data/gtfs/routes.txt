@@ -1,0 +1,10 @@
+route_id,agency_id,route_short_name,route_long_name,route_type,route_color,route_text_color,route_desc
+BRT_01,BRT,BRT 01,Guédiawaye - Petersen,3,8B5CF6,FFFFFF,BRT SunuBRT - Voie dédiée - 23 bus - Fréquence 3 min
+DDD_10,DDD,10,Petersen - Yoff - Almadies,3,3B82F6,FFFFFF,Dakar Dem Dikk - Ligne 10 - Plateau à Yoff
+DDD_07,DDD,7,Colobane - Pikine - Keur Massar,3,3B82F6,FFFFFF,Dakar Dem Dikk - Ligne 7 - Colobane à Keur Massar
+DDD_12,DDD,12,Guédiawaye - Parcelles - Petersen,3,3B82F6,FFFFFF,Dakar Dem Dikk - Ligne 12
+DDD_23,DDD,23,Plateau - Ouakam - Ngor,3,3B82F6,FFFFFF,Dakar Dem Dikk - Ligne 23
+TATA_01,AFTU,TATA 01,Colobane - Pikine,3,F59E0B,000000,Car Rapide / Ndiaga Ndiaye - Colobane Pikine
+TATA_02,AFTU,TATA 02,Petersen - Parcelles,3,F59E0B,000000,Car Rapide - Petersen Parcelles
+TER_01,TER,TER,Dakar - Diamniadio - AIBD,2,10B981,FFFFFF,TER - Train Express Régional - 13 gares - 45 min
+AFTU_01,AFTU,01,Guédiawaye - Yoff,3,EC4899,FFFFFF,AFTU - Ligne 1 - Guédiawaye Yoff

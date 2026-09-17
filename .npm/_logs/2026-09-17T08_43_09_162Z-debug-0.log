@@ -1,0 +1,19 @@
+0 verbose cli /usr/bin/node /usr/bin/npm
+1 info using npm@10.8.2
+2 info using node@v20.20.2
+3 silly config load:file:/usr/lib/node_modules/npm/npmrc
+4 silly config load:file:/home/user/server/.npmrc
+5 silly config load:file:/home/user/.npmrc
+6 silly config load:file:/usr/etc/npmrc
+7 verbose title npm view gtfs-realtime-bindings version
+8 verbose argv "view" "gtfs-realtime-bindings" "version"
+9 verbose logfile logs-max:10 dir:/home/user/.npm/_logs/2026-09-17T08_43_09_162Z-
+10 verbose logfile /home/user/.npm/_logs/2026-09-17T08_43_09_162Z-debug-0.log
+11 silly logfile done cleaning log files
+12 http fetch GET 200 https://registry.npmjs.org/gtfs-realtime-bindings 108ms (cache revalidated)
+13 verbose cwd /home/user/server
+14 verbose os Linux 6.1.158+
+15 verbose node v20.20.2
+16 verbose npm  v10.8.2
+17 verbose exit 0
+18 info ok

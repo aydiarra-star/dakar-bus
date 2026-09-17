@@ -1,0 +1,1 @@
+{"header":{"gtfsRealtimeVersion":"2.0","timestamp":0,"incrementality":"FULL_DATASET"},"entity":[],"source":"static-mock-file","note":"This is a placeholder. Real GTFS-RT will be fetched via JS mock client with 3s polling. Replace with CETUD endpoint."}
