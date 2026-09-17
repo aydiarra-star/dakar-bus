@@ -3,7 +3,7 @@ const MANIFEST = 'flutter-app-manifest';
 const TEMP = 'flutter-temp-cache';
 const CACHE_NAME = 'flutter-app-cache';
 
-const RESOURCES = {"flutter_bootstrap.js": "a8ff978e18dcd84a8dc931c2b01605ae",
+const RESOURCES = {"flutter_bootstrap.js": "7f5ca065b4f8111a94796c40db732541",
 "index.html": "d6e03c8a86d30fcdfcb1e2654c4201e0",
 "/": "d6e03c8a86d30fcdfcb1e2654c4201e0",
 "canvaskit/skwasm.worker.js": "89990e8c92bcb123999aa81f7e203b1c",
@@ -17,12 +17,12 @@ const RESOURCES = {"flutter_bootstrap.js": "a8ff978e18dcd84a8dc931c2b01605ae",
 "canvaskit/canvaskit.js.symbols": "48c83a2ce573d9692e8d970e288d75f7",
 "canvaskit/skwasm.js": "694fda5704053957c2594de355805228",
 "flutter.js": "f393d3c16b631f36852323de8e583132",
-"main.dart.js": "b517e79bf6ca150f788828b3b56c1fcb",
+"main.dart.js": "27e7b3cb44c97d7ac08b1a28146ea783",
 "version.json": "c25c5ccd53cbf2b587af941c6268ce55",
 "assets/assets/data/dakar_network.json": "05685bf95af3ba9969b69da92a31eee3",
 "assets/packages/cupertino_icons/assets/CupertinoIcons.ttf": "e986ebe42ef785b27164c36a9abc7818",
 "assets/packages/flutter_map/lib/assets/flutter_map_logo.png": "208d63cc917af9713fc9572bd5c09362",
-"assets/fonts/MaterialIcons-Regular.otf": "c354c1e511728fa73afc326800329df0",
+"assets/fonts/MaterialIcons-Regular.otf": "b04869bc6dabf2dfe2cb8428944c5d05",
 "assets/shaders/ink_sparkle.frag": "ecc85a2e95f5e9f53123dcaf8cb9b6ce",
 "assets/AssetManifest.json": "b46737cf7adc121b830dcedb4b44a129",
 "assets/AssetManifest.bin": "40e52590caf612e4557acbe41408f3e1",
