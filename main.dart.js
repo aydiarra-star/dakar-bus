@@ -42237,7 +42237,7 @@ e=k.e
 s=e.length
 s=A.b([A.aq(""+s+" arr\xeats",j,j,j,j,A.ay(j,j,i?B.J:B.K,j,j,j,j,j,j,j,j,16,j,j,B.x,j,j,!0,j,j,j,j,j,j,j,j),j,j),B.ir],p)
 if(g.z)s.push(B.RS)
-else s.push(A.aq("\xe0 proximit\xe9 (Maintenez un arr\xeat pour l'ajouter aux favoris)",j,j,j,j,A.ay(j,j,i?B.X:B.W,j,j,j,j,j,j,j,j,11,j,j,j,j,j,!0,j,j,j,j,j,j,j,j),j,j))
+else s.push(A.aq("\xe0 proximit\xe9",j,j,j,j,A.ay(j,j,i?B.X:B.W,j,j,j,j,j,j,j,j,11,j,j,j,j,j,!0,j,j,j,j,j,j,j,j),j,j))
 o.push(A.cz(s,B.A,B.r,B.t))
 o.push(B.Af)
 B.b.N(o,new A.a1(e,new A.apw(g),A.L(e).h("a1<1,f>")))
@@ -42652,7 +42652,7 @@ B.b.li(this.b.d,0,A.aD(["user","Moi (Usager)","location",s,"type",r,"time","\xc0
 $S:0}
 A.a2q.prototype={
 $2(a,b){var s=null,r=$.d1().a,q=r?B.bH:B.bI,p=A.aq("Direct rue & Communaut\xe9",s,s,s,s,A.ay(s,s,r?B.J:B.K,s,s,s,s,s,s,s,s,24,s,s,B.x,s,s,!0,s,s,s,s,s,s,s,s),s,s),o=t.p,n=this.a
-o=A.b([A.cz(A.b([A.dJ(A.cv(A.b([p,B.cm,A.aq("Signalements en temps r\xe9el par les usagistes \xe0 Dakar.",s,s,s,s,A.ay(s,s,r?B.X:B.W,s,s,s,s,s,s,s,s,13,s,s,s,s,s,!0,s,s,s,s,s,s,s,s),s,s)],o),B.al,B.r,B.t),1),A.azB(B.I6,B.Xg,n.gahn(),A.zF(s,s,B.z,s,s,s,s,s,s,B.i,s,s,s,s,new A.cE(A.bZ(20),B.p),s,s,s,s))],o),B.A,B.r,B.t),B.c3],o)
+o=A.b([A.cz(A.b([A.dJ(A.cv(A.b([p,B.cm,A.aq("Signalements en temps r\xe9el par les usagers \xe0 Dakar.",s,s,s,s,A.ay(s,s,r?B.X:B.W,s,s,s,s,s,s,s,s,13,s,s,s,s,s,!0,s,s,s,s,s,s,s,s),s,s)],o),B.al,B.r,B.t),1),A.azB(B.I6,B.Xg,n.gahn(),A.zF(s,s,B.z,s,s,s,s,s,s,B.i,s,s,s,s,new A.cE(A.bZ(20),B.p),s,s,s,s))],o),B.A,B.r,B.t),B.c3],o)
 n=n.d
 B.b.N(o,new A.a1(n,new A.a2p(r),A.L(n).h("a1<1,f>")))
 return A.m1(s,q,A.kp(!1,A.lG(o,B.bd,s,B.aj,!1),B.ae,!0),s)},
@@ -42686,7 +42686,7 @@ e=A.uu(!1,p,p,p,!0,p,p,!1,B.I9,p,new A.ai_(e,a0),!1,p,p,p,p,p,A.aq("Qui sommes-n
 s=A.tS(o?B.aC:B.aD,1)
 r=A.aq("Version de l\u2019application",p,p,p,p,A.ay(p,p,o?B.J:B.K,p,p,p,p,p,p,p,p,p,p,p,p,p,p,!0,p,p,p,p,p,p,p,p),p,p)
 q=t.p
-return A.m1(p,n,A.kp(!1,A.lG(A.b([m,B.c3,A.bo(p,A.cv(A.b([i,h,g,f,d,c,b,a,e,s,A.uu(!1,p,p,p,!0,p,p,!1,B.I_,p,p,!1,p,p,p,A.aq("Dakar Bus v9.4 (Web Fix)",p,p,p,p,A.ay(p,p,o?B.X:B.W,p,p,p,p,p,p,p,p,p,p,p,p,p,p,!0,p,p,p,p,p,p,p,p),p,p),p,r,p,p)],q),B.A,B.r,B.t),B.k,p,p,new A.bh(l,p,p,k,j,p,B.I),p,p,p,p,p,p,p)],q),B.bd,p,B.aj,!1),B.ae,!0),p)},
+return A.m1(p,n,A.kp(!1,A.lG(A.b([m,B.c3,A.bo(p,A.cv(A.b([i,h,g,f,d,c,b,a,e,s,A.uu(!1,p,p,p,!0,p,p,!1,B.I_,p,p,!1,p,p,p,A.aq("Dakar Bus v9.3.1 build 5",p,p,p,p,A.ay(p,p,o?B.X:B.W,p,p,p,p,p,p,p,p,p,p,p,p,p,p,!0,p,p,p,p,p,p,p,p),p,p),p,r,p,p)],q),B.A,B.r,B.t),B.k,p,p,new A.bh(l,p,p,k,j,p,B.I),p,p,p,p,p,p,p)],q),B.bd,p,B.aj,!1),B.ae,!0),p)},
 $S:40}
 A.ahW.prototype={
 $1(a){},
@@ -43171,7 +43171,7 @@ lO(a){var s,r=this
 if(r.d)return
 r.d=!0
 s=new A.cH(Date.now(),0,!1)
-B.b.N(r.a,A.b([new A.jE("Global","Service du matin en cours","CSE / CETUD","R\xe9seau TER, BRT et bus urbains op\xe9rationnels sur Dakar et sa banlieue.",B.Bg,s.rH(-36e7)),new A.jE("TER","Intervalles conformes","TER S\xe9n\xe9gal","TER Dakar \u2194 Diamniadio : rotations r\xe9guli\xe8res, 14 gares desservies.",B.Bh,s.rH(-84e7))],t.Yu))
+B.b.N(r.a,A.b([new A.jE("Global","Service du matin en cours","CSE / CETUD","R\xe9seau TER, BRT et bus urbains op\xe9rationnels sur Dakar et sa banlieue.",B.Bg,s.rH(-36e7)),new A.jE("TER","Intervalles conformes","TER S\xe9n\xe9gal","TER Dakar \u2194 Diamniadio : rotations r\xe9guli\xe8res, 13 gares desservies.",B.Bh,s.rH(-84e7))],t.Yu))
 r.c=A.QE(B.G2,new A.aeV(r))
 r.a0()},
 Ao(){if(this.e===0)return
