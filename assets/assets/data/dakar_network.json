@@ -30,8 +30,8 @@
     {
       "id": "stop_dakar_ter",
       "name": "Gare TER Dakar",
-      "latitude": 14.6792,
-      "longitude": -17.4407,
+      "latitude": 14.67599,
+      "longitude": -17.43352,
       "data_trust": "OFFICIAL"
     },
     {
@@ -44,48 +44,48 @@
     {
       "id": "stop_colobane",
       "name": "Colobane - Marché & Gare TER",
-      "latitude": 14.6937,
-      "longitude": -17.4441,
+      "latitude": 14.70035,
+      "longitude": -17.44165,
       "data_trust": "OFFICIAL"
     },
     {
       "id": "stop_hann",
       "name": "Hann - Maristes / TER",
-      "latitude": 14.719,
-      "longitude": -17.445,
+      "latitude": 14.72209,
+      "longitude": -17.43207,
       "data_trust": "OFFICIAL"
     },
     {
       "id": "stop_baux_maraichers",
       "name": "Baux Maraîchers - TER",
-      "latitude": 14.738,
-      "longitude": -17.44,
+      "latitude": 14.73971,
+      "longitude": -17.40361,
       "data_trust": "OFFICIAL"
     },
     {
       "id": "stop_pikine",
       "name": "Pikine - Marché Zinc / TER",
-      "latitude": 14.755,
-      "longitude": -17.39,
+      "latitude": 14.74986,
+      "longitude": -17.39169,
       "data_trust": "OFFICIAL"
     },
     {
       "id": "stop_thiaroye",
       "name": "Thiaroye - Gare TER",
-      "latitude": 14.762,
-      "longitude": -17.37,
+      "latitude": 14.75877,
+      "longitude": -17.3803,
       "data_trust": "OFFICIAL"
     },
     {
       "id": "stop_yeumbeul",
       "name": "Yeumbeul - Station TER",
-      "latitude": 14.77,
-      "longitude": -17.34,
+      "latitude": 14.76491,
+      "longitude": -17.3565,
       "data_trust": "FIELD_OBSERVATION"
     },
     {
       "id": "stop_keur_massar",
-      "name": "Keur Massar - TER",
+      "name": "Keur Massar",
       "latitude": 14.79,
       "longitude": -17.325,
       "data_trust": "OFFICIAL"
@@ -93,29 +93,29 @@
     {
       "id": "stop_keur_mbaye_fall",
       "name": "Keur Mbaye Fall - Correspondance TER",
-      "latitude": 14.775,
-      "longitude": -17.31,
+      "latitude": 14.74408,
+      "longitude": -17.31389,
       "data_trust": "OFFICIAL"
     },
     {
       "id": "stop_rufisque",
       "name": "Rufisque - Gare TER",
-      "latitude": 14.715,
+      "latitude": 14.71596,
       "longitude": -17.27,
       "data_trust": "OFFICIAL"
     },
     {
       "id": "stop_bargny",
       "name": "Bargny - TER",
-      "latitude": 14.71,
-      "longitude": -17.235,
+      "latitude": 14.69818,
+      "longitude": -17.2292,
       "data_trust": "FIELD_OBSERVATION"
     },
     {
       "id": "stop_diamniadio",
       "name": "Diamniadio - Gare TER Terminus",
-      "latitude": 14.716,
-      "longitude": -17.1986,
+      "latitude": 14.71606,
+      "longitude": -17.19845,
       "data_trust": "OFFICIAL"
     },
     {
@@ -198,15 +198,15 @@
     {
       "id": "stop_yoff",
       "name": "Yoff - Aéroport & Plage",
-      "latitude": 14.7645,
-      "longitude": -17.366,
+      "latitude": 14.7604,
+      "longitude": -17.4681,
       "data_trust": "OFFICIAL"
     },
     {
       "id": "stop_yoff_pecheurs",
       "name": "Yoff Pêcheurs - Tata",
-      "latitude": 14.77,
-      "longitude": -17.395,
+      "latitude": 14.7572,
+      "longitude": -17.4698,
       "data_trust": "FIELD_OBSERVATION"
     },
     {
@@ -429,8 +429,8 @@
     {
       "id": "stop_malika",
       "name": "Malika - Keur Massar",
-      "latitude": 14.785,
-      "longitude": -17.31,
+      "latitude": 14.8015,
+      "longitude": -17.3376,
       "data_trust": "FIELD_OBSERVATION"
     },
     {
@@ -590,8 +590,8 @@
     {
       "id": "stop_yoff_tonghor",
       "name": "Yoff Tonghor - Aéroport",
-      "latitude": 14.768,
-      "longitude": -17.37,
+      "latitude": 14.7487,
+      "longitude": -17.4723,
       "data_trust": "FIELD_OBSERVATION"
     },
     {
@@ -670,6 +670,20 @@
       "latitude": 14.785,
       "longitude": -17.33,
       "data_trust": "FIELD_OBSERVATION"
+    },
+    {
+      "id": "stop_dalifort_ter",
+      "name": "Dalifort - Gare TER",
+      "latitude": 14.73425,
+      "longitude": -17.419,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_pnr",
+      "name": "PNR - Station TER",
+      "latitude": 14.72317,
+      "longitude": -17.28394,
+      "data_trust": "OFFICIAL"
     }
   ],
   "routes": [
@@ -677,19 +691,20 @@
       "id": "ter_dakar_diamniadio",
       "operator_id": "ter",
       "short_name": "TER",
-      "long_name": "Dakar Gare ↔ Diamniadio (14 gares officielles CETUD/SETER)",
+      "long_name": "Dakar Gare ↔ Diamniadio (13 gares officielles SETER/CETUD)",
       "type": "TER",
       "data_trust": "OFFICIAL",
       "stops": [
         "stop_dakar_ter",
         "stop_colobane",
         "stop_hann",
+        "stop_dalifort_ter",
         "stop_baux_maraichers",
         "stop_pikine",
         "stop_thiaroye",
         "stop_yeumbeul",
-        "stop_keur_massar",
         "stop_keur_mbaye_fall",
+        "stop_pnr",
         "stop_rufisque",
         "stop_bargny",
         "stop_diamniadio"
@@ -699,19 +714,19 @@
       "id": "brt_b1_guediawaye_petersen",
       "operator_id": "brt",
       "short_name": "BRT B1",
-      "long_name": "PEM Guédiawaye ↔ PEM Petersen (Corridor SunuBRT 14km)",
+      "long_name": "PEM Guédiawaye ↔ PEM Petersen (Corridor SunuBRT 18 km)",
       "type": "BRT",
       "data_trust": "OFFICIAL",
       "stops": [
         "stop_guediawaye",
         "stop_dalal_jamm",
-        "stop_camberene",
-        "stop_fadia",
         "stop_parcelles_u26",
-        "stop_grand_medine",
-        "stop_grand_yoff",
+        "stop_camberene",
         "stop_patte_doie",
+        "stop_grand_yoff",
+        "stop_fadia",
         "stop_liberte6",
+        "stop_grand_medine",
         "stop_sacre_coeur",
         "stop_obelisque",
         "stop_petersen"
