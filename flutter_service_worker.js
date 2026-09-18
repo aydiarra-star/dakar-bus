@@ -121,7 +121,7 @@ const OSRM_GEOMS_URL = 'assets/assets/data/osrm_geometries.json';
 // v2 : version des geometries prechargees. Le workflow « PrefetchOSRM geometries »
 // la recalcule (hachage du bundle) a chaque regeneration de osrm_geometries.json :
 // le changement d'octets du service worker declenche la mise a jour chez les clients.
-const GEOM_VERSION = 'v2-initial';
+const GEOM_VERSION = 'v2-06ce66cf0908';
 let osrmInflight = {};
 let osrmQueue = [];
 let osrmActive = 0;
