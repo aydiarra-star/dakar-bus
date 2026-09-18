@@ -1,0 +1,38 @@
+name: PrefetchOSRM geometries
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [gh-pages]
+
+concurrency:
+  group: prefetch-osrm
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  prefetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout gh-pages
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+
+      - name: Prefetch des geometries OSRM (paires d'arrets du reseau)
+        run: python3 tools/prefetch_osrm.py
+
+      - name: Commit des geometries si changement
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/assets/data/osrm_geometries.json flutter_service_worker.js
+          if git diff --cached --quiet; then
+            echo "Geometries inchangees - aucun commit necessaire."
+          else
+            git commit -m "chore(osrm): geometries v2 regenerees (workflow PrefetchOSRM geometries)"
+            git push
+            echo "Commit pousse - GitHub Pages redemarrera un build avec le bundle."
+          fi

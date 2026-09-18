@@ -4,8 +4,8 @@ const TEMP = 'flutter-temp-cache';
 const CACHE_NAME = 'flutter-app-cache';
 
 const RESOURCES = {"flutter_bootstrap.js": "f8621db206f6b8f7fe0dad8e136bff7c",
-"index.html": "42e430c45a5f1c62105082da3931ee39",
-"/": "42e430c45a5f1c62105082da3931ee39",
+"index.html": "3d30264ad3755ac7731a33501f5f0a9d",
+"/": "3d30264ad3755ac7731a33501f5f0a9d",
 "canvaskit/skwasm.worker.js": "89990e8c92bcb123999aa81f7e203b1c",
 "canvaskit/skwasm.js.symbols": "262f4827a1317abb59d71d6c587a93e2",
 "canvaskit/skwasm.wasm": "9f0c0c02b82a910d12ce0543ec130e60",
@@ -18,7 +18,7 @@ const RESOURCES = {"flutter_bootstrap.js": "f8621db206f6b8f7fe0dad8e136bff7c",
 "canvaskit/skwasm.js": "694fda5704053957c2594de355805228",
 "flutter.js": "f393d3c16b631f36852323de8e583132",
 "main.dart.js": "0f1a5d111872aa16ec52e035a41479de",
-"version.json": "4667366da077675603bb0ec12a23f2ae",
+"version.json": "35c7b98f6984ea4304b88334adc23ba7",
 "assets/assets/data/dakar_network.json": "0e3fad1b6af958f1dc77d608c9b33574",
 "assets/assets/data/osrm_pairs.json": "3ddadaab1784b1d8d1601f81376cb3f5",
 "assets/packages/cupertino_icons/assets/CupertinoIcons.ttf": "e986ebe42ef785b27164c36a9abc7818",
@@ -110,13 +110,18 @@ self.addEventListener("activate", function(event) {
   }());
 });
 
-// ===== Traces routiers reels (fix geographies) =====
+// ===== Traces routiers reels v2 (geometries prechargees au deploiement) =====
 // Pre-charge en file regulée les geometries OSRM de toutes les paires d'arrets
 // du reseau, les garde en cache persistant, et sert les requetes OSRM de l'app
 // depuis ce cache : plus de rate-limit publique, plus de lignes droites, offline.
-const OSRM_CACHE = 'osrm-geom-v1';
+const OSRM_CACHE = 'osrm-geom-v2';
 const OSRM_PREFIX = 'https://router.project-osrm.org/route/v1/driving/';
 const OSRM_PAIRS_URL = 'assets/assets/data/osrm_pairs.json';
+const OSRM_GEOMS_URL = 'assets/assets/data/osrm_geometries.json';
+// v2 : version des geometries prechargees. Le workflow « PrefetchOSRM geometries »
+// la recalcule (hachage du bundle) a chaque regeneration de osrm_geometries.json :
+// le changement d'octets du service worker declenche la mise a jour chez les clients.
+const GEOM_VERSION = 'v2-initial';
 let osrmInflight = {};
 let osrmQueue = [];
 let osrmActive = 0;
@@ -177,6 +182,31 @@ async function osrmRespond(request) {
   }
 }
 
+// v2 : installe en une seule requete les geometries prechargees par le workflow
+// « PrefetchOSRM geometries » (bundle osrm_geometries.json commite sur gh-pages).
+// La file runtime (osrmPrefetch) reste en repli pour les paires absentes du bundle.
+async function osrmSeedFromBundle() {
+  try {
+    const res = await fetch(OSRM_GEOMS_URL + '?v=' + GEOM_VERSION, { cache: 'no-store' });
+    if (!res.ok) throw new Error('bundle HTTP ' + res.status);
+    const bundle = await res.json();
+    const geoms = bundle && bundle.geometries;
+    if (!geoms) throw new Error('bundle sans geometries');
+    const cache = await caches.open(OSRM_CACHE);
+    const existing = new Set((await cache.keys()).map((r) => r.url));
+    let n = 0;
+    for (const url in geoms) {
+      if (existing.has(url)) continue;
+      await cache.put(new Request(url), new Response(JSON.stringify(geoms[url]),
+          { headers: { 'Content-Type': 'application/json' } }));
+      n++;
+    }
+    console.debug('OSRM v2 : ' + n + ' geometries installees depuis le bundle precharge');
+  } catch (e) {
+    console.warn('OSRM v2 : bundle precharge indisponible (' + e + '), repli file runtime');
+  }
+}
+
 async function osrmPrefetch() {
   if (osrmPrefetchStarted) return;
   osrmPrefetchStarted = true;
@@ -192,7 +222,13 @@ async function osrmPrefetch() {
   } catch (e) { console.warn('OSRM prefetch fail', e); }
 }
 
-self.addEventListener('activate', (event) => { event.waitUntil(osrmPrefetch()); });
+self.addEventListener('activate', (event) => {
+  event.waitUntil((async () => {
+    await osrmSeedFromBundle();
+    await osrmPrefetch();
+    await caches.delete('osrm-geom-v1'); // cache v1 obsolete
+  })());
+});
 
 // The fetch handler redirects requests for RESOURCE files to the service
 // worker cache.
