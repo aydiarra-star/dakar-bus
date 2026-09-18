@@ -3,9 +3,9 @@ const MANIFEST = 'flutter-app-manifest';
 const TEMP = 'flutter-temp-cache';
 const CACHE_NAME = 'flutter-app-cache';
 
-const RESOURCES = {"flutter_bootstrap.js": "f8621db206f6b8f7fe0dad8e136bff7c",
-"index.html": "3d30264ad3755ac7731a33501f5f0a9d",
-"/": "3d30264ad3755ac7731a33501f5f0a9d",
+const RESOURCES = {"flutter_bootstrap.js": "a4c7cb73bff1c47413f7b15b74a082d2",
+"index.html": "6c99d5dd3318420a829f1eac01af2fda",
+"/": "6c99d5dd3318420a829f1eac01af2fda",
 "canvaskit/skwasm.worker.js": "89990e8c92bcb123999aa81f7e203b1c",
 "canvaskit/skwasm.js.symbols": "262f4827a1317abb59d71d6c587a93e2",
 "canvaskit/skwasm.wasm": "9f0c0c02b82a910d12ce0543ec130e60",
@@ -17,8 +17,8 @@ const RESOURCES = {"flutter_bootstrap.js": "f8621db206f6b8f7fe0dad8e136bff7c",
 "canvaskit/canvaskit.js.symbols": "48c83a2ce573d9692e8d970e288d75f7",
 "canvaskit/skwasm.js": "694fda5704053957c2594de355805228",
 "flutter.js": "f393d3c16b631f36852323de8e583132",
-"main.dart.js": "0f1a5d111872aa16ec52e035a41479de",
-"version.json": "35c7b98f6984ea4304b88334adc23ba7",
+"main.dart.js": "08b514b01d5aea2de1cd99ffbcd03697",
+"version.json": "b82ba4a25617f0ca155244430aef14c9",
 "assets/assets/data/dakar_network.json": "0e3fad1b6af958f1dc77d608c9b33574",
 "assets/assets/data/osrm_pairs.json": "3ddadaab1784b1d8d1601f81376cb3f5",
 "assets/packages/cupertino_icons/assets/CupertinoIcons.ttf": "e986ebe42ef785b27164c36a9abc7818",
@@ -110,7 +110,7 @@ self.addEventListener("activate", function(event) {
   }());
 });
 
-// ===== Traces routiers reels v2 (geometries prechargees au deploiement) =====
+// ===== Traces routiers reels v2.1 (geometries prechargees + repli bundle a la demande) =====
 // Pre-charge en file regulée les geometries OSRM de toutes les paires d'arrets
 // du reseau, les garde en cache persistant, et sert les requetes OSRM de l'app
 // depuis ce cache : plus de rate-limit publique, plus de lignes droites, offline.
@@ -122,6 +122,44 @@ const OSRM_GEOMS_URL = 'assets/assets/data/osrm_geometries.json';
 // la recalcule (hachage du bundle) a chaque regeneration de osrm_geometries.json :
 // le changement d'octets du service worker declenche la mise a jour chez les clients.
 const GEOM_VERSION = 'v2-06ce66cf0908';
+
+// v2.1 : marqueur de revision du correctif traces (audit, logs).
+const TRACES_SW = 'v2.1';
+// v2.1 : le bundle precharge est garde en memoire apres son premier chargement.
+// Toute paire absente du cache est servie depuis ce bundle (une requete pour
+// 281 paires) au lieu de partir vers le routeur public OSRM, dont le rate-limit
+// faisait retomber l'app sur une ligne droite entre deux arrets.
+let osrmBundle = null;
+let osrmBundlePromise = null;
+let osrmSeedAttempts = 0;
+const OSRM_SEED_MAX_ATTEMPTS = 3;
+const OSRM_SEED_RETRY_MS = 30000;
+
+async function osrmLoadBundle() {
+  if (osrmBundle) return osrmBundle;
+  if (!osrmBundlePromise) {
+    osrmBundlePromise = (async () => {
+      try {
+        const res = await fetch(OSRM_GEOMS_URL + '?v=' + GEOM_VERSION, { cache: 'no-store' });
+        if (!res.ok) throw new Error('bundle HTTP ' + res.status);
+        const data = await res.json();
+        const geoms = data && data.geometries;
+        if (!geoms) throw new Error('bundle sans geometries');
+        osrmBundle = geoms;
+        return geoms;
+      } finally {
+        osrmBundlePromise = null;
+      }
+    })();
+  }
+  return osrmBundlePromise;
+}
+
+function osrmJsonResponse(payload) {
+  return new Response(JSON.stringify(payload),
+      { headers: { 'Content-Type': 'application/json' } });
+}
+
 let osrmInflight = {};
 let osrmQueue = [];
 let osrmActive = 0;
@@ -174,6 +212,21 @@ async function osrmRespond(request) {
   const cache = await caches.open(OSRM_CACHE);
   const hit = await cache.match(request);
   if (hit) return hit;
+  // v2.1 : la paire est peut-etre dans le bundle precharge sans etre encore en
+  // cache (semis interrompu, SW tue, offline partiel). On la sert depuis le
+  // bundle : chaque mobilite suit son itineraire reel au lieu d'une ligne droite.
+  try {
+    const geoms = await osrmLoadBundle();
+    const payload = geoms && geoms[request.url];
+    if (payload) {
+      const response = osrmJsonResponse(payload);
+      await cache.put(request, response.clone());
+      console.debug('OSRM ' + TRACES_SW + ' : paire servie depuis le bundle precharge');
+      return response;
+    }
+  } catch (e) {
+    console.warn('OSRM ' + TRACES_SW + ' : repli bundle indisponible (' + e + '), file runtime');
+  }
   try {
     return await osrmSchedule(request.url);
   } catch (e) {
@@ -186,25 +239,46 @@ async function osrmRespond(request) {
 // « PrefetchOSRM geometries » (bundle osrm_geometries.json commite sur gh-pages).
 // La file runtime (osrmPrefetch) reste en repli pour les paires absentes du bundle.
 async function osrmSeedFromBundle() {
+  let geoms;
   try {
-    const res = await fetch(OSRM_GEOMS_URL + '?v=' + GEOM_VERSION, { cache: 'no-store' });
-    if (!res.ok) throw new Error('bundle HTTP ' + res.status);
-    const bundle = await res.json();
-    const geoms = bundle && bundle.geometries;
-    if (!geoms) throw new Error('bundle sans geometries');
-    const cache = await caches.open(OSRM_CACHE);
-    const existing = new Set((await cache.keys()).map((r) => r.url));
-    let n = 0;
-    for (const url in geoms) {
-      if (existing.has(url)) continue;
-      await cache.put(new Request(url), new Response(JSON.stringify(geoms[url]),
-          { headers: { 'Content-Type': 'application/json' } }));
-      n++;
-    }
-    console.debug('OSRM v2 : ' + n + ' geometries installees depuis le bundle precharge');
+    geoms = await osrmLoadBundle();
   } catch (e) {
-    console.warn('OSRM v2 : bundle precharge indisponible (' + e + '), repli file runtime');
+    console.warn('OSRM ' + TRACES_SW + ' : bundle precharge indisponible (' + e
+        + '), repli file runtime + nouvelle tentative programmee');
+    osrmScheduleSeedRetry();
+    return;
   }
+  const cache = await caches.open(OSRM_CACHE);
+  const before = new Set((await cache.keys()).map((r) => r.url));
+  const urls = Object.keys(geoms);
+  let n = 0;
+  for (const url of urls) {
+    if (before.has(url)) continue;
+    await cache.put(new Request(url), osrmJsonResponse(geoms[url]));
+    n++;
+  }
+  console.debug('OSRM ' + TRACES_SW + ' : ' + n + ' geometries installees depuis le bundle ('
+      + urls.length + ' au total)');
+  // v2.1 : controle de couverture, puis nouvelle tentative si le semis est incomplet.
+  const after = new Set((await cache.keys()).map((r) => r.url));
+  const missing = urls.filter((u) => !after.has(u));
+  if (missing.length === 0) {
+    console.debug('OSRM ' + TRACES_SW + ' : couverture complete ' + after.size + '/' + urls.length);
+    return;
+  }
+  console.warn('OSRM ' + TRACES_SW + ' : ' + missing.length + ' geometries manquantes apres semis');
+  osrmScheduleSeedRetry();
+}
+
+function osrmScheduleSeedRetry() {
+  if (osrmSeedAttempts >= OSRM_SEED_MAX_ATTEMPTS) {
+    console.warn('OSRM ' + TRACES_SW + ' : semis abandonne, le repli bundle a la demande prend le relais');
+    return;
+  }
+  osrmSeedAttempts++;
+  setTimeout(() => {
+    osrmSeedFromBundle().catch((e) => console.warn('OSRM ' + TRACES_SW + ' : retry KO', e));
+  }, OSRM_SEED_RETRY_MS);
 }
 
 async function osrmPrefetch() {
@@ -224,8 +298,14 @@ async function osrmPrefetch() {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
-    await osrmSeedFromBundle();
-    await osrmPrefetch();
+    try {
+      await osrmSeedFromBundle();
+      await osrmPrefetch();
+    } catch (e) {
+      // v2.1 : un semis incomplet ne doit jamais bloquer l'activation.
+      console.warn('OSRM ' + TRACES_SW + ' : semis incomplet (' + e
+          + '), repli bundle a la demande actif');
+    }
     await caches.delete('osrm-geom-v1'); // cache v1 obsolete
   })());
 });
