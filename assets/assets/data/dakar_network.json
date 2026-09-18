@@ -198,15 +198,15 @@
     {
       "id": "stop_yoff",
       "name": "Yoff - Aéroport & Plage",
-      "latitude": 14.7645,
-      "longitude": -17.366,
+      "latitude": 14.7604,
+      "longitude": -17.4681,
       "data_trust": "OFFICIAL"
     },
     {
       "id": "stop_yoff_pecheurs",
       "name": "Yoff Pêcheurs - Tata",
-      "latitude": 14.77,
-      "longitude": -17.395,
+      "latitude": 14.7572,
+      "longitude": -17.4698,
       "data_trust": "FIELD_OBSERVATION"
     },
     {
@@ -429,8 +429,8 @@
     {
       "id": "stop_malika",
       "name": "Malika - Keur Massar",
-      "latitude": 14.785,
-      "longitude": -17.31,
+      "latitude": 14.8015,
+      "longitude": -17.3376,
       "data_trust": "FIELD_OBSERVATION"
     },
     {
@@ -590,8 +590,8 @@
     {
       "id": "stop_yoff_tonghor",
       "name": "Yoff Tonghor - Aéroport",
-      "latitude": 14.768,
-      "longitude": -17.37,
+      "latitude": 14.7487,
+      "longitude": -17.4723,
       "data_trust": "FIELD_OBSERVATION"
     },
     {

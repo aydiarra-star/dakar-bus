@@ -3,9 +3,9 @@ const MANIFEST = 'flutter-app-manifest';
 const TEMP = 'flutter-temp-cache';
 const CACHE_NAME = 'flutter-app-cache';
 
-const RESOURCES = {"flutter_bootstrap.js": "ca575631eb3d787c1141a2fb083154c5",
-"index.html": "25e852ff7bfc999982a648c985aa4341",
-"/": "25e852ff7bfc999982a648c985aa4341",
+const RESOURCES = {"flutter_bootstrap.js": "f8621db206f6b8f7fe0dad8e136bff7c",
+"index.html": "42e430c45a5f1c62105082da3931ee39",
+"/": "42e430c45a5f1c62105082da3931ee39",
 "canvaskit/skwasm.worker.js": "89990e8c92bcb123999aa81f7e203b1c",
 "canvaskit/skwasm.js.symbols": "262f4827a1317abb59d71d6c587a93e2",
 "canvaskit/skwasm.wasm": "9f0c0c02b82a910d12ce0543ec130e60",
@@ -17,9 +17,10 @@ const RESOURCES = {"flutter_bootstrap.js": "ca575631eb3d787c1141a2fb083154c5",
 "canvaskit/canvaskit.js.symbols": "48c83a2ce573d9692e8d970e288d75f7",
 "canvaskit/skwasm.js": "694fda5704053957c2594de355805228",
 "flutter.js": "f393d3c16b631f36852323de8e583132",
-"main.dart.js": "f6fdb5ebe612c2786295b8728ca3a0cf",
-"version.json": "8e393564547bbe0a4b3401c3ff70dca4",
-"assets/assets/data/dakar_network.json": "c2560387e93949b86af06aaa11effcf0",
+"main.dart.js": "0f1a5d111872aa16ec52e035a41479de",
+"version.json": "4667366da077675603bb0ec12a23f2ae",
+"assets/assets/data/dakar_network.json": "0e3fad1b6af958f1dc77d608c9b33574",
+"assets/assets/data/osrm_pairs.json": "3ddadaab1784b1d8d1601f81376cb3f5",
 "assets/packages/cupertino_icons/assets/CupertinoIcons.ttf": "e986ebe42ef785b27164c36a9abc7818",
 "assets/packages/flutter_map/lib/assets/flutter_map_logo.png": "208d63cc917af9713fc9572bd5c09362",
 "assets/fonts/MaterialIcons-Regular.otf": "d164c2e1de1f8d6c9305a88053d6c824",
@@ -108,10 +109,100 @@ self.addEventListener("activate", function(event) {
     }
   }());
 });
+
+// ===== Traces routiers reels (fix geographies) =====
+// Pre-charge en file regulée les geometries OSRM de toutes les paires d'arrets
+// du reseau, les garde en cache persistant, et sert les requetes OSRM de l'app
+// depuis ce cache : plus de rate-limit publique, plus de lignes droites, offline.
+const OSRM_CACHE = 'osrm-geom-v1';
+const OSRM_PREFIX = 'https://router.project-osrm.org/route/v1/driving/';
+const OSRM_PAIRS_URL = 'assets/assets/data/osrm_pairs.json';
+let osrmInflight = {};
+let osrmQueue = [];
+let osrmActive = 0;
+let osrmPrefetchStarted = false;
+const OSRM_MAX_CONC = 2;
+const OSRM_SPACING_MS = 400;
+const OSRM_TIMEOUT_MS = 10000;
+
+function osrmNetwork(url, attempt) {
+  return new Promise((resolve, reject) => {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), OSRM_TIMEOUT_MS);
+    fetch(url, { signal: ctrl.signal }).then((res) => {
+      clearTimeout(t);
+      if (res.ok) {
+        return caches.open(OSRM_CACHE).then((c) => c.put(url, res.clone())).then(() => resolve(res));
+      }
+      if ((res.status === 429 || res.status >= 500) && attempt < 4) {
+        return setTimeout(() => resolve(osrmNetwork(url, attempt + 1)), 1500 * attempt);
+      }
+      reject(new Error('OSRM ' + res.status));
+    }).catch((e) => {
+      clearTimeout(t);
+      if (attempt < 4) return setTimeout(() => resolve(osrmNetwork(url, attempt + 1)), 1500 * attempt);
+      reject(e);
+    });
+  });
+}
+
+function osrmSchedule(url) {
+  if (osrmInflight[url]) return osrmInflight[url];
+  const p = new Promise((resolve, reject) => { osrmQueue.push({ url, resolve, reject }); osrmPump(); });
+  osrmInflight[url] = p;
+  p.finally(() => { delete osrmInflight[url]; });
+  return p;
+}
+
+function osrmPump() {
+  while (osrmActive < OSRM_MAX_CONC && osrmQueue.length > 0) {
+    const job = osrmQueue.shift();
+    osrmActive++;
+    osrmNetwork(job.url, 1)
+      .then(job.resolve)
+      .catch((e) => { console.warn('OSRM serve fail', job.url, e); job.reject(e); })
+      .finally(() => { osrmActive--; setTimeout(osrmPump, OSRM_SPACING_MS); });
+  }
+}
+
+async function osrmRespond(request) {
+  const cache = await caches.open(OSRM_CACHE);
+  const hit = await cache.match(request);
+  if (hit) return hit;
+  try {
+    return await osrmSchedule(request.url);
+  } catch (e) {
+    // Dernier recours : reseau direct non limite
+    return fetch(request, { cache: 'no-store' });
+  }
+}
+
+async function osrmPrefetch() {
+  if (osrmPrefetchStarted) return;
+  osrmPrefetchStarted = true;
+  try {
+    const cache = await caches.open(OSRM_CACHE);
+    const res = await fetch(OSRM_PAIRS_URL, { cache: 'no-store' });
+    const pairs = await res.json();
+    const existing = new Set((await cache.keys()).map((r) => r.url));
+    for (const url of pairs) {
+      if (!existing.has(url)) osrmSchedule(url).catch(() => {});
+    }
+    console.debug('OSRM prefetch :', pairs.length - existing.size, 'geometries en file');
+  } catch (e) { console.warn('OSRM prefetch fail', e); }
+}
+
+self.addEventListener('activate', (event) => { event.waitUntil(osrmPrefetch()); });
+
 // The fetch handler redirects requests for RESOURCE files to the service
 // worker cache.
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== 'GET') {
+    return;
+  }
+  // Requetes OSRM : servir depuis le cache de traces reels (ou file regulée).
+  if (event.request.url.startsWith(OSRM_PREFIX)) {
+    event.respondWith(osrmRespond(event.request));
     return;
   }
   var origin = self.location.origin;
