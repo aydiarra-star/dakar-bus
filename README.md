@@ -41,7 +41,7 @@ Source : CETUD brochure + Senego + Wikipedia BRT Dakar
 22. Gadaye - Cambérène
 23. Préfecture Guédiawaye - PEM
 
-+ 13 gares TER Dakar → AIBD + arrêts DDD/AFTU
++ 13 gares TER Dakar → Diamniadio + arrêts DDD/AFTU
 
 Tout est dans `data/gtfs/stops.txt` et affiché sur carte avec icônes violettes BRT.
 

@@ -1,5 +1,5 @@
 // Dakar Mobilité - Service Worker PWA + Offline + GTFS-RT cache
-const CACHE_VERSION = 'dakar-mobilite-v2.1';
+const CACHE_VERSION = 'dakar-mobilite-v2.2';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const GTFS_CACHE = `${CACHE_VERSION}-gtfs`;
@@ -9,6 +9,11 @@ const STATIC_ASSETS = [
   '/index.html',
   '/manifest.json',
   '/offline.html',
+  '/data/gtfs/stops.txt',
+  '/data/gtfs/shapes.txt',
+  '/data/gtfs/routes.txt',
+  '/data/gtfs/trips.txt',
+  '/data/gtfs/stop_times.txt',
   'https://cdn.tailwindcss.com',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',

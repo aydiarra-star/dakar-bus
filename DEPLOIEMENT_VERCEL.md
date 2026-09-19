@@ -92,7 +92,7 @@ Service Worker est servi avec `Cache-Control: no-cache` pour updates.
 
 Le feed GTFS static Dakar que j'ai généré :
 
-- **12 arrêts**: Petersen, UCAD, Liberté 6, Colobane, Guédiawaye, Yoff, Plateau, Parcelles, Pikine, Keur Massar, Diamniadio, AIBD
+- **42 arrêts**: 23 stations SunuBRT réelles, 13 gares officielles TER (Dakar ↔ Diamniadio), et pôles majeurs (UCAD, Plateau, Ouakam, Almadies, Yoff, Ngor)
 - **9 routes**: BRT 01, DDD 10/07/12/23, TATA, TER, AFTU 01
 - **11 trips** + **stop_times** + **shapes** (tracés BRT, DDD, TER)
 - **API**: `/api/gtfs/static` (JSON), `/data/gtfs/stops.txt` etc.

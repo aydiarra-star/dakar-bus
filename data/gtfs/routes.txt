@@ -6,7 +6,7 @@ DDD_12,DDD,12,Guédiawaye - Parcelles - Petersen,3,3B82F6,FFFFFF,DDD L12
 DDD_23,DDD,23,Plateau - Ouakam - Ngor,3,3B82F6,FFFFFF,DDD L23
 TATA_01,AFTU,TATA 01,Colobane - Pikine,3,F59E0B,000000,Car Rapide
 TATA_02,AFTU,TATA 02,Petersen - Parcelles,3,F59E0B,000000,Car Rapide
-TER_01,TER,TER,Dakar - Diamniadio - AIBD,2,10B981,FFFFFF,TER 13 gares
+TER_01,TER,TER,Dakar - Diamniadio,2,10B981,FFFFFF,TER 13 gares officielles
 AFTU_01,AFTU,01,Guédiawaye - Yoff,3,EC4899,FFFFFF,AFTU L01
 AFTU_02,AFTU,2,Parcelles Assainies - Petersen,3,EC4899,FFFFFF,AFTU Ligne 2 - Parcelles - Petersen
 AFTU_03,AFTU,3,Grand Yoff - Petersen,3,F59E0B,000000,AFTU Ligne 3 - Grand Yoff - Petersen
