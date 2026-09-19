@@ -1,11 +1,13 @@
 {
   "name": "dakar-mobilite-pwa",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Dakar Mobilité PWA + GTFS-RT CETUD Proxy",
   "scripts": {
     "start": "node server/server.js",
     "dev": "node server/server.js",
-    "test-cetud": "node server/test-cetud.js"
+    "test-cetud": "node server/test-cetud.js",
+    "test": "node scripts/check-arrets.js",
+    "check:arrets": "node scripts/check-arrets.js"
   },
   "engines": {
     "node": ">=18"

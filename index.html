@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Dakar Bus - TER • BRT • DDD • AFTU • Tata (40 lignes)</title>
-<meta name="description" content="Dakar Bus - Réseau multimodal Dakar : TER, BRT, DDD, AFTU, Tata. 40 lignes, 40 arrêts. Planificateur d'itinéraires, carte temps réel, assistant IA.">
+<title>Dakar Bus - TER • BRT • DDD • AFTU • Tata (76 lignes • 42 arrêts)</title>
+<meta name="description" content="Dakar Bus - Réseau multimodal Dakar : TER (13 gares, Dakar ↔ Diamniadio), BRT SunuBRT (23 stations, Petersen ↔ Guédiawaye), DDD, AFTU, Tata. 42 arrêts au total. Planificateur d'itinéraires, carte temps réel, assistant IA.">
 <meta name="theme-color" content="#00B140">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -41,6 +41,26 @@ tailwind.config = {
 .bottom-nav-active svg, .bottom-nav-active span { color: #00B140; }
 .live-pulse::before { content:''; position:absolute; inset:-4px; border-radius:9999px; background: currentColor; opacity:0.2; animation: liveDot 1.5s infinite; }
 @keyframes liveDot { 0%,100% { transform: scale(1); opacity:1 } 50% { transform: scale(1.4); opacity:0.6 } }
+
+/* ---- Comptage fiable des arrêts : 1 marqueur = 1 arrêt, numéroté ----
+   TER  : 13 gares   (Dakar -> Diamniadio)
+   BRT  : 23 stations (PEM Petersen <-> PEM Guediawaye)
+   BUS  : 6 pôles
+   Les véhicules sont visuellement distincts (pas des arrêts) et filtrables. */
+.stop-pin{display:flex;align-items:center;justify-content:center;border-radius:9999px;border:2px solid #fff;color:#fff;font-weight:800;line-height:1;box-shadow:0 2px 6px rgba(15,23,42,.35);font-variant-numeric:tabular-nums}
+.stop-pin.ter{width:26px;height:26px;background:#10B981;font-size:11px}
+.stop-pin.brt{width:22px;height:22px;background:#00B140;font-size:10px}
+.stop-pin.bus{width:16px;height:16px;background:#3B82F6;font-size:8px}
+.vehicle-pin{display:flex;align-items:center;justify-content:center;width:30px;height:22px;border-radius:11px;border:2px solid #fff;font-size:12px;box-shadow:0 3px 10px rgba(15,23,42,.35);animation:vehPulse 2.2s ease-in-out infinite}
+.vehicle-pin.ter{background:#047857}
+.vehicle-pin.brt{background:#008A33}
+.vehicle-pin.ddd{background:#2563EB}
+@keyframes vehPulse { 0%,100% { transform: scale(1) } 50% { transform: scale(1.08) } }
+#map-layers input{accent-color:#00B140}
+.line-row{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;border:1px solid #E2E8F0;background:#fff}
+.line-row .lg-num{width:28px;height:28px;border-radius:9999px;background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex:0 0 auto}
+.line-row.ter .lg-num{background:#10B981}
+.line-row.brt .lg-num{background:#00B140}
 </style>
 </head>
 <body class="bg-[#f6f7f5] dark:bg-[#0a0a0b] text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-300 overflow-x-hidden pb-[84px] lg:pb-0">
@@ -84,7 +104,7 @@ tailwind.config = {
 <div class="max-w-[1440px] mx-auto mt-3 mx-4 md:mx-6 lg:mx-8">
   <div id="fix-banner" class="bg-[#0f172a] text-white rounded-[16px] px-4 py-3 flex items-start gap-3 text-[13px] leading-snug">
     <span class="text-[#00B140] mt-0.5">✓</span>
-    <div><b>Dakar Bus - Réseau officiel :</b> Map interactive + 13 gares TER (Dakar ↔ Diamniadio) + 23 stations SunuBRT réelles avec tracé officiel de corridor. <span id="sw-status" class="opacity-70">PWA prêt</span> <button onclick="this.parentElement.parentElement.remove()" class="ml-2 underline opacity-70">Fermer</button></div>
+    <div><b>Dakar Bus - Réseau officiel :</b> Carte interactive — 13 gares TER (Dakar ↔ Diamniadio) + 23 stations SunuBRT (PEM Petersen ↔ PEM Guédiawaye) + 6 pôles bus = <b>42 arrêts</b>. Chaque réseau se filtre sur la carte (arrêts numérotés 1 → 13 et 1 → 23). <span id="sw-status" class="opacity-70">PWA prêt</span> <button onclick="this.parentElement.parentElement.remove()" class="ml-2 underline opacity-70">Fermer</button></div>
   </div>
 </div>
 
@@ -97,6 +117,39 @@ tailwind.config = {
       <div class="rounded-[24px] overflow-hidden bg-white dark:bg-zinc-900 border border-slate-200/60 dark:border-zinc-800 shadow-[0_8px_40px_rgba(0,0,0,0.04)]">
         <div class="relative">
           <div id="map" class="h-[380px] md:h-[520px] w-full z-0"></div>
+
+          <!-- Panneau calques : compte officiel des arrêts affichés -->
+          <div id="map-layers" class="absolute top-3 left-3 z-[400] w-[218px] rounded-2xl bg-white/95 dark:bg-zinc-900/95 backdrop-blur shadow-lg border border-slate-200 dark:border-zinc-700 text-[12px]">
+            <button id="map-layers-toggle" class="w-full h-9 px-3 flex items-center justify-between gap-2 font-bold rounded-2xl">
+              <span class="flex items-center gap-1.5">🧭 Calques réseau
+                <span id="map-layers-count" class="px-2 py-0.5 rounded-full bg-[#E6F7ED] text-[#007A2F] font-bold text-[11px]">42</span>
+              </span>
+              <span id="map-layers-caret">▾</span>
+            </button>
+            <div id="map-layers-body" class="px-3 pb-3 space-y-1.5">
+              <label class="flex items-center justify-between gap-2 cursor-pointer">
+                <span class="flex items-center gap-1.5"><input type="checkbox" data-layer="ter" checked> 🚆 TER — gares</span><b class="text-emerald-700" data-count-ter>13</b>
+              </label>
+              <label class="flex items-center justify-between gap-2 cursor-pointer">
+                <span class="flex items-center gap-1.5"><input type="checkbox" data-layer="brt" checked> 🚌 SunuBRT — stations</span><b class="text-[#007A2F]" data-count-brt>23</b>
+              </label>
+              <label class="flex items-center justify-between gap-2 cursor-pointer">
+                <span class="flex items-center gap-1.5"><input type="checkbox" data-layer="bus" checked> 🚏 Bus — pôles</span><b class="text-blue-700" data-count-bus>6</b>
+              </label>
+              <label class="flex items-center justify-between gap-2 cursor-pointer border-t border-slate-100 dark:border-zinc-800 pt-1.5">
+                <span class="flex items-center gap-1.5"><input type="checkbox" data-layer="vehicles" checked> 🚍 Véhicules en direct</span><b class="text-slate-500" data-count-vehicles>13</b>
+              </label>
+              <div class="flex gap-1.5 pt-1">
+                <button id="map-detail-ter" class="flex-1 h-7 rounded-full bg-[#ECFDF5] text-[#065F46] border border-[#A7F3D0] font-bold">🚆 1→13</button>
+                <button id="map-detail-brt" class="flex-1 h-7 rounded-full bg-[#E6F7ED] text-[#007A2F] border border-[#C2EAD0] font-bold">🚌 1→23</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Badge : ce qui est réellement affiché sur la carte -->
+          <div id="map-network-badge" class="hidden md:flex absolute top-3 left-1/2 -translate-x-1/2 z-[400] px-3 h-8 rounded-full bg-[#0f172a]/92 text-white text-[12px] font-bold items-center gap-1.5 shadow-lg">
+            42 arrêts affichés
+          </div>
           <!-- Réduire top right -->
           <div class="absolute top-3 right-3 z-[400]">
             <button id="reduce-map" class="px-4 h-9 rounded-full bg-white shadow-md border border-slate-200 text-[#00B140] text-[13px] font-bold flex items-center gap-1.5">
@@ -150,7 +203,14 @@ tailwind.config = {
       </div>
 
       <!-- Count -->
-      <div class="text-[14px] px-1 pt-1"><span class="font-bold text-[18px]" id="arrets-count">42 arrêts</span> <span class="opacity-60 text-[13px]"> (13 TER & 23 BRT réelles • cliquez pour localiser)</span></div>
+      <div class="text-[14px] px-1 pt-1 flex flex-wrap items-center gap-x-2 gap-y-2">
+        <span class="font-bold text-[18px]" id="arrets-count">42 arrêts</span>
+        <span class="opacity-70 text-[13px]" id="network-summary">13 gares TER + 23 stations SunuBRT + 6 pôles bus • cliquez sur un arrêt pour le localiser</span>
+        <span class="flex gap-1.5">
+          <button id="btn-detail-ter" class="px-3 h-7 rounded-full bg-[#ECFDF5] text-[#065F46] border border-[#A7F3D0] text-[12px] font-bold">🚆 Voir les 13 gares</button>
+          <button id="btn-detail-brt" class="px-3 h-7 rounded-full bg-[#E6F7ED] text-[#007A2F] border border-[#C2EAD0] text-[12px] font-bold">🚌 Voir les 23 stations</button>
+        </span>
+      </div>
 
       <!-- List -->
       <div id="arrets-list" class="space-y-3 pb-2"></div>
@@ -221,7 +281,7 @@ tailwind.config = {
     <section id="tab-transports" class="tab-content hidden">
       <div class="grid md:grid-cols-3 gap-4">
         <div class="md:col-span-3 rounded-[24px] bg-white border p-6 flex flex-wrap items-center justify-between gap-4">
-          <div><h2 class="font-display text-[22px] font-bold">Dakar Bus - Flotte en direct</h2><p class="text-[13px] text-slate-500">TER 13 gares • SunuBRT 23 stations • DDD • AFTU 64 lignes • Tata</p></div>
+          <div><h2 class="font-display text-[22px] font-bold">Dakar Bus - Flotte en direct</h2><p class="text-[13px] text-slate-500"><span data-count-ter>13</span> gares TER • <span data-count-brt>23</span> stations SunuBRT • <span data-count-bus>6</span> pôles bus • <span id="lines-count">76</span> lignes GTFS</p></div>
           <div class="flex gap-2"><span class="px-3 py-1.5 rounded-full bg-[#E6F7ED] text-[#007A2F] border border-[#C2EAD0] text-[12px] font-bold">● 127 véhicules actifs</span><button id="toggle-vehicles" class="px-4 h-9 rounded-full bg-[#00B140] text-white text-[12px] font-bold">Afficher sur carte</button></div>
         </div>
         <div id="transport-cards" class="md:col-span-3 grid md:grid-cols-3 gap-4"></div>
@@ -269,7 +329,7 @@ tailwind.config = {
       <div class="w-10 h-10 rounded-[12px] bg-[#00B140] text-white flex items-center justify-center font-bold">D</div>
       <div>
         <div class="font-bold text-[14px]">DAKAR BUS • TER • BRT • DDD • AFTU • Tata</div>
-        <div class="text-[11px] opacity-60">13 TER • 23 SunuBRT réelles • 64 AFTU • 42 arrêts • PWA • aydiarra-star.github.io/dakar-bus</div>
+        <div class="text-[11px] opacity-60"><span data-count-ter>13</span> gares TER • <span data-count-brt>23</span> stations SunuBRT • <span data-count-bus>6</span> pôles bus • <span data-count-total>42 arrêts</span> • <span id="lines-count-2">76</span> lignes • PWA • aydiarra-star.github.io/dakar-bus</div>
       </div>
     </div>
     <div class="flex flex-wrap gap-2 text-[12px]">
@@ -307,6 +367,21 @@ tailwind.config = {
 </nav>
 
 <div id="toast-container" class="fixed bottom-[90px] lg:bottom-4 right-4 z-[2000] space-y-2 pointer-events-none"></div>
+
+<!-- Détail de ligne : liste numérotée officielle (preuve du nombre d'arrêts) -->
+<div id="line-modal" class="hidden fixed inset-0 z-[2100] bg-black/50 backdrop-blur-sm">
+  <div class="absolute inset-x-0 bottom-0 md:inset-y-0 md:right-0 md:left-auto md:w-[470px] bg-white dark:bg-zinc-900 rounded-t-[24px] md:rounded-none max-h-[85vh] md:max-h-full overflow-y-auto">
+    <div class="sticky top-0 z-10 bg-white/95 dark:bg-zinc-900/95 backdrop-blur border-b border-slate-200 dark:border-zinc-800 px-5 py-4 flex items-center justify-between gap-3">
+      <div>
+        <div class="font-display font-bold text-[17px]" id="line-modal-title">TER</div>
+        <div class="text-[12px] text-slate-500" id="line-modal-sub">13 gares officielles</div>
+      </div>
+      <button id="line-modal-close" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-zinc-800 flex items-center justify-center">✕</button>
+    </div>
+    <div id="line-modal-body" class="p-4 space-y-2"></div>
+    <div class="px-5 pb-6 text-[11px] text-slate-400" id="line-modal-foot"></div>
+  </div>
+</div>
 
 <script>
 // FIX REFRESH BUG - conserve onglet
@@ -348,7 +423,7 @@ function renderTabs() {
       btn.classList.remove('tab-active');
     }
   });
-  if (activeTab==='explorer' && window.map) setTimeout(()=>window.map.invalidateSize(), 200);
+  if (activeTab==='explorer' && window.__dakarMap) setTimeout(()=>window.__dakarMap.invalidateSize(), 200);
 }
 function switchTab(tab) {
   if (!VALID_TABS.includes(tab)) return;
@@ -1164,6 +1239,186 @@ let brtGroup=null, terGroup=null, busGroup=null;
 let stopMarkers=[];
 const DAKAR_CENTER=[14.7167,-17.4677];
 
+/* =============================================================================
+   COMPTAGE OFFICIEL DES ARRÊTS — SOURCE UNIQUE (data/gtfs/stops.txt)
+   TER  : 13 gares    (Dakar -> Diamniadio)            -> marqueurs 1 à 13
+   BRT  : 23 stations (PEM Petersen <-> PEM Guédiawaye) -> marqueurs 1 à 23
+   BUS  : 6 pôles
+   Règle : quand un filtre réseau est actif, la carte n'affiche QUE les arrêts
+   de ce réseau (les autres lignes, et les véhicules des autres lignes, sont
+   retirés de la carte). 1 marqueur numéroté = 1 arrêt.
+   ========================================================================== */
+const NETWORKS = {
+  TER: { key:'TER', label:'TER Dakar ↔ Diamniadio', emoji:'🚆', color:'#10B981', plural:'gares', kind:'gare' },
+  BRT: { key:'BRT', label:'SunuBRT — Ligne B1 omnibus', emoji:'🚌', color:'#00B140', plural:'stations', kind:'station' },
+  BUS: { key:'BUS', label:'Pôles bus Dakar (DDD / AFTU)', emoji:'🚏', color:'#3B82F6', plural:'pôles bus', kind:'pôle' }
+};
+const LAYERS = { ter:true, brt:true, bus:true, vehicles:true };
+const vehicleGroups = {};                 // route -> L.layerGroup
+let NETWORK_STATS = { TER:13, BRT:23, BUS:6, total:42 };
+const NETWORK_OFFICIEL = { TER:13, BRT:23, BUS:6 };
+let LINES_TOTAL = 76;
+
+function networkOf(stop){
+  if(!stop) return 'BUS';
+  const id = String(stop.id || '');
+  if(stop.type === 'TER' || id.startsWith('TER_')) return 'TER';
+  if(stop.type === 'BRT' || id.startsWith('BRT_')) return 'BRT';
+  return 'BUS';
+}
+function networkStats(list){
+  const out = { TER:0, BRT:0, BUS:0, total:0 };
+  (list||[]).forEach(s => { out[networkOf(s)]++; out.total++; });
+  return out;
+}
+function sequenceOf(stop, index){
+  if(stop && stop.seq) return stop.seq;
+  const m = /^(?:TER|BRT)_(\d+)/.exec(String(stop && stop.id || ''));
+  return m ? parseInt(m[1],10) : (index+1);
+}
+function sortBySequence(list){ return [...list].sort((a,b) => (a.seq||99) - (b.seq||99)); }
+function setGroupOnMap(group, on){
+  if(!map || !group) return;
+  if(on){ if(!map.hasLayer(group)) group.addTo(map); }
+  else if(map.hasLayer(group)) map.removeLayer(group);
+}
+function setLineOnMap(line, casing, on){
+  if(!map) return;
+  [line, casing].forEach(l => {
+    if(!l) return;
+    if(on){ if(!map.hasLayer(l)) l.addTo(map); }
+    else if(map.hasLayer(l)) map.removeLayer(l);
+  });
+}
+function visibleStopsOnMap(net){
+  const s = NETWORK_STATS;
+  if(net === 'TER') return LAYERS.ter ? s.TER : 0;
+  if(net === 'BRT') return LAYERS.brt ? s.BRT : 0;
+  if(net === 'BUS') return LAYERS.bus ? s.BUS : 0;
+  return (LAYERS.ter ? s.TER : 0) + (LAYERS.brt ? s.BRT : 0) + (LAYERS.bus ? s.BUS : 0);
+}
+function currentNetwork(){
+  if(activeFilter === 'ter') return 'TER';
+  if(activeFilter === 'brt') return 'BRT';
+  if(activeFilter === 'ddd' || activeFilter === 'aftu' || activeFilter === 'tata') return 'BUS';
+  return 'ALL';
+}
+function updateMapBadge(net){
+  const el = document.getElementById('map-network-badge');
+  const s = NETWORK_STATS;
+  if(el){
+    if(net === 'TER'){
+      el.innerHTML = LAYERS.ter
+        ? `🚆 TER : <b>${s.TER}</b> gares affichées (1 → ${s.TER}) — aucun autre arrêt`
+        : `🚆 TER : calque masqué — <b>0</b> gare affichée`;
+    } else if(net === 'BRT'){
+      el.innerHTML = LAYERS.brt
+        ? `🚌 SunuBRT : <b>${s.BRT}</b> stations affichées (1 → ${s.BRT}) — aucun autre arrêt`
+        : `🚌 SunuBRT : calque masqué — <b>0</b> station affichée`;
+    } else if(net === 'BUS'){
+      el.innerHTML = LAYERS.bus
+        ? `🚏 Bus : <b>${s.BUS}</b> pôles affichés — aucun arrêt TER/BRT`
+        : `🚏 Bus : calque masqué — <b>0</b> pôle affiché`;
+    } else {
+      // "Tous" : n'annonce que les réseaux dont le calque est réellement visible
+      const visibles = [];
+      if(LAYERS.ter) visibles.push(`${s.TER} TER`);
+      if(LAYERS.brt) visibles.push(`${s.BRT} BRT`);
+      if(LAYERS.bus) visibles.push(`${s.BUS} bus`);
+      el.innerHTML = `<b>${visibleStopsOnMap('ALL')}</b> arrêts affichés : ${visibles.join(' + ') || 'aucun'}`;
+    }
+  }
+  const chip = document.getElementById('map-layers-count');
+  if(chip) chip.textContent = String(visibleStopsOnMap(net));
+}
+function updateNetworkSummary(){
+  const el = document.getElementById('network-summary');
+  const s = NETWORK_STATS;
+  if(!el) return;
+  if(activeFilter === 'ter') el.textContent = `Filtre TER : les ${s.TER} gares sont affichées (1 → ${s.TER}) — les ${s.BRT} stations BRT et les ${s.BUS} pôles bus sont masqués.`;
+  else if(activeFilter === 'brt') el.textContent = `Filtre BRT : les ${s.BRT} stations sont affichées (1 → ${s.BRT}) — les ${s.TER} gares TER et les ${s.BUS} pôles bus sont masqués.`;
+  else if(activeFilter === 'ddd' || activeFilter === 'aftu' || activeFilter === 'tata') el.textContent = `Filtre bus : ${s.BUS} pôles affichés — les ${s.TER} gares TER et les ${s.BRT} stations BRT sont masqués.`;
+  else el.textContent = `Comptage officiel : ${s.TER} gares TER + ${s.BRT} stations SunuBRT + ${s.BUS} pôles bus = ${s.total} arrêts — cliquez sur un arrêt pour le localiser.`;
+}
+function updateNetworkCounts(){
+  const s = NETWORK_STATS;
+  document.querySelectorAll('[data-count-ter]').forEach(el => el.textContent = String(s.TER));
+  document.querySelectorAll('[data-count-brt]').forEach(el => el.textContent = String(s.BRT));
+  document.querySelectorAll('[data-count-bus]').forEach(el => el.textContent = String(s.BUS));
+  document.querySelectorAll('[data-count-total]').forEach(el => el.textContent = s.total + ' arrêts');
+  document.querySelectorAll('[data-count-vehicles]').forEach(el => el.textContent = String(vehicleMarkers.length));
+  document.querySelectorAll('[data-count-lines], #lines-count, #lines-count-2').forEach(el => el.textContent = String(LINES_TOTAL));
+  const lbl = document.getElementById('map-layers-total');
+  if(lbl) lbl.textContent = s.total + ' arrêts';
+  updateNetworkSummary();
+  updateMapBadge(currentNetwork());
+}
+function applyMapFilter(){
+  if(!map) return;
+  const net = currentNetwork();
+  const showTER = (net === 'ALL' || net === 'TER') && LAYERS.ter;
+  const showBRT = (net === 'ALL' || net === 'BRT') && LAYERS.brt;
+  const showBUS = (net === 'ALL' || net === 'BUS') && LAYERS.bus;
+
+  setGroupOnMap(terGroup, showTER);
+  setGroupOnMap(brtGroup, showBRT);
+  setGroupOnMap(busGroup, showBUS);
+  setLineOnMap(terPolyline, terCasing, showTER);
+  setLineOnMap(brtPolyline, brtCasing, showBRT);
+
+  Object.keys(vehicleGroups).forEach(route => {
+    const isTERroute = (route === 'TER');
+    const isBRTroute = (route === 'BRT 01');
+    const ok = LAYERS.vehicles && (
+      net === 'ALL' ||
+      (net === 'TER' && isTERroute) ||
+      (net === 'BRT' && isBRTroute) ||
+      (net === 'BUS' && !isTERroute && !isBRTroute)
+    );
+    setGroupOnMap(vehicleGroups[route], ok);
+  });
+
+  // synchronise les cases à cocher + le résumé + le badge
+  document.querySelectorAll('#map-layers input[type=checkbox]').forEach(cb => { cb.checked = !!LAYERS[cb.dataset.layer]; });
+  updateNetworkSummary();
+  updateMapBadge(net);
+}
+window.closeLineDetail = function(){
+  const modal = document.getElementById('line-modal');
+  if(modal) modal.classList.add('hidden');
+  document.body.style.overflow = '';
+  if(map) setTimeout(() => map.invalidateSize(), 150);
+};
+window.openLineDetail = function(net){
+  const modal = document.getElementById('line-modal');
+  if(!modal) return;
+  const all = (window.gtfsStops && window.gtfsStops.length) ? [...window.gtfsStops] : [...ALL_ARRETS];
+  const list = sortBySequence(all.filter(s => networkOf(s) === net));
+  const def = NETWORKS[net] || NETWORKS.BUS;
+  const title = document.getElementById('line-modal-title');
+  const sub = document.getElementById('line-modal-sub');
+  const body = document.getElementById('line-modal-body');
+  const foot = document.getElementById('line-modal-foot');
+  if(title) title.textContent = def.emoji + ' ' + def.label;
+  if(sub) sub.textContent = `${list.length} ${def.plural} — liste numérotée 1 → ${list.length}`;
+  if(body) body.innerHTML = list.map((s,i) => `
+    <div class="line-row ${net === 'TER' ? 'ter' : net === 'BRT' ? 'brt' : ''}" style="cursor:pointer" onclick="window.closeLineDetail(); window.focusStop(${s.lat}, ${s.lng}, '${String(s.name).replace(/'/g, "\\'")}')">
+      <div class="lg-num">${s.seq || (i+1)}</div>
+      <div class="flex-1 min-w-0">
+        <div class="font-bold text-[14px] truncate">${s.name}</div>
+        <div class="text-[11px] text-slate-500">${s.time ? 'Passage de référence ' + s.time + ' • ' : ''}${s.dir || ''}</div>
+      </div>
+      <span class="text-[11px] font-bold ${net === 'TER' ? 'text-emerald-700' : 'text-[#007A2F]'}">${i+1}/${list.length}</span>
+    </div>`).join('');
+  if(foot) foot.textContent = net === 'TER'
+    ? 'Source : SETER / CETUD — phase 1 Dakar ↔ Diamniadio, 36 km, 13 gares. La 14e gare (AIBD) relève de la phase 2, non ouverte.'
+    : net === 'BRT'
+      ? 'Source : CETUD / SunuBRT — corridor B1 omnibus PEM Petersen ↔ PEM Guédiawaye, 18,3 km, 23 stations.'
+      : "Source : GTFS Dakar Bus — pôles d'échange DDD / AFTU.";
+  modal.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+};
+
 window.focusStop = function(lat, lng, name){
   if(!map) return;
   map.setView([lat, lng], 15, { animate: true });
@@ -1180,6 +1435,29 @@ window.focusStop = function(lat, lng, name){
 async function loadGTFSStatic(){
   try{
     let stops=null;
+    let stopTimes={};
+    try{
+      const stRes=await fetch('data/gtfs/stop_times.txt');
+      if(stRes.ok){
+        const stText=await stRes.text();
+        stText.trim().split('\n').slice(1).forEach(line=>{
+          const c=line.split(',');
+          const trip=(c[0]||'').trim();
+          if(trip==='TER_01_001'||trip==='BRT_01_001'){
+            const sid=(c[3]||'').trim();
+            if(sid) stopTimes[sid]=((c[2]||c[1]||'').trim()||'').slice(0,5);
+          }
+        });
+      }
+    }catch(err){ /* horaires optionnels */ }
+    try{
+      const rRes=await fetch('data/gtfs/routes.txt');
+      if(rRes.ok){
+        const rTxt=await rRes.text();
+        const n=rTxt.trim().split('\n').length-1;
+        if(n>0) LINES_TOTAL=n;
+      }
+    }catch(err){ /* optionnel */ }
     try{
       const stopsRes=await fetch('data/gtfs/stops.txt');
       if(stopsRes.ok){
@@ -1208,6 +1486,7 @@ async function loadGTFSStatic(){
           next: isTER ? ['4 min', '14 min'] : isBRT ? ['2 min', '7 min'] : ['5 min', '12 min'],
           status: isTER ? 'Gare officielle' : isBRT ? 'Voie réservée' : 'Fluide',
           type: isTER ? 'TER' : isBRT ? 'BRT' : 'DDD',
+          time: stopTimes[s.stop_id] || null,
           lat: parseFloat(s.stop_lat),
           lng: parseFloat(s.stop_lon)
         };
@@ -1216,6 +1495,19 @@ async function loadGTFSStatic(){
       parsedStops = ALL_ARRETS;
     }
 
+    // Numérotation officielle 1 -> N (TER 1->13, BRT 1->23, BUS 1->6)
+    const byNet = { TER:[], BRT:[], BUS:[] };
+    parsedStops.forEach(s => { byNet[networkOf(s)].push(s); });
+    ['TER','BRT','BUS'].forEach(net => {
+      byNet[net].sort((a,b)=>{
+        const na=/^(?:TER|BRT)_(\d+)/.exec(String(a.id)), nb=/^(?:TER|BRT)_(\d+)/.exec(String(b.id));
+        if(na && nb) return parseInt(na[1],10)-parseInt(nb[1],10);
+        return String(a.name||'').localeCompare(String(b.name||''), 'fr');
+      }).forEach((s,i)=>{ s.net=net; s.seq=i+1; });
+    });
+
+    NETWORK_STATS = networkStats(parsedStops);
+    window.dakarNetworkStats = NETWORK_STATS;
     window.gtfsStops = parsedStops;
     gtfsStaticData = { stops: parsedStops, _meta: { stops: parsedStops.length, routes: 9 } };
 
@@ -1229,55 +1521,62 @@ async function loadGTFSStatic(){
       parsedStops.forEach(stop=>{
         const lat=stop.lat, lng=stop.lng;
         if(isNaN(lat)||isNaN(lng)) return;
-        const isTER = stop.type==='TER' || stop.id.startsWith('TER_');
-        const isBRT = stop.type==='BRT' || stop.id.startsWith('BRT_');
+        const net = networkOf(stop);
+        const isTER = (net === 'TER');
+        const isBRT = (net === 'BRT');
+        const netTotal = NETWORK_STATS[net] || 0;
+        const seq = stop.seq || 0;
+        const size = isTER ? 26 : isBRT ? 22 : 16;
 
         let markerHtml = '';
         let targetGroup = busGroup;
         let popupHtml = '';
 
+        // 1 marqueur = 1 arrêt, numéroté dans l'ordre officiel (data-seq permet de compter sur la carte)
+        markerHtml = `<div class="stop-pin ${isTER ? 'ter' : isBRT ? 'brt' : 'bus'}" data-kind="stop" data-net="${net}" data-seq="${seq}" title="${net} ${seq}/${netTotal} — ${stop.name}" style="width:${size}px;height:${size}px">${isTER || isBRT ? seq : '🚏'}</div>`;
+        const markerIcon = L.divIcon({ className: '', html: markerHtml, iconSize: [size, size], iconAnchor: [size/2, size/2] });
+
         if(isTER){
           targetGroup = terGroup;
-          markerHtml = `<div style="width:24px;height:24px;background:#10B981;border:2.5px solid white;border-radius:50%;box-shadow:0 3px 8px rgba(16,185,129,0.5);display:flex;align-items:center;justify-content:center;color:white;font-size:12px;font-weight:bold">🚆</div>`;
           popupHtml = `
             <div style="font-family:sans-serif;min-width:200px">
-              <div style="display:inline-block;padding:2px 8px;border-radius:9999px;background:#ECFDF5;color:#065F46;font-weight:700;font-size:10px;margin-bottom:4px">🚆 TER Dakar • Gare officielle</div>
+              <div style="display:inline-block;padding:2px 8px;border-radius:9999px;background:#ECFDF5;color:#065F46;font-weight:700;font-size:10px;margin-bottom:4px">🚆 TER Dakar • Gare officielle ${seq}/${netTotal}</div>
               <div style="font-weight:bold;font-size:14px;color:#0f172a">${stop.name}</div>
-              <div style="font-size:12px;color:#64748b;margin-top:2px">Ligne Dakar ↔ Diamniadio (13 gares)</div>
-              <div style="font-size:11px;color:#10B981;font-weight:600;margin-top:4px">Prochain départ : ${stop.next[0]} • Cadence 10 min</div>
+              <div style="font-size:12px;color:#64748b;margin-top:2px">Ligne Dakar ↔ Diamniadio — ${netTotal} gares (marqueurs 1 → ${netTotal})</div>
+              <div style="font-size:11px;color:#10B981;font-weight:600;margin-top:4px">${stop.time ? 'Passage de référence ' + stop.time + ' • ' : 'Prochain départ : ' + stop.next[0] + ' • '}Cadence 10 min</div>
             </div>`;
         } else if(isBRT){
           targetGroup = brtGroup;
           markerHtml = `<div style="width:20px;height:20px;background:#00B140;border:2px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(0,177,64,0.45);display:flex;align-items:center;justify-content:center;color:white;font-size:10px;font-weight:bold">B</div>`;
           popupHtml = `
             <div style="font-family:sans-serif;min-width:200px">
-              <div style="display:inline-block;padding:2px 8px;border-radius:9999px;background:#E6F7ED;color:#007A2F;font-weight:700;font-size:10px;margin-bottom:4px">🚌 SunuBRT • Station officielle</div>
+              <div style="display:inline-block;padding:2px 8px;border-radius:9999px;background:#E6F7ED;color:#007A2F;font-weight:700;font-size:10px;margin-bottom:4px">🚌 SunuBRT • Station officielle ${seq}/${netTotal}</div>
               <div style="font-weight:bold;font-size:14px;color:#0f172a">${stop.name}</div>
-              <div style="font-size:12px;color:#64748b;margin-top:2px">Corridor Petersen ↔ Guédiawaye (23 stations)</div>
-              <div style="font-size:11px;color:#00B140;font-weight:600;margin-top:4px">Prochain bus : ${stop.next[0]} • Voie dédiée</div>
+              <div style="font-size:12px;color:#64748b;margin-top:2px">Corridor Petersen ↔ Guédiawaye — ${netTotal} stations (marqueurs 1 → ${netTotal})</div>
+              <div style="font-size:11px;color:#00B140;font-weight:600;margin-top:4px">${stop.time ? 'Passage de référence ' + stop.time + ' • ' : 'Prochain bus : ' + stop.next[0] + ' • '}Voie dédiée</div>
             </div>`;
         } else {
           targetGroup = busGroup;
-          markerHtml = `<div style="width:16px;height:16px;background:#3B82F6;border:2px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(59,130,246,0.35);display:flex;align-items:center;justify-content:center;color:white;font-size:8px;font-weight:bold">🚏</div>`;
           popupHtml = `
             <div style="font-family:sans-serif;min-width:180px">
-              <div style="display:inline-block;padding:2px 8px;border-radius:9999px;background:#EFF6FF;color:#1D4ED8;font-weight:700;font-size:10px;margin-bottom:4px">🚌 Pôle Bus Dakar</div>
+              <div style="display:inline-block;padding:2px 8px;border-radius:9999px;background:#EFF6FF;color:#1D4ED8;font-weight:700;font-size:10px;margin-bottom:4px">🚏 Pôle bus Dakar • ${seq}/${netTotal}</div>
               <div style="font-weight:bold;font-size:14px;color:#0f172a">${stop.name}</div>
               <div style="font-size:12px;color:#64748b;margin-top:2px">Lignes Dakar Dem Dikk & AFTU</div>
             </div>`;
         }
 
-        const icon = L.divIcon({ className: '', html: markerHtml, iconSize: [24, 24], iconAnchor: [12, 12] });
-        const m = L.marker([lat, lng], { icon });
+        const m = L.marker([lat, lng], { icon: markerIcon });
         if(targetGroup) m.addTo(targetGroup);
         else m.addTo(map);
         m.bindPopup(popupHtml);
-        stopMarkers.push({ marker: m, lat, lng, name: stop.name, id: stop.id, type: stop.type });
+        stopMarkers.push({ marker: m, lat, lng, name: stop.name, id: stop.id, type: stop.type, net, seq });
       });
     }
 
+    applyMapFilter();
+    updateNetworkCounts();
     renderArrets();
-    showToast(`📦 Dakar Bus : 13 gares TER & 23 stations SunuBRT prêtes`);
+    showToast(`📦 Réseau chargé : ${NETWORK_STATS.TER} gares TER • ${NETWORK_STATS.BRT} stations SunuBRT • ${NETWORK_STATS.BUS} pôles bus = ${NETWORK_STATS.total} arrêts`);
     return gtfsStaticData;
   }catch(e){
     console.error('loadGTFSStatic error', e);
@@ -1287,6 +1586,7 @@ async function loadGTFSStatic(){
 
 function initMap(){
   map=L.map('map',{zoomControl:false}).setView(DAKAR_CENTER,12);
+  window.__dakarMap = map; // reference fiable (la variable globale "map" est ecrasee par l'id du div)
   L.control.zoom({position:'bottomright'}).addTo(map);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'© OSM | Dakar Bus', maxZoom:19}).addTo(map);
 
@@ -1371,17 +1671,21 @@ function initMap(){
     }
   });
 
+  // Les véhicules sont regroupés PAR LIGNE : ils se masquent avec le filtre réseau
+  // et restent visuellement distincts des arrêts (pastille ronde numérotée = arrêt).
   vehicles.forEach(v => {
     const idx = Math.floor(v.progress * (v.path.length - 1));
     const pos = v.path[idx] || v.path[0];
+    const kind = v.route === 'TER' ? 'ter' : v.route === 'BRT 01' ? 'brt' : 'ddd';
     const icon = L.divIcon({
       className: '',
-      html: `<div style="background:${v.color};width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:12px;box-shadow:0 4px 12px ${v.color}88;border:2px solid white">${v.label}</div>`,
-      iconSize: [32, 32],
-      iconAnchor: [16, 16]
+      html: `<div class="vehicle-pin ${kind}" data-kind="vehicle" data-route="${v.route}" title="Véhicule ${v.route} en circulation (simulation temps réel)">${v.route === 'TER' ? '🚆' : '🚌'}</div>`,
+      iconSize: [30, 22],
+      iconAnchor: [15, 11]
     });
-    const m = L.marker(pos, { icon }).addTo(map);
-    m.bindPopup(`<b>${v.route === 'TER' ? '🚆 Train Express Régional' : v.route === 'BRT 01' ? '🚌 SunuBRT (Ligne B1)' : '🚌 Dakar Dem Dikk'}</b><br>En circulation sur son tracé officiel<br>Vitesse : ${v.route === 'TER' ? '120 km/h' : '42 km/h'}`);
+    if(!vehicleGroups[v.route]) vehicleGroups[v.route] = L.layerGroup().addTo(map);
+    const m = L.marker(pos, { icon }).addTo(vehicleGroups[v.route]);
+    m.bindPopup(`<b>${v.route === 'TER' ? '🚆 Train Express Régional' : v.route === 'BRT 01' ? '🚌 SunuBRT (Ligne B1)' : '🚌 Dakar Dem Dikk'}</b><br>Véhicule en circulation (simulation temps réel)<br>Vitesse : ${v.route === 'TER' ? '120 km/h' : '42 km/h'}${v.route === 'TER' ? '<br>Dessert les 13 gares 1 → 13' : v.route === 'BRT 01' ? '<br>Dessert les 23 stations 1 → 23' : ''}`);
     vehicleMarkers.push({ marker: m, vehicle: v });
   });
 
@@ -1556,9 +1860,12 @@ function renderArrets(){
   var el=document.getElementById('arrets-list');
   var el2=document.getElementById('arrets-list-2');
 
-  const html = list.slice(0, 50).map(a=>{
-    const isTER = a.type === 'TER' || (a.lines||[]).includes('TER');
-    const isBRT = a.type === 'BRT' || (a.lines||[]).some(l=>l.includes('BRT'));
+  const html = list.slice(0, 60).map(a=>{
+    const net = networkOf(a);
+    const isTER = net === 'TER';
+    const isBRT = net === 'BRT';
+    const netTotal = NETWORK_STATS[net] || list.length;
+    const seqLabel = a.seq ? `${a.seq}/${netTotal}` : '';
     const iconBg = isTER ? 'bg-[#10B981]' : isBRT ? 'bg-[#00B140]' : 'bg-[#3B82F6]';
     const badge = isTER ? 'TER' : isBRT ? 'BRT' : 'INTERM.';
     const badgeClass = isTER ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : isBRT ? 'bg-[#E6F7ED] text-[#007A2F] border-[#C2EAD0]' : 'bg-slate-100 text-slate-500 border-slate-200';
@@ -1566,8 +1873,8 @@ function renderArrets(){
 
     return `
     <div onclick="window.focusStop(${a.lat}, ${a.lng}, '${safeName}')" class="rounded-[20px] bg-white dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800 p-4 flex gap-4 shadow-sm hover:shadow-md hover:border-[#00B140]/40 transition cursor-pointer">
-      <div class="w-14 h-14 rounded-full ${iconBg} flex items-center justify-center text-white shrink-0 text-[20px] font-bold">
-        ${isTER ? '🚆' : isBRT ? '🚌' : '🚏'}
+      <div class="w-14 h-14 rounded-full ${iconBg} flex items-center justify-center text-white shrink-0 text-[16px] font-bold">
+        ${isTER ? '🚆' : isBRT ? '🚌' : '🚏'}${a.seq ? `<span class="text-[11px] font-bold ml-0.5">${a.seq}</span>` : ''}
       </div>
       <div class="flex-1 min-w-0">
         <div class="flex items-start justify-between gap-2">
@@ -1580,6 +1887,7 @@ function renderArrets(){
           </div>
           <div class="flex flex-col items-end gap-2 shrink-0">
             <span class="text-[10px] px-2 py-1 rounded-[6px] border font-bold tracking-wide ${badgeClass}">${badge}</span>
+            ${seqLabel ? `<span class="text-[10px] px-2 py-1 rounded-[6px] bg-slate-900 text-white font-bold tracking-wide" title="Arrêt ${seqLabel} du réseau ${net}">#${seqLabel}</span>` : ''}
             <span class="text-[#00B140] font-bold text-[18px] leading-none">${a.next[0]}</span>
           </div>
         </div>
@@ -1590,13 +1898,16 @@ function renderArrets(){
   if(el) el.innerHTML=html;
   if(el2) el2.innerHTML=html;
 
+  const s = NETWORK_STATS;
   let countLabel = list.length + ' arrêts';
   if(activeFilter === 'ter'){
-    countLabel = list.length + ' gares (TER Dakar ↔ Diamniadio)';
+    countLabel = `${list.length} gares TER affichées (1 → ${s.TER})`;
   } else if(activeFilter === 'brt'){
-    countLabel = list.length + ' stations (SunuBRT Ligne B1)';
+    countLabel = `${list.length} stations BRT affichées (1 → ${s.BRT})`;
   } else if(activeFilter === 'tous'){
-    countLabel = list.length + ' arrêts (Réseau complet Dakar Bus)';
+    countLabel = `${list.length} arrêts (${s.TER} TER + ${s.BRT} BRT + ${s.BUS} bus)`;
+  } else if(activeFilter === 'ddd' || activeFilter === 'aftu' || activeFilter === 'tata'){
+    countLabel = `${list.length} pôles bus affichés`;
   }
 
   var c1=document.getElementById('arrets-count');
@@ -1608,10 +1919,11 @@ function renderArrets(){
 function renderTransports(){
   var el=document.getElementById('transport-cards');
   if(!el) return;
+  const s = NETWORK_STATS;
   const cards=[
-    { name:'BRT SunuBRT', count:23, status:'23 stations réelles', color:'bg-[#00B140]', desc:'Guédiawaye ↔ Petersen • 23 stations', icon:'🚌' },
-    { name:'TER Dakar', count:13, status:'13 gares officielles', color:'bg-emerald-600', desc:'Dakar ↔ Diamniadio • 13 gares', icon:'🚆' },
-    { name:'AFTU - 64 lignes', count:64, status:'64 lignes', color:'bg-[#00B140]', desc:'64 lignes urbaines • 76 routes GTFS', icon:'🚐' }
+    { name:'BRT SunuBRT', count:s.BRT, net:'BRT', status:`${s.BRT} stations officielles`, color:'bg-[#00B140]', desc:'PEM Petersen ↔ PEM Guédiawaye • corridor B1 (18,3 km)', icon:'🚌' },
+    { name:'TER Dakar', count:s.TER, net:'TER', status:`${s.TER} gares officielles`, color:'bg-emerald-600', desc:'Dakar ↔ Diamniadio • phase 1 (36 km)', icon:'🚆' },
+    { name:'Bus DDD / AFTU / Tata', count:s.BUS, net:'BUS', status:`${s.BUS} pôles • ${LINES_TOTAL} lignes GTFS`, color:'bg-[#3B82F6]', desc:`${LINES_TOTAL} lignes GTFS (DDD, AFTU, Tata) • pôles d'échange`, icon:'🚏' }
   ];
   el.innerHTML=cards.map(c=>`
     <div class="rounded-[20px] bg-white border p-5">
@@ -1622,9 +1934,9 @@ function renderTransports(){
           <div class="text-[11px] opacity-60">${c.desc}</div>
         </div>
       </div>
-      <div class="mt-4 w-full h-10 rounded-full bg-[#E6F7ED] text-[#007A2F] flex items-center justify-center font-bold text-[13px] border border-[#C2EAD0]">
-        ${c.count} ${c.name.includes('AFTU')?'lignes':c.name.includes('BRT')?'stations':'gares'} • ${c.status}
-      </div>
+      <button onclick="window.openLineDetail('${c.net}')" class="mt-4 w-full h-10 rounded-full bg-[#E6F7ED] text-[#007A2F] flex items-center justify-center font-bold text-[13px] border border-[#C2EAD0] hover:bg-[#d7f2e0]">
+        ${c.count} ${c.net === 'TER' ? 'gares' : c.net === 'BRT' ? 'stations' : 'pôles'} • voir la liste 1 → ${c.count}
+      </button>
     </div>`).join('');
 }
 
@@ -1659,18 +1971,28 @@ function setupFilters(){
       btn.classList.add('filter-active');
       btn.classList.remove('bg-white', 'dark:bg-zinc-900', 'border-slate-200');
       activeFilter = (btn.dataset.filter || btn.textContent.toLowerCase()).trim();
+      // Sélectionner un réseau ré-active son calque sur la carte
+      if(activeFilter === 'ter') LAYERS.ter = true;
+      else if(activeFilter === 'brt') LAYERS.brt = true;
+      else if(activeFilter === 'ddd' || activeFilter === 'aftu' || activeFilter === 'tata') LAYERS.bus = true;
       renderArrets();
+      updateNetworkCounts();
 
       if(map){
-        if(activeFilter === 'ter' && window.terPolyline){
-          map.fitBounds(window.terPolyline.getBounds(), { padding: [40, 40] });
-          showToast('🚆 TER Dakar : 13 gares officielles (Dakar ↔ Diamniadio)');
-        } else if(activeFilter === 'brt' && window.brtPolyline){
-          map.fitBounds(window.brtPolyline.getBounds(), { padding: [40, 40] });
-          showToast('🚌 SunuBRT : 23 stations réelles (Petersen ↔ Guédiawaye)');
+        // La carte n'affiche QUE le réseau sélectionné (arrêts + tracé + véhicules)
+        applyMapFilter();
+        const s = NETWORK_STATS;
+        if(activeFilter === 'ter'){
+          if(window.terPolyline) map.fitBounds(window.terPolyline.getBounds(), { padding: [50, 50] });
+          showToast(`🚆 TER Dakar : ${s.TER} gares affichées sur la carte (marqueurs 1 → ${s.TER})`);
+        } else if(activeFilter === 'brt'){
+          if(window.brtPolyline) map.fitBounds(window.brtPolyline.getBounds(), { padding: [50, 50] });
+          showToast(`🚌 SunuBRT : ${s.BRT} stations affichées sur la carte (marqueurs 1 → ${s.BRT})`);
         } else if(activeFilter === 'tous'){
           map.setView(DAKAR_CENTER, 12);
-          showToast('🗺️ Réseau complet : 13 TER, 23 BRT & bus');
+          showToast(`🗺️ Réseau complet : ${s.TER} gares TER + ${s.BRT} stations BRT + ${s.BUS} pôles bus = ${s.total} arrêts`);
+        } else {
+          showToast(`🚏 Filtre bus : ${s.BUS} pôles affichés (TER et BRT masqués)`);
         }
       }
     });
@@ -1768,7 +2090,46 @@ window.addEventListener('load', ()=>{
   if(tv) tv.onclick=()=>{ switchTab('explorer'); };
   var assistantBtn=document.getElementById('assistant-ia-btn');
   if(assistantBtn) assistantBtn.onclick=()=>{ showToast('🤖 Assistant IA Dakar Bus - bientôt'); };
-  showToast('✅ Dakar Bus : 13 gares TER & 23 stations SunuBRT réelles');
+
+  // --- Panneau "Calques réseau" : masquer/afficher chaque réseau ---
+  document.querySelectorAll('#map-layers input[type=checkbox]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      LAYERS[cb.dataset.layer] = cb.checked;
+      applyMapFilter();
+      const s = NETWORK_STATS;
+      showToast(`🧭 Carte : ${visibleStopsOnMap(currentNetwork())} arrêts affichés (${s.TER} TER • ${s.BRT} BRT • ${s.BUS} bus)${LAYERS.vehicles ? ' • ' + vehicleMarkers.length + ' véhicules' : ''}`);
+    });
+  });
+  // Sur mobile le panneau est replié par défaut pour laisser voir la carte
+  var lb=document.getElementById('map-layers-body');
+  if(lb && window.innerWidth < 1024){
+    lb.classList.add('hidden');
+    var caret=document.getElementById('map-layers-caret');
+    if(caret) caret.textContent='▸';
+  }
+  var lt=document.getElementById('map-layers-toggle');
+  if(lt) lt.onclick=()=>{
+    var b=document.getElementById('map-layers-body');
+    if(!b) return;
+    b.classList.toggle('hidden');
+    var c=document.getElementById('map-layers-caret');
+    if(c) c.textContent = b.classList.contains('hidden') ? '▸' : '▾';
+  };
+
+  // --- Listes numerotees 1 -> 13 / 1 -> 23 (preuve visuelle du nombre d'arrets) ---
+  var dt=document.getElementById('btn-detail-ter'); if(dt) dt.onclick=()=>window.openLineDetail('TER');
+  var db=document.getElementById('btn-detail-brt'); if(db) db.onclick=()=>window.openLineDetail('BRT');
+  var mt=document.getElementById('map-detail-ter'); if(mt) mt.onclick=()=>window.openLineDetail('TER');
+  var mb=document.getElementById('map-detail-brt'); if(mb) mb.onclick=()=>window.openLineDetail('BRT');
+  var mc=document.getElementById('line-modal-close'); if(mc) mc.onclick=()=>window.closeLineDetail();
+  var md=document.getElementById('line-modal');
+  if(md) md.addEventListener('click', (e)=>{ if(e.target === md) window.closeLineDetail(); });
+  document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') window.closeLineDetail(); });
+
+  updateNetworkCounts();
+  updateNetworkSummary();
+  applyMapFilter();
+  showToast(`✅ Dakar Bus : ${NETWORK_STATS.TER} gares TER • ${NETWORK_STATS.BRT} stations SunuBRT • ${NETWORK_STATS.BUS} pôles bus = ${NETWORK_STATS.total} arrêts`);
 });
 </script>
 </body>
