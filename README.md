@@ -2,14 +2,15 @@
 
 **Site live :** https://tonuser.github.io/dakar-mobilite/ (après déploiement)
 
-Mobilité urbaine Dakar en temps réel : BRT SunuBRT (23 stations réelles), Dakar Dem Dikk, TER, Car Rapide avec GPS live, alertes GTFS-RT CETUD, PWA offline.
+Mobilité urbaine Dakar en temps réel : TER (13 gares, Dakar ↔ Diamniadio), BRT SunuBRT (23 stations, PEM Petersen ↔ PEM Guédiawaye), Dakar Dem Dikk, AFTU, Car Rapide avec GPS live, alertes GTFS-RT CETUD, PWA offline.
 
 ## ✅ Fonctionnalités
 
 - **Fix refresh bug** : onglet conservé au refresh (#trajets + localStorage + History API)
 - **PWA offline** : installable, carte en cache 7j, GPS offline, service worker
 - **GTFS-RT Proxy Express** : convertit protobuf CETUD → JSON, cache 30s, mock 127 bus si pas de clé
-- **GTFS Static Dakar** : 42 arrêts dont **23 stations BRT réelles** (Papa Gueye Fall → Préfecture Guédiawaye), 9 routes, shapes BRT/TER
+- **GTFS Static Dakar** : **42 arrêts = 13 gares TER + 23 stations BRT + 6 pôles bus**, 76 lignes, shapes TER/BRT
+- **Comptage vérifié** : `npm test` contrôle que la carte n'affiche jamais plus de **13 gares TER** et **23 stations BRT** (voir `CORRECTIF_ARRETS_TER_BRT.md`)
 - **GPS live** : watchPosition haute précision, ETA live, tri par distance
 - **Alertes temps réel** : WebSocket mock + push notifications + cache offline
 
@@ -41,7 +42,7 @@ Source : CETUD brochure + Senego + Wikipedia BRT Dakar
 22. Gadaye - Cambérène
 23. Préfecture Guédiawaye - PEM
 
-+ 13 gares TER Dakar → Diamniadio + arrêts DDD/AFTU
++ **13 gares TER** Dakar → Diamniadio + 6 pôles bus DDD/AFTU
 
 Tout est dans `data/gtfs/stops.txt` et affiché sur carte avec icônes violettes BRT.
 
@@ -93,7 +94,7 @@ Frontend bascule auto en LIVE.
 ├── service-worker.js       # Offline cache
 ├── offline.html            # Fallback offline
 ├── data/gtfs/              # GTFS static Dakar
-│   ├── stops.txt (42 arrêts dont 23 BRT)
+│   ├── stops.txt (42 arrêts : 13 TER + 23 BRT + 6 pôles)
 │   ├── routes.txt (9 routes)
 │   ├── trips.txt, stop_times.txt, shapes.txt
 │   └── agency.txt, calendar.txt
@@ -119,7 +120,7 @@ Frontend bascule auto en LIVE.
 | Endpoint | Description |
 |----------|-------------|
 | `/api/gtfs-rt/vehiclePositions` | Positions bus (via proxy Express, sinon mock) |
-| `/api/gtfs/static` | GTFS static Dakar JSON (42 arrêts) |
+| `/api/gtfs/static` | GTFS static Dakar JSON (42 arrêts : 13 TER, 23 BRT, 6 bus) |
 | `/data/gtfs/stops.txt` | GTFS static brut |
 | `/api/vehicles` | Format simple Leaflet |
 | `/api/health` | Status MOCK/LIVE |

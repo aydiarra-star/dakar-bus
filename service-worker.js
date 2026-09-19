@@ -1,5 +1,5 @@
 // Dakar Mobilité - Service Worker PWA + Offline + GTFS-RT cache
-const CACHE_VERSION = 'dakar-mobilite-v2.2';
+const CACHE_VERSION = 'dakar-mobilite-v2.3-arrets';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const GTFS_CACHE = `${CACHE_VERSION}-gtfs`;
@@ -10,6 +10,7 @@ const STATIC_ASSETS = [
   '/manifest.json',
   '/offline.html',
   '/data/gtfs/stops.txt',
+  '/data/gtfs/stop_times.txt',
   '/data/gtfs/shapes.txt',
   '/data/gtfs/routes.txt',
   '/data/gtfs/trips.txt',
@@ -121,13 +122,48 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Pages HTML (navigation ou /index.html) : network-first -> évite d'afficher
+  // une carte/des listes d'arrêts périmées après un déploiement.
+  const isHTML = request.mode === 'navigate' || url.pathname === '/' || url.pathname.endsWith('/index.html');
+  if (isHTML) {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(STATIC_CACHE).then(cache => cache.put(request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(request).then(c => c || caches.match('/index.html') || caches.match('/offline.html')))
+    );
+    return;
+  }
+
+  // Données GTFS statiques (arrêts, tracés, horaires) : network-first + MAJ du cache
+  const isGTFSStatic = url.pathname.includes('/data/gtfs/');
+  if (isGTFSStatic) {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(STATIC_CACHE).then(cache => cache.put(request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(request).then(c => c || new Response('', { status: 504 })))
+    );
+    return;
+  }
+
   // Static assets - Cache first
   event.respondWith(
     caches.match(request).then(cached => {
       if (cached) return cached;
       return fetch(request).then(response => {
-        // Cache new static assets
-        if (response.ok && (request.url.startsWith(self.location.origin) || STATIC_ASSETS.includes(request.url))) {
+        // Cache new static assets (hors données GTFS, gérées en network-first)
+        if (response.ok && (request.url.startsWith(self.location.origin) || STATIC_ASSETS.includes(request.url)) && !url.pathname.includes('/data/gtfs/')) {
           const clone = response.clone();
           caches.open(DYNAMIC_CACHE).then(cache => cache.put(request, clone));
         }
