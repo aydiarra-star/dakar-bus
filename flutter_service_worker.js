@@ -132,7 +132,7 @@ const OSRM_PAIRS_URL = 'assets/assets/data/osrm_pairs.json';
 const OSRM_GEOMS_URL = 'assets/assets/data/osrm_geometries.json';
 // Version des geometries prechargees. Le workflow « PrefetchOSRM geometries »
 // la recalcule (hachage du bundle) a chaque regeneration de osrm_geometries.json.
-const GEOM_VERSION = 'v6-3e2a97dec002';
+const GEOM_VERSION = 'v5-9984435d577d';
 // Marqueur de revision du correctif traces (audit, logs).
 const TRACES_SW = 'v6';
 
