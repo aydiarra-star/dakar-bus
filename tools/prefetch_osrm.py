@@ -33,7 +33,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from track_shapes import (  # noqa: E402
     OSRM_PREFIX,
     build_track_geometries,
+    canonical_bundle_text,
     classify_network_pairs,
+    geom_version_for,
     load_shapes,
 )
 
