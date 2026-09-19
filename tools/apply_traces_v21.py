@@ -564,7 +564,16 @@ def verify():
         sys.exit("ECHEC : verification incomplete (%d probleme(s))" % len(problems))
 
 
+def refuse_if_v3():
+    """Le correctif v3 reecrit le bloc OSRM du service worker et les filtres de
+    la carte. Rejouer v2/v2.1 par-dessus remettrait les lignes en droite."""
+    if SW.exists() and "TRACES_SW = 'v3'" in SW.read_text(encoding="utf-8"):
+        sys.exit("ECHEC : correctif v3 deja applique. Rejouez "
+                 "tools/apply_traces_v3.py, pas cet ancien correctif.")
+
+
 def main():
+    refuse_if_v3()
     print("Correctif traces v2.1 — checkout : %s" % ROOT)
     require_v2()
     patch_main_js()
