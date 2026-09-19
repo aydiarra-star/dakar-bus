@@ -403,26 +403,165 @@ if ('serviceWorker' in navigator) {
 }
 window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
 
-// GTFS-RT
+// ============================================================================
+// TRACÉS ROUTIERS RÉELS — conventions de coordonnées (voir CORRECTIFS.md §4)
+//   • GeoJSON / OSRM  → [lng, lat]
+//   • GTFS shapes.txt → shape_pt_lat, shape_pt_lon
+//   • Leaflet         → [lat, lng]
+// Toute liste de points passe par toLeafletLatLngs() qui vérifie l'ordre et
+// rejette les points hors de Dakar. Un tracé invalide ou absent n'est PAS dessiné :
+// il n'existe aucun repli en "ligne droite" entre terminus.
+// ============================================================================
+const DAKAR_BBOX = { minLat: 14.55, maxLat: 14.95, minLng: -17.60, maxLng: -16.95 };
+const MODE_COLORS = { brt:'#00B140', ddd:'#3B82F6', ter:'#10B981', aftu:'#EC4899', tata:'#F59E0B', bus:'#6B7280' };
+const routeLayers = { brt:null, ddd:null, ter:null, aftu:null, tata:null, bus:null }; // L.layerGroup par mode
+const routeShapes = [];   // { id, routeId, name, mode, color, latlngs, cumKm[], lengthKm }
+function inDakar(lat, lng){ return Number.isFinite(lat) && Number.isFinite(lng) && lat>=DAKAR_BBOX.minLat && lat<=DAKAR_BBOX.maxLat && lng>=DAKAR_BBOX.minLng && lng<=DAKAR_BBOX.maxLng; }
+function haversineKm(lat1,lng1,lat2,lng2){ const R=6371, r=Math.PI/180; const dLat=(lat2-lat1)*r, dLng=(lng2-lng1)*r; const a=Math.sin(dLat/2)**2+Math.cos(lat1*r)*Math.cos(lat2*r)*Math.sin(dLng/2)**2; return 2*R*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)); }
+/** Convertit des points vers [lat, lng] (Leaflet) en vérifiant l'ordre déclaré ('lnglat' = GeoJSON/OSRM, 'latlng' = GTFS). */
+function toLeafletLatLngs(points, order, label){
+  if(!Array.isArray(points) || points.length<2) return null;
+  const declared = points.map(p => order==='lnglat' ? [Number(p[1]), Number(p[0])] : [Number(p[0]), Number(p[1])]);
+  const okDeclared = declared.filter(([la,ln])=>inDakar(la,ln)).length;
+  const okSwapped  = declared.filter(([la,ln])=>inDakar(ln,la)).length;
+  let latlngs = declared;
+  if(okSwapped>okDeclared){ console.warn(`[tracés] ${label}: inversion lat/lng détectée (déclaré ${order}) → corrigée`); latlngs = declared.map(([la,ln])=>[ln,la]); }
+  const valid = latlngs.filter(([la,ln])=>inDakar(la,ln));
+  if(valid.length<2 || valid.length < latlngs.length*0.98){ console.error(`[tracés] ${label}: ${latlngs.length-valid.length} point(s) hors de Dakar → tracé ignoré (pas de repli en ligne droite)`); return null; }
+  return valid;
+}
+/** Garde-fou : un vrai tracé routier est dense (> 3 pts/km) et sans segment > 3 km. */
+function shapeLooksRoadLike(latlngs){
+  let km=0, maxSeg=0;
+  for(let i=1;i<latlngs.length;i++){ const d=haversineKm(latlngs[i-1][0],latlngs[i-1][1],latlngs[i][0],latlngs[i][1]); km+=d; if(d>maxSeg) maxSeg=d; }
+  const density = km>0 ? latlngs.length/km : Infinity;
+  return { km, maxSeg, density, ok: maxSeg<=3 && (km<=2 || density>=3) };
+}
+function shapeDisplayName(props, mode){
+  const short = String(props.route_short_name||'').trim();
+  const prefix = short.toUpperCase().startsWith(mode.toUpperCase()) ? '' : mode.toUpperCase()+' ';
+  return `${prefix}${short} ${props.route_long_name||''}`.replace(/\s+/g,' ').trim() || props.shape_id || mode.toUpperCase();
+}
+function modeFromRouteId(id){ const u=String(id||'').toUpperCase(); return u.startsWith('BRT')?'brt':u.startsWith('TER')?'ter':u.startsWith('DDD')?'ddd':u.startsWith('TATA')?'tata':u.startsWith('AFTU')?'aftu':'bus'; }
+/** Parse CSV RFC 4180 (guillemets, virgules dans les champs, CRLF). */
+function parseCSV(text){
+  const rows=[]; let row=[], field='', q=false; const src=text.replace(/^\uFEFF/,'');
+  for(let i=0;i<src.length;i++){ const c=src[i];
+    if(q){ if(c==='"'){ if(src[i+1]==='"'){ field+='"'; i++; } else q=false; } else field+=c; }
+    else if(c==='"') q=true;
+    else if(c===','){ row.push(field); field=''; }
+    else if(c==='\n'||c==='\r'){ if(c==='\r'&&src[i+1]==='\n') i++; row.push(field); field=''; if(row.some(v=>v!=='')) rows.push(row); row=[]; }
+    else field+=c; }
+  if(field!==''||row.length){ row.push(field); if(row.some(v=>v!=='')) rows.push(row); }
+  if(!rows.length) return [];
+  const h=rows[0].map(x=>x.trim());
+  return rows.slice(1).map(r=>{ const o={}; h.forEach((k,i)=>o[k]=(r[i]??'').trim()); return o; });
+}
+function registerShape(shape){
+  const cum=[0]; for(let i=1;i<shape.latlngs.length;i++) cum.push(cum[i-1]+haversineKm(shape.latlngs[i-1][0],shape.latlngs[i-1][1],shape.latlngs[i][0],shape.latlngs[i][1]));
+  shape.cumKm=cum; shape.lengthKm=cum[cum.length-1];
+  routeShapes.push(shape);
+  if(!routeLayers[shape.mode]) routeLayers[shape.mode]=L.layerGroup().addTo(map);
+  const isRail = shape.mode==='ter';
+  L.polyline(shape.latlngs,{color:'#ffffff', weight:isRail?9:8, opacity:0.9, lineCap:'round', lineJoin:'round', interactive:false}).addTo(routeLayers[shape.mode]);
+  L.polyline(shape.latlngs,{color:shape.color, weight:isRail?5:4.5, opacity:0.95, lineCap:'round', lineJoin:'round', dashArray:isRail?'10 8':null})
+    .bindPopup(`<b>${shape.name}</b><br><span style="font-size:12px">${shape.lengthKm.toFixed(1)} km • ${shape.stops||'?'} arrêts • tracé ${isRail?'voie ferrée OSM':'routier OSRM'}</span>`)
+    .addTo(routeLayers[shape.mode]);
+}
+/** Position [lat,lng] à une fraction t (0..1) de la longueur du tracé (interpolation le long de la voirie). */
+function pointAlongShape(shape, t){
+  const target = Math.max(0, Math.min(1, t)) * shape.lengthKm;
+  const cum = shape.cumKm; let lo=0, hi=cum.length-1;
+  while(hi-lo>1){ const mid=(lo+hi)>>1; if(cum[mid]<=target) lo=mid; else hi=mid; }
+  const segLen = cum[hi]-cum[lo]; const f = segLen>0 ? (target-cum[lo])/segLen : 0;
+  const a=shape.latlngs[lo], b=shape.latlngs[hi]||a;
+  return [a[0]+(b[0]-a[0])*f, a[1]+(b[1]-a[1])*f];
+}
+/** Charge les tracés : 1) data/routes/geometries.json (GeoJSON, [lng,lat]) 2) sinon data/gtfs/shapes.txt (lat,lon). */
+async function loadRouteShapes(){
+  let loaded = 0;
+  try{
+    const res = await fetch('/data/routes/geometries.json', {cache:'no-cache'});
+    if(res.ok){
+      const gj = await res.json();
+      (gj.features||[]).forEach(f=>{
+        if(!f.geometry || f.geometry.type!=='LineString') return;
+        const id = f.properties?.shape_id || f.properties?.route_id || 'shape';
+        const latlngs = toLeafletLatLngs(f.geometry.coordinates, 'lnglat', id); // GeoJSON = [lng, lat]
+        if(!latlngs) return;
+        const chk = shapeLooksRoadLike(latlngs);
+        if(!chk.ok){ console.error(`[tracés] ${id}: ressemble à des vecteurs directs (segment max ${chk.maxSeg.toFixed(1)} km, ${chk.density.toFixed(1)} pts/km) → ignoré`); return; }
+        const mode = f.properties?.mode || modeFromRouteId(f.properties?.route_id);
+        registerShape({ id, routeId:f.properties?.route_id, direction:f.properties?.direction_id, mode, color: MODE_COLORS[mode] || f.properties?.color || '#6B7280',
+          name: shapeDisplayName(f.properties||{}, mode), stops: f.properties?.stops, latlngs });
+        loaded++;
+      });
+    }
+  }catch(e){ console.warn('[tracés] geometries.json indisponible :', e.message); }
+  if(!loaded){
+    try{
+      const [shapesRes, tripsRes, routesRes] = await Promise.all([fetch('/data/gtfs/shapes.txt'), fetch('/data/gtfs/trips.txt'), fetch('/data/gtfs/routes.txt')]);
+      if(shapesRes.ok){
+        const rows = parseCSV(await shapesRes.text());
+        const trips = tripsRes.ok ? parseCSV(await tripsRes.text()) : [];
+        const routes = routesRes.ok ? parseCSV(await routesRes.text()) : [];
+        const byId = new Map();
+        rows.forEach(r=>{ if(!byId.has(r.shape_id)) byId.set(r.shape_id, []); byId.get(r.shape_id).push(r); });
+        byId.forEach((pts, id)=>{
+          pts.sort((a,b)=>Number(a.shape_pt_sequence)-Number(b.shape_pt_sequence));
+          const latlngs = toLeafletLatLngs(pts.map(p=>[Number(p.shape_pt_lat), Number(p.shape_pt_lon)]), 'latlng', id); // GTFS = lat, lon
+          if(!latlngs) return;
+          const chk = shapeLooksRoadLike(latlngs);
+          if(!chk.ok){ console.error(`[tracés] ${id}: shapes.txt en ligne droite → ignoré (relancer npm run snap-routes)`); return; }
+          const trip = trips.find(t=>t.shape_id===id); const route = routes.find(r=>r.route_id===trip?.route_id);
+          const mode = modeFromRouteId(trip?.route_id||id);
+          registerShape({ id, routeId:trip?.route_id, direction:Number(trip?.direction_id), mode, color: MODE_COLORS[mode]||'#6B7280', name: route ? `${route.route_short_name} ${route.route_long_name}` : id, stops:null, latlngs });
+          loaded++;
+        });
+      }
+    }catch(e){ console.warn('[tracés] shapes.txt indisponible :', e.message); }
+  }
+  if(loaded){ showToast(`🛣️ ${loaded} tracés routiers réels chargés (OSRM/OSM)`); createVehiclesOnShapes(); applyRouteFilter(); }
+  else showToast('⚠️ Aucun tracé routier disponible — lignes non dessinées (npm run snap-routes)', 'error');
+  return loaded;
+}
+function applyRouteFilter(){
+  const f = (typeof activeFilter==='string' ? activeFilter : 'tous');
+  Object.entries(routeLayers).forEach(([mode, layer])=>{
+    if(!layer) return;
+    const visible = (f==='tous' || f==='favoris' || f===mode);
+    if(visible && !map.hasLayer(layer)) layer.addTo(map);
+    if(!visible && map.hasLayer(layer)) map.removeLayer(layer);
+  });
+  vehicleMarkers.forEach(({marker, vehicle})=>{
+    const visible = (f==='tous' || f==='favoris' || f===vehicle.mode);
+    if(visible && !map.hasLayer(marker)) marker.addTo(map);
+    if(!visible && map.hasLayer(marker)) map.removeLayer(marker);
+  });
+}
+
+// GTFS-RT (mock : véhicules qui circulent LE LONG des tracés routiers réels, jamais en ligne droite)
 const GTFS_CONFIG = { pollInterval: 3000 };
 class GTFSRTClient {
   constructor(){ this.lastFetch=0; this.fetchCount=0; }
   generateMockGTFS() {
     const now = Date.now();
-    const routes = [{id:'BRT_01',lat:14.75,lng:-17.42},{id:'DDD_10',lat:14.69,lng:-17.44},{id:'TER_01',lat:14.68,lng:-17.43}];
-    const vehicles=[];
-    routes.forEach(r=>{ for(let i=0;i<8;i++){ vehicles.push({ id:`${r.id}_${i}_${now}`, vehicle:{ position:{ latitude:r.lat+(Math.random()-0.5)*0.08, longitude:r.lng+(Math.random()-0.5)*0.08 } } }); } });
-    return { entity: vehicles.map(v=>({id:v.id, vehicle:v.vehicle})), _meta:{source:'mock'} };
+    const entity = vehicleMarkers.map(({vehicle}, i)=>{
+      const [lat, lng] = pointAlongShape(vehicle.shape, vehicle.progress);
+      return { id:`${vehicle.id}_${now}`, vehicle:{ trip:{ routeId: vehicle.routeId }, position:{ latitude: lat, longitude: lng } } };
+    });
+    return { entity, _meta:{ source:'mock', note:'positions interpolées le long des tracés OSRM/OSM' } };
   }
   async fetchNow() {
     const data = this.generateMockGTFS();
     this.lastFetch=Date.now();
-    if (data.entity && window.map && vehicleMarkers.length) {
-      data.entity.slice(0, vehicleMarkers.length).forEach((ent, idx)=>{
-        if (ent.vehicle && vehicleMarkers[idx]) {
-          const pos=ent.vehicle.position;
-          vehicleMarkers[idx].marker.setLatLng([pos.latitude, pos.longitude]);
-        }
+    this.fetchCount++;
+    if (data.entity && window.map) {
+      data.entity.forEach((ent, idx)=>{
+        const pos = ent.vehicle?.position; const vm = vehicleMarkers[idx];
+        if(!pos || !vm) return;
+        if(!inDakar(pos.latitude, pos.longitude)){ console.warn('[GTFS-RT] position hors Dakar ignorée', pos); return; }
+        vm.marker.setLatLng([pos.latitude, pos.longitude]); // GTFS-RT : latitude/longitude nommées → Leaflet [lat, lng]
       });
     }
     return data;
@@ -435,48 +574,64 @@ window.gtfsClient = new GTFSRTClient();
 let map, userMarker, userAccuracyCircle;
 let vehicleMarkers=[], vehicles=[], gtfsStaticData=null;
 const DAKAR_CENTER=[14.7167,-17.4677];
+let stopsLayerMajor=null, stopsLayerMinor=null;
 async function loadGTFSStatic(){
   try{
     let data=null;
     const stopsRes=await fetch('/data/gtfs/stops.txt');
     if(stopsRes.ok){
-      const text=await stopsRes.text();
-      const lines=text.trim().split('\n').slice(1);
-      const stops=lines.map(line=>{ const [id,name,lat,lon]=line.split(','); return {stop_id:id, stop_name:name, stop_lat:lat, stop_lon:lon}; });
-      data={stops:stops, _meta:{stops:stops.length, routes:9}};
+      const stops=parseCSV(await stopsRes.text()).filter(s=>s.stop_id);
+      data={stops:stops, _meta:{stops:stops.length}};
     }
     if(!data) return null;
     gtfsStaticData=data;
-    showToast(`📦 Dakar Bus: ${data._meta.stops} arrêts (23 BRT réelles)`);
+    const nBRT=data.stops.filter(s=>s.stop_id.startsWith('BRT_')).length;
+    showToast(`📦 Dakar Bus: ${data._meta.stops} arrêts réels (${nBRT} stations BRT, source OSM)`);
     if(data.stops && window.map){
+      stopsLayerMajor = stopsLayerMajor || L.layerGroup().addTo(map);
+      stopsLayerMinor = stopsLayerMinor || L.layerGroup();
+      let skipped=0;
       data.stops.forEach(stop=>{
-        const lat=parseFloat(stop.stop_lat), lng=parseFloat(stop.stop_lon);
-        if(isNaN(lat)||isNaN(lng)) return;
-        const isBRT=stop.stop_id.startsWith('BRT_');
-        const icon=L.divIcon({className:'', html:`<div style="width:${isBRT?'18px':'14px'};height:${isBRT?'18px':'14px'};background:${isBRT?'#00B140':'white'};border:2px solid ${isBRT?'white':'#0f172a'};border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.3)"></div>`, iconSize:[18,18]});
-        L.marker([lat,lng],{icon}).addTo(map).bindPopup(`<b>🚏 ${stop.stop_name}</b>`);
+        const lat=parseFloat(stop.stop_lat), lng=parseFloat(stop.stop_lon); // GTFS : stop_lat / stop_lon
+        if(!inDakar(lat,lng)){ skipped++; return; }
+        const mode=modeFromRouteId(stop.stop_id);
+        const major = mode==='brt' || mode==='ter';
+        const color = MODE_COLORS[mode] || '#0f172a';
+        const size = major ? 18 : 11;
+        const icon=L.divIcon({className:'', html:`<div style="width:${size}px;height:${size}px;background:${major?color:'white'};border:2px solid ${major?'white':color};border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.3)"></div>`, iconSize:[size,size], iconAnchor:[size/2,size/2]});
+        L.marker([lat,lng],{icon}).bindPopup(`<b>🚏 ${stop.stop_name}</b><br><span style="font-size:11px">${mode.toUpperCase()} • ${lat.toFixed(5)}, ${lng.toFixed(5)}</span>`).addTo(major?stopsLayerMajor:stopsLayerMinor);
       });
+      if(skipped) console.warn(`[arrêts] ${skipped} arrêt(s) hors de Dakar ignoré(s) (coordonnées inversées ?)`);
+      const syncMinor=()=>{ if(map.getZoom()>=14){ if(!map.hasLayer(stopsLayerMinor)) stopsLayerMinor.addTo(map); } else if(map.hasLayer(stopsLayerMinor)) map.removeLayer(stopsLayerMinor); };
+      map.on('zoomend', syncMinor); syncMinor();
     }
-    if(data.stops){ window.gtfsStops=data.stops.map(s=>({name:s.stop_name, lines:s.stop_id.startsWith('BRT_')?['BRT 01']:s.stop_id.startsWith('TER_')?['TER']:['AFTU'], distance:0.5, next:['2 min','8 min'], status:s.stop_id.startsWith('BRT_')?'BRT Réel':'Dakar Bus', lat:parseFloat(s.stop_lat), lng:parseFloat(s.stop_lon)})); renderArrets(); }
+    if(data.stops){ window.gtfsStops=data.stops.filter(s=>inDakar(parseFloat(s.stop_lat),parseFloat(s.stop_lon))).map(s=>{ const mode=modeFromRouteId(s.stop_id); return {name:s.stop_name, type:mode.toUpperCase(), lines:mode==='brt'?['BRT 01']:mode==='ter'?['TER']:mode==='ddd'?['DDD']:['AFTU'], distance:0.5, next:['2 min','8 min'], status:mode==='brt'?'BRT Réel':mode==='ter'?'TER':'Dakar Dem Dikk', lat:parseFloat(s.stop_lat), lng:parseFloat(s.stop_lon)}; }); renderArrets(); }
     return data;
-  }catch(e){ return null; }
+  }catch(e){ console.warn('[arrêts] chargement impossible :', e.message); return null; }
+}
+/** Crée les véhicules (mock) sur les tracés réels : ils suivent la voirie, pas des vecteurs directs. */
+function createVehiclesOnShapes(){
+  vehicleMarkers.forEach(({marker})=>map.removeLayer(marker));
+  vehicleMarkers=[]; vehicles=[];
+  const perShape = { brt:6, ter:3, ddd:4, aftu:3, tata:3, bus:2 };
+  routeShapes.forEach(shape=>{
+    const n = perShape[shape.mode] || 2;
+    for(let i=0;i<n;i++){
+      const v={ id:`${shape.id}-${i}`, routeId:shape.routeId, route:shape.name, mode:shape.mode, color:shape.color, shape, progress:(i+Math.random()*0.6)/n, speedKmPerTick:(shape.mode==='ter'?0.45:shape.mode==='brt'?0.18:0.12) };
+      vehicles.push(v);
+      const pos=pointAlongShape(shape, v.progress);
+      const label = shape.mode==='ter' ? 'T' : shape.mode==='brt' ? 'B' : shape.mode==='ddd' ? 'D' : 'A';
+      const icon=L.divIcon({className:'', html:`<div style="background:${v.color};width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:11px;box-shadow:0 6px 18px ${v.color}66;border:2px solid white">${label}</div>`, iconSize:[34,34], iconAnchor:[17,17]});
+      const m=L.marker(pos,{icon}).bindPopup(`<b>${shape.name}</b><br><span style="font-size:11px">véhicule ${i+1} (simulation le long du tracé réel)</span>`).addTo(map);
+      vehicleMarkers.push({marker:m, vehicle:v});
+    }
+  });
 }
 function initMap(){
   map=L.map('map',{zoomControl:false}).setView(DAKAR_CENTER,12);
   L.control.zoom({position:'bottomright'}).addTo(map);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'© OSM | Dakar Bus', maxZoom:19}).addTo(map);
-  const routes=[
-    { name: 'BRT 01', color: '#00B140', coords: [[14.7722,-17.4103],[14.75,-17.42],[14.72,-17.44],[14.69,-17.46],[14.68,-17.48]] },
-    { name: 'DDD 10', color: '#3b82f6', coords: [[14.6937,-17.4441],[14.71,-17.46],[14.74,-17.50],[14.76,-17.53]] },
-    { name: 'TER', color: '#10b981', coords: [[14.68,-17.43],[14.70,-17.40],[14.75,-17.30],[14.80,-17.15]] },
-  ];
-  routes.forEach(r=>{ for(let i=0;i<8;i++){ vehicles.push({ id: r.name+'-'+i, route: r.name, color: r.color, path: r.coords, progress: Math.random() }); } });
-  vehicles.forEach(v=>{
-    const pos=[v.path[0][0]+(Math.random()-0.5)*0.02, v.path[0][1]+(Math.random()-0.5)*0.02];
-    const icon=L.divIcon({className:'', html:`<div style="background:${v.color};width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:11px;box-shadow:0 6px 18px ${v.color}66;border:2px solid white">${v.route[0]}</div>`, iconSize:[34,34]});
-    const m=L.marker(pos,{icon}).addTo(map);
-    vehicleMarkers.push({marker:m, vehicle:v});
-  });
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'© OSM | OSRM | Dakar Bus', maxZoom:19}).addTo(map);
+  window.map = map;
   const miniEl = document.getElementById('mini-map');
   if(miniEl){
     const mini=L.map('mini-map',{zoomControl:false, attributionControl:false}).setView(DAKAR_CENTER,12);
@@ -484,16 +639,16 @@ function initMap(){
   }
   setInterval(updateVehicles,3000);
   updateVehicles();
-  setTimeout(()=>window.gtfsClient.startPolling(),1000);
-  setTimeout(()=>loadGTFSStatic(),1500);
+  // Les véhicules ne sont créés qu'une fois les tracés routiers chargés (aucun chemin "à vol d'oiseau").
+  loadRouteShapes().then(()=>setTimeout(()=>window.gtfsClient.startPolling(),1000));
+  setTimeout(()=>loadGTFSStatic(),800);
 }
 function updateVehicles(){
   vehicleMarkers.forEach(({marker,vehicle})=>{
-    vehicle.progress+=0.0003;
-    if(vehicle.progress>1) vehicle.progress=0;
-    const idx=Math.floor(vehicle.progress*(vehicle.path.length-1));
-    const pos=vehicle.path[idx]||vehicle.path[0];
-    if(Date.now()-window.gtfsClient.lastFetch>4000) marker.setLatLng(pos);
+    const step = vehicle.shape.lengthKm>0 ? vehicle.speedKmPerTick/vehicle.shape.lengthKm : 0;
+    vehicle.progress+=step;
+    if(vehicle.progress>1) vehicle.progress-=1;
+    if(Date.now()-window.gtfsClient.lastFetch>4000) marker.setLatLng(pointAlongShape(vehicle.shape, vehicle.progress));
   });
   renderPopular();
   renderArrivals();
@@ -554,7 +709,7 @@ function renderPopular(){
   if(!el) return;
   var trips=[
     { from:'Petersen', to:'Guédiawaye', mode:'BRT', time:'18 min', status:'À l\'heure', color:'bg-[#00B140]' },
-    { from:'Plateau', to:'Almadies', mode:'DDD 10', time:'42 min', status:'+2 min', color:'bg-blue-500' },
+    { from:'Palais', to:'Ouakam', mode:'DDD 7', time:'42 min', status:'+2 min', color:'bg-blue-500' },
   ];
   el.innerHTML=trips.map(t=>`<div class="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 border"><div class="w-10 h-10 rounded-xl ${t.color} text-white flex items-center justify-center font-bold text-[11px]">${t.mode[0]}</div><div class="flex-1"><div class="text-[13px] font-medium">${t.from} → ${t.to}</div><div class="text-[11px] opacity-60">${t.mode} • ${t.time}</div></div></div>`).join('');
 }
@@ -567,12 +722,12 @@ function renderRouteResults(){
   el.innerHTML=routes.map((r,i)=>`<div class="rounded-[18px] border ${i===0?'border-[#00B140] bg-[#E6F7ED]/50':'border-slate-200 bg-white'} p-4"><div class="flex justify-between"><div class="flex items-center gap-2"><span class="text-[20px] font-bold">${r.duration}</span><span class="text-[10px] px-2 py-0.5 rounded-full bg-[#00B140] text-white font-bold">LIVE</span></div><div class="font-bold">${r.price}</div></div><div class="mt-2 text-[12px] opacity-70">${r.steps.map(s=>`• ${s}`).join('<br>')}</div></div>`).join('');
 }
 const ALL_ARRETS=[
-  { name:'Dieuppeul - Derklé', dir:'Biscuiterie - HLM', lines:['DDD'], distance:1.9, next:['5 min','12 min'], status:'Dense', type:'DDD', lat:14.726, lng:-17.44 },
-  { name:'Petersen', dir:'Guédiawaye - Petersen', lines:['BRT 01','DDD 10'], distance:0.12, next:['2 min','7 min'], status:'Très fréquenté', type:'BRT', lat:14.6937, lng:-17.4441 },
-  { name:'UCAD', dir:'Yoff - Guédiawaye', lines:['DDD 10','TATA'], distance:0.45, next:['4 min','11 min'], status:'Fluide', type:'DDD', lat:14.688, lng:-17.465 },
-  { name:'Liberté 6 - BRT', dir:'Petersen - Guédiawaye', lines:['BRT 01'], distance:0.78, next:['1 min','6 min'], status:'À l\'heure', type:'BRT', lat:14.73, lng:-17.46 },
-  { name:'Colobane', dir:'Pikine - Plateau', lines:['TATA 218'], distance:1.2, next:['3 min','9 min'], status:'Fluide', type:'TATA', lat:14.71, lng:-17.45 },
-  { name:'Parcelles Assainies', dir:'Guédiawaye - Plateau', lines:['AFTU 12'], distance:2.1, next:['6 min','14 min'], status:'Dense', type:'AFTU', lat:14.76, lng:-17.43 },
+  { name:'Dieuppeul - Derklé', dir:'Biscuiterie - HLM', lines:['DDD'], distance:1.9, next:['5 min','12 min'], status:'Dense', type:'DDD', lat:14.7189, lng:-17.4547 },
+  { name:'Petersen', dir:'Guédiawaye - Petersen', lines:['BRT 01','DDD 23'], distance:0.12, next:['2 min','7 min'], status:'Très fréquenté', type:'BRT', lat:14.6758, lng:-17.4413 },
+  { name:'UCAD', dir:'Palais - Ouakam', lines:['DDD 7','DDD 23'], distance:0.45, next:['4 min','11 min'], status:'Fluide', type:'DDD', lat:14.6932, lng:-17.4621 },
+  { name:'Liberté 6 - BRT', dir:'Petersen - Guédiawaye', lines:['BRT 01'], distance:0.78, next:['1 min','6 min'], status:'À l\'heure', type:'BRT', lat:14.7257, lng:-17.4597 },
+  { name:'Colobane', dir:'Pikine - Plateau', lines:['TATA 218'], distance:1.2, next:['3 min','9 min'], status:'Fluide', type:'TATA', lat:14.7004, lng:-17.4416 },
+  { name:'Parcelles Assainies', dir:'Guédiawaye - Plateau', lines:['AFTU 12'], distance:2.1, next:['6 min','14 min'], status:'Dense', type:'AFTU', lat:14.7621, lng:-17.4250 },
 ];
 
 let activeFilter = 'tous';
@@ -634,18 +789,19 @@ function renderTransports(){
   var el=document.getElementById('transport-cards');
   if(!el) return;
   const cards=[
-    { name:'BRT SunuBRT', count:23, status:'23 stations réelles', color:'bg-[#00B140]', desc:'Guédiawaye → Petersen • 23 stations', icon:'🚌' },
-    { name:'AFTU - 64 lignes', count:64, status:'64 lignes', color:'bg-[#00B140]', desc:'64 lignes urbaines • 76 routes GTFS', icon:'🚐' },
-    { name:'TER Dakar', count:13, status:'13 gares', color:'bg-emerald-600', desc:'Dakar → AIBD • 13 gares', icon:'🚆' },
+    { name:'BRT SunuBRT', count:23, status:'tracé routier réel', color:'bg-[#00B140]', desc:'Petersen → Préfecture de Guédiawaye • 18,5 km • 23 stations', icon:'🚌' },
+    { name:'Dakar Dem Dikk', count:3, status:'L7, L10, L23 tracées', color:'bg-[#3B82F6]', desc:'Palais → Ouakam / Liberté 5 / Parcelles • 112 arrêts réels', icon:'🚌' },
+    { name:'AFTU - 64 lignes', count:64, status:'tracés à générer', color:'bg-[#EC4899]', desc:'64 lignes urbaines • arrêts à renseigner (stop_times)', icon:'🚐' },
+    { name:'TER Dakar', count:13, status:'voie ferrée OSM', color:'bg-emerald-600', desc:'Dakar → Diamniadio • 35,7 km • 13 gares', icon:'🚆' },
   ];
-  el.innerHTML=cards.map(c=>`<div class="rounded-[20px] bg-white border p-5"><div class="flex gap-3"><div class="w-12 h-12 rounded-xl ${c.color} text-white flex items-center justify-center text-[20px]">${c.icon}</div><div><div class="font-bold">${c.name}</div><div class="text-[11px] opacity-60">${c.desc}</div></div></div><div class="mt-4 w-full h-10 rounded-full bg-[#E6F7ED] text-[#007A2F] flex items-center justify-center font-bold text-[13px] border border-[#C2EAD0]">${c.count} ${c.name.includes('AFTU')?'lignes':c.name.includes('BRT')?'stations':'gares'} • ${c.status}</div></div>`).join('');
+  el.innerHTML=cards.map(c=>`<div class="rounded-[20px] bg-white border p-5"><div class="flex gap-3"><div class="w-12 h-12 rounded-xl ${c.color} text-white flex items-center justify-center text-[20px]">${c.icon}</div><div><div class="font-bold">${c.name}</div><div class="text-[11px] opacity-60">${c.desc}</div></div></div><div class="mt-4 w-full h-10 rounded-full bg-[#E6F7ED] text-[#007A2F] flex items-center justify-center font-bold text-[13px] border border-[#C2EAD0]">${c.count} ${c.name.includes('AFTU')||c.name.includes('Dem Dikk')?'lignes':c.name.includes('BRT')?'stations':'gares'} • ${c.status}</div></div>`).join('');
 }
 function renderArrivals(){
   var el=document.getElementById('next-arrivals');
   if(!el) return;
   el.innerHTML=[
     { line:'BRT 01', dest:'Petersen', time:'2 min' },
-    { line:'DDD 10', dest:'Yoff', time:'5 min' },
+    { line:'DDD 10', dest:'Liberté 5', time:'5 min' },
   ].map(a=>`<div class="flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-[#E6F7ED] text-[#00B140] flex items-center justify-center font-bold text-[11px]">${a.line[0]}</div><div class="flex-1"><div class="font-medium text-[13px]">${a.line} → ${a.dest}</div></div><div class="font-bold text-[#00B140]">${a.time}</div></div>`).join('');
 }
 let alerts=[{id:1, title:'BRT fluide', desc:'18 min Guédiawaye → Petersen', time:'2 min'}];
@@ -665,6 +821,7 @@ function setupFilters(){
       btn.classList.add('filter-active');
       activeFilter = btn.dataset.filter || btn.textContent.toLowerCase();
       renderArrets();
+      if(window.map) applyRouteFilter();
     });
   });
 }
@@ -738,7 +895,7 @@ window.addEventListener('load', ()=>{
   if(tv) tv.onclick=()=>{ switchTab('explorer'); };
   var assistantBtn=document.getElementById('assistant-ia-btn');
   if(assistantBtn) assistantBtn.onclick=()=>{ showToast('🤖 Assistant IA Dakar Bus - bientôt'); };
-  showToast('✅ Dakar Bus - Interface conservée comme screenshot');
+  showToast('✅ Dakar Bus - tracés alignés sur la voirie réelle');
 });
 </script>
 </body>

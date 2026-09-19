@@ -1,0 +1,45 @@
+{
+  "shape_id": "BRT_01_shape",
+  "route_id": "BRT_01",
+  "fetched_at": "2026-09-19T05:10:00Z",
+  "osrm": "https://router.project-osrm.org",
+  "profile": "driving",
+  "geometries": "polyline",
+  "note": "Réponse OSRM tronquée (hints supprimés). Waypoints = 23 stations réelles du BRT (OSM relation 19961993), Petersen → Préfecture de Guédiawaye.",
+  "code": "Ok",
+  "routes": [
+    {
+      "distance": 18453.3,
+      "duration": 1424,
+      "legs": [
+        {"duration":149.7,"distance":1187.9},{"duration":144.5,"distance":1600.9},{"duration":43.8,"distance":491.7},{"duration":53.4,"distance":805.5},{"duration":53.4,"distance":703.8},{"duration":66.3,"distance":1010.1},{"duration":36.7,"distance":450.4},{"duration":69.9,"distance":777.9},{"duration":67.8,"distance":984.1},{"duration":25.9,"distance":395.4},{"duration":39.2,"distance":566.7},{"duration":63.6,"distance":1059.4},{"duration":37.7,"distance":683.5},{"duration":37.2,"distance":674.3},{"duration":78.5,"distance":1417.1},{"duration":30.2,"distance":545.8},{"duration":41.9,"distance":757.6},{"duration":72.7,"distance":801.3},{"duration":166.2,"distance":1349.6},{"duration":53.2,"distance":791.3},{"duration":46.6,"distance":703.5},{"duration":45.6,"distance":695.5}
+      ],
+      "geometry": "ejqxAhomiBQlAAF@BD@FAn@cECGCEKI[IMIGICGCGEOEQ?U@MNYAYUGWT_@\\{DdDwBfBSPQNe@d@{AnAOJi@b@kBvAGFCB_@XEDEDQNi@ZYLu@V_ATy@PsAZeAJK@IBe@Nm@Lc@J??wBj@m@NECECIAI@I@GDEDCDADAFQLIBE@q@PqDx@eE`AeCl@s@P_@JgAVa@Hu@P_E`AyEhAw@PSFaE`AUD??{Ab@eAVu@RC@OBGDIFKVOJi@`@qAfAKHQL[XMHGFGD_E`DSPWPq@j@c@\\e@\\w@p@s@p@e@f@KJaAbAOKIGKHMPONu@j@cAv@c@Zc@^a@Va@VkA|@EDkBxAg@b@c@\\SLCBKJMDSTIJWP_ClBYPqAdAq@h@SNSNy@f@_ClBMJyAjA{@r@y@p@WPg@b@g@b@OLy@n@u@j@y@n@i@d@WPgA|@aAv@_Az@g@`@]ZIHWTSTUT[XQLgCrBu@h@_Aj@kA`AIFQLwDxCKLY^WTy@n@o@h@e@`@aBvAcD~BmCtBq@h@e@Xc@VcC`A_B`@]FaATa@Da@?]A[CSAaBGIA[Ag@C_@Eg@EYC[GOAQAQAOEWIa@USKUOs@i@sCaCs@s@u@k@USgFkE_@[[Q_As@cB}AqBkByEoEcB{AWUW_@YYeA}@OOeCyBw@s@wAaA}@y@qBaBq@m@WUe@Ye@Uc@Me@Iq@Ms@Iu@IgBUc@EOCoAOo@KiDe@oBYa@Ge@?C?wA@K?i@As@Eg@Em@GqAMOAy@K_@Ga@Iw@Wi@UUMOGWMgAa@k@S??mAc@WKg@OYIMG]U[SYSQKoCkBy@m@OKmA{@w@k@]Ya@[QU]k@KMm@{@CEk@}@m@aAeAaBSYwAoBQYOS}@qAoAsBoAoBQYsAsB}A}BW_@MMOQ_@[o@c@cAm@eAm@yC}AOMU[QOw@k@[UCCoA_AkA}@m@o@YUe@c@KMSYSc@Yq@qAkC_@s@e@_AYw@?Ao@wBOq@COIg@G]AGc@iBa@eBs@{CAE_@eAOe@}@oC_@_Ao@aBQ_@aBaDm@iAIWAMCICCIECIGMOWGIYi@CEACOWmA}Bq@qA]u@W]?GCGECS[S]g@}@uAkC[o@GMCCi@{@y@aB_BwCc@}@[i@_@c@UQc@Yc@SkBw@_CcAyAs@UMmCsA}Au@m@WQI{BgAUKk@YQOCAKMIKO[a@{@Sa@}BuEOUKQKIOIi@{@m@iAc@{@EKSw@YuAWoAIk@CSG[]eBCQi@sCCQWyAEUIOIOWqAOy@CIG_@[oAK_@]wA[uAOk@EWISa@w@e@y@c@u@]o@MUi@{@GKW]a@s@EEe@y@e@y@g@{@]m@IMSSKOKUiAqBw@wA[k@o@eAg@w@e@y@c@w@MWWe@e@y@e@}@O]Yi@GQGDGFGFE@UD_@HOSEE_@_@]SIEi@Yi@Sa@Mo@Ms@OKCQAM@EF@FDDJBNA`@Bb@Hh@Lv@Xv@Zl@b@ZTPNHA^ITEDAFGFGFEKYWu@EW@C@E?E?ECECACCEAE?GBCBCDABMBU@K?aACSEMAUCYGiA[c@IIAMCKAGAS?WDu@TUHa@Pm@Vy@^_A`@]Na@Le@NOFOJA?MHQBK?SECGCCB_@FSFODYGcB?I?w@?mAAy@?o@Ay@EqCAcCE{@A_AAk@Au@Ci@?Q?[DEBG@IAGCIACCACACQ?SIu@K_AYiC[oCMcAMkACS?OBC@E?G?ECGCEECASAIMaAGk@Io@KaASgBCi@?CCSCMKi@SgCUgCCWGeACu@AQ?g@@_@@k@@GBWDg@J}@Hg@BMDOBMB?BCBA@C@C@C?C@CAEFMDIHKJUL]P[??d@{@f@y@lAsBNWBELYJW\\e@jA_BJOlAsB~@wAPYn@aAbAaBJSBETYHEDG@ILQFKNUh@{@"
+    }
+  ],
+  "waypoints": [
+    {"location":[-17.441327,14.675708],"name":"","distance":13.02},
+    {"location":[-17.444149,14.682529],"name":"Boulevard Mamadou Dia","distance":7.63},
+    {"location":[-17.450155,14.695455],"name":"Boulevard Dial Diop","distance":20.57},
+    {"location":[-17.452906,14.698827],"name":"Boulevard Dial Diop","distance":3.64},
+    {"location":[-17.457636,14.704457],"name":"Boulevard Dial Diop","distance":6.34},
+    {"location":[-17.46181,14.709344],"name":"Boulevard Dial Diop","distance":6.97},
+    {"location":[-17.466372,14.716957],"name":"","distance":5.52},
+    {"location":[-17.464422,14.720409],"name":"","distance":6.34},
+    {"location":[-17.459613,14.725647],"name":"","distance":5.87},
+    {"location":[-17.456105,14.733533],"name":"Route des Niayes","distance":4.09},
+    {"location":[-17.455086,14.736923],"name":"Route des Niayes","distance":6.39},
+    {"location":[-17.451959,14.740966],"name":"Route des Niayes","distance":6.09},
+    {"location":[-17.444828,14.747398],"name":"Route des Niayes","distance":7.79},
+    {"location":[-17.439603,14.750649],"name":"Route des Niayes","distance":7.85},
+    {"location":[-17.434026,14.753342],"name":"Route des Niayes","distance":6.73},
+    {"location":[-17.42496,14.7621],"name":"Route de Niayes","distance":5.73},
+    {"location":[-17.420484,14.764266],"name":"Route de Niayes","distance":5.41},
+    {"location":[-17.414102,14.766982],"name":"Route de Niayes","distance":4.81},
+    {"location":[-17.408621,14.771274],"name":"","distance":15.81},
+    {"location":[-17.406398,14.775164],"name":"Boulevard El Hadj Omar Tall","distance":6.87},
+    {"location":[-17.399212,14.776033],"name":"Boulevard El Hadj Omar Tall","distance":5.98},
+    {"location":[-17.392911,14.775972],"name":"Boulevard El Hadj Omar Tall","distance":5.84},
+    {"location":[-17.387676,14.772305],"name":"Boulevard El Hadj Omar Tall","distance":8.52}
+  ]
+}

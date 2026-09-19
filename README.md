@@ -13,37 +13,50 @@ Mobilité urbaine Dakar en temps réel : BRT SunuBRT (23 stations réelles), Dak
 - **GPS live** : watchPosition haute précision, ETA live, tri par distance
 - **Alertes temps réel** : WebSocket mock + push notifications + cache offline
 
-## 🗺️ 23 Stations BRT Réelles Ajoutées
+## 🛣️ Tracés routiers réels (road snapping OSRM)
 
-Source : CETUD brochure + Senego + Wikipedia BRT Dakar
+Les lignes ne sont **plus** dessinées « à vol d'oiseau » : chaque tracé est calculé par
+OSRM en passant par **tous les arrêts réels de la ligne** (waypoints issus de
+`data/gtfs/stop_times.txt`), puis validé (densité de points, passage à ≤ 150 m de chaque
+arrêt, terminus, ratio de détour). Le TER utilise la **voie ferrée OpenStreetMap**.
 
-1. Papa Gueye Fall - PEM Petersen
-2. Grande Mosquée
-3. Place de la Nation - Obélisque
-4. Dial Diop 1
-5. Dial Diop 2
-6. Grand Dakar
-7. Liberté 1
-8. Sacré-Cœur
-9. Liberté 5
-10. Liberté 6
-11. Khar Yallah
-12. Scat Urbam
-13. Cardinal Hyacinthe Thiandoum
-14. Grand Médine - PEM
-15. Police des Parcelles
-16. Croisement 22
-17. Parcelles Assainies
-18. Fith Mith
-19. Ndingala - Golf Sud
-20. Dalal Jam - Hôpital
-21. Golf Nord
-22. Gadaye - Cambérène
-23. Préfecture Guédiawaye - PEM
+| Ligne | Tracé | Source | Longueur |
+|-------|-------|--------|----------|
+| BRT 01 Petersen → Préfecture de Guédiawaye (23 stations) | OSRM via 23 stations | OSM relation 19961993 | 18,45 km (officiel ≈ 18,3 km) |
+| TER Dakar → Diamniadio (13 gares) | voie ferrée OSM | OSM relation 13645077 | 35,7 km |
+| DDD 7 Palais → Ouakam (31 arrêts) | OSRM via 31 arrêts | OSM relation 6990669 | 15,8 km |
+| DDD 10 Palais → Liberté 5 (30 arrêts) | OSRM via 30 arrêts | OSM relation 6990845 | 15,7 km |
+| DDD 23 Palais 1 → Parcelles Assainies (51 arrêts) | OSRM via 51 arrêts | OSM relation 7495279 | 22,5 km |
 
-+ 13 gares TER Dakar → AIBD + arrêts DDD/AFTU
+Les autres lignes (AFTU, TATA, DDD 12…) n'ont pas encore d'arrêts intermédiaires connus :
+elles ne sont **pas dessinées** (aucun repli en ligne droite). Pour en ajouter une :
 
-Tout est dans `data/gtfs/stops.txt` et affiché sur carte avec icônes violettes BRT.
+1. ajouter ses arrêts réels dans `data/gtfs/stops.txt` et son trajet dans `stop_times.txt` ;
+2. lancer `npm run snap-routes` (OSRM public) ou `npm run snap-routes -- --print-urls` pour
+   récupérer les URLs à la main puis enregistrer la réponse dans `data/routes/osrm-cache/<shape_id>.json` ;
+3. `npm run validate-shapes` vérifie l'ordre lat/lng, la densité et le passage par chaque arrêt.
+
+Fichiers générés : `data/gtfs/shapes.txt` (GTFS) et `data/routes/geometries.json`
+(GeoJSON `[lng, lat]`, converti en `[lat, lng]` par Leaflet côté client). Provenance : `data/routes/sources.json`.
+
+Conventions de coordonnées (voir `server/roadSnapping.js`) :
+
+| Format | Ordre |
+|--------|-------|
+| OSRM URL / GeoJSON | `lng,lat` / `[lng, lat]` |
+| Polyline encodée OSRM (`decodePolyline`) | `[lat, lng]` |
+| GTFS (`stop_lat`, `stop_lon`, `shape_pt_lat`, `shape_pt_lon`) | lat puis lon |
+| Leaflet (`L.polyline`, `setLatLng`) | `[lat, lng]` |
+
+## 🗺️ Arrêts réels (source OpenStreetMap, ODbL)
+
+`data/gtfs/stops.txt` contient 128 arrêts géolocalisés depuis OSM : 23 stations BRT
+(Petersen, Grande Mosquée, Place de la Nation, Dial Diop, Grand Dakar, Liberté 1, Sacré-Cœur,
+Liberté 5, Liberté 6, Khar Yalla, Scat Urbam, Cardinal Hyacinthe Thiandoum, Grand Médine,
+Police des Parcelles, Croisement 22, Parcelles Assainies, Ndingala, Golf Sud, Dalal Jamm,
+Fith Mith, Golf Nord, Gueule Tapée, Préfecture de Guédiawaye), 13 gares TER (Dakar, Colobane,
+Hann, Dalifort, Baux Maraîchers, Pikine, Thiaroye, Yeumbeul, Mbao, PNR, Rufisque, Bargny,
+Diamniadio) et 92 arrêts Dakar Dem Dikk (lignes 7, 10, 23).
 
 ## 🚀 Déploiement GitHub Pages (1-click)
 
@@ -93,12 +106,24 @@ Frontend bascule auto en LIVE.
 ├── service-worker.js       # Offline cache
 ├── offline.html            # Fallback offline
 ├── data/gtfs/              # GTFS static Dakar
-│   ├── stops.txt (42 arrêts dont 23 BRT)
-│   ├── routes.txt (9 routes)
-│   ├── trips.txt, stop_times.txt, shapes.txt
+│   ├── stops.txt (128 arrêts réels OSM : 23 BRT, 13 TER, 92 DDD)
+│   ├── routes.txt (76 routes)
+│   ├── trips.txt, stop_times.txt (waypoints réels des lignes tracées)
+│   ├── shapes.txt          # GÉNÉRÉ par scripts/generate-shapes.js (tracés routiers)
 │   └── agency.txt, calendar.txt
+├── data/routes/
+│   ├── geometries.json     # GÉNÉRÉ : GeoJSON [lng,lat] des tracés (servi au frontend)
+│   ├── osrm-cache/         # Réponses OSRM (polyline) par shape_id
+│   ├── manual/             # Géométries manuelles (voie ferrée TER depuis OSM)
+│   └── sources.json        # Provenance (relations/nœuds OSM, méthode)
+├── scripts/
+│   ├── generate-shapes.js  # npm run snap-routes  (OSRM via arrêts réels, sans repli)
+│   └── validate-shapes.js  # npm run validate-shapes
 ├── server/
-│   ├── server.js           # Proxy Express GTFS-RT protobuf→JSON
+│   ├── server.js           # Proxy Express GTFS-RT protobuf→JSON + /api/routes/*
+│   ├── roadSnapping.js     # Service OSRM : décodage polyline, conversions lat/lng, contrôles qualité
+│   ├── roadSnapping.test.js# npm test
+│   ├── gtfs.js             # Parsing CSV RFC 4180 + waypoints par trajet
 │   ├── package.json
 │   ├── .env.example
 │   └── test-cetud.js
@@ -119,8 +144,12 @@ Frontend bascule auto en LIVE.
 | Endpoint | Description |
 |----------|-------------|
 | `/api/gtfs-rt/vehiclePositions` | Positions bus (via proxy Express, sinon mock) |
-| `/api/gtfs/static` | GTFS static Dakar JSON (42 arrêts) |
+| `/api/gtfs/static` | GTFS static Dakar JSON (128 arrêts) |
 | `/data/gtfs/stops.txt` | GTFS static brut |
+| `/data/routes/geometries.json` | Tracés routiers réels (GeoJSON `[lng, lat]`) |
+| `/api/routes/geometry?mode=ddd` | Tracés pré-générés filtrables (`route=`, `mode=`) |
+| `/api/routes/:routeId/geometry` | Tracé d'une ligne (pré-généré, sinon OSRM à la volée via ses arrêts ; 404 si aucun arrêt connu — jamais de ligne droite) |
+| `POST /api/routes/snap` | Road snapping à la demande `{ stops: [{lat, lng, sequence?}] }` → GeoJSON + polyline |
 | `/api/vehicles` | Format simple Leaflet |
 | `/api/health` | Status MOCK/LIVE |
 

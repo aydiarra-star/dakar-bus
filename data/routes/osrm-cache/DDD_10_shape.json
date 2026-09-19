@@ -1,0 +1,21 @@
+{
+  "shape_id": "DDD_10_shape",
+  "route_id": "DDD_10",
+  "fetched_at": "2026-09-19T05:14:00Z",
+  "osrm": "https://router.project-osrm.org",
+  "profile": "driving",
+  "geometries": "polyline",
+  "note": "Réponse OSRM tronquée (hints/waypoints supprimés). Waypoints = 30 arrêts réels de la ligne 10 Palais → Liberté 5 (OSM relation 6990845). Voirie suivie : Av. Pasteur, Av. Nelson Mandela, Av. de la République, Corniche Ouest, Rue Aimé Césaire, Av. Habib Bourguiba, Liberté.",
+  "code": "Ok",
+  "routes": [
+    {
+      "distance": 15663.6,
+      "duration": 1537.8,
+      "legs": [
+        {"duration":56.9,"distance":580.3},{"duration":41.9,"distance":465.3},{"duration":34.8,"distance":389.8},{"duration":39.5,"distance":394.1},{"duration":20,"distance":200.4},{"duration":24.3,"distance":276},{"duration":62.9,"distance":1022.4},{"duration":43.8,"distance":872.8},{"duration":177.8,"distance":1311.3},{"duration":74.4,"distance":450.1},{"duration":61.3,"distance":950.7},{"duration":86.5,"distance":1281.4},{"duration":38.4,"distance":426.4},{"duration":30.4,"distance":337.6},{"duration":64.4,"distance":690.3},{"duration":22.2,"distance":338.6},{"duration":72,"distance":815.3},{"duration":47.7,"distance":528.6},{"duration":68,"distance":660.8},{"duration":67.9,"distance":462.4},{"duration":34.5,"distance":240.9},{"duration":67.9,"distance":470.7},{"duration":52.7,"distance":334.2},{"duration":41.8,"distance":290.1},{"duration":36.8,"distance":256.7},{"duration":45.1,"distance":330.1},{"duration":16.1,"distance":249.5},{"duration":81.3,"distance":740.8},{"duration":26.5,"distance":296}
+      ],
+      "geometry": "e{lxAz~kiBu@Rk@FcDz@M@_@Jm@PIJ}GjBmF|A[H_AXmF~AoA^g@Lo@RaAVQF_Cn@oCv@WFiBh@sBn@CECGECECGCG?H]LoAX_CJeAHs@J_ANuA{GPkCFqADe@tBK`@wAhGOr@Ib@I`@_@xAGd@ENADCBCDC@IJC?CBE@CDABADAD?D@D@D@BBR@HAHCJOt@U`AADe@fBOp@CFCL]~Aq@rCi@jCSt@Sr@CJCHKLKJEDGDMHUP]TKFEDMHSRwAlA_BxAmAfAqAlAcAfAiAlA_A`AkAnAa@`@ON[X_@`@U\\QXQ\\a@|@e@xAUd@Ul@a@dAO^Sd@]~@GPK^Qj@Un@Wt@K\\Md@_@nAMd@KZELKZIXKTMTKPGHMNKHOLWR{@p@c@^kA~@GIq@u@iCnCz@|@BJ?HCJCFsBxBeAhAcAfAk@h@eAjAk@l@QRBDnApBV^Zj@LTBF@L@BBBmAzAaAhAQRu@z@KNa@d@OTMROXOb@Ot@CLCPC^?V?HCz@@|A?TZFB@@BVb@LRNNjAhAf@f@r@r@v@r@Zb@^r@FJ@FADABkAb@LRHJDJ@J@H@J@L?zA|A??x@An@?JAxBAj@C\\E\\K^K\\ITMTU\\SXSR[VYNg@Tg@NcBh@k@P}Bp@_@H_@Ha@De@Bo@?y@CYCs@IkEo@wAMa@?e@Be@F[Fe@JYFoAXeB`@]DMBECG?G?EBEBCBAFOFKBYHc@Ji@Lu@R]JYLQJUNYRSPCDOPSZOXIPCJKZI`@I`@Q~@SfACFIXM`@O\\OXU`@[`@a@b@QPQRc@`@MLWRc@X_@Pk@Ti@LgAT[DiARoB\\]BWBU@K@C?CAACAG?EAEAGCICCEGYUEKESk@wBU}@Uy@c@gBMi@yBaIc@cBi@qBYiAG_@ACCAEEmAcAQQ_@[WUuAkA_BwAUSIGmA{@IG]SOICCW\\MNW\\UZE@GBEDEDg@h@e@f@a@`@SRWRQLSJULi@NKDI@I@K?IIEEGCGCIAGASEGCEEEEEGEMEMAGCMAK@A?A@C?CACACAACAAAIEEEOMQKmBeBuAmA[Y]WmDuCsBgBuBgB}BoBUScA}@_@[u@o@oCaCOMUSaDoCkEmDROXN~EdE`CtBKTUSaDoCkEmDOOOKkAeAUSw@q@yDiDgA_AiBzAwBdBu@l@iCrBON}EvD{AnAMJoAdAiAaAMKoAgAe@_@i@g@k@e@{@u@g@c@g@a@OKu@o@_BuAaCwBKKc@]oBaBqCcCQYWo@Qy@Mw@AMAO?YL_B@MHiABWDo@@AFeAJsBuAMaAG_AKWAs@G}BSuAKiAIu@Gy@GEAgAI_BMiAIQCiAIOA{AMuDYe@Ce@E_@EsAK{AMcDWm@EUAC\\Ej@IpAEd@a@pFUfDI?cDSOC@MN@ANlDRMfBE`@IfAKz@CNEJCDIJIDEBC@CDCBADAFAD?F?@?D?DBD@D@BDFBBDBDBD@B@D?F?F?DADAFEFEBE@CBG@C@G?K?IAGAECCACGMCG?I?I@GFo@@QVBdBLhBN@?`AHjBNh@DT@PBP@p@F|@Fd@DL@vAJ@?"
+    }
+  ],
+  "waypoints_snap_max_m": 17
+}

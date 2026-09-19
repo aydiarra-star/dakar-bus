@@ -99,6 +99,52 @@ function setTabInURL(tab, push) {
 
 ---
 
+## 4️⃣ TRACÉS EN LIGNE DROITE → TRACÉS ROUTIERS RÉELS (CRITIQUE - CORRIGÉ)
+
+### Symptôme
+Les lignes DDD/AFTU/BRT/TER apparaissaient comme de grandes lignes droites traversant
+la carte (vecteurs directs entre 4 ou 5 points, ex. `DDD 10 : Petersen → Yoff → Almadies`)
+au lieu de suivre la voirie de Dakar.
+
+### Causes identifiées
+1. **Aucune géométrie routière n'existait** : `initMap()` contenait des tableaux de 4-5
+   coordonnées approximatives (`routes[].coords`) utilisés comme chemin des véhicules, et
+   `shapes.txt` ne contenait que des segments arrêt → arrêt (BRT/TER) construits à partir
+   de coordonnées synthétiques (Petersen était placé à ~2 km de la vraie gare).
+2. **Pas de waypoints intermédiaires** : `stop_times.txt` ne couvrait que 2 trajets ;
+   les lignes DDD/AFTU n'avaient que leurs terminus → tout routage aurait produit un
+   « vecteur direct ».
+3. Le parsing CSV naïf (`line.split(',')`) cassait les noms d'arrêts contenant une virgule.
+
+### Correctif
+- **`server/roadSnapping.js`** : service OSRM (`generateRouteGeometry(stops)`) qui
+  - trie les arrêts par `sequence`, dédoublonne, signale les écarts > 10 km (CRITIQUE > 20 km) ;
+  - construit l'URL OSRM en **`lng,lat`**, `overview=full&geometries=polyline` ;
+  - décode la polyline (`decodePolyline` → **`[lat, lng]`**, précision 5, erreur si tronquée) ;
+  - convertit explicitement GeoJSON `[lng, lat]` ⇄ Leaflet `[lat, lng]` (`toLatLng`, `toLngLat`,
+    `normalizeLatLngs`) avec détection d'inversion via la boîte englobante de Dakar ;
+  - contrôle la qualité (densité ≥ 4 pts/km, segment max 3 km, terminus ≤ 300 m, détour ≤ ×2,5,
+    projection ≤ 500 m) et **lève `RoadSnappingError` — aucun repli en ligne droite**.
+- **Données** : 128 arrêts réels OSM (23 BRT, 13 TER, 92 DDD) et `stop_times.txt` complet pour
+  BRT 01, TER, DDD 7/10/23 → `scripts/generate-shapes.js` produit `shapes.txt` +
+  `data/routes/geometries.json` (BRT 18,45 km via 23 stations, DDD 7/10/23 via 31/30/51 arrêts,
+  TER = voie ferrée OSM). `scripts/validate-shapes.js` vérifie que chaque tracé passe à ≤ 150 m
+  de chacun de ses arrêts.
+- **Frontend** : `loadRouteShapes()` charge `geometries.json` (sinon `shapes.txt`), passe chaque
+  tracé par `toLeafletLatLngs()` (ordre vérifié, points hors Dakar rejetés) et
+  `shapeLooksRoadLike()` (un tracé « en vecteurs directs » est ignoré avec une erreur console).
+  Les véhicules simulés circulent **le long des tracés** (`pointAlongShape`). Une ligne sans
+  tracé validé n'est simplement pas dessinée.
+- **API** : `GET /api/routes/geometry`, `GET /api/routes/:routeId/geometry` (404 explicite si
+  la ligne n'a pas d'arrêts connus), `POST /api/routes/snap` (422 si lat/lng inversés, 502 si
+  OSRM injoignable — jamais de tracé de secours).
+
+### Vérification
+```bash
+npm test                 # 15 tests : décodage polyline, ordre lat/lng, absence de repli, découpage OSRM
+npm run snap-routes:offline && npm run validate-shapes
+```
+
 ## Déploiement
 Le site est un fichier `index.html` statique → déployable sur Vercel, Netlify, GitHub Pages.
 Pour corriger définitivement le refresh en prod avec React:

@@ -1,0 +1,21 @@
+{
+  "shape_id": "DDD_07_shape",
+  "route_id": "DDD_07",
+  "fetched_at": "2026-09-19T05:12:00Z",
+  "osrm": "https://router.project-osrm.org",
+  "profile": "driving",
+  "geometries": "polyline",
+  "note": "Réponse OSRM tronquée (hints/waypoints supprimés). Waypoints = 31 arrêts réels de la ligne 7 Palais → Ouakam (OSM relation 6990669). Voirie suivie : Av. Pasteur, Av. Nelson Mandela, Av. Pompidou, Av. Peytavin, Av. Blaise Diagne, Av. Cheikh Anta Diop, Route de Ouakam.",
+  "code": "Ok",
+  "routes": [
+    {
+      "distance": 15810,
+      "duration": 1405,
+      "legs": [
+        {"duration":56.9,"distance":580.3},{"duration":41.9,"distance":465.3},{"duration":34.8,"distance":389.8},{"duration":111.7,"distance":1274},{"duration":19.3,"distance":213.9},{"duration":83.6,"distance":828.7},{"duration":53.8,"distance":614},{"duration":37,"distance":593.9},{"duration":74.9,"distance":481.7},{"duration":22.2,"distance":338.4},{"duration":20.5,"distance":336.3},{"duration":16.7,"distance":266.1},{"duration":16.4,"distance":289.2},{"duration":21.7,"distance":389.8},{"duration":20.5,"distance":369.9},{"duration":24.3,"distance":440.7},{"duration":84.8,"distance":1255.6},{"duration":26.2,"distance":471.5},{"duration":49.7,"distance":695.8},{"duration":25.7,"distance":341.7},{"duration":58.1,"distance":765.7},{"duration":47.1,"distance":396.8},{"duration":126.6,"distance":812.3},{"duration":78.1,"distance":855.5},{"duration":26.2,"distance":274.7},{"duration":22.6,"distance":252.8},{"duration":38.9,"distance":391.9},{"duration":43.4,"distance":424.6},{"duration":65.9,"distance":609.2},{"duration":55.5,"distance":389.9}
+      ],
+      "geometry": "e{lxAz~kiBu@Rk@FcDz@M@_@Jm@PIJ}GjBmF|A[H_AXmF~AoA^g@Lo@RaAVQF_Cn@oCv@WFiBh@sBn@CECGECECGCG?H]LoAX_CJeAHs@J_ANuAB[?UESGKIKSIm@Oe@Km@OSEsA[SEiA[s@QmD_AqBi@EAKCoBg@eCq@WGwASMKCGAGC_@Eg@IYSKc@OOCI?QAEDeAEwBFC?iBDG?o@BE?MJIJEJCJ?^@P@HFPDHHFDBF@H?j@AH?jBC@b@B|@BrAFpBDhB@\\DtBBf@DnBNpGM?MPILQTGHs@|@cB`CJjE`@rAdAY~Bo@ImC?KGeCCqA?SAQA_@A]M?MPILQTGHs@|@cB`CkBdC}@pA{@vA@H@H[b@IHC@IFSHKPY`@[h@OTWVc@f@o@r@Y\\IHSRYRa@TeCbAg@\\o@`@WVSN{@v@m@l@sA|Ay@|@gCpCWZ]ZONKFIFOJCBIHCAE?KEICGEOMu@w@WVl@j@DNAPGRkAlAPPHH[XwInJk@n@WVEFcAdAiAjAY^g@f@_@b@{C~COPIFeAnAcAhAeAhAUVYZQRYZCDk@l@{@`A_@b@OHC?CAC?G@E?EBEBCBEBADCFAF?F?Hk@Zu@j@]Z[^EDg@f@u@x@e@h@a@d@a@h@q@|@c@l@STq@z@UTSRUPWPm@ZKFwEfCkAp@SJQLQNWTIHIHo@v@QTs@|@s@z@k@v@_@f@_BnB}@rAmAjBKJGHIBMHE?E@C@C@CBABADABERCHEFKLKHGFWZcAlAgAvAyK~MaApAk@n@SRW\\MNW\\UZE@GBEDEDg@h@e@f@a@`@SRWRQLSJULi@NKDI@I@K?IIEEGCGCIAGAK?I?K@IBIDIDGHEDCDCFAFAFAFAF?F@H@F@HBFDFBFFDDDFDDBJJFHFH@B@BBF@LAF?FAFCJ_EdFCBo@z@IJ_AdAW^kAzAi@n@s@~@m@x@y@bA_@d@GFc@l@u@`Ac@j@UZa@n@QZOXEHINE@G@GDEFCF?H@H@FBD@XANGl@OzAMpAOv@Kf@Qh@[v@U`@c@n@k@l@]\\}@l@eAp@{A|@_@Ta@^cAz@MJaBzA_A~@s@r@kAfASRSNSRWPQLIDOJSHUHg@N]LKBOBOBI@W@E@E?S@EGEGICI?I?GBGDEDAFAFSDC?UBa@Ao@CcCKq@CeESu@?m@By@He@HSDMDUDOF_@P[L}@`@C@y@b@WL[VUPKJON]`@iAvBCDOZu@vAGBQHORW`@]l@_@VYPYHg@Rc@^aAv@mBhBm@^i@J_BPKLz@`BXh@FLrAzBZh@@DDLCB?B?D?DBBB@D@B?BCBABE?C?ECCDQBG@CBEHWb@yAHWJc@IMCAEAC@eBRk@Fo@HG?GMYi@{@aBSSmBaASGQCk@?Y?eDGUAUIOMWo@sAuCKOMUc@a@sA{@}CeBg@[mAoAc@c@??iAAQAw@ByAA}@Cu@?_@?q@?M@EHO^GRSf@Sj@GTCTC`@CnACpACjA?b@C~@?JCfD?r@An@?^?X@n@?hCg@I_@G{@Mm@K[Ga@EGr@_@nCE`@SpAG`@EREXEZKz@CJQlASxA??CRy@fGYjB]|BEJGHKDS?i@Ky@bDw@xCs@So@Qg@OEAm@Qs@Qm@Qm@Qu@SFgAP}AVkCFKLELAH@RDHBBMa@Q"
+    }
+  ],
+  "waypoints_snap_max_m": 17
+}

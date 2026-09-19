@@ -1,10 +1,15 @@
 {
   "name": "dakar-mobilite-pwa",
-  "version": "2.1.0",
-  "description": "Dakar Mobilité PWA + GTFS-RT CETUD Proxy",
+  "version": "2.2.0",
+  "description": "Dakar Mobilité PWA + GTFS-RT CETUD Proxy + tracés routiers réels (OSRM)",
+  "type": "module",
   "scripts": {
     "start": "node server/server.js",
     "dev": "node server/server.js",
+    "test": "node --test server/roadSnapping.test.js",
+    "snap-routes": "node scripts/generate-shapes.js",
+    "snap-routes:offline": "node scripts/generate-shapes.js --offline",
+    "validate-shapes": "node scripts/validate-shapes.js",
     "test-cetud": "node server/test-cetud.js"
   },
   "engines": {

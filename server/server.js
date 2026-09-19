@@ -7,6 +7,8 @@ import NodeCache from 'node-cache';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+import { generateRouteGeometry, RoadSnappingError, CoordinateOrderError, normalizeLatLngs, shapeQualityReport } from './roadSnapping.js';
+import { parseCSV, loadGTFS, buildTripWaypoints } from './gtfs.js';
 
 dotenv.config();
 
@@ -263,7 +265,10 @@ app.get('/api/health', (req, res) => {
       alerts: '/api/gtfs-rt/alerts',
       all: '/api/gtfs-rt',
       vehiclesSimple: '/api/vehicles',
-      alertsSimple: '/api/alerts'
+      alertsSimple: '/api/alerts',
+      routeGeometries: '/api/routes/geometry',
+      routeGeometry: '/api/routes/:routeId/geometry',
+      roadSnapping: 'POST /api/routes/snap'
     },
     env: {
       hasCetudKey: !!process.env.CETUD_API_KEY,
@@ -361,16 +366,9 @@ app.get('/api/gtfs/static', (req, res) => {
     const feed = {};
     files.forEach(file => {
       const content = fs.readFileSync(path.join(gtfsDir, file), 'utf-8');
-      const lines = content.trim().split('\n');
-      if (lines.length < 2) return;
-      const headers = lines[0].split(',');
-      feed[file.replace('.txt','')] = lines.slice(1).map(line => {
-        // Simple CSV parse (handles quoted commas not fully, but ok for our data)
-        const values = line.split(',');
-        const obj = {};
-        headers.forEach((h, i) => obj[h.trim()] = values[i]?.trim() || '');
-        return obj;
-      });
+      const rows = parseCSV(content); // RFC 4180 : gère les virgules/guillemets dans les noms d'arrêts
+      if (!rows.length) return;
+      feed[file.replace('.txt','')] = rows;
     });
     res.json({
       ...feed,
@@ -404,6 +402,122 @@ app.get('/data/gtfs/:file', (req, res) => {
     res.sendFile(filePath);
   } else {
     res.status(404).json({ error: 'GTFS file not found' });
+  }
+});
+
+// ============================================================================
+// TRACÉS ROUTIERS RÉELS (road snapping OSRM)
+// ----------------------------------------------------------------------------
+// Les géométries sont pré-générées par `npm run snap-routes` à partir des arrêts
+// réels de chaque ligne (stop_times.txt) et stockées dans data/routes/geometries.json
+// (GeoJSON ⇒ [lng, lat]). Le frontend les convertit en [lat, lng] pour Leaflet.
+// ⚠️ Aucun repli en ligne droite : une ligne sans tracé validé renvoie 404.
+// ============================================================================
+const GEOMETRIES_FILE = path.join(ROOT_DIR, 'data', 'routes', 'geometries.json');
+
+function loadGeometries() {
+  const cached = staticCache.get('routeGeometries');
+  if (cached) return cached;
+  if (!fs.existsSync(GEOMETRIES_FILE)) return null;
+  const collection = JSON.parse(fs.readFileSync(GEOMETRIES_FILE, 'utf-8'));
+  // Garde-fou : on vérifie l'ordre [lng, lat] et l'absence de "vecteurs directs" avant de servir
+  collection.features = (collection.features || []).filter((f) => {
+    try {
+      const { latlngs } = normalizeLatLngs(f.geometry.coordinates, 'lnglat');
+      const q = shapeQualityReport(latlngs, null, { maxSegmentKm: 3, minPointsPerKm: 3 });
+      if (!q.ok) console.warn(`⚠️ Tracé ${f.properties?.shape_id} ignoré : ${q.issues.join(' ; ')}`);
+      return q.ok;
+    } catch (e) {
+      console.warn(`⚠️ Tracé ${f.properties?.shape_id} ignoré : ${e.message}`);
+      return false;
+    }
+  });
+  staticCache.set('routeGeometries', collection, 60 * 10);
+  return collection;
+}
+
+// Toutes les géométries (filtrables : ?route=DDD_07 ou ?mode=brt)
+app.get('/api/routes/geometry', (req, res) => {
+  const collection = loadGeometries();
+  if (!collection) {
+    return res.status(404).json({ error: 'Aucun tracé généré', hint: 'Lancez `npm run snap-routes` (OSRM) pour générer data/routes/geometries.json' });
+  }
+  let features = collection.features;
+  if (req.query.route) features = features.filter((f) => f.properties.route_id === req.query.route);
+  if (req.query.mode) features = features.filter((f) => f.properties.mode === String(req.query.mode).toLowerCase());
+  res.setHeader('Cache-Control', 'public, max-age=300');
+  res.json({ ...collection, features, _meta: { count: features.length, coordinate_order: '[lng, lat] (GeoJSON) — convertir en [lat, lng] pour Leaflet' } });
+});
+
+// Géométrie d'une ligne : cache pré-généré, sinon calcul OSRM à la volée via ses arrêts réels
+app.get('/api/routes/:routeId/geometry', async (req, res) => {
+  const { routeId } = req.params;
+  const collection = loadGeometries();
+  const features = (collection?.features || []).filter((f) => f.properties.route_id === routeId);
+  if (features.length) {
+    return res.json({ type: 'FeatureCollection', features, source: 'pregenerated' });
+  }
+  const cacheKey = `liveGeometry:${routeId}`;
+  const live = staticCache.get(cacheKey);
+  if (live) return res.json(live);
+  try {
+    const gtfs = await loadGTFS(path.join(ROOT_DIR, 'data', 'gtfs'), ['routes', 'trips', 'stops', 'stop_times']);
+    const waypoints = buildTripWaypoints(gtfs);
+    const entries = [...waypoints.entries()].filter(([, v]) => v.trip.route_id === routeId);
+    if (!entries.length) {
+      return res.status(404).json({
+        error: `Aucun tracé disponible pour ${routeId}`,
+        reason: 'Aucun arrêt intermédiaire défini pour cette ligne (stop_times.txt) : impossible de calculer un itinéraire routier fiable.',
+        policy: 'Pas de repli en ligne droite : ajoutez les arrêts réels puis lancez `npm run snap-routes`.'
+      });
+    }
+    if (process.env.OSRM_LIVE === 'false') {
+      return res.status(503).json({ error: 'Calcul OSRM à la volée désactivé (OSRM_LIVE=false)', hint: 'npm run snap-routes' });
+    }
+    const out = [];
+    for (const [shapeId, { trip, route, stops }] of entries) {
+      const geom = await generateRouteGeometry(stops, { quiet: true });
+      out.push({
+        type: 'Feature',
+        properties: { shape_id: shapeId, route_id: routeId, route_short_name: route?.route_short_name, route_long_name: route?.route_long_name, direction_id: Number(trip.direction_id), color: `#${route?.route_color || '6B7280'}`, source: 'osrm-live', distance_m: Math.round(geom.distance), stops: stops.length, quality: geom.quality },
+        geometry: geom.geometry
+      });
+    }
+    const payload = { type: 'FeatureCollection', features: out, source: 'osrm-live' };
+    staticCache.set(cacheKey, payload, 60 * 60 * 24);
+    res.json(payload);
+  } catch (error) {
+    const status = error instanceof CoordinateOrderError ? 422 : error instanceof RoadSnappingError ? 502 : 500;
+    console.error(`❌ Géométrie ${routeId} :`, error.message);
+    res.status(status).json({ error: error.message, policy: 'Aucun tracé de repli (ligne droite) n\'est renvoyé.' });
+  }
+});
+
+// Road snapping à la demande : POST { stops: [{ id?, name?, lat, lng, sequence? }, ...] }
+app.post('/api/routes/snap', async (req, res) => {
+  try {
+    const stops = req.body?.stops;
+    if (!Array.isArray(stops) || stops.length < 2) {
+      return res.status(400).json({ error: 'Corps attendu : { stops: [{ lat, lng, sequence? }, ...] } (au moins 2 arrêts)' });
+    }
+    if (stops.length > 200) return res.status(400).json({ error: 'Maximum 200 arrêts par requête' });
+    const result = await generateRouteGeometry(stops, { quiet: true, autoFixSwapped: req.body?.autoFixSwapped === true });
+    res.json({
+      geometry: result.geometry,          // GeoJSON [lng, lat]
+      latlngs: result.latlngs,            // Leaflet [lat, lng]
+      polyline: result.polyline,          // encodé (précision 5)
+      distance: result.distance,
+      duration: result.duration,
+      legs: result.legs,
+      anomalies: result.anomalies,
+      quality: result.quality,
+      stops: result.stops,
+      source: 'osrm',
+      timestamp: result.timestamp
+    });
+  } catch (error) {
+    const status = error instanceof CoordinateOrderError ? 422 : error instanceof RoadSnappingError ? 502 : 500;
+    res.status(status).json({ error: error.message, details: error.details || undefined, policy: 'Aucun tracé de repli (ligne droite) n\'est renvoyé.' });
   }
 });
 

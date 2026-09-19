@@ -1,5 +1,5 @@
 // Dakar Mobilité - Service Worker PWA + Offline + GTFS-RT cache
-const CACHE_VERSION = 'dakar-mobilite-v2.1';
+const CACHE_VERSION = 'dakar-mobilite-v2.2'; // v2.2 : tracés routiers réels (data/routes, shapes.txt)
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const GTFS_CACHE = `${CACHE_VERSION}-gtfs`;
@@ -9,17 +9,21 @@ const STATIC_ASSETS = [
   '/index.html',
   '/manifest.json',
   '/offline.html',
+  '/data/routes/geometries.json',
+  '/data/gtfs/stops.txt',
   'https://cdn.tailwindcss.com',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
   'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap'
 ];
 
-// GTFS-RT endpoints - will be cached with network-first strategy
+// GTFS-RT endpoints + données GTFS/tracés - network-first (toujours la version la plus récente, cache en secours)
 const GTFS_ENDPOINTS = [
   '/api/gtfs-rt',
   '/api/vehicles',
   '/api/alerts',
+  '/data/gtfs/',
+  '/data/routes/',
   'https://api.cetud.sn',
   'https://api.dakardemdikk.sn'
 ];

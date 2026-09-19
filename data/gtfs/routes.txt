@@ -1,12 +1,12 @@
 route_id,agency_id,route_short_name,route_long_name,route_type,route_color,route_text_color,route_desc
-BRT_01,BRT,BRT 01,Guédiawaye - Petersen,3,8B5CF6,FFFFFF,BRT SunuBRT - Voie dédiée - 23 stations
-DDD_10,DDD,10,Petersen - Yoff - Almadies,3,3B82F6,FFFFFF,Dakar Dem Dikk L10
-DDD_07,DDD,7,Colobane - Pikine - Keur Massar,3,3B82F6,FFFFFF,DDD L7
+BRT_01,BRT,BRT 01,Petersen - Préfecture de Guédiawaye,3,00B140,FFFFFF,BRT SunuBRT - Voie dédiée - 23 stations (source OSM/SunuBRT)
+DDD_10,DDD,10,Palais - Liberté 5,3,3B82F6,FFFFFF,"Dakar Dem Dikk L10 - Gare Palais 2 → Terminus Liberté 5 (30 arrêts, OSM)"
+DDD_07,DDD,7,Palais - Ouakam,3,3B82F6,FFFFFF,"Dakar Dem Dikk L7 - Gare Palais 2 → Terminus Ouakam (31 arrêts, OSM)"
 DDD_12,DDD,12,Guédiawaye - Parcelles - Petersen,3,3B82F6,FFFFFF,DDD L12
-DDD_23,DDD,23,Plateau - Ouakam - Ngor,3,3B82F6,FFFFFF,DDD L23
+DDD_23,DDD,23,Palais 1 - Parcelles Assainies,3,3B82F6,FFFFFF,"Dakar Dem Dikk L23 - Gare Palais 1 → Terminus Parcelles Assainies (51 arrêts, OSM)"
 TATA_01,AFTU,TATA 01,Colobane - Pikine,3,F59E0B,000000,Car Rapide
 TATA_02,AFTU,TATA 02,Petersen - Parcelles,3,F59E0B,000000,Car Rapide
-TER_01,TER,TER,Dakar - Diamniadio - AIBD,2,10B981,FFFFFF,TER 13 gares
+TER_01,TER,TER,Dakar - Diamniadio,2,10B981,FFFFFF,"TER phase 1 - 13 gares (Diamniadio - AIBD : phase 2, non incluse)"
 AFTU_01,AFTU,01,Guédiawaye - Yoff,3,EC4899,FFFFFF,AFTU L01
 AFTU_02,AFTU,2,Parcelles Assainies - Petersen,3,EC4899,FFFFFF,AFTU Ligne 2 - Parcelles - Petersen
 AFTU_03,AFTU,3,Grand Yoff - Petersen,3,F59E0B,000000,AFTU Ligne 3 - Grand Yoff - Petersen
