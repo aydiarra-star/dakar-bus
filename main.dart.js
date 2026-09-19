@@ -7549,7 +7549,7 @@ if($.OU.al(0,c)){g=$.OU.i(0,c)
 g.toString
 q=g
 s=1
-break}n="https://router.project-osrm.org/route/v1/driving/"+A.j(f)+","+A.j(g)+";"+A.j(d)+","+A.j(e)+"?overview=full&geometries=geojson"
+break}n="/dakar-bus/osrm/route/v1/driving/"+A.j(f)+","+A.j(g)+";"+A.j(d)+","+A.j(e)+"?overview=full&geometries=geojson"
 p=4
 s=7
 return A.T(A.aYc(A.i7(n)).qW(0,B.jQ),$async$agn)
@@ -42097,8 +42097,8 @@ r.d.II(q,11.2)}}catch(p){s=A.af(p)
 A.fP().$1("Map move skipped (not ready): "+A.j(s))}},
 $S:6}
 A.ap9.prototype={
-$1(a){var s=a.c
-return s==="TER"||s==="BRT"},
+// v3 : TOUTES les lignes du reseau passent par OSRM (avant : TER et BRT).
+$1(a){return!0},
 $S:128}
 A.apa.prototype={
 $1(a){return A.eI(a)},
@@ -42115,8 +42115,8 @@ s.y=this.b
 s.z=!1},
 $S:0}
 A.ap6.prototype={
-$1(a){var s=a.c
-return!(s==="TER"||s==="BRT")},
+// v3 : plus aucune ligne en ligne droite, xw() couvre tout le reseau.
+$1(a){return!1},
 $S:128}
 A.ap7.prototype={
 $1(a){return A.eI(a)},
@@ -42686,7 +42686,7 @@ e=A.uu(!1,p,p,p,!0,p,p,!1,B.I9,p,new A.ai_(e,a0),!1,p,p,p,p,p,A.aq("Qui sommes-n
 s=A.tS(o?B.aC:B.aD,1)
 r=A.aq("Version de l\u2019application",p,p,p,p,A.ay(p,p,o?B.J:B.K,p,p,p,p,p,p,p,p,p,p,p,p,p,p,!0,p,p,p,p,p,p,p,p),p,p)
 q=t.p
-return A.m1(p,n,A.kp(!1,A.lG(A.b([m,B.c3,A.bo(p,A.cv(A.b([i,h,g,f,d,c,b,a,e,s,A.uu(!1,p,p,p,!0,p,p,!1,B.I_,p,p,!1,p,p,p,A.aq("Dakar Bus v9.3.2 build 8",p,p,p,p,A.ay(p,p,o?B.X:B.W,p,p,p,p,p,p,p,p,p,p,p,p,p,p,!0,p,p,p,p,p,p,p,p),p,p),p,r,p,p)],q),B.A,B.r,B.t),B.k,p,p,new A.bh(l,p,p,k,j,p,B.I),p,p,p,p,p,p,p)],q),B.bd,p,B.aj,!1),B.ae,!0),p)},
+return A.m1(p,n,A.kp(!1,A.lG(A.b([m,B.c3,A.bo(p,A.cv(A.b([i,h,g,f,d,c,b,a,e,s,A.uu(!1,p,p,p,!0,p,p,!1,B.I_,p,p,!1,p,p,p,A.aq("Dakar Bus v9.3.2 build 9",p,p,p,p,A.ay(p,p,o?B.X:B.W,p,p,p,p,p,p,p,p,p,p,p,p,p,p,!0,p,p,p,p,p,p,p,p),p,p),p,r,p,p)],q),B.A,B.r,B.t),B.k,p,p,new A.bh(l,p,p,k,j,p,B.I),p,p,p,p,p,p,p)],q),B.bd,p,B.aj,!1),B.ae,!0),p)},
 $S:40}
 A.ahW.prototype={
 $1(a){},

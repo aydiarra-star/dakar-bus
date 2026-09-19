@@ -3,9 +3,9 @@ const MANIFEST = 'flutter-app-manifest';
 const TEMP = 'flutter-temp-cache';
 const CACHE_NAME = 'flutter-app-cache';
 
-const RESOURCES = {"flutter_bootstrap.js": "a4c7cb73bff1c47413f7b15b74a082d2",
-"index.html": "6c99d5dd3318420a829f1eac01af2fda",
-"/": "6c99d5dd3318420a829f1eac01af2fda",
+const RESOURCES = {"flutter_bootstrap.js": "c83c6add4003cca9f48287e3bd6f1c1c",
+"index.html": "6e0b5cd811b5c301e699fe0ef2b40400",
+"/": "6e0b5cd811b5c301e699fe0ef2b40400",
 "canvaskit/skwasm.worker.js": "89990e8c92bcb123999aa81f7e203b1c",
 "canvaskit/skwasm.js.symbols": "262f4827a1317abb59d71d6c587a93e2",
 "canvaskit/skwasm.wasm": "9f0c0c02b82a910d12ce0543ec130e60",
@@ -17,8 +17,8 @@ const RESOURCES = {"flutter_bootstrap.js": "a4c7cb73bff1c47413f7b15b74a082d2",
 "canvaskit/canvaskit.js.symbols": "48c83a2ce573d9692e8d970e288d75f7",
 "canvaskit/skwasm.js": "694fda5704053957c2594de355805228",
 "flutter.js": "f393d3c16b631f36852323de8e583132",
-"main.dart.js": "08b514b01d5aea2de1cd99ffbcd03697",
-"version.json": "b82ba4a25617f0ca155244430aef14c9",
+"main.dart.js": "30849dd4054bf6e71292f4eaa9cc0bd4",
+"version.json": "e65464e45188b988e8c2513a0fdf6020",
 "assets/assets/data/dakar_network.json": "0e3fad1b6af958f1dc77d608c9b33574",
 "assets/assets/data/osrm_pairs.json": "3ddadaab1784b1d8d1601f81376cb3f5",
 "assets/packages/cupertino_icons/assets/CupertinoIcons.ttf": "e986ebe42ef785b27164c36a9abc7818",
@@ -110,25 +110,28 @@ self.addEventListener("activate", function(event) {
   }());
 });
 
-// ===== Traces routiers reels v2.1 (geometries prechargees + repli bundle a la demande) =====
-// Pre-charge en file regulée les geometries OSRM de toutes les paires d'arrets
-// du reseau, les garde en cache persistant, et sert les requetes OSRM de l'app
-// depuis ce cache : plus de rate-limit publique, plus de lignes droites, offline.
-const OSRM_CACHE = 'osrm-geom-v2';
+// ===== Traces routiers reels v3 (meme origine : aucun appel au routeur public) =====
+// L'app demande ses geometries sur la MEME origine que le site :
+//   /dakar-bus/osrm/route/v1/driving/<lng,lat;lng,lat>?overview=full&geometries=geojson
+// Trois niveaux de service, dans l'ordre :
+//   1. cache persistant osrm-geom-v3 (instantane, offline) ;
+//   2. bundle precharge assets/assets/data/osrm_geometries.json (1 requete) ;
+//   3. fichiers statiques osrm/route/v1/driving/* — servis par GitHub Pages,
+//      donc operationnels MEME sans service worker (premiere visite).
+// Le routeur public OSRM n'est plus jamais appele par la carte : plus de 429,
+// plus de ligne droite entre deux arrets.
+const OSRM_CACHE = 'osrm-geom-v3';
 const OSRM_PREFIX = 'https://router.project-osrm.org/route/v1/driving/';
+const OSRM_LOCAL_PATH = '/dakar-bus/osrm/route/v1/driving/';
+const OSRM_SUFFIX = '?overview=full&geometries=geojson';
 const OSRM_PAIRS_URL = 'assets/assets/data/osrm_pairs.json';
 const OSRM_GEOMS_URL = 'assets/assets/data/osrm_geometries.json';
-// v2 : version des geometries prechargees. Le workflow « PrefetchOSRM geometries »
-// la recalcule (hachage du bundle) a chaque regeneration de osrm_geometries.json :
-// le changement d'octets du service worker declenche la mise a jour chez les clients.
+// Version des geometries prechargees. Le workflow « PrefetchOSRM geometries »
+// la recalcule (hachage du bundle) a chaque regeneration de osrm_geometries.json.
 const GEOM_VERSION = 'v2-06ce66cf0908';
+// Marqueur de revision du correctif traces (audit, logs).
+const TRACES_SW = 'v3';
 
-// v2.1 : marqueur de revision du correctif traces (audit, logs).
-const TRACES_SW = 'v2.1';
-// v2.1 : le bundle precharge est garde en memoire apres son premier chargement.
-// Toute paire absente du cache est servie depuis ce bundle (une requete pour
-// 281 paires) au lieu de partir vers le routeur public OSRM, dont le rate-limit
-// faisait retomber l'app sur une ligne droite entre deux arrets.
 let osrmBundle = null;
 let osrmBundlePromise = null;
 let osrmSeedAttempts = 0;
@@ -155,9 +158,74 @@ async function osrmLoadBundle() {
   return osrmBundlePromise;
 }
 
+// v3 : toute reponse fabriquee ici porte les en-tetes CORS. Sans eux, une
+// reponse synthetisee par le service worker pour une requete cross-origin est
+// rejetee par le navigateur et l'app retombe sur une ligne droite.
 function osrmJsonResponse(payload) {
-  return new Response(JSON.stringify(payload),
-      { headers: { 'Content-Type': 'application/json' } });
+  return new Response(JSON.stringify(payload), { headers: {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Timing-Allow-Origin': '*'
+  } });
+}
+
+// v3 : cle du bundle pour une URL, locale (/dakar-bus/osrm/route/v1/driving/...) ou publique.
+function osrmBundleKey(url) {
+  if (url.indexOf(OSRM_PREFIX) === 0) return url;
+  let u;
+  try {
+    u = new URL(url, self.location.href);
+  } catch (e) {
+    return null;
+  }
+  if (u.pathname.indexOf(OSRM_LOCAL_PATH) !== 0) return null;
+  const coords = u.pathname.substring(OSRM_LOCAL_PATH.length);
+  if (!coords || coords.indexOf('/') !== -1) return null;
+  return OSRM_PREFIX + coords + OSRM_SUFFIX;
+}
+
+// Cache -> bundle. Renvoie null si la paire n'est disponible nulle part.
+async function osrmServe(url) {
+  const key = osrmBundleKey(url);
+  if (!key) return null;
+  const cache = await caches.open(OSRM_CACHE);
+  const hit = await cache.match(key);
+  // Toujours reconstruite depuis un clone : la reponse stockee n'est jamais
+  // consommee (une seconde lecture du cache doit marcher) et les en-tetes CORS
+  // sont garantis quelle que soit la provenance de l'entree.
+  if (hit) return osrmJsonResponse(await hit.clone().json());
+  try {
+    const geoms = await osrmLoadBundle();
+    const payload = geoms && geoms[key];
+    if (payload) {
+      const response = osrmJsonResponse(payload);
+      await cache.put(key, response.clone());
+      return response;
+    }
+  } catch (e) {
+    console.warn('OSRM ' + TRACES_SW + ' : bundle indisponible (' + e + ')');
+  }
+  return null;
+}
+
+// v3 : requete de l'app sur la meme origine.
+// Dernier niveau : le fichier statique du depot (marche aussi sans SW).
+async function osrmLocalRespond(request) {
+  const served = await osrmServe(request.url);
+  if (served) return served;
+  return fetch(request, { cache: 'no-store' });
+}
+
+// Ancien prefixe cross-origin, pour les clients dont le main.dart.js n'est pas
+// encore a jour : cache -> bundle -> routeur public en file regulée.
+async function osrmRespond(request) {
+  const served = await osrmServe(request.url);
+  if (served) return served;
+  try {
+    return await osrmSchedule(request.url);
+  } catch (e) {
+    return fetch(request, { cache: 'no-store' });
+  }
 }
 
 let osrmInflight = {};
@@ -208,43 +276,15 @@ function osrmPump() {
   }
 }
 
-async function osrmRespond(request) {
-  const cache = await caches.open(OSRM_CACHE);
-  const hit = await cache.match(request);
-  if (hit) return hit;
-  // v2.1 : la paire est peut-etre dans le bundle precharge sans etre encore en
-  // cache (semis interrompu, SW tue, offline partiel). On la sert depuis le
-  // bundle : chaque mobilite suit son itineraire reel au lieu d'une ligne droite.
-  try {
-    const geoms = await osrmLoadBundle();
-    const payload = geoms && geoms[request.url];
-    if (payload) {
-      const response = osrmJsonResponse(payload);
-      await cache.put(request, response.clone());
-      console.debug('OSRM ' + TRACES_SW + ' : paire servie depuis le bundle precharge');
-      return response;
-    }
-  } catch (e) {
-    console.warn('OSRM ' + TRACES_SW + ' : repli bundle indisponible (' + e + '), file runtime');
-  }
-  try {
-    return await osrmSchedule(request.url);
-  } catch (e) {
-    // Dernier recours : reseau direct non limite
-    return fetch(request, { cache: 'no-store' });
-  }
-}
-
-// v2 : installe en une seule requete les geometries prechargees par le workflow
+// Installe en une seule requete les geometries prechargees par le workflow
 // « PrefetchOSRM geometries » (bundle osrm_geometries.json commite sur gh-pages).
-// La file runtime (osrmPrefetch) reste en repli pour les paires absentes du bundle.
 async function osrmSeedFromBundle() {
   let geoms;
   try {
     geoms = await osrmLoadBundle();
   } catch (e) {
     console.warn('OSRM ' + TRACES_SW + ' : bundle precharge indisponible (' + e
-        + '), repli file runtime + nouvelle tentative programmee');
+        + '), repli fichiers statiques + nouvelle tentative programmee');
     osrmScheduleSeedRetry();
     return;
   }
@@ -259,7 +299,6 @@ async function osrmSeedFromBundle() {
   }
   console.debug('OSRM ' + TRACES_SW + ' : ' + n + ' geometries installees depuis le bundle ('
       + urls.length + ' au total)');
-  // v2.1 : controle de couverture, puis nouvelle tentative si le semis est incomplet.
   const after = new Set((await cache.keys()).map((r) => r.url));
   const missing = urls.filter((u) => !after.has(u));
   if (missing.length === 0) {
@@ -272,7 +311,7 @@ async function osrmSeedFromBundle() {
 
 function osrmScheduleSeedRetry() {
   if (osrmSeedAttempts >= OSRM_SEED_MAX_ATTEMPTS) {
-    console.warn('OSRM ' + TRACES_SW + ' : semis abandonne, le repli bundle a la demande prend le relais');
+    console.warn('OSRM ' + TRACES_SW + ' : semis abandonne, le repli bundle/fichiers prend le relais');
     return;
   }
   osrmSeedAttempts++;
@@ -302,11 +341,12 @@ self.addEventListener('activate', (event) => {
       await osrmSeedFromBundle();
       await osrmPrefetch();
     } catch (e) {
-      // v2.1 : un semis incomplet ne doit jamais bloquer l'activation.
+      // Un semis incomplet ne doit jamais bloquer l'activation.
       console.warn('OSRM ' + TRACES_SW + ' : semis incomplet (' + e
-          + '), repli bundle a la demande actif');
+          + '), repli bundle/fichiers statiques actif');
     }
-    await caches.delete('osrm-geom-v1'); // cache v1 obsolete
+    await caches.delete('osrm-geom-v1'); // caches obsoletes
+    await caches.delete('osrm-geom-v2');
   })());
 });
 
@@ -316,7 +356,11 @@ self.addEventListener("fetch", (event) => {
   if (event.request.method !== 'GET') {
     return;
   }
-  // Requetes OSRM : servir depuis le cache de traces reels (ou file regulée).
+  // v3 : tracés reels — meme origine d'abord (l'app), ancien prefixe ensuite.
+  if (new URL(event.request.url).pathname.indexOf(OSRM_LOCAL_PATH) === 0) {
+    event.respondWith(osrmLocalRespond(event.request));
+    return;
+  }
   if (event.request.url.startsWith(OSRM_PREFIX)) {
     event.respondWith(osrmRespond(event.request));
     return;

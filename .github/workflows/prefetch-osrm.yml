@@ -22,13 +22,16 @@ jobs:
           ref: gh-pages
 
       - name: Prefetch des geometries OSRM (paires d'arrets du reseau)
+        # Ecrit assets/assets/data/osrm_geometries.json (bundle seme par le
+        # service worker) ET osrm/route/v1/driving/* (URL appelees par l'app
+        # depuis le correctif traces v3, servies par GitHub Pages).
         run: python3 tools/prefetch_osrm.py
 
       - name: Commit des geometries si changement
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/assets/data/osrm_geometries.json flutter_service_worker.js
+          git add assets/assets/data/osrm_geometries.json flutter_service_worker.js osrm
           if git diff --cached --quiet; then
             echo "Geometries inchangees - aucun commit necessaire."
           else

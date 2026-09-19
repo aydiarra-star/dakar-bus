@@ -4,10 +4,13 @@
 PrefetchOSRM geometries — récupère les vraies géométries OSRM de toutes les
 paires d'arrêts (assets/assets/data/osrm_pairs.json) et les écrit dans
 assets/assets/data/osrm_geometries.json (bundle préchargé que le service
-worker v2 sème instantanément chez les clients). Met à jour GEOM_VERSION
-dans flutter_service_worker.js (hachage du bundle) pour propager la mise à
-jour. Déterministe et rejouable : ne modifie rien si les données OSRM
-n'ont pas changé.
+worker sème instantanément chez les clients), puis les matérialise une par une
+dans osrm/route/v1/driving/* : ce sont les URL que l'app appelle (correctif
+tracés v3, même origine) et elles doivent exister en tant que vrais fichiers
+pour que le dernier niveau de repli fonctionne même sans service worker.
+Met à jour GEOM_VERSION dans flutter_service_worker.js (hachage du bundle) pour
+propager la mise à jour. Déterministe et rejouable : ne modifie rien si les
+données OSRM n'ont pas changé.
 
 Exécuté par le workflow GitHub Actions « PrefetchOSRM geometries ».
 """
@@ -24,6 +27,10 @@ ROOT = Path(__file__).resolve().parent.parent
 PAIRS = ROOT / "assets" / "assets" / "data" / "osrm_pairs.json"
 OUT = ROOT / "assets" / "assets" / "data" / "osrm_geometries.json"
 SW = ROOT / "flutter_service_worker.js"
+# Correctif v3 : l'app appelle /dakar-bus/osrm/route/v1/driving/<lng,lat;lng,lat>.
+# Le depot doit donc contenir ces fichiers (repli sans service worker).
+STATIC_DIR = ROOT / "osrm" / "route" / "v1" / "driving"
+OSRM_PREFIX = "https://router.project-osrm.org/route/v1/driving/"
 
 TIMEOUT = 10          # secondes par requête
 RETRIES = 4           # tentatives supplémentaires sur 429/5xx/réseau
@@ -58,6 +65,33 @@ def worker(url):
         return url, data, None
     except Exception as e:
         return url, None, str(e)
+
+
+def write_static_files(geometries):
+    """Matérialise chaque géométrie sous l'URL que l'app appelle (correctif v3).
+
+    Retourne True si un fichier a changé (écrit ou supprimé)."""
+    STATIC_DIR.mkdir(parents=True, exist_ok=True)
+    expected = set()
+    changed = False
+    for url, payload in geometries.items():
+        if not url.startswith(OSRM_PREFIX):
+            continue
+        coords = url[len(OSRM_PREFIX):].split("?", 1)[0]
+        if not coords or "/" in coords:
+            continue
+        expected.add(coords)
+        target = STATIC_DIR / coords
+        body = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+        if not target.exists() or target.read_text(encoding="utf-8") != body:
+            target.write_text(body, encoding="utf-8", newline="")
+            changed = True
+    for stale in STATIC_DIR.iterdir():
+        if stale.name not in expected:
+            stale.unlink()
+            changed = True
+    print("Fichiers statiques : %d dans %s" % (len(expected), STATIC_DIR.relative_to(ROOT)))
+    return changed
 
 
 def main():
@@ -99,6 +133,8 @@ def main():
         SW.write_text(sw_new, encoding="utf-8")
         changed = True
         print("GEOM_VERSION mise a jour : %s" % geom_version)
+
+    changed |= write_static_files(geometries)
 
     if not changed:
         print("Geometries inchangees (GEOM_VERSION identique) : rien a commiter.")
