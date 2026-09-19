@@ -1,1 +1,147 @@
-{"description_fr":"Stations BRT SunuBRT Guediawaye-Petersen triees par sequence (correctif traces v5). Methode de secours de la specification : le trace OSRM driving mesure est incoherent (detours jusqu'a 3,1x, voies dediees inconnues d'OSRM), donc lignes droites reliant UNIQUEMENT les arrets consecutifs dans l'ordre, sans appel a l'API de routage. La ligne express B2 est decoupee dans la meme sequence (memes voies, moins d'arrets : ses paires consecutives restent des segments directs).","provenance":"v5.0 : methode de secours (12 stations exactes, segments consecutifs droits) ; ratios OSRM mesures le 2026-09-19 : 1,21 a 3,09 (seuil de coherence 2,0 depasse) -> repli integral.","shape_id":"brt-dedicated-v5","source_kind":"secours-consecutif","updated":"2026-09-19","points":[{"lat":14.7735,"lon":-17.3977,"shape_pt_sequence":1,"stop_id":"stop_guediawaye"},{"lat":14.762,"lon":-17.41,"shape_pt_sequence":2,"stop_id":"stop_dalal_jamm"},{"lat":14.7562,"lon":-17.4331,"shape_pt_sequence":3,"stop_id":"stop_parcelles_u26"},{"lat":14.748,"lon":-17.425,"shape_pt_sequence":4,"stop_id":"stop_camberene"},{"lat":14.745,"lon":-17.458,"shape_pt_sequence":5,"stop_id":"stop_patte_doie"},{"lat":14.742,"lon":-17.448,"shape_pt_sequence":6,"stop_id":"stop_grand_yoff"},{"lat":14.735,"lon":-17.436,"shape_pt_sequence":7,"stop_id":"stop_fadia"},{"lat":14.718,"lon":-17.455,"shape_pt_sequence":8,"stop_id":"stop_liberte6"},{"lat":14.715,"lon":-17.445,"shape_pt_sequence":9,"stop_id":"stop_grand_medine"},{"lat":14.71,"lon":-17.465,"shape_pt_sequence":10,"stop_id":"stop_sacre_coeur"},{"lat":14.685,"lon":-17.45,"shape_pt_sequence":11,"stop_id":"stop_obelisque"},{"lat":14.6738,"lon":-17.4381,"shape_pt_sequence":12,"stop_id":"stop_petersen"}]}
+{
+  "description_fr": "Corridor 100% site propre SunuBRT (23 stations réelles, PEM Guédiawaye ↔ PEM Petersen)",
+  "provenance": "sunubrt-officiel",
+  "shape_id": "brt-dedicated-v6",
+  "source_kind": "secours-consecutif",
+  "updated": "2026-09-19",
+  "points": [
+    {
+      "lat": 14.77156,
+      "lon": -17.38694,
+      "shape_pt_sequence": 1,
+      "stop_id": "stop_brt_23_guediawaye"
+    },
+    {
+      "lat": 14.7745,
+      "lon": -17.393,
+      "shape_pt_sequence": 2,
+      "stop_id": "stop_brt_22_gadaye"
+    },
+    {
+      "lat": 14.77619,
+      "lon": -17.39881,
+      "shape_pt_sequence": 3,
+      "stop_id": "stop_brt_21_golf_nord"
+    },
+    {
+      "lat": 14.77019,
+      "lon": -17.40156,
+      "shape_pt_sequence": 4,
+      "stop_id": "stop_brt_20_fith_mith"
+    },
+    {
+      "lat": 14.77287,
+      "lon": -17.40979,
+      "shape_pt_sequence": 5,
+      "stop_id": "stop_brt_19_dalal_jamm"
+    },
+    {
+      "lat": 14.76756,
+      "lon": -17.41356,
+      "shape_pt_sequence": 6,
+      "stop_id": "stop_brt_18_golf_sud"
+    },
+    {
+      "lat": 14.76462,
+      "lon": -17.41969,
+      "shape_pt_sequence": 7,
+      "stop_id": "stop_brt_17_ndingala"
+    },
+    {
+      "lat": 14.76269,
+      "lon": -17.42431,
+      "shape_pt_sequence": 8,
+      "stop_id": "stop_brt_16_parcelles_assainies"
+    },
+    {
+      "lat": 14.75369,
+      "lon": -17.43181,
+      "shape_pt_sequence": 9,
+      "stop_id": "stop_brt_15_croisement_22"
+    },
+    {
+      "lat": 14.7512,
+      "lon": -17.4395,
+      "shape_pt_sequence": 10,
+      "stop_id": "stop_brt_14_police_parcelles"
+    },
+    {
+      "lat": 14.74795,
+      "lon": -17.44715,
+      "shape_pt_sequence": 11,
+      "stop_id": "stop_brt_13_grand_medine"
+    },
+    {
+      "lat": 14.74156,
+      "lon": -17.45131,
+      "shape_pt_sequence": 12,
+      "stop_id": "stop_brt_12_thiandoum"
+    },
+    {
+      "lat": 14.73681,
+      "lon": -17.45531,
+      "shape_pt_sequence": 13,
+      "stop_id": "stop_brt_11_scat_urbam"
+    },
+    {
+      "lat": 14.7315,
+      "lon": -17.456,
+      "shape_pt_sequence": 14,
+      "stop_id": "stop_brt_10_khar_yallah"
+    },
+    {
+      "lat": 14.72631,
+      "lon": -17.45919,
+      "shape_pt_sequence": 15,
+      "stop_id": "stop_brt_09_liberte_6"
+    },
+    {
+      "lat": 14.72044,
+      "lon": -17.46444,
+      "shape_pt_sequence": 16,
+      "stop_id": "stop_brt_08_liberte_5"
+    },
+    {
+      "lat": 14.7166,
+      "lon": -17.4635,
+      "shape_pt_sequence": 17,
+      "stop_id": "stop_brt_07_sacre_coeur"
+    },
+    {
+      "lat": 14.70993,
+      "lon": -17.4625,
+      "shape_pt_sequence": 18,
+      "stop_id": "stop_brt_06_liberte_1"
+    },
+    {
+      "lat": 14.7052,
+      "lon": -17.4578,
+      "shape_pt_sequence": 19,
+      "stop_id": "stop_brt_05_grand_dakar"
+    },
+    {
+      "lat": 14.69956,
+      "lon": -17.45244,
+      "shape_pt_sequence": 20,
+      "stop_id": "stop_brt_04_dial_diop"
+    },
+    {
+      "lat": 14.6943,
+      "lon": -17.44826,
+      "shape_pt_sequence": 21,
+      "stop_id": "stop_brt_03_obelisque"
+    },
+    {
+      "lat": 14.67822,
+      "lon": -17.44219,
+      "shape_pt_sequence": 22,
+      "stop_id": "stop_brt_02_mosquee"
+    },
+    {
+      "lat": 14.67548,
+      "lon": -17.44157,
+      "shape_pt_sequence": 23,
+      "stop_id": "stop_brt_01_petersen"
+    }
+  ]
+}
