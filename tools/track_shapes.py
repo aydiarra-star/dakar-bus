@@ -256,34 +256,12 @@ def generer_geometrie_pour_ligne(route, stops_by_id, shapes, fetcher=None):
             return generer_ligne_droite_consecutive(
                 arretes_tries, stops_by_id, shapes["ter"].shape_id + "-secours")
     elif mode == "brt":
-        # Essayer OSRM (arrêts triés par sequence), sinon repli sur ligne
-        # droite consécutive. Granularité LIGNE (comme le try/catch de la
-        # consigne) : un seul segment incohérent -> toute la ligne en secours.
+        # Le BRT circule sur un corridor en site propre réservé (100% dédié).
+        # Ni OSRM driving (qui suit la circulation automobile et les détours routiers),
+        # ni les déviations : la géométrie doit suivre strictement le corridor des stations dédiées.
         arretes_tries = trier_arrets_par_sequence(route, shapes["brt"])
-        if fetcher is None:
-            print("  ! BRT %s : pas d'acces OSRM (hors-ligne) "
-                  "-> methode de secours (arrets consecutifs)" % route.get("id"))
-            return generer_ligne_droite_consecutive(
-                arretes_tries, stops_by_id, shapes["brt"].shape_id + "-secours")
-        try:
-            geometries, provenance = {}, {}
-            for i in range(len(arretes_tries) - 1):
-                a, b = arretes_tries[i], arretes_tries[i + 1]
-                sa, sb = stops_by_id[a], stops_by_id[b]
-                url = pair_url(sa["longitude"], sa["latitude"],
-                               sb["longitude"], sb["latitude"])
-                if url in geometries:
-                    continue
-                geometries[url] = generer_depuis_osrm_paire(
-                    url, sa["longitude"], sa["latitude"],
-                    sb["longitude"], sb["latitude"], fetcher, valider=True)
-                provenance[url] = "osrm-driving"
-            return geometries, provenance
-        except Exception as e:
-            print("  ! BRT %s : OSRM inutilisable (%s) "
-                  "-> methode de secours (arrets consecutifs)" % (route.get("id"), e))
-            return generer_ligne_droite_consecutive(
-                arretes_tries, stops_by_id, shapes["brt"].shape_id + "-secours")
+        return generer_ligne_droite_consecutive(
+            arretes_tries, stops_by_id, shapes["brt"].shape_id + "-secours")
     else:
         # AFTU, DDD, TATA : utiliser OSRM normalement (profil driving).
         if fetcher is None:
@@ -401,5 +379,5 @@ def canonical_bundle_text(geometries, provenance, pairs_order):
     return json.dumps(bundle, ensure_ascii=False, separators=(",", ":")) + "\n"
 
 
-def geom_version_for(bundle_text, tag="v5"):
+def geom_version_for(bundle_text, tag="v6"):
     return "%s-%s" % (tag, hashlib.sha256(bundle_text.encode("utf-8")).hexdigest()[:12])

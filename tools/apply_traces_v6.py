@@ -257,7 +257,7 @@ def main():
         coords = url[len(OSRM_PREFIX):].split("?", 1)[0]
         expected.add(coords)
         target = STATIC_DIR / coords
-        body = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+        body = json.dumps(payload, ensure_ascii=True, separators=(",", ":"))
         target.write_text(body, encoding="utf-8", newline="")
     
     # Supprimer les anciens fichiers non utilisés
