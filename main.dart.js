@@ -27045,7 +27045,8 @@ eI(a){var s,r=a.a
 if(r<14.55||r>14.9)return!1
 s=a.b
 if(s<-17.6||s>-16.85)return!1
-if(r>=14.7&&r<=14.745&&s>=-17.435&&s<=-17.375)return!1
+// v4 : rectangle d'exclusion Hann/Dalifort retire (il couvrait 3 gares TER
+// v4 : officielles : Hann, Dalifort, Baux Maraichers). Garde-fou Dakar inchange.
 return!0},
 ew(a,b){var s=b.a,r=a.a
 return 12742017.6*Math.asin(Math.sqrt(Math.pow(Math.sin((s-r)*0.017453292519943295/2),2)+Math.cos(r*0.017453292519943295)*Math.cos(s*0.017453292519943295)*Math.pow(Math.sin((b.b-a.b)*0.017453292519943295/2),2)))},
@@ -42686,7 +42687,7 @@ e=A.uu(!1,p,p,p,!0,p,p,!1,B.I9,p,new A.ai_(e,a0),!1,p,p,p,p,p,A.aq("Qui sommes-n
 s=A.tS(o?B.aC:B.aD,1)
 r=A.aq("Version de l\u2019application",p,p,p,p,A.ay(p,p,o?B.J:B.K,p,p,p,p,p,p,p,p,p,p,p,p,p,p,!0,p,p,p,p,p,p,p,p),p,p)
 q=t.p
-return A.m1(p,n,A.kp(!1,A.lG(A.b([m,B.c3,A.bo(p,A.cv(A.b([i,h,g,f,d,c,b,a,e,s,A.uu(!1,p,p,p,!0,p,p,!1,B.I_,p,p,!1,p,p,p,A.aq("Dakar Bus v9.3.2 build 9",p,p,p,p,A.ay(p,p,o?B.X:B.W,p,p,p,p,p,p,p,p,p,p,p,p,p,p,!0,p,p,p,p,p,p,p,p),p,p),p,r,p,p)],q),B.A,B.r,B.t),B.k,p,p,new A.bh(l,p,p,k,j,p,B.I),p,p,p,p,p,p,p)],q),B.bd,p,B.aj,!1),B.ae,!0),p)},
+return A.m1(p,n,A.kp(!1,A.lG(A.b([m,B.c3,A.bo(p,A.cv(A.b([i,h,g,f,d,c,b,a,e,s,A.uu(!1,p,p,p,!0,p,p,!1,B.I_,p,p,!1,p,p,p,A.aq("Dakar Bus v9.3.2 build 11",p,p,p,p,A.ay(p,p,o?B.X:B.W,p,p,p,p,p,p,p,p,p,p,p,p,p,p,!0,p,p,p,p,p,p,p,p),p,p),p,r,p,p)],q),B.A,B.r,B.t),B.k,p,p,new A.bh(l,p,p,k,j,p,B.I),p,p,p,p,p,p,p)],q),B.bd,p,B.aj,!1),B.ae,!0),p)},
 $S:40}
 A.ahW.prototype={
 $1(a){},
@@ -93731,11 +93732,11 @@ B.jL=new A.ps(!1)
 B.eI=new A.ps(!0)
 B.J2=new A.aE(14.76491,-17.3565)
 B.Fc=new A.bS("ter_7","Yeumbeul",B.J2,"11.5 km","18:00")
-B.kb=new A.aE(14.716,-17.1986)
+B.kb=new A.aE(14.71606,-17.19845)
 B.Fd=new A.bS("ter_12","Diamniadio",B.kb,"35.0 km","45:00")
 B.ke=new A.aE(14.72209,-17.43207)
 B.Fe=new A.bS("ter_3","Hann",B.ke,"3.5 km","06:00")
-B.J1=new A.aE(14.715,-17.27)
+B.J1=new A.aE(14.71596,-17.27)
 B.Ff=new A.bS("ter_10","Rufisque",B.J1,"20.0 km","30:00")
 B.kg=new A.aE(14.67599,-17.43352)
 B.PDA=new A.aE(14.73425,-17.419)
@@ -93749,7 +93750,7 @@ B.IX=new A.aE(14.715,-17.445)
 B.Fi=new A.bS("brt_6","Grand M\xe9dine",B.IX,"12.6 km","29:00")
 B.IY=new A.aE(14.75877,-17.3803)
 B.Fj=new A.bS("ter_6","Thiaroye",B.IY,"9.0 km","15:00")
-B.kh=new A.aE(14.715,-17.458)
+B.kh=new A.aE(14.718,-17.455)
 B.Fk=new A.bS("brt_8","Libert\xe9 6",B.kh,"11.7 km","27:00")
 B.oE=new A.aE(14.71,-17.465)
 B.Fl=new A.bS("brt_9","Sacr\xe9-C\u0153ur",B.oE,"14.4 km","33:00")
@@ -93775,7 +93776,7 @@ B.kf=new A.aE(14.70035,-17.44165)
 B.Fv=new A.bS("ter_2","Colobane",B.kf,"1.2 km","03:00")
 B.kj=new A.aE(14.74986,-17.39169)
 B.Fw=new A.bS("ter_5","Pikine",B.kj,"7.2 km","12:00")
-B.oK=new A.aE(14.735,-17.435)
+B.oK=new A.aE(14.735,-17.436)
 B.Fx=new A.bS("brt_4","Fadia",B.oK,"9.3 km","22:00")
 B.oD=new A.aE(14.762,-17.41)
 B.Fy=new A.bS("brt_2","H\xf4pital Dalal Jamm",B.oD,"1.5 km","04:00")
@@ -96739,7 +96740,9 @@ B.b.N(q,$.aMH())
 B.b.N(q,$.aMx())
 return B.b.iW(q,new A.axy()).f1(0)})
 s($,"b3t","J0",()=>{var q=t.q_
-return A.b([A.akW("TER",B.az,"TER",A.b([B.kg,B.kf,B.ke,B.kj,B.kd,B.kb],q),"TER"),A.akW("B1",B.bl,"BRT",A.b([B.hz,B.oA,B.oE,B.kh,B.kc,B.oB,B.oK,B.oC,B.oD,B.ki],q),"BRT"),A.akW("DDD",B.bR,"DDD Lignes",A.b([B.oJ,B.oF,B.oI],q),"DDD"),A.akW("TATA",B.bS,"TATA Bus",A.b([B.oL,B.oH,B.oG],q),"Tata")],A.aG("C<ma>"))})
+// v4 : demos recalees sur le reseau JSON (TER 13 gares, B1 direct 12
+// v4 : stations, DDD=ddd_12, TATA=tata_219 : doublons invisibles).
+return A.b([A.akW("TER",B.az,"TER",A.b([B.kg,B.kf,B.ke,B.PDA,B.J4,B.kj,B.IY,B.J2,B.kd,B.PPNR,B.J1,B.IV,B.kb],q),"TER"),A.akW("B1",B.bl,"BRT",A.b([B.ki,B.oD,B.oB,B.oC,new A.aE(14.745,-17.458),B.kc,B.oK,B.kh,B.IX,B.oE,B.oA,B.hz],q),"BRT"),A.akW("DDD",B.bR,"DDD Lignes",A.b([B.ki,new A.aE(14.758,-17.415),B.oB],q),"DDD"),A.akW("TATA",B.bS,"TATA Bus",A.b([B.oB,B.hz],q),"Tata")],A.aG("C<ma>"))})
 s($,"b3I","ta",()=>new A.BR(A.b([],t.Yu),A.aRH(null),$.at()))
 s($,"b2h","aLQ",()=>A.aiy(1,1,500))
 r($,"aZx","aJT",()=>new A.Jl(B.w,B.w))

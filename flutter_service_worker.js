@@ -3,9 +3,9 @@ const MANIFEST = 'flutter-app-manifest';
 const TEMP = 'flutter-temp-cache';
 const CACHE_NAME = 'flutter-app-cache';
 
-const RESOURCES = {"flutter_bootstrap.js": "c83c6add4003cca9f48287e3bd6f1c1c",
-"index.html": "6e0b5cd811b5c301e699fe0ef2b40400",
-"/": "6e0b5cd811b5c301e699fe0ef2b40400",
+const RESOURCES = {"flutter_bootstrap.js": "36f4f69ff70586480de99f12efee871a",
+"index.html": "def7b9f123c80be5c8a84a12447340d4",
+"/": "def7b9f123c80be5c8a84a12447340d4",
 "canvaskit/skwasm.worker.js": "89990e8c92bcb123999aa81f7e203b1c",
 "canvaskit/skwasm.js.symbols": "262f4827a1317abb59d71d6c587a93e2",
 "canvaskit/skwasm.wasm": "9f0c0c02b82a910d12ce0543ec130e60",
@@ -17,8 +17,8 @@ const RESOURCES = {"flutter_bootstrap.js": "c83c6add4003cca9f48287e3bd6f1c1c",
 "canvaskit/canvaskit.js.symbols": "48c83a2ce573d9692e8d970e288d75f7",
 "canvaskit/skwasm.js": "694fda5704053957c2594de355805228",
 "flutter.js": "f393d3c16b631f36852323de8e583132",
-"main.dart.js": "30849dd4054bf6e71292f4eaa9cc0bd4",
-"version.json": "e65464e45188b988e8c2513a0fdf6020",
+"main.dart.js": "f6ec55ef97912f42fbd256bece0e1f72",
+"version.json": "f51f48e1264fcfdc7dd854af8de7f9f2",
 "assets/assets/data/dakar_network.json": "0e3fad1b6af958f1dc77d608c9b33574",
 "assets/assets/data/osrm_pairs.json": "3ddadaab1784b1d8d1601f81376cb3f5",
 "assets/packages/cupertino_icons/assets/CupertinoIcons.ttf": "e986ebe42ef785b27164c36a9abc7818",
@@ -110,17 +110,19 @@ self.addEventListener("activate", function(event) {
   }());
 });
 
-// ===== Traces routiers reels v3 (meme origine : aucun appel au routeur public) =====
+// ===== Traces reels v5 (TER/BRT : GTFS officiel ou secours consecutif) =====
 // L'app demande ses geometries sur la MEME origine que le site :
 //   /dakar-bus/osrm/route/v1/driving/<lng,lat;lng,lat>?overview=full&geometries=geojson
 // Trois niveaux de service, dans l'ordre :
-//   1. cache persistant osrm-geom-v3 (instantane, offline) ;
+//   1. cache persistant osrm-geom-v4 (instantane, offline) ;
 //   2. bundle precharge assets/assets/data/osrm_geometries.json (1 requete) ;
 //   3. fichiers statiques osrm/route/v1/driving/* — servis par GitHub Pages,
 //      donc operationnels MEME sans service worker (premiere visite).
-// Le routeur public OSRM n'est plus jamais appele par la carte : plus de 429,
-// plus de ligne droite entre deux arrets.
-const OSRM_CACHE = 'osrm-geom-v3';
+// Separation par mode (v4) : les paires TER/BRT sont des geometries LOCALES
+// (voie ferree / site propre, table `provenance` du bundle) ; seules les
+// paires AFTU/DDD/TATA proviennent du routeur OSRM (profil driving).
+// Le routeur public n'est plus jamais appele par la carte en pratique.
+const OSRM_CACHE = 'osrm-geom-v5';
 const OSRM_PREFIX = 'https://router.project-osrm.org/route/v1/driving/';
 const OSRM_LOCAL_PATH = '/dakar-bus/osrm/route/v1/driving/';
 const OSRM_SUFFIX = '?overview=full&geometries=geojson';
@@ -128,9 +130,9 @@ const OSRM_PAIRS_URL = 'assets/assets/data/osrm_pairs.json';
 const OSRM_GEOMS_URL = 'assets/assets/data/osrm_geometries.json';
 // Version des geometries prechargees. Le workflow « PrefetchOSRM geometries »
 // la recalcule (hachage du bundle) a chaque regeneration de osrm_geometries.json.
-const GEOM_VERSION = 'v2-06ce66cf0908';
+const GEOM_VERSION = 'v5-c972f87c5485';
 // Marqueur de revision du correctif traces (audit, logs).
-const TRACES_SW = 'v3';
+const TRACES_SW = 'v5';
 
 let osrmBundle = null;
 let osrmBundlePromise = null;
@@ -158,7 +160,7 @@ async function osrmLoadBundle() {
   return osrmBundlePromise;
 }
 
-// v3 : toute reponse fabriquee ici porte les en-tetes CORS. Sans eux, une
+// Toute reponse fabriquee ici porte les en-tetes CORS. Sans eux, une
 // reponse synthetisee par le service worker pour une requete cross-origin est
 // rejetee par le navigateur et l'app retombe sur une ligne droite.
 function osrmJsonResponse(payload) {
@@ -169,7 +171,7 @@ function osrmJsonResponse(payload) {
   } });
 }
 
-// v3 : cle du bundle pour une URL, locale (/dakar-bus/osrm/route/v1/driving/...) ou publique.
+// Cle du bundle pour une URL, locale (/dakar-bus/osrm/route/v1/driving/...) ou publique.
 function osrmBundleKey(url) {
   if (url.indexOf(OSRM_PREFIX) === 0) return url;
   let u;
@@ -208,7 +210,7 @@ async function osrmServe(url) {
   return null;
 }
 
-// v3 : requete de l'app sur la meme origine.
+// Requete de l'app sur la meme origine.
 // Dernier niveau : le fichier statique du depot (marche aussi sans SW).
 async function osrmLocalRespond(request) {
   const served = await osrmServe(request.url);
@@ -217,10 +219,22 @@ async function osrmLocalRespond(request) {
 }
 
 // Ancien prefixe cross-origin, pour les clients dont le main.dart.js n'est pas
-// encore a jour : cache -> bundle -> routeur public en file regulée.
+// encore a jour : cache -> bundle -> fichier statique same-origin -> routeur
+// public en file regulee. L'etape fichier statique garantit que les paires
+// guidees (TER/BRT, locales par construction) n'atteignent jamais le routeur
+// public, meme pour un client en version mixte.
 async function osrmRespond(request) {
   const served = await osrmServe(request.url);
   if (served) return served;
+  try {
+    const coords = request.url.substring(OSRM_PREFIX.length).split('?')[0];
+    if (coords && coords.indexOf('/') === -1 && coords.indexOf(';') !== -1) {
+      const file = await fetch(OSRM_LOCAL_PATH + coords, { cache: 'no-store' });
+      if (file.ok) return osrmJsonResponse(await file.json());
+    }
+  } catch (e) {
+    console.warn('OSRM ' + TRACES_SW + ' : repli statique KO (' + e + ')');
+  }
   try {
     return await osrmSchedule(request.url);
   } catch (e) {
@@ -347,6 +361,8 @@ self.addEventListener('activate', (event) => {
     }
     await caches.delete('osrm-geom-v1'); // caches obsoletes
     await caches.delete('osrm-geom-v2');
+    await caches.delete('osrm-geom-v3');
+    await caches.delete('osrm-geom-v4');
   })());
 });
 

@@ -1,20 +1,26 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PrefetchOSRM geometries — récupère les vraies géométries OSRM de toutes les
-paires d'arrêts (assets/assets/data/osrm_pairs.json) et les écrit dans
-assets/assets/data/osrm_geometries.json (bundle préchargé que le service
-worker sème instantanément chez les clients), puis les matérialise une par une
-dans osrm/route/v1/driving/* : ce sont les URL que l'app appelle (correctif
-tracés v3, même origine) et elles doivent exister en tant que vrais fichiers
-pour que le dernier niveau de repli fonctionne même sans service worker.
-Met à jour GEOM_VERSION dans flutter_service_worker.js (hachage du bundle) pour
-propager la mise à jour. Déterministe et rejouable : ne modifie rien si les
-données OSRM n'ont pas changé.
+Prefetch des géométries — logique séparée par mode (correctif tracés v5).
+
+  * AFTU, DDD, TATA (bus sur voirie) : routage routier OSRM, profil driving,
+    via le routeur public (requêtes HTTP régulées, comme avant).
+  * TER (train) : JAMAIS de routage routier. Méthode prioritaire = GTFS
+    shapes.txt officiel (voies ferrées) ; GTFS indisponible -> méthode de
+    secours locale : segments droits entre gares CONSÉCUTIVES triées par
+    sequence. Aucun appel réseau pour ces paires.
+  * BRT (site propre) : essai OSRM driving (arrêts triés par sequence) +
+    contrôle de cohérence (ratio route/direct <= 2,0, points dans Dakar) ;
+    au premier segment incohérent -> méthode de secours pour TOUTE la ligne
+    (segments droits consécutifs, sans API). Mesures : ratios 1,21 à 3,09.
+
+Écrit assets/assets/data/osrm_geometries.json (schéma 2 : geometries +
+provenance par URL) puis matérialise osrm/route/v1/driving/* (URL appelées par
+l'app depuis le correctif v3). Met à jour GEOM_VERSION dans
+flutter_service_worker.js (hachage du bundle). Déterministe et rejouable.
 
 Exécuté par le workflow GitHub Actions « PrefetchOSRM geometries ».
 """
-import hashlib
 import json
 import re
 import sys
@@ -23,22 +29,30 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from track_shapes import (  # noqa: E402
+    OSRM_PREFIX,
+    build_track_geometries,
+    classify_network_pairs,
+    load_shapes,
+)
+
 ROOT = Path(__file__).resolve().parent.parent
 PAIRS = ROOT / "assets" / "assets" / "data" / "osrm_pairs.json"
 OUT = ROOT / "assets" / "assets" / "data" / "osrm_geometries.json"
+NETWORK = ROOT / "assets" / "assets" / "data" / "dakar_network.json"
 SW = ROOT / "flutter_service_worker.js"
 # Correctif v3 : l'app appelle /dakar-bus/osrm/route/v1/driving/<lng,lat;lng,lat>.
-# Le depot doit donc contenir ces fichiers (repli sans service worker).
+# Le dépôt doit donc contenir ces fichiers (repli sans service worker).
 STATIC_DIR = ROOT / "osrm" / "route" / "v1" / "driving"
-OSRM_PREFIX = "https://router.project-osrm.org/route/v1/driving/"
 
 TIMEOUT = 10          # secondes par requête
 RETRIES = 4           # tentatives supplémentaires sur 429/5xx/réseau
-CONC = 2              # requêtes concurrentes (même discipline que le SW v1)
+CONC = 2              # requêtes concurrentes (discipline anti rate-limit)
 SPACING = 0.4         # espacement après chaque complétion (secondes)
-MIN_RATIO = 0.5       # échec si moins de 50 % des géométries récupérées
+MIN_RATIO = 0.5       # échec si moins de 50 % des paires routières récupérées
 
-UA = "dakar-bus-prefetch/2.0 (+https://aydiarra-star.github.io/dakar-bus/)"
+UA = "dakar-bus-prefetch/5.0 (+https://aydiarra-star.github.io/dakar-bus/)"
 
 
 def fetch_osrm(url, attempt=0):
@@ -68,7 +82,7 @@ def worker(url):
 
 
 def write_static_files(geometries):
-    """Matérialise chaque géométrie sous l'URL que l'app appelle (correctif v3).
+    """Matérialise chaque géométrie sous l'URL que l'app appelle.
 
     Retourne True si un fichier a changé (écrit ou supprimé)."""
     STATIC_DIR.mkdir(parents=True, exist_ok=True)
@@ -95,36 +109,71 @@ def write_static_files(geometries):
 
 
 def main():
+    network = json.loads(NETWORK.read_text(encoding="utf-8"))
     pairs = json.loads(PAIRS.read_text(encoding="utf-8"))
-    print("Paires a precharger : %d" % len(pairs))
+    track_urls, road_urls, shared = classify_network_pairs(network)
+    print("Paires guidees (TER/BRT, locales) : %d" % len(track_urls))
+    print("Paires routieres (OSRM driving) : %d" % len(road_urls))
+    if shared:
+        print("Paires partagees (priorite site propre) : %d" % len(shared))
 
-    geometries = {}
+    # Garde-fou : la liste canonique doit couvrir exactement le réseau.
+    if set(pairs) != track_urls | road_urls:
+        sys.exit("ECHEC : osrm_pairs.json incohérent avec dakar_network.json "
+                 "(%d vs %d)" % (len(pairs), len(track_urls | road_urls)))
+
+    # 1. Modes guidés : séparation stricte (track_shapes.dispatcher).
+    #    TER : GTFS shapes.txt si officiel, sinon secours consecutif local.
+    #    BRT : essai OSRM + validation (repli ligne entiere si incohérent).
+    shapes = load_shapes()
+    for op, shape in shapes.items():
+        print("Forme %s (%s) : %d points, %d arrets, %.1f km"
+              % (shape.shape_id, shape.source_kind, len(shape.points),
+                 len(shape.ordered_stop_ids()), shape.full_length_m() / 1000))
+    memo = {}
+
+    def brt_fetch(url):
+        if url not in memo:
+            memo[url] = fetch_osrm(url)
+            time.sleep(SPACING)
+        return memo[url]
+
+    geometries, provenance = build_track_geometries(network, shapes, brt_fetch)
+    n_secours = sum(1 for s in provenance.values() if s.endswith("-secours"))
+    print("Geometries guidees : %d (%d en methode de secours, %d appels OSRM)"
+          % (len(geometries), n_secours, len(memo)))
+
+    # 2. Modes routiers : routeur public OSRM, profil driving.
+    road_list = sorted(road_urls)
     failures = []
     with ThreadPoolExecutor(max_workers=CONC) as pool:
-        for url, data, err in pool.map(worker, pairs):
+        for url, data, err in pool.map(worker, road_list):
             if data is not None:
                 geometries[url] = data
+                provenance[url] = "osrm-driving"
             else:
                 failures.append((url, err))
 
-    ok = len(geometries)
-    print("Geometries recuperees : %d/%d" % (ok, len(pairs)))
+    ok_road = len(road_list) - len(failures)
+    print("Geometries routieres recuperees : %d/%d" % (ok_road, len(road_list)))
     for url, err in failures[:10]:
         print("  ECHEC %s -> %s" % (url, err))
     if failures:
-        print("::warning title=PrefetchOSRM::%d paires en echec (rejouable)" % len(failures))
-    if ok < int(len(pairs) * MIN_RATIO):
-        sys.exit("ECHEC : moins de %d%% des geometries, aucun commit" % int(MIN_RATIO * 100))
+        print("::warning title=PrefetchOSRM::%d paires routieres en echec (rejouable)"
+              % len(failures))
+    if ok_road < int(len(road_list) * MIN_RATIO):
+        sys.exit("ECHEC : moins de %d%% des geometries routieres, aucun commit"
+                 % int(MIN_RATIO * 100))
 
-    bundle = {"schema": 1, "count": ok, "geometries": geometries}
-    out_text = json.dumps(bundle, ensure_ascii=False, separators=(",", ":")) + "\n"
-    geom_version = "v2-" + hashlib.sha256(out_text.encode("utf-8")).hexdigest()[:12]
+    out_text = canonical_bundle_text(geometries, provenance, pairs)
+    geom_version = geom_version_for(out_text)
 
     changed = False
     if not OUT.exists() or OUT.read_text(encoding="utf-8") != out_text:
         OUT.write_text(out_text, encoding="utf-8")
         changed = True
-        print("Bundle ecrit : %s (%d octets, %d geometries)" % (OUT.name, len(out_text), ok))
+        print("Bundle ecrit : %s (%d octets, %d geometries)"
+              % (OUT.name, len(out_text), len(geometries)))
 
     sw = SW.read_text(encoding="utf-8")
     sw_new = re.sub(r"(const GEOM_VERSION = ')[^']*(')",
@@ -138,7 +187,8 @@ def main():
 
     if not changed:
         print("Geometries inchangees (GEOM_VERSION identique) : rien a commiter.")
-    print("::notice title=PrefetchOSRM::%d/%d geometries, GEOM_VERSION=%s" % (ok, len(pairs), geom_version))
+    print("::notice title=PrefetchOSRM::%d/%d geometries (dont %d guidees locales), "
+          "GEOM_VERSION=%s" % (len(geometries), len(pairs), len(track_urls), geom_version))
 
 
 if __name__ == "__main__":
