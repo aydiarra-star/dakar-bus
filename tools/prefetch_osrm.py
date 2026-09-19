@@ -98,7 +98,7 @@ def write_static_files(geometries):
             continue
         expected.add(coords)
         target = STATIC_DIR / coords
-        body = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+        body = json.dumps(payload, ensure_ascii=True, separators=(",", ":"))
         if not target.exists() or target.read_text(encoding="utf-8") != body:
             target.write_text(body, encoding="utf-8", newline="")
             changed = True
@@ -146,12 +146,22 @@ def main():
           % (len(geometries), n_secours, len(memo)))
 
     # 2. Modes routiers : routeur public OSRM, profil driving.
+    existing_geoms = {}
+    if OUT.exists():
+        try:
+            existing_geoms = json.loads(OUT.read_text(encoding="utf-8")).get("geometries", {})
+        except Exception:
+            pass
+
     road_list = sorted(road_urls)
     failures = []
     with ThreadPoolExecutor(max_workers=CONC) as pool:
         for url, data, err in pool.map(worker, road_list):
             if data is not None:
                 geometries[url] = data
+                provenance[url] = "osrm-driving"
+            elif url in existing_geoms:
+                geometries[url] = existing_geoms[url]
                 provenance[url] = "osrm-driving"
             else:
                 failures.append((url, err))
