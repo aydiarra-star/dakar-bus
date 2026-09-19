@@ -3,9 +3,9 @@ const MANIFEST = 'flutter-app-manifest';
 const TEMP = 'flutter-temp-cache';
 const CACHE_NAME = 'flutter-app-cache';
 
-const RESOURCES = {"flutter_bootstrap.js": "d005c102450e74f49e16542f40ccb4c4",
-"index.html": "4da3b8510a57c865d0ef01bf753b525b",
-"/": "4da3b8510a57c865d0ef01bf753b525b",
+const RESOURCES = {"flutter_bootstrap.js": "36f4f69ff70586480de99f12efee871a",
+"index.html": "def7b9f123c80be5c8a84a12447340d4",
+"/": "def7b9f123c80be5c8a84a12447340d4",
 "canvaskit/skwasm.worker.js": "89990e8c92bcb123999aa81f7e203b1c",
 "canvaskit/skwasm.js.symbols": "262f4827a1317abb59d71d6c587a93e2",
 "canvaskit/skwasm.wasm": "9f0c0c02b82a910d12ce0543ec130e60",
@@ -17,8 +17,8 @@ const RESOURCES = {"flutter_bootstrap.js": "d005c102450e74f49e16542f40ccb4c4",
 "canvaskit/canvaskit.js.symbols": "48c83a2ce573d9692e8d970e288d75f7",
 "canvaskit/skwasm.js": "694fda5704053957c2594de355805228",
 "flutter.js": "f393d3c16b631f36852323de8e583132",
-"main.dart.js": "c9ddb628c0766a4d3e889979a4fc9ec7",
-"version.json": "6917fe85b744e5ad1f97ba48577c0e51",
+"main.dart.js": "f6ec55ef97912f42fbd256bece0e1f72",
+"version.json": "f51f48e1264fcfdc7dd854af8de7f9f2",
 "assets/assets/data/dakar_network.json": "0e3fad1b6af958f1dc77d608c9b33574",
 "assets/assets/data/osrm_pairs.json": "3ddadaab1784b1d8d1601f81376cb3f5",
 "assets/packages/cupertino_icons/assets/CupertinoIcons.ttf": "e986ebe42ef785b27164c36a9abc7818",
@@ -110,7 +110,7 @@ self.addEventListener("activate", function(event) {
   }());
 });
 
-// ===== Traces reels v4 (TER ferroviaire + BRT site propre : jamais de routage routier) =====
+// ===== Traces reels v5 (TER/BRT : GTFS officiel ou secours consecutif) =====
 // L'app demande ses geometries sur la MEME origine que le site :
 //   /dakar-bus/osrm/route/v1/driving/<lng,lat;lng,lat>?overview=full&geometries=geojson
 // Trois niveaux de service, dans l'ordre :
@@ -122,7 +122,7 @@ self.addEventListener("activate", function(event) {
 // (voie ferree / site propre, table `provenance` du bundle) ; seules les
 // paires AFTU/DDD/TATA proviennent du routeur OSRM (profil driving).
 // Le routeur public n'est plus jamais appele par la carte en pratique.
-const OSRM_CACHE = 'osrm-geom-v4';
+const OSRM_CACHE = 'osrm-geom-v5';
 const OSRM_PREFIX = 'https://router.project-osrm.org/route/v1/driving/';
 const OSRM_LOCAL_PATH = '/dakar-bus/osrm/route/v1/driving/';
 const OSRM_SUFFIX = '?overview=full&geometries=geojson';
@@ -130,9 +130,9 @@ const OSRM_PAIRS_URL = 'assets/assets/data/osrm_pairs.json';
 const OSRM_GEOMS_URL = 'assets/assets/data/osrm_geometries.json';
 // Version des geometries prechargees. Le workflow « PrefetchOSRM geometries »
 // la recalcule (hachage du bundle) a chaque regeneration de osrm_geometries.json.
-const GEOM_VERSION = 'v4-6990af498407';
+const GEOM_VERSION = 'v5-c972f87c5485';
 // Marqueur de revision du correctif traces (audit, logs).
-const TRACES_SW = 'v4';
+const TRACES_SW = 'v5';
 
 let osrmBundle = null;
 let osrmBundlePromise = null;
@@ -362,6 +362,7 @@ self.addEventListener('activate', (event) => {
     await caches.delete('osrm-geom-v1'); // caches obsoletes
     await caches.delete('osrm-geom-v2');
     await caches.delete('osrm-geom-v3');
+    await caches.delete('osrm-geom-v4');
   })());
 });
 

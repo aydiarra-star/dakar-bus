@@ -1,26 +1,39 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Formes en site propre (correctif tracés v4) — module partagé.
+Génération des géométries par mode (correctif tracés v5) — module partagé.
 
-Rôle : fournir les géométries des modes guidés/dédiés SANS passer par le
-routage routier OSRM (profil driving), inapplicable à un train et aux voies
-de bus en site propre :
-  * TER  -> assets/assets/data/ter_rail_shapes.json
-  * BRT  -> assets/assets/data/brt_dedicated_shapes.json
+Implémente LITTÉRALEMENT la spécification impérative :
 
-Les arrêts BRT sont triés par stop_sequence avant tout découpage (exigence de
-la consigne). Les payloads produits sont compatibles OSRM (même structure que
-les réponses driving : code/routes[0].geometry.coordinates) afin que l'app
-(main.dart.js, inchangée sur ce point) les consomme sans modification, via les
-mêmes URL de paires. Chaque payload porte un marqueur `shape_source` et le
-bundle global porte une table `provenance` par URL.
+    TER  -> données GTFS shapes.txt (voies ferrées) ; si indisponible,
+            méthode de secours : lignes droites entre gares CONSÉCUTIVES.
+    BRT  -> essai OSRM (arrêts triés par sequence) ; si incohérent,
+            méthode de secours : lignes droites entre arrêts CONSÉCUTIFS.
+    Autres (AFTU, DDD, TATA) -> OSRM driving normalement.
 
-Utilisé par tools/prefetch_osrm.py (workflow CI) et tools/apply_traces_v4.py
-(correctif local, sans réseau).
+    JAMAIS de ligne directe premier <-> dernier arrêt. JAMAIS d'OSRM
+    (profil driving) pour le TER. JAMAIS de réutilisation des géométries
+    guidées précédentes : les payloads TER/BRT sont toujours reconstruits.
+
+Constat de mesure (2026-09-19) : les tracés OSRM driving du BRT sont
+incohérents (ratios route/direct de 1,21 à 3,09 ; voies dédiées inconnues
+d'OSRM) -> le repli intégral s'applique aux lignes BRT. Le shapes.txt GTFS
+officiel SETER/CETUD n'est pas téléchargeable depuis l'environnement de
+génération -> le repli s'applique à la ligne TER. Les deux replis restent
+« anguleux mais logiques et lisibles » (segments droits entre gares
+consécutives, triées par sequence).
+
+Procédure d'activation de la méthode prioritaire TER : convertir le
+shapes.txt officiel (shape_id, shape_pt_lat, shape_pt_lon, shape_pt_sequence)
+en points intermédiaires (stop_id=null) dans ter_rail_shapes.json et passer
+son source_kind à "gtfs-officiel". generer_depuis_gtfs() bascule alors
+automatiquement sur les voies ferrées.
+
+Utilisé par tools/prefetch_osrm.py (workflow CI, avec réseau) et
+tools/apply_traces_v5.py (correctif local, sans réseau).
 """
-import json
 import hashlib
+import json
 import math
 import unicodedata
 from pathlib import Path
@@ -33,13 +46,20 @@ BRT_SHAPES = ROOT / "assets" / "assets" / "data" / "brt_dedicated_shapes.json"
 OSRM_PREFIX = "https://router.project-osrm.org/route/v1/driving/"
 OSRM_SUFFIX = "?overview=full&geometries=geojson"
 
-# Vitesses commerciales constatées (vues détail de l'app) : TER 35 km en
-# 45 min (~13 m/s), BRT 18,3 km en 43 min (~7 m/s). Servent uniquement à
-# renseigner duration/weight des payloads synthétiques.
-TER_SPEED_MPS = 13.0
-BRT_SPEED_MPS = 7.0
-
 TRACK_OPERATORS = ("ter", "brt")
+
+# Seuil de cohérence OSRM (BRT) : au-delà d'un ratio route/direct de 2,0 le
+# tracé est déclaré incohérent (détour de voie dédiée inconnue d'OSRM) et
+# toute la ligne bascule en méthode de secours. Mesures BRT : 1,21 à 3,09.
+SEUIL_DETOUR_BRT = 2.0
+
+
+class GTFSIndisponible(Exception):
+    """Le shapes.txt GTFS officiel n'est pas chargé (repli de secours)."""
+
+
+class GeometrieIncoherente(Exception):
+    """Le tracé OSRM est incohérent (repli de secours)."""
 
 
 def dart_double(value):
@@ -67,18 +87,27 @@ def ascii_name(text):
     return unicodedata.normalize("NFKD", str(text)).encode("ascii", "ignore").decode("ascii")
 
 
+def eI_dakar(lat, lon):
+    """Garde-fou Dakar de l'app après correctif v4 (A.eI sans rectangle)."""
+    if lat < 14.55 or lat > 14.9:
+        return False
+    if lon < -17.6 or lon > -16.85:
+        return False
+    return True
+
+
 class TrackShape:
     """Forme chargée depuis un fichier shapes (triée par sequence)."""
 
-    def __init__(self, path, speed_mps):
+    def __init__(self, path):
         data = json.loads(Path(path).read_text(encoding="utf-8"))
         pts = sorted(data["points"], key=lambda p: p["shape_pt_sequence"])
         seqs = [p["shape_pt_sequence"] for p in pts]
         if seqs != sorted(seqs) or len(set(seqs)) != len(seqs):
             raise ValueError("%s : sequences invalides" % path)
         self.shape_id = data["shape_id"]
+        self.source_kind = data.get("source_kind", "secours-consecutif")
         self.points = pts
-        self.speed_mps = speed_mps
         self.stop_index = {}
         for i, p in enumerate(pts):
             if p.get("stop_id"):
@@ -107,19 +136,188 @@ class TrackShape:
 
 
 def load_shapes():
-    return {
-        "ter": TrackShape(TER_SHAPES, TER_SPEED_MPS),
-        "brt": TrackShape(BRT_SHAPES, BRT_SPEED_MPS),
-    }
+    return {"ter": TrackShape(TER_SHAPES), "brt": TrackShape(BRT_SHAPES)}
 
 
-def shape_payload(coords, name_a, name_b, source):
-    """Payload compatible OSRM pour un tronçon en site propre."""
+# ---------------------------------------------------------------------------
+# Spécification impérative : séparation par mode (équivalent Python du
+# pseudo-code JavaScript de la consigne).
+# ---------------------------------------------------------------------------
+
+def trier_arrets_par_sequence(route, shape):
+    """1. Trier les arrêts par séquence (erreur explicite sinon)."""
+    order = {sid: k for k, sid in enumerate(shape.ordered_stop_ids())}
+    ids = list(route.get("stops", []))
+    for sid in ids:
+        if sid not in order:
+            raise KeyError("arrêt %s hors forme %s (ligne %s)"
+                           % (sid, shape.shape_id, route.get("id")))
+    if any(order[ids[i]] >= order[ids[i + 1]] for i in range(len(ids) - 1)):
+        raise ValueError("ligne %s : arrêts non triés par sequence" % route.get("id"))
+    return ids
+
+
+def generer_depuis_gtfs(route, stops_by_id, shapes):
+    """Méthode prioritaire TER : coordonnées GTFS shapes.txt (voies ferrées).
+
+    Lève GTFSIndisponible si la forme chargée n'est pas un import GTFS
+    officiel (source_kind != "gtfs-officiel")."""
+    shape = shapes["ter"]
+    if shape.source_kind != "gtfs-officiel":
+        raise GTFSIndisponible(
+            "ter_rail_shapes.json n'est pas un import GTFS officiel "
+            "(source_kind=%r)" % shape.source_kind)
+    arretes_tries = trier_arrets_par_sequence(route, shape)
+    geometries, provenance = {}, {}
+    for i in range(len(arretes_tries) - 1):
+        a, b = arretes_tries[i], arretes_tries[i + 1]
+        sa, sb = stops_by_id[a], stops_by_id[b]
+        url = pair_url(sa["longitude"], sa["latitude"],
+                       sb["longitude"], sb["latitude"])
+        if url in geometries:
+            continue
+        coords = shape.slice(a, b)
+        geometries[url] = payload_compatible_osrm(coords, sa["name"], sb["name"],
+                                                  shape.shape_id)
+        provenance[url] = shape.shape_id
+    return geometries, provenance
+
+
+def valider_coherence_osrm(payload, lon_a, lat_a, lon_b, lat_b,
+                           seuil_detour=SEUIL_DETOUR_BRT):
+    """Contrôle de cohérence d'un tracé OSRM (déclenche le repli BRT)."""
+    try:
+        coords = payload["routes"][0]["geometry"]["coordinates"]
+        dist = float(payload["routes"][0]["distance"])
+    except (KeyError, IndexError, TypeError, ValueError):
+        raise GeometrieIncoherente("payload OSRM invalide")
+    if len(coords) < 2:
+        raise GeometrieIncoherente("géométrie vide (< 2 points)")
+    for lon, lat in coords:
+        if not eI_dakar(lat, lon):
+            raise GeometrieIncoherente("point OSRM hors garde-fou (%.5f, %.5f)"
+                                       % (lat, lon))
+    direct = haversine_m(lon_a, lat_a, lon_b, lat_b)
+    if direct > 0 and dist / direct > seuil_detour:
+        raise GeometrieIncoherente("détour %.2fx > seuil %.2f (voie dédiée ?)"
+                                   % (dist / direct, seuil_detour))
+    return True
+
+
+def generer_depuis_osrm_paire(url, lon_a, lat_a, lon_b, lat_b, fetcher,
+                              valider=True):
+    """Une paire via OSRM driving (lève sur erreur réseau ou incohérence)."""
+    payload = fetcher(url)  # lève sur 429/5xx/réseau/code != Ok
+    if valider:
+        valider_coherence_osrm(payload, lon_a, lat_a, lon_b, lat_b)
+    return payload
+
+
+def generer_ligne_droite_consecutive(arrets_tries, stops_by_id, source):
+    """Méthode de secours : segments droits entre arrêts CONSÉCUTIFS.
+
+    Équivalent du genererLigneDroiteConsecutive() de la consigne : chaque
+    paire (A -> B) reçoit exactement [A, B] aux coordonnées exactes des
+    arrêts. Jamais de direct premier <-> dernier arrêt.
+    """
+    geometries, provenance = {}, {}
+    for i in range(len(arrets_tries) - 1):
+        a, b = arrets_tries[i], arrets_tries[i + 1]
+        sa, sb = stops_by_id[a], stops_by_id[b]
+        url = pair_url(sa["longitude"], sa["latitude"],
+                       sb["longitude"], sb["latitude"])
+        if url in geometries:
+            continue
+        coords = [[sa["longitude"], sa["latitude"]],
+                  [sb["longitude"], sb["latitude"]]]
+        geometries[url] = payload_compatible_osrm(coords, sa["name"], sb["name"], source)
+        provenance[url] = source
+    return geometries, provenance
+
+
+def generer_geometrie_pour_ligne(route, stops_by_id, shapes, fetcher=None):
+    """2. Séparer la logique selon le mode (pseudo-code de la consigne).
+
+    Retourne (geometries, provenance) pour UNE ligne. `fetcher` est la
+    fonction d'appel OSRM (injectée : HTTP réel dans prefetch_osrm.py,
+    indisponible dans l'applicateur hors-ligne).
+    """
+    mode = route.get("operator_id")
+    if mode == "ter":
+        # Utiliser les données GTFS shapes.txt (voies ferrées). OSRM
+        # (profil driving) est INTERDIT pour un train : aucun appel routier
+        # ici, même en repli (repli = secours consecutif, pas OSRM).
+        try:
+            return generer_depuis_gtfs(route, stops_by_id, shapes)
+        except GTFSIndisponible as e:
+            print("  ! TER %s : %s -> methode de secours (gares consecutives)"
+                  % (route.get("id"), e))
+            arretes_tries = trier_arrets_par_sequence(route, shapes["ter"])
+            return generer_ligne_droite_consecutive(
+                arretes_tries, stops_by_id, shapes["ter"].shape_id + "-secours")
+    elif mode == "brt":
+        # Essayer OSRM (arrêts triés par sequence), sinon repli sur ligne
+        # droite consécutive. Granularité LIGNE (comme le try/catch de la
+        # consigne) : un seul segment incohérent -> toute la ligne en secours.
+        arretes_tries = trier_arrets_par_sequence(route, shapes["brt"])
+        if fetcher is None:
+            print("  ! BRT %s : pas d'acces OSRM (hors-ligne) "
+                  "-> methode de secours (arrets consecutifs)" % route.get("id"))
+            return generer_ligne_droite_consecutive(
+                arretes_tries, stops_by_id, shapes["brt"].shape_id + "-secours")
+        try:
+            geometries, provenance = {}, {}
+            for i in range(len(arretes_tries) - 1):
+                a, b = arretes_tries[i], arretes_tries[i + 1]
+                sa, sb = stops_by_id[a], stops_by_id[b]
+                url = pair_url(sa["longitude"], sa["latitude"],
+                               sb["longitude"], sb["latitude"])
+                if url in geometries:
+                    continue
+                geometries[url] = generer_depuis_osrm_paire(
+                    url, sa["longitude"], sa["latitude"],
+                    sb["longitude"], sb["latitude"], fetcher, valider=True)
+                provenance[url] = "osrm-driving"
+            return geometries, provenance
+        except Exception as e:
+            print("  ! BRT %s : OSRM inutilisable (%s) "
+                  "-> methode de secours (arrets consecutifs)" % (route.get("id"), e))
+            return generer_ligne_droite_consecutive(
+                arretes_tries, stops_by_id, shapes["brt"].shape_id + "-secours")
+    else:
+        # AFTU, DDD, TATA : utiliser OSRM normalement (profil driving).
+        if fetcher is None:
+            raise RuntimeError("pas d'acces OSRM pour la ligne routière %s"
+                               % route.get("id"))
+        geometries, provenance = {}, {}
+        ids = route.get("stops", [])
+        for i in range(len(ids) - 1):
+            a, b = stops_by_id[ids[i]], stops_by_id[ids[i + 1]]
+            url = pair_url(a["longitude"], a["latitude"],
+                           b["longitude"], b["latitude"])
+            if url in geometries:
+                continue
+            geometries[url] = generer_depuis_osrm_paire(
+                url, a["longitude"], a["latitude"],
+                b["longitude"], b["latitude"], fetcher, valider=False)
+            provenance[url] = "osrm-driving"
+        return geometries, provenance
+
+
+# ---------------------------------------------------------------------------
+# Construction des payloads + bundle canonique (inchangés : compatibilité app).
+# ---------------------------------------------------------------------------
+
+def payload_compatible_osrm(coords, name_a, name_b, source):
+    """Payload compatible OSRM pour un tronçon (guidé ou secours).
+
+    L'app ne lit que routes[0].geometry.coordinates ; distance/duration sont
+    renseignées par haversine (vitesse indicative 45 km/h : TER 35 km ~=>
+    ~45 min, ordre de grandeur des fiches horaires)."""
     dist = sum(haversine_m(coords[k][0], coords[k][1],
                             coords[k + 1][0], coords[k + 1][1])
                for k in range(len(coords) - 1))
-    speed = TER_SPEED_MPS if source.startswith("ter-") else BRT_SPEED_MPS
-    dur = dist / speed
+    dur = dist / 12.5
     return {
         "code": "Ok",
         "shape_source": source,
@@ -141,14 +339,17 @@ def shape_payload(coords, name_a, name_b, source):
     }
 
 
+# Alias historique (compatibilité prefetch v4 / scripts externes).
+def shape_payload(coords, name_a, name_b, source):
+    return payload_compatible_osrm(coords, name_a, name_b, source)
+
+
 def classify_network_pairs(network=None):
     """Paires de chaque ligne, classées par mode.
 
-    Retourne (track_pairs, road_pairs) : ensembles d'URL. Une paire servie à
-    la fois par une ligne guidée (TER/BRT) et une ligne routière est classée
-    TRACK (priorité au site propre : les 3 cas concernés partagent le même
-    corridor, l'écart est négligeable pour le bus et le guidé y gagne un
-    tracé exact).
+    Retourne (track, road, shared). Une paire servie à la fois par une ligne
+    guidée (TER/BRT) et une ligne routière est classée TRACK (priorité au
+    site propre : les 3 cas concernés partagent le même corridor).
     """
     if network is None:
         network = json.loads(NETWORK.read_text(encoding="utf-8"))
@@ -168,11 +369,12 @@ def classify_network_pairs(network=None):
     return track, road, shared
 
 
-def build_track_geometries(network=None, shapes=None):
-    """Géométries locales pour toutes les paires TER/BRT du réseau.
+def build_track_geometries(network=None, shapes=None, fetcher=None):
+    """Géométries des lignes guidées via generer_geometrie_pour_ligne().
 
-    Retourne (geometries, provenance) : dict URL -> payload, dict URL -> source.
-    Lève une erreur si une paire guidée n'est couverte par aucune forme.
+    Sans fetcher (hors-ligne) : TER -> secours (GTFS indisponible),
+    BRT -> secours (pas d'OSRM). Les payloads guidés sont TOUJOURS
+    reconstruits (jamais réutilisés d'un bundle précédent).
     """
     if network is None:
         network = json.loads(NETWORK.read_text(encoding="utf-8"))
@@ -181,47 +383,16 @@ def build_track_geometries(network=None, shapes=None):
     stops = {s["id"]: s for s in network.get("stops", [])}
     geometries, provenance = {}, {}
     for route in network.get("routes", []):
-        op = route.get("operator_id")
-        if op not in TRACK_OPERATORS:
+        if route.get("operator_id") not in TRACK_OPERATORS:
             continue
-        shape = shapes[op]
-        ids = route.get("stops", [])
-        # Exigence consigne : arrêts triés par sequence avant découpage.
-        # Ici la forme fait foi : on vérifie que la ligne suit l'ordre de
-        # la forme (erreur explicite sinon, jamais de découpage inversé).
-        order = {sid: k for k, sid in enumerate(shape.ordered_stop_ids())}
-        for i in range(len(ids) - 1):
-            a, b = ids[i], ids[i + 1]
-            if a not in order or b not in order:
-                raise KeyError("arrêt %s ou %s hors forme %s (ligne %s)"
-                               % (a, b, shape.shape_id, route.get("id")))
-            if order[a] >= order[b]:
-                raise ValueError("ligne %s : arrêts non triés par sequence "
-                                 "(%s après %s)" % (route.get("id"), a, b))
-            sa, sb = stops[a], stops[b]
-            url = pair_url(sa["longitude"], sa["latitude"],
-                            sb["longitude"], sb["latitude"])
-            if url in geometries:
-                continue
-            coords = shape.slice(a, b)
-            # Les extrémités de la forme doivent être les coordonnées exactes
-            # des arrêts (pas d'approximation).
-            assert coords[0] == [sa["longitude"], sa["latitude"]], url
-            assert coords[-1] == [sb["longitude"], sb["latitude"]], url
-            geometries[url] = shape_payload(coords, sa["name"], sb["name"],
-                                            shape.shape_id)
-            provenance[url] = shape.shape_id
+        g, p = generer_geometrie_pour_ligne(route, stops, shapes, fetcher)
+        geometries.update(g)
+        provenance.update(p)
     return geometries, provenance
 
 
 def canonical_bundle_text(geometries, provenance, pairs_order):
-    """Sérialisation canonique du bundle (schéma 2), stable entre scripts.
-
-    L'ordre des clés suit osrm_pairs.json (lui-même dans l'ordre du réseau),
-    afin que tools/prefetch_osrm.py (CI) et tools/apply_traces_v4.py (local)
-    produisent des octets identiques pour des payloads identiques (pas de
-    churn de GEOM_VERSION).
-    """
+    """Sérialisation canonique du bundle (schéma 2), stable entre scripts."""
     ordered_geoms = {u: geometries[u] for u in pairs_order if u in geometries}
     ordered_prov = {u: provenance.get(u, "osrm-driving")
                     for u in pairs_order if u in geometries}
@@ -230,5 +401,5 @@ def canonical_bundle_text(geometries, provenance, pairs_order):
     return json.dumps(bundle, ensure_ascii=False, separators=(",", ":")) + "\n"
 
 
-def geom_version_for(bundle_text, tag="v4"):
+def geom_version_for(bundle_text, tag="v5"):
     return "%s-%s" % (tag, hashlib.sha256(bundle_text.encode("utf-8")).hexdigest()[:12])

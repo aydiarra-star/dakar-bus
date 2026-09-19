@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Prefetch des géométries — logique séparée par mode (correctif tracés v4).
+Prefetch des géométries — logique séparée par mode (correctif tracés v5).
 
   * AFTU, DDD, TATA (bus sur voirie) : routage routier OSRM, profil driving,
     via le routeur public (requêtes HTTP régulées, comme avant).
-  * TER (train) : JAMAIS de routage routier. Géométries découpées localement
-    dans assets/assets/data/ter_rail_shapes.json (forme de la voie ferrée,
-    format inspiré de GTFS shapes.txt). Aucun appel réseau pour ces paires.
-  * BRT (site propre) : JAMAIS de routage routier (voies dédiées inconnues
-    d'OSRM -> détours jusqu'à 3,1x). Géométries découpées localement dans
-    assets/assets/data/brt_dedicated_shapes.json, arrêts triés par
-    stop_sequence. Aucun appel réseau pour ces paires.
+  * TER (train) : JAMAIS de routage routier. Méthode prioritaire = GTFS
+    shapes.txt officiel (voies ferrées) ; GTFS indisponible -> méthode de
+    secours locale : segments droits entre gares CONSÉCUTIVES triées par
+    sequence. Aucun appel réseau pour ces paires.
+  * BRT (site propre) : essai OSRM driving (arrêts triés par sequence) +
+    contrôle de cohérence (ratio route/direct <= 2,0, points dans Dakar) ;
+    au premier segment incohérent -> méthode de secours pour TOUTE la ligne
+    (segments droits consécutifs, sans API). Mesures : ratios 1,21 à 3,09.
 
 Écrit assets/assets/data/osrm_geometries.json (schéma 2 : geometries +
 provenance par URL) puis matérialise osrm/route/v1/driving/* (URL appelées par
@@ -51,7 +52,7 @@ CONC = 2              # requêtes concurrentes (discipline anti rate-limit)
 SPACING = 0.4         # espacement après chaque complétion (secondes)
 MIN_RATIO = 0.5       # échec si moins de 50 % des paires routières récupérées
 
-UA = "dakar-bus-prefetch/4.0 (+https://aydiarra-star.github.io/dakar-bus/)"
+UA = "dakar-bus-prefetch/5.0 (+https://aydiarra-star.github.io/dakar-bus/)"
 
 
 def fetch_osrm(url, attempt=0):
@@ -121,15 +122,26 @@ def main():
         sys.exit("ECHEC : osrm_pairs.json incohérent avec dakar_network.json "
                  "(%d vs %d)" % (len(pairs), len(track_urls | road_urls)))
 
-    # 1. Modes guidés : découpe locale, aucun appel réseau.
+    # 1. Modes guidés : séparation stricte (track_shapes.dispatcher).
+    #    TER : GTFS shapes.txt si officiel, sinon secours consecutif local.
+    #    BRT : essai OSRM + validation (repli ligne entiere si incohérent).
     shapes = load_shapes()
     for op, shape in shapes.items():
-        print("Forme %s : %d points, %d arrets, %.1f km"
-              % (shape.shape_id, len(shape.points),
+        print("Forme %s (%s) : %d points, %d arrets, %.1f km"
+              % (shape.shape_id, shape.source_kind, len(shape.points),
                  len(shape.ordered_stop_ids()), shape.full_length_m() / 1000))
-    geometries, provenance = build_track_geometries(network, shapes)
-    print("Geometries guidees construites localement : %d (0 appel reseau)"
-          % len(geometries))
+    memo = {}
+
+    def brt_fetch(url):
+        if url not in memo:
+            memo[url] = fetch_osrm(url)
+            time.sleep(SPACING)
+        return memo[url]
+
+    geometries, provenance = build_track_geometries(network, shapes, brt_fetch)
+    n_secours = sum(1 for s in provenance.values() if s.endswith("-secours"))
+    print("Geometries guidees : %d (%d en methode de secours, %d appels OSRM)"
+          % (len(geometries), n_secours, len(memo)))
 
     # 2. Modes routiers : routeur public OSRM, profil driving.
     road_list = sorted(road_urls)

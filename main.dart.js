@@ -42687,7 +42687,7 @@ e=A.uu(!1,p,p,p,!0,p,p,!1,B.I9,p,new A.ai_(e,a0),!1,p,p,p,p,p,A.aq("Qui sommes-n
 s=A.tS(o?B.aC:B.aD,1)
 r=A.aq("Version de l\u2019application",p,p,p,p,A.ay(p,p,o?B.J:B.K,p,p,p,p,p,p,p,p,p,p,p,p,p,p,!0,p,p,p,p,p,p,p,p),p,p)
 q=t.p
-return A.m1(p,n,A.kp(!1,A.lG(A.b([m,B.c3,A.bo(p,A.cv(A.b([i,h,g,f,d,c,b,a,e,s,A.uu(!1,p,p,p,!0,p,p,!1,B.I_,p,p,!1,p,p,p,A.aq("Dakar Bus v9.3.2 build 10",p,p,p,p,A.ay(p,p,o?B.X:B.W,p,p,p,p,p,p,p,p,p,p,p,p,p,p,!0,p,p,p,p,p,p,p,p),p,p),p,r,p,p)],q),B.A,B.r,B.t),B.k,p,p,new A.bh(l,p,p,k,j,p,B.I),p,p,p,p,p,p,p)],q),B.bd,p,B.aj,!1),B.ae,!0),p)},
+return A.m1(p,n,A.kp(!1,A.lG(A.b([m,B.c3,A.bo(p,A.cv(A.b([i,h,g,f,d,c,b,a,e,s,A.uu(!1,p,p,p,!0,p,p,!1,B.I_,p,p,!1,p,p,p,A.aq("Dakar Bus v9.3.2 build 11",p,p,p,p,A.ay(p,p,o?B.X:B.W,p,p,p,p,p,p,p,p,p,p,p,p,p,p,!0,p,p,p,p,p,p,p,p),p,p),p,r,p,p)],q),B.A,B.r,B.t),B.k,p,p,new A.bh(l,p,p,k,j,p,B.I),p,p,p,p,p,p,p)],q),B.bd,p,B.aj,!1),B.ae,!0),p)},
 $S:40}
 A.ahW.prototype={
 $1(a){},
