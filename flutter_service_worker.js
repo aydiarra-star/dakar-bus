@@ -3,34 +3,36 @@ const MANIFEST = 'flutter-app-manifest';
 const TEMP = 'flutter-temp-cache';
 const CACHE_NAME = 'flutter-app-cache';
 
-const RESOURCES = {"flutter_bootstrap.js": "36f4f69ff70586480de99f12efee871a",
-"index.html": "def7b9f123c80be5c8a84a12447340d4",
-"/": "def7b9f123c80be5c8a84a12447340d4",
-"canvaskit/skwasm.worker.js": "89990e8c92bcb123999aa81f7e203b1c",
-"canvaskit/skwasm.js.symbols": "262f4827a1317abb59d71d6c587a93e2",
-"canvaskit/skwasm.wasm": "9f0c0c02b82a910d12ce0543ec130e60",
-"canvaskit/chromium/canvaskit.wasm": "b1ac05b29c127d86df4bcfbf50dd902a",
-"canvaskit/chromium/canvaskit.js": "671c6b4f8fcc199dcc551c7bb125f239",
-"canvaskit/chromium/canvaskit.js.symbols": "a012ed99ccba193cf96bb2643003f6fc",
-"canvaskit/canvaskit.wasm": "1f237a213d7370cf95f443d896176460",
-"canvaskit/canvaskit.js": "66177750aff65a66cb07bb44b8c6422b",
-"canvaskit/canvaskit.js.symbols": "48c83a2ce573d9692e8d970e288d75f7",
-"canvaskit/skwasm.js": "694fda5704053957c2594de355805228",
-"flutter.js": "f393d3c16b631f36852323de8e583132",
-"main.dart.js": "f6ec55ef97912f42fbd256bece0e1f72",
-"version.json": "f51f48e1264fcfdc7dd854af8de7f9f2",
-"assets/assets/data/dakar_network.json": "0e3fad1b6af958f1dc77d608c9b33574",
-"assets/assets/data/osrm_pairs.json": "3ddadaab1784b1d8d1601f81376cb3f5",
-"assets/packages/cupertino_icons/assets/CupertinoIcons.ttf": "e986ebe42ef785b27164c36a9abc7818",
-"assets/packages/flutter_map/lib/assets/flutter_map_logo.png": "208d63cc917af9713fc9572bd5c09362",
-"assets/fonts/MaterialIcons-Regular.otf": "d164c2e1de1f8d6c9305a88053d6c824",
-"assets/shaders/ink_sparkle.frag": "ecc85a2e95f5e9f53123dcaf8cb9b6ce",
-"assets/AssetManifest.json": "b46737cf7adc121b830dcedb4b44a129",
-"assets/AssetManifest.bin": "40e52590caf612e4557acbe41408f3e1",
-"assets/AssetManifest.bin.json": "ad3d4ca430f5ec9950ba512db89136a0",
-"assets/FontManifest.json": "dc3d03800ccca4601324923c0b1d6d57",
-"assets/NOTICES": "71e6398d95630ac1b40be1b31ae74461",
-"manifest.json": "6f54d1c7161f2eaf864347a26b355b4f"};
+const RESOURCES = {
+  "/": "5c974998dbae63394385646d87ab4658",
+  "assets/AssetManifest.bin": "40e52590caf612e4557acbe41408f3e1",
+  "assets/AssetManifest.bin.json": "ad3d4ca430f5ec9950ba512db89136a0",
+  "assets/AssetManifest.json": "b46737cf7adc121b830dcedb4b44a129",
+  "assets/FontManifest.json": "dc3d03800ccca4601324923c0b1d6d57",
+  "assets/NOTICES": "71e6398d95630ac1b40be1b31ae74461",
+  "assets/assets/data/dakar_network.json": "81c778f4644dcf5e1cf4ae25879218f0",
+  "assets/assets/data/osrm_pairs.json": "80f195d6f3728dba08f1d4917b977399",
+  "assets/fonts/MaterialIcons-Regular.otf": "d164c2e1de1f8d6c9305a88053d6c824",
+  "assets/packages/cupertino_icons/assets/CupertinoIcons.ttf": "e986ebe42ef785b27164c36a9abc7818",
+  "assets/packages/flutter_map/lib/assets/flutter_map_logo.png": "208d63cc917af9713fc9572bd5c09362",
+  "assets/shaders/ink_sparkle.frag": "ecc85a2e95f5e9f53123dcaf8cb9b6ce",
+  "canvaskit/canvaskit.js": "66177750aff65a66cb07bb44b8c6422b",
+  "canvaskit/canvaskit.js.symbols": "48c83a2ce573d9692e8d970e288d75f7",
+  "canvaskit/canvaskit.wasm": "1f237a213d7370cf95f443d896176460",
+  "canvaskit/chromium/canvaskit.js": "671c6b4f8fcc199dcc551c7bb125f239",
+  "canvaskit/chromium/canvaskit.js.symbols": "a012ed99ccba193cf96bb2643003f6fc",
+  "canvaskit/chromium/canvaskit.wasm": "b1ac05b29c127d86df4bcfbf50dd902a",
+  "canvaskit/skwasm.js": "694fda5704053957c2594de355805228",
+  "canvaskit/skwasm.js.symbols": "262f4827a1317abb59d71d6c587a93e2",
+  "canvaskit/skwasm.wasm": "9f0c0c02b82a910d12ce0543ec130e60",
+  "canvaskit/skwasm.worker.js": "89990e8c92bcb123999aa81f7e203b1c",
+  "flutter.js": "f393d3c16b631f36852323de8e583132",
+  "flutter_bootstrap.js": "7e61f37c4d2d519aac3b554a76e21e92",
+  "index.html": "5c974998dbae63394385646d87ab4658",
+  "main.dart.js": "f546670955b653eeac5662bb7a230ab4",
+  "manifest.json": "6f54d1c7161f2eaf864347a26b355b4f",
+  "version.json": "4a0cb1e6e8d22068fdab1748a25ea97b"
+};
 // The application shell files that are downloaded before a service worker can
 // start.
 const CORE = ["main.dart.js",
@@ -110,7 +112,7 @@ self.addEventListener("activate", function(event) {
   }());
 });
 
-// ===== Traces reels v5 (TER/BRT : GTFS officiel ou secours consecutif) =====
+// ===== Traces reels v6 (TER/BRT : GTFS officiel ou secours consecutif) =====
 // L'app demande ses geometries sur la MEME origine que le site :
 //   /dakar-bus/osrm/route/v1/driving/<lng,lat;lng,lat>?overview=full&geometries=geojson
 // Trois niveaux de service, dans l'ordre :
@@ -122,7 +124,7 @@ self.addEventListener("activate", function(event) {
 // (voie ferree / site propre, table `provenance` du bundle) ; seules les
 // paires AFTU/DDD/TATA proviennent du routeur OSRM (profil driving).
 // Le routeur public n'est plus jamais appele par la carte en pratique.
-const OSRM_CACHE = 'osrm-geom-v5';
+const OSRM_CACHE = 'osrm-geom-v6';
 const OSRM_PREFIX = 'https://router.project-osrm.org/route/v1/driving/';
 const OSRM_LOCAL_PATH = '/dakar-bus/osrm/route/v1/driving/';
 const OSRM_SUFFIX = '?overview=full&geometries=geojson';
@@ -130,9 +132,9 @@ const OSRM_PAIRS_URL = 'assets/assets/data/osrm_pairs.json';
 const OSRM_GEOMS_URL = 'assets/assets/data/osrm_geometries.json';
 // Version des geometries prechargees. Le workflow « PrefetchOSRM geometries »
 // la recalcule (hachage du bundle) a chaque regeneration de osrm_geometries.json.
-const GEOM_VERSION = 'v5-c972f87c5485';
+const GEOM_VERSION = 'v6-3e2a97dec002';
 // Marqueur de revision du correctif traces (audit, logs).
-const TRACES_SW = 'v5';
+const TRACES_SW = 'v6';
 
 let osrmBundle = null;
 let osrmBundlePromise = null;
@@ -363,6 +365,10 @@ self.addEventListener('activate', (event) => {
     await caches.delete('osrm-geom-v2');
     await caches.delete('osrm-geom-v3');
     await caches.delete('osrm-geom-v4');
+    await caches.delete('osrm-geom-v5');
+    await caches.delete('osrm-geom-v3');
+    await caches.delete('osrm-geom-v4');
+    await caches.delete('osrm-geom-v5');
   })());
 });
 

@@ -42687,7 +42687,7 @@ e=A.uu(!1,p,p,p,!0,p,p,!1,B.I9,p,new A.ai_(e,a0),!1,p,p,p,p,p,A.aq("Qui sommes-n
 s=A.tS(o?B.aC:B.aD,1)
 r=A.aq("Version de l\u2019application",p,p,p,p,A.ay(p,p,o?B.J:B.K,p,p,p,p,p,p,p,p,p,p,p,p,p,p,!0,p,p,p,p,p,p,p,p),p,p)
 q=t.p
-return A.m1(p,n,A.kp(!1,A.lG(A.b([m,B.c3,A.bo(p,A.cv(A.b([i,h,g,f,d,c,b,a,e,s,A.uu(!1,p,p,p,!0,p,p,!1,B.I_,p,p,!1,p,p,p,A.aq("Dakar Bus v9.3.2 build 11",p,p,p,p,A.ay(p,p,o?B.X:B.W,p,p,p,p,p,p,p,p,p,p,p,p,p,p,!0,p,p,p,p,p,p,p,p),p,p),p,r,p,p)],q),B.A,B.r,B.t),B.k,p,p,new A.bh(l,p,p,k,j,p,B.I),p,p,p,p,p,p,p)],q),B.bd,p,B.aj,!1),B.ae,!0),p)},
+return A.m1(p,n,A.kp(!1,A.lG(A.b([m,B.c3,A.bo(p,A.cv(A.b([i,h,g,f,d,c,b,a,e,s,A.uu(!1,p,p,p,!0,p,p,!1,B.I_,p,p,!1,p,p,p,A.aq("Dakar Bus v9.3.2 build 12",p,p,p,p,A.ay(p,p,o?B.X:B.W,p,p,p,p,p,p,p,p,p,p,p,p,p,p,!0,p,p,p,p,p,p,p,p),p,p),p,r,p,p)],q),B.A,B.r,B.t),B.k,p,p,new A.bh(l,p,p,k,j,p,B.I),p,p,p,p,p,p,p)],q),B.bd,p,B.aj,!1),B.ae,!0),p)},
 $S:40}
 A.ahW.prototype={
 $1(a){},
@@ -96742,7 +96742,7 @@ return B.b.iW(q,new A.axy()).f1(0)})
 s($,"b3t","J0",()=>{var q=t.q_
 // v4 : demos recalees sur le reseau JSON (TER 13 gares, B1 direct 12
 // v4 : stations, DDD=ddd_12, TATA=tata_219 : doublons invisibles).
-return A.b([A.akW("TER",B.az,"TER",A.b([B.kg,B.kf,B.ke,B.PDA,B.J4,B.kj,B.IY,B.J2,B.kd,B.PPNR,B.J1,B.IV,B.kb],q),"TER"),A.akW("B1",B.bl,"BRT",A.b([B.ki,B.oD,B.oB,B.oC,new A.aE(14.745,-17.458),B.kc,B.oK,B.kh,B.IX,B.oE,B.oA,B.hz],q),"BRT"),A.akW("DDD",B.bR,"DDD Lignes",A.b([B.ki,new A.aE(14.758,-17.415),B.oB],q),"DDD"),A.akW("TATA",B.bS,"TATA Bus",A.b([B.oB,B.hz],q),"Tata")],A.aG("C<ma>"))})
+return A.b([A.akW("TER",B.az,"TER",A.b([B.kg,B.kf,B.ke,B.PDA,B.J4,B.kj,B.IY,B.J2,B.kd,B.PPNR,B.J1,B.IV,B.kb],q),"TER"),A.akW("B1",B.bl,"BRT",A.b([new A.aE(14.77156,-17.38694),new A.aE(14.7745,-17.393),new A.aE(14.77619,-17.39881),new A.aE(14.77019,-17.40156),new A.aE(14.77287,-17.40979),new A.aE(14.76756,-17.41356),new A.aE(14.76462,-17.41969),new A.aE(14.76269,-17.42431),new A.aE(14.75369,-17.43181),new A.aE(14.7512,-17.4395),new A.aE(14.74795,-17.44715),new A.aE(14.74156,-17.45131),new A.aE(14.73681,-17.45531),new A.aE(14.7315,-17.456),new A.aE(14.72631,-17.45919),new A.aE(14.72044,-17.46444),new A.aE(14.7166,-17.4635),new A.aE(14.70993,-17.4625),new A.aE(14.7052,-17.4578),new A.aE(14.69956,-17.45244),new A.aE(14.6943,-17.44826),new A.aE(14.67822,-17.44219),new A.aE(14.67548,-17.44157)],q),"BRT"),A.akW("DDD",B.bR,"DDD Lignes",A.b([B.ki,new A.aE(14.758,-17.415),B.oB],q),"DDD"),A.akW("TATA",B.bS,"TATA Bus",A.b([B.oB,B.hz],q),"Tata")],A.aG("C<ma>"))})
 s($,"b3I","ta",()=>new A.BR(A.b([],t.Yu),A.aRH(null),$.at()))
 s($,"b2h","aLQ",()=>A.aiy(1,1,500))
 r($,"aZx","aJT",()=>new A.Jl(B.w,B.w))

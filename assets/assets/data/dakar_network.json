@@ -28,32 +28,39 @@
   ],
   "stops": [
     {
-      "id": "stop_dakar_ter",
-      "name": "Gare TER Dakar",
-      "latitude": 14.67599,
-      "longitude": -17.43352,
+      "id": "stop_almadies",
+      "name": "Almadies - Pointe",
+      "latitude": 14.74,
+      "longitude": -17.535,
+      "data_trust": "FIELD_OBSERVATION"
+    },
+    {
+      "id": "stop_amitie",
+      "name": "Amitié 2 - Dakar",
+      "latitude": 14.6875,
+      "longitude": -17.462,
+      "data_trust": "FIELD_OBSERVATION"
+    },
+    {
+      "id": "stop_bambilor",
+      "name": "Bambilor - Route Niayes",
+      "latitude": 14.75,
+      "longitude": -17.265,
+      "data_trust": "FIELD_OBSERVATION"
+    },
+    {
+      "id": "stop_bargny",
+      "name": "Bargny - TER",
+      "latitude": 14.69818,
+      "longitude": -17.2292,
       "data_trust": "OFFICIAL"
     },
     {
-      "id": "stop_petersen",
-      "name": "PEM Petersen - Gare Routière",
-      "latitude": 14.6738,
-      "longitude": -17.4381,
-      "data_trust": "OFFICIAL"
-    },
-    {
-      "id": "stop_colobane",
-      "name": "Colobane - Marché & Gare TER",
-      "latitude": 14.70035,
-      "longitude": -17.44165,
-      "data_trust": "OFFICIAL"
-    },
-    {
-      "id": "stop_hann",
-      "name": "Hann - Maristes / TER",
-      "latitude": 14.72209,
-      "longitude": -17.43207,
-      "data_trust": "OFFICIAL"
+      "id": "stop_bargny_guedj",
+      "name": "Bargny Guedj - Bord de Mer",
+      "latitude": 14.705,
+      "longitude": -17.23,
+      "data_trust": "FIELD_OBSERVATION"
     },
     {
       "id": "stop_baux_maraichers",
@@ -63,73 +70,178 @@
       "data_trust": "OFFICIAL"
     },
     {
-      "id": "stop_pikine",
-      "name": "Pikine - Marché Zinc / TER",
-      "latitude": 14.74986,
-      "longitude": -17.39169,
-      "data_trust": "OFFICIAL"
-    },
-    {
-      "id": "stop_thiaroye",
-      "name": "Thiaroye - Gare TER",
-      "latitude": 14.75877,
-      "longitude": -17.3803,
-      "data_trust": "OFFICIAL"
-    },
-    {
-      "id": "stop_yeumbeul",
-      "name": "Yeumbeul - Station TER",
-      "latitude": 14.76491,
-      "longitude": -17.3565,
+      "id": "stop_bene_barak",
+      "name": "Bené Barak - Guediawaye",
+      "latitude": 14.768,
+      "longitude": -17.38,
       "data_trust": "FIELD_OBSERVATION"
     },
     {
-      "id": "stop_keur_massar",
-      "name": "Keur Massar",
-      "latitude": 14.79,
-      "longitude": -17.325,
-      "data_trust": "OFFICIAL"
-    },
-    {
-      "id": "stop_keur_mbaye_fall",
-      "name": "Keur Mbaye Fall - Correspondance TER",
-      "latitude": 14.74408,
-      "longitude": -17.31389,
-      "data_trust": "OFFICIAL"
-    },
-    {
-      "id": "stop_rufisque",
-      "name": "Rufisque - Gare TER",
-      "latitude": 14.71596,
-      "longitude": -17.27,
-      "data_trust": "OFFICIAL"
-    },
-    {
-      "id": "stop_bargny",
-      "name": "Bargny - TER",
-      "latitude": 14.69818,
-      "longitude": -17.2292,
+      "id": "stop_biscuiterie",
+      "name": "Biscuiterie - HLM",
+      "latitude": 14.6955,
+      "longitude": -17.45,
       "data_trust": "FIELD_OBSERVATION"
     },
     {
-      "id": "stop_diamniadio",
-      "name": "Diamniadio - Gare TER Terminus",
-      "latitude": 14.71606,
-      "longitude": -17.19845,
+      "id": "stop_brt_01_petersen",
+      "name": "Papa Gueye Fall - PEM Petersen BRT",
+      "latitude": 14.67548,
+      "longitude": -17.44157,
       "data_trust": "OFFICIAL"
     },
     {
-      "id": "stop_guediawaye",
-      "name": "PEM Guédiawaye - Terminus BRT Nord",
-      "latitude": 14.7735,
-      "longitude": -17.3977,
+      "id": "stop_brt_02_mosquee",
+      "name": "Grande Mosquée - BRT",
+      "latitude": 14.67822,
+      "longitude": -17.44219,
       "data_trust": "OFFICIAL"
     },
     {
-      "id": "stop_dalal_jamm",
+      "id": "stop_brt_03_obelisque",
+      "name": "Place de la Nation - Obélisque - BRT",
+      "latitude": 14.6943,
+      "longitude": -17.44826,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_brt_04_dial_diop",
+      "name": "Dial Diop - BRT",
+      "latitude": 14.69956,
+      "longitude": -17.45244,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_brt_05_grand_dakar",
+      "name": "Grand Dakar - BRT",
+      "latitude": 14.7052,
+      "longitude": -17.4578,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_brt_06_liberte_1",
+      "name": "Liberté 1 - BRT",
+      "latitude": 14.70993,
+      "longitude": -17.4625,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_brt_07_sacre_coeur",
+      "name": "Sacré-Cœur - BRT",
+      "latitude": 14.7166,
+      "longitude": -17.4635,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_brt_08_liberte_5",
+      "name": "Liberté 5 - BRT",
+      "latitude": 14.72044,
+      "longitude": -17.46444,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_brt_09_liberte_6",
+      "name": "Liberté 6 - BRT Correspondance",
+      "latitude": 14.72631,
+      "longitude": -17.45919,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_brt_10_khar_yallah",
+      "name": "Khar Yallah - BRT",
+      "latitude": 14.7315,
+      "longitude": -17.456,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_brt_11_scat_urbam",
+      "name": "Scat Urbam - BRT",
+      "latitude": 14.73681,
+      "longitude": -17.45531,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_brt_12_thiandoum",
+      "name": "Cardinal Hyacinthe Thiandoum - BRT",
+      "latitude": 14.74156,
+      "longitude": -17.45131,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_brt_13_grand_medine",
+      "name": "Grand Médine - PEM BRT",
+      "latitude": 14.74795,
+      "longitude": -17.44715,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_brt_14_police_parcelles",
+      "name": "Police des Parcelles - BRT",
+      "latitude": 14.7512,
+      "longitude": -17.4395,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_brt_15_croisement_22",
+      "name": "Croisement 22 - BRT",
+      "latitude": 14.75369,
+      "longitude": -17.43181,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_brt_16_parcelles_assainies",
+      "name": "Parcelles Assainies - BRT",
+      "latitude": 14.76269,
+      "longitude": -17.42431,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_brt_17_ndingala",
+      "name": "Ndingala - Golf Sud - BRT",
+      "latitude": 14.76462,
+      "longitude": -17.41969,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_brt_18_golf_sud",
+      "name": "Golf Sud - BRT",
+      "latitude": 14.76756,
+      "longitude": -17.41356,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_brt_19_dalal_jamm",
       "name": "Hôpital Dalal Jamm - BRT",
-      "latitude": 14.762,
-      "longitude": -17.41,
+      "latitude": 14.77287,
+      "longitude": -17.40979,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_brt_20_fith_mith",
+      "name": "Fith Mith - BRT",
+      "latitude": 14.77019,
+      "longitude": -17.40156,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_brt_21_golf_nord",
+      "name": "Golf Nord - BRT",
+      "latitude": 14.77619,
+      "longitude": -17.39881,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_brt_22_gadaye",
+      "name": "Gadaye - Cambérène - BRT",
+      "latitude": 14.7745,
+      "longitude": -17.393,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_brt_23_guediawaye",
+      "name": "Préfecture Guédiawaye - PEM BRT",
+      "latitude": 14.77156,
+      "longitude": -17.38694,
       "data_trust": "OFFICIAL"
     },
     {
@@ -140,6 +252,83 @@
       "data_trust": "OFFICIAL"
     },
     {
+      "id": "stop_castor",
+      "name": "Castor - HLM",
+      "latitude": 14.7,
+      "longitude": -17.448,
+      "data_trust": "FIELD_OBSERVATION"
+    },
+    {
+      "id": "stop_cite_keur_gorgui",
+      "name": "Cité Keur Gorgui",
+      "latitude": 14.716,
+      "longitude": -17.475,
+      "data_trust": "FIELD_OBSERVATION"
+    },
+    {
+      "id": "stop_colobane",
+      "name": "Colobane - Marché & Gare TER",
+      "latitude": 14.70035,
+      "longitude": -17.44165,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_dakar_ter",
+      "name": "Gare TER Dakar",
+      "latitude": 14.67599,
+      "longitude": -17.43352,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_dalal_jamm",
+      "name": "Hôpital Dalal Jamm - BRT",
+      "latitude": 14.762,
+      "longitude": -17.41,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_dalifort",
+      "name": "Dalifort - Foirail",
+      "latitude": 14.74,
+      "longitude": -17.455,
+      "data_trust": "FIELD_OBSERVATION"
+    },
+    {
+      "id": "stop_dalifort_ter",
+      "name": "Dalifort - Gare TER",
+      "latitude": 14.73425,
+      "longitude": -17.419,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_diamniadio",
+      "name": "Diamniadio - Gare TER Terminus",
+      "latitude": 14.71606,
+      "longitude": -17.19845,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_diamniadio_2",
+      "name": "Diamniadio 2 - CICAD",
+      "latitude": 14.72,
+      "longitude": -17.19,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_dieuppeul",
+      "name": "Dieuppeul - Derklé",
+      "latitude": 14.7155,
+      "longitude": -17.4655,
+      "data_trust": "FIELD_OBSERVATION"
+    },
+    {
+      "id": "stop_djida_thiaroye",
+      "name": "Djida Thiaroye Kao",
+      "latitude": 14.76,
+      "longitude": -17.375,
+      "data_trust": "FIELD_OBSERVATION"
+    },
+    {
       "id": "stop_fadia",
       "name": "Fadia - BRT",
       "latitude": 14.735,
@@ -147,11 +336,46 @@
       "data_trust": "OFFICIAL"
     },
     {
-      "id": "stop_parcelles_u26",
-      "name": "Parcelles Assainies U26 - BRT",
-      "latitude": 14.7562,
-      "longitude": -17.4331,
+      "id": "stop_fann",
+      "name": "Fann - Hôpital Fann",
+      "latitude": 14.686,
+      "longitude": -17.467,
       "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_fass",
+      "name": "Fass - Colobane",
+      "latitude": 14.6865,
+      "longitude": -17.4505,
+      "data_trust": "FIELD_OBSERVATION"
+    },
+    {
+      "id": "stop_foire",
+      "name": "Foire - CICES",
+      "latitude": 14.743,
+      "longitude": -17.52,
+      "data_trust": "FIELD_OBSERVATION"
+    },
+    {
+      "id": "stop_gare_maritime",
+      "name": "Gare Maritime - Plateau",
+      "latitude": 14.685,
+      "longitude": -17.43,
+      "data_trust": "FIELD_OBSERVATION"
+    },
+    {
+      "id": "stop_golf_sud",
+      "name": "Golf Sud - Guédiawaye",
+      "latitude": 14.768,
+      "longitude": -17.395,
+      "data_trust": "FIELD_OBSERVATION"
+    },
+    {
+      "id": "stop_grand_dakar",
+      "name": "Grand Dakar - Biscuiterie",
+      "latitude": 14.692,
+      "longitude": -17.455,
+      "data_trust": "FIELD_OBSERVATION"
     },
     {
       "id": "stop_grand_medine",
@@ -168,235 +392,11 @@
       "data_trust": "OFFICIAL"
     },
     {
-      "id": "stop_patte_doie",
-      "name": "Patte d'Oie - BRT",
-      "latitude": 14.745,
-      "longitude": -17.458,
+      "id": "stop_guediawaye",
+      "name": "PEM Guédiawaye - Terminus BRT Nord",
+      "latitude": 14.7735,
+      "longitude": -17.3977,
       "data_trust": "OFFICIAL"
-    },
-    {
-      "id": "stop_liberte6",
-      "name": "Liberté 6 - BRT Correspondance",
-      "latitude": 14.718,
-      "longitude": -17.455,
-      "data_trust": "OFFICIAL"
-    },
-    {
-      "id": "stop_sacre_coeur",
-      "name": "Sacré-Cœur - BRT",
-      "latitude": 14.71,
-      "longitude": -17.465,
-      "data_trust": "OFFICIAL"
-    },
-    {
-      "id": "stop_obelisque",
-      "name": "Place de l'Obélisque - BRT",
-      "latitude": 14.685,
-      "longitude": -17.45,
-      "data_trust": "OFFICIAL"
-    },
-    {
-      "id": "stop_yoff",
-      "name": "Yoff - Aéroport & Plage",
-      "latitude": 14.7604,
-      "longitude": -17.4681,
-      "data_trust": "OFFICIAL"
-    },
-    {
-      "id": "stop_yoff_pecheurs",
-      "name": "Yoff Pêcheurs - Tata",
-      "latitude": 14.7572,
-      "longitude": -17.4698,
-      "data_trust": "FIELD_OBSERVATION"
-    },
-    {
-      "id": "stop_ouakam",
-      "name": "Ouakam - Cité Avion",
-      "latitude": 14.724,
-      "longitude": -17.491,
-      "data_trust": "FIELD_OBSERVATION"
-    },
-    {
-      "id": "stop_ngor",
-      "name": "Ngor - Almadies",
-      "latitude": 14.747,
-      "longitude": -17.521,
-      "data_trust": "FIELD_OBSERVATION"
-    },
-    {
-      "id": "stop_almadies",
-      "name": "Almadies - Pointe",
-      "latitude": 14.74,
-      "longitude": -17.535,
-      "data_trust": "FIELD_OBSERVATION"
-    },
-    {
-      "id": "stop_mermoz",
-      "name": "Mermoz - Sacré-Cœur",
-      "latitude": 14.712,
-      "longitude": -17.465,
-      "data_trust": "FIELD_OBSERVATION"
-    },
-    {
-      "id": "stop_sandaga",
-      "name": "Marché Sandaga - Centre Dakar",
-      "latitude": 14.687,
-      "longitude": -17.451,
-      "data_trust": "OFFICIAL"
-    },
-    {
-      "id": "stop_medina",
-      "name": "Médina - Dakar Centre",
-      "latitude": 14.68,
-      "longitude": -17.445,
-      "data_trust": "FIELD_OBSERVATION"
-    },
-    {
-      "id": "stop_castor",
-      "name": "Castor - HLM",
-      "latitude": 14.7,
-      "longitude": -17.448,
-      "data_trust": "FIELD_OBSERVATION"
-    },
-    {
-      "id": "stop_hlm",
-      "name": "HLM Grand Yoff",
-      "latitude": 14.745,
-      "longitude": -17.45,
-      "data_trust": "FIELD_OBSERVATION"
-    },
-    {
-      "id": "stop_scatt_urbam",
-      "name": "Scat Urbam - Parcelles",
-      "latitude": 14.758,
-      "longitude": -17.415,
-      "data_trust": "FIELD_OBSERVATION"
-    },
-    {
-      "id": "stop_bene_barak",
-      "name": "Bené Barak - Guediawaye",
-      "latitude": 14.768,
-      "longitude": -17.38,
-      "data_trust": "FIELD_OBSERVATION"
-    },
-    {
-      "id": "stop_ucad",
-      "name": "UCAD - Université Cheikh Anta Diop",
-      "latitude": 14.69,
-      "longitude": -17.46,
-      "data_trust": "OFFICIAL"
-    },
-    {
-      "id": "stop_palais_justice",
-      "name": "Palais de Justice - Dakar",
-      "latitude": 14.693,
-      "longitude": -17.444,
-      "data_trust": "FIELD_OBSERVATION"
-    },
-    {
-      "id": "stop_gare_maritime",
-      "name": "Gare Maritime - Plateau",
-      "latitude": 14.685,
-      "longitude": -17.43,
-      "data_trust": "FIELD_OBSERVATION"
-    },
-    {
-      "id": "stop_point_e",
-      "name": "Point E - Fann",
-      "latitude": 14.6855,
-      "longitude": -17.464,
-      "data_trust": "FIELD_OBSERVATION"
-    },
-    {
-      "id": "stop_fass",
-      "name": "Fass - Colobane",
-      "latitude": 14.6865,
-      "longitude": -17.4505,
-      "data_trust": "FIELD_OBSERVATION"
-    },
-    {
-      "id": "stop_sicap_liberte",
-      "name": "SICAP Liberté - Dakar",
-      "latitude": 14.709,
-      "longitude": -17.46,
-      "data_trust": "FIELD_OBSERVATION"
-    },
-    {
-      "id": "stop_dieuppeul",
-      "name": "Dieuppeul - Derklé",
-      "latitude": 14.7155,
-      "longitude": -17.4655,
-      "data_trust": "FIELD_OBSERVATION"
-    },
-    {
-      "id": "stop_grand_dakar",
-      "name": "Grand Dakar - Biscuiterie",
-      "latitude": 14.692,
-      "longitude": -17.455,
-      "data_trust": "FIELD_OBSERVATION"
-    },
-    {
-      "id": "stop_biscuiterie",
-      "name": "Biscuiterie - HLM",
-      "latitude": 14.6955,
-      "longitude": -17.45,
-      "data_trust": "FIELD_OBSERVATION"
-    },
-    {
-      "id": "stop_rebeuss",
-      "name": "Rebeuss - Plateau",
-      "latitude": 14.682,
-      "longitude": -17.435,
-      "data_trust": "FIELD_OBSERVATION"
-    },
-    {
-      "id": "stop_plateau",
-      "name": "Plateau - Dakar Centre",
-      "latitude": 14.6935,
-      "longitude": -17.437,
-      "data_trust": "OFFICIAL"
-    },
-    {
-      "id": "stop_fann",
-      "name": "Fann - Hôpital Fann",
-      "latitude": 14.686,
-      "longitude": -17.467,
-      "data_trust": "OFFICIAL"
-    },
-    {
-      "id": "stop_amitie",
-      "name": "Amitié 2 - Dakar",
-      "latitude": 14.6875,
-      "longitude": -17.462,
-      "data_trust": "FIELD_OBSERVATION"
-    },
-    {
-      "id": "stop_sicap_mermoz",
-      "name": "Sicap Mermoz - Sacré-Cœur",
-      "latitude": 14.718,
-      "longitude": -17.485,
-      "data_trust": "FIELD_OBSERVATION"
-    },
-    {
-      "id": "stop_khar_yalla",
-      "name": "Khar Yalla - Grand Yoff",
-      "latitude": 14.7405,
-      "longitude": -17.4555,
-      "data_trust": "FIELD_OBSERVATION"
-    },
-    {
-      "id": "stop_foire",
-      "name": "Foire - CICES",
-      "latitude": 14.743,
-      "longitude": -17.52,
-      "data_trust": "FIELD_OBSERVATION"
-    },
-    {
-      "id": "stop_wakhinane_pikine",
-      "name": "Wakhinane - Pikine",
-      "latitude": 14.75,
-      "longitude": -17.4,
-      "data_trust": "FIELD_OBSERVATION"
     },
     {
       "id": "stop_guinaw_rails_nord",
@@ -413,24 +413,31 @@
       "data_trust": "FIELD_OBSERVATION"
     },
     {
-      "id": "stop_djida_thiaroye",
-      "name": "Djida Thiaroye Kao",
-      "latitude": 14.76,
-      "longitude": -17.375,
+      "id": "stop_hann",
+      "name": "Hann - Maristes / TER",
+      "latitude": 14.72209,
+      "longitude": -17.43207,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_hann_maristes2",
+      "name": "Hann Maristes 2",
+      "latitude": 14.722,
+      "longitude": -17.45,
       "data_trust": "FIELD_OBSERVATION"
     },
     {
-      "id": "stop_mbao",
-      "name": "Mbao - Petit Mbao",
+      "id": "stop_hlm",
+      "name": "HLM Grand Yoff",
       "latitude": 14.745,
-      "longitude": -17.325,
+      "longitude": -17.45,
       "data_trust": "FIELD_OBSERVATION"
     },
     {
-      "id": "stop_malika",
-      "name": "Malika - Keur Massar",
-      "latitude": 14.8015,
-      "longitude": -17.3376,
+      "id": "stop_hlm_grand_medine2",
+      "name": "HLM Grand Médine 2",
+      "latitude": 14.718,
+      "longitude": -17.442,
       "data_trust": "FIELD_OBSERVATION"
     },
     {
@@ -441,52 +448,80 @@
       "data_trust": "FIELD_OBSERVATION"
     },
     {
-      "id": "stop_sangalkam",
-      "name": "Sangalkam - Bambilor",
-      "latitude": 14.765,
-      "longitude": -17.28,
+      "id": "stop_jaxaay_nimzatt",
+      "name": "Jaxaay Nimzatt",
+      "latitude": 14.778,
+      "longitude": -17.335,
       "data_trust": "FIELD_OBSERVATION"
     },
     {
-      "id": "stop_bambilor",
-      "name": "Bambilor - Route Niayes",
-      "latitude": 14.75,
-      "longitude": -17.265,
-      "data_trust": "FIELD_OBSERVATION"
-    },
-    {
-      "id": "stop_sebikotane",
-      "name": "Sébikotane - Gare",
-      "latitude": 14.745,
-      "longitude": -17.24,
-      "data_trust": "FIELD_OBSERVATION"
-    },
-    {
-      "id": "stop_yenne",
-      "name": "Yenne - Petite Côte",
-      "latitude": 14.72,
-      "longitude": -17.21,
-      "data_trust": "FIELD_OBSERVATION"
-    },
-    {
-      "id": "stop_tivaouane_peulh",
-      "name": "Tivaouane Peulh - Niayes",
+      "id": "stop_keur_massar",
+      "name": "Keur Massar",
       "latitude": 14.79,
-      "longitude": -17.36,
-      "data_trust": "FIELD_OBSERVATION"
+      "longitude": -17.325,
+      "data_trust": "OFFICIAL"
     },
     {
-      "id": "stop_niague",
-      "name": "Niague - Lac Rose",
+      "id": "stop_keur_massar_nord",
+      "name": "Keur Massar Nord",
       "latitude": 14.785,
-      "longitude": -17.28,
+      "longitude": -17.33,
       "data_trust": "FIELD_OBSERVATION"
     },
     {
-      "id": "stop_golf_sud",
-      "name": "Golf Sud - Guédiawaye",
-      "latitude": 14.768,
-      "longitude": -17.395,
+      "id": "stop_keur_mbaye_fall",
+      "name": "Keur Mbaye Fall - Correspondance TER",
+      "latitude": 14.74408,
+      "longitude": -17.31389,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_keur_ndiaye_lo",
+      "name": "Keur Ndiaye Lô",
+      "latitude": 14.785,
+      "longitude": -17.35,
+      "data_trust": "FIELD_OBSERVATION"
+    },
+    {
+      "id": "stop_khar_yalla",
+      "name": "Khar Yalla - Grand Yoff",
+      "latitude": 14.7405,
+      "longitude": -17.4555,
+      "data_trust": "FIELD_OBSERVATION"
+    },
+    {
+      "id": "stop_liberte6",
+      "name": "Liberté 6 - BRT Correspondance",
+      "latitude": 14.718,
+      "longitude": -17.455,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_malika",
+      "name": "Malika - Keur Massar",
+      "latitude": 14.8015,
+      "longitude": -17.3376,
+      "data_trust": "FIELD_OBSERVATION"
+    },
+    {
+      "id": "stop_maristes",
+      "name": "Maristes - Hann Bel Air",
+      "latitude": 14.73,
+      "longitude": -17.445,
+      "data_trust": "FIELD_OBSERVATION"
+    },
+    {
+      "id": "stop_mbao",
+      "name": "Mbao - Petit Mbao",
+      "latitude": 14.745,
+      "longitude": -17.325,
+      "data_trust": "FIELD_OBSERVATION"
+    },
+    {
+      "id": "stop_medina",
+      "name": "Médina - Dakar Centre",
+      "latitude": 14.68,
+      "longitude": -17.445,
       "data_trust": "FIELD_OBSERVATION"
     },
     {
@@ -497,6 +532,13 @@
       "data_trust": "FIELD_OBSERVATION"
     },
     {
+      "id": "stop_mermoz",
+      "name": "Mermoz - Sacré-Cœur",
+      "latitude": 14.712,
+      "longitude": -17.465,
+      "data_trust": "FIELD_OBSERVATION"
+    },
+    {
       "id": "stop_ndiareme",
       "name": "Ndiarème Limamou Laye - Guédiawaye",
       "latitude": 14.775,
@@ -504,17 +546,52 @@
       "data_trust": "FIELD_OBSERVATION"
     },
     {
-      "id": "stop_wakhinane_nimzatt",
-      "name": "Wakhinane Nimzatt - Guédiawaye",
-      "latitude": 14.772,
-      "longitude": -17.4,
+      "id": "stop_ngor",
+      "name": "Ngor - Almadies",
+      "latitude": 14.747,
+      "longitude": -17.521,
       "data_trust": "FIELD_OBSERVATION"
     },
     {
-      "id": "stop_sam_notaire",
-      "name": "Sam Notaire - Guédiawaye",
-      "latitude": 14.769,
-      "longitude": -17.39,
+      "id": "stop_ngor_village",
+      "name": "Ngor Village - Yoff",
+      "latitude": 14.75,
+      "longitude": -17.525,
+      "data_trust": "FIELD_OBSERVATION"
+    },
+    {
+      "id": "stop_niague",
+      "name": "Niague - Lac Rose",
+      "latitude": 14.785,
+      "longitude": -17.28,
+      "data_trust": "FIELD_OBSERVATION"
+    },
+    {
+      "id": "stop_obelisque",
+      "name": "Place de l'Obélisque - BRT",
+      "latitude": 14.685,
+      "longitude": -17.45,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_ouakam",
+      "name": "Ouakam - Cité Avion",
+      "latitude": 14.724,
+      "longitude": -17.491,
+      "data_trust": "FIELD_OBSERVATION"
+    },
+    {
+      "id": "stop_ouakam_cite_avion2",
+      "name": "Ouakam Cité Avion 2",
+      "latitude": 14.726,
+      "longitude": -17.495,
+      "data_trust": "FIELD_OBSERVATION"
+    },
+    {
+      "id": "stop_palais_justice",
+      "name": "Palais de Justice - Dakar",
+      "latitude": 14.693,
+      "longitude": -17.444,
       "data_trust": "FIELD_OBSERVATION"
     },
     {
@@ -539,11 +616,32 @@
       "data_trust": "FIELD_OBSERVATION"
     },
     {
-      "id": "stop_pikine_nord",
-      "name": "Pikine Nord - Darou",
-      "latitude": 14.765,
-      "longitude": -17.398,
-      "data_trust": "FIELD_OBSERVATION"
+      "id": "stop_parcelles_u26",
+      "name": "Parcelles Assainies U26 - BRT",
+      "latitude": 14.7562,
+      "longitude": -17.4331,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_patte_doie",
+      "name": "Patte d'Oie - BRT",
+      "latitude": 14.745,
+      "longitude": -17.458,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_petersen",
+      "name": "PEM Petersen - Gare Routière",
+      "latitude": 14.6738,
+      "longitude": -17.4381,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_pikine",
+      "name": "Pikine - Marché Zinc / TER",
+      "latitude": 14.74986,
+      "longitude": -17.39169,
+      "data_trust": "OFFICIAL"
     },
     {
       "id": "stop_pikine_est",
@@ -553,52 +651,52 @@
       "data_trust": "FIELD_OBSERVATION"
     },
     {
-      "id": "stop_thiaroye_mer",
-      "name": "Thiaroye Sur Mer",
-      "latitude": 14.758,
-      "longitude": -17.365,
+      "id": "stop_pikine_nord",
+      "name": "Pikine Nord - Darou",
+      "latitude": 14.765,
+      "longitude": -17.398,
       "data_trust": "FIELD_OBSERVATION"
     },
     {
-      "id": "stop_hlm_grand_medine2",
-      "name": "HLM Grand Médine 2",
-      "latitude": 14.718,
-      "longitude": -17.442,
+      "id": "stop_plateau",
+      "name": "Plateau - Dakar Centre",
+      "latitude": 14.6935,
+      "longitude": -17.437,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_pnr",
+      "name": "PNR - Station TER",
+      "latitude": 14.72317,
+      "longitude": -17.28394,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_point_e",
+      "name": "Point E - Fann",
+      "latitude": 14.6855,
+      "longitude": -17.464,
       "data_trust": "FIELD_OBSERVATION"
     },
     {
-      "id": "stop_cite_keur_gorgui",
-      "name": "Cité Keur Gorgui",
-      "latitude": 14.716,
-      "longitude": -17.475,
+      "id": "stop_rebeuss",
+      "name": "Rebeuss - Plateau",
+      "latitude": 14.682,
+      "longitude": -17.435,
       "data_trust": "FIELD_OBSERVATION"
     },
     {
-      "id": "stop_ouakam_cite_avion2",
-      "name": "Ouakam Cité Avion 2",
-      "latitude": 14.726,
-      "longitude": -17.495,
-      "data_trust": "FIELD_OBSERVATION"
+      "id": "stop_rufisque",
+      "name": "Rufisque - Gare TER",
+      "latitude": 14.71596,
+      "longitude": -17.27,
+      "data_trust": "OFFICIAL"
     },
     {
-      "id": "stop_ngor_village",
-      "name": "Ngor Village - Yoff",
-      "latitude": 14.75,
-      "longitude": -17.525,
-      "data_trust": "FIELD_OBSERVATION"
-    },
-    {
-      "id": "stop_yoff_tonghor",
-      "name": "Yoff Tonghor - Aéroport",
-      "latitude": 14.7487,
-      "longitude": -17.4723,
-      "data_trust": "FIELD_OBSERVATION"
-    },
-    {
-      "id": "stop_jaxaay_nimzatt",
-      "name": "Jaxaay Nimzatt",
-      "latitude": 14.778,
-      "longitude": -17.335,
+      "id": "stop_rufisque_nord",
+      "name": "Rufisque Nord - Castor",
+      "latitude": 14.73,
+      "longitude": -17.275,
       "data_trust": "FIELD_OBSERVATION"
     },
     {
@@ -609,18 +707,46 @@
       "data_trust": "FIELD_OBSERVATION"
     },
     {
-      "id": "stop_rufisque_nord",
-      "name": "Rufisque Nord - Castor",
-      "latitude": 14.73,
-      "longitude": -17.275,
+      "id": "stop_sacre_coeur",
+      "name": "Sacré-Cœur - BRT",
+      "latitude": 14.71,
+      "longitude": -17.465,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_sam_notaire",
+      "name": "Sam Notaire - Guédiawaye",
+      "latitude": 14.769,
+      "longitude": -17.39,
       "data_trust": "FIELD_OBSERVATION"
     },
     {
-      "id": "stop_diamniadio_2",
-      "name": "Diamniadio 2 - CICAD",
-      "latitude": 14.72,
-      "longitude": -17.19,
+      "id": "stop_sandaga",
+      "name": "Marché Sandaga - Centre Dakar",
+      "latitude": 14.687,
+      "longitude": -17.451,
       "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_sangalkam",
+      "name": "Sangalkam - Bambilor",
+      "latitude": 14.765,
+      "longitude": -17.28,
+      "data_trust": "FIELD_OBSERVATION"
+    },
+    {
+      "id": "stop_scatt_urbam",
+      "name": "Scat Urbam - Parcelles",
+      "latitude": 14.758,
+      "longitude": -17.415,
+      "data_trust": "FIELD_OBSERVATION"
+    },
+    {
+      "id": "stop_sebikotane",
+      "name": "Sébikotane - Gare",
+      "latitude": 14.745,
+      "longitude": -17.24,
+      "data_trust": "FIELD_OBSERVATION"
     },
     {
       "id": "stop_sebikotane_gare2",
@@ -630,60 +756,95 @@
       "data_trust": "FIELD_OBSERVATION"
     },
     {
-      "id": "stop_bargny_guedj",
-      "name": "Bargny Guedj - Bord de Mer",
-      "latitude": 14.705,
-      "longitude": -17.23,
+      "id": "stop_sicap_liberte",
+      "name": "SICAP Liberté - Dakar",
+      "latitude": 14.709,
+      "longitude": -17.46,
       "data_trust": "FIELD_OBSERVATION"
     },
     {
-      "id": "stop_maristes",
-      "name": "Maristes - Hann Bel Air",
-      "latitude": 14.73,
-      "longitude": -17.445,
+      "id": "stop_sicap_mermoz",
+      "name": "Sicap Mermoz - Sacré-Cœur",
+      "latitude": 14.718,
+      "longitude": -17.485,
       "data_trust": "FIELD_OBSERVATION"
     },
     {
-      "id": "stop_dalifort",
-      "name": "Dalifort - Foirail",
-      "latitude": 14.74,
-      "longitude": -17.455,
-      "data_trust": "FIELD_OBSERVATION"
-    },
-    {
-      "id": "stop_keur_ndiaye_lo",
-      "name": "Keur Ndiaye Lô",
-      "latitude": 14.785,
-      "longitude": -17.35,
-      "data_trust": "FIELD_OBSERVATION"
-    },
-    {
-      "id": "stop_hann_maristes2",
-      "name": "Hann Maristes 2",
-      "latitude": 14.722,
-      "longitude": -17.45,
-      "data_trust": "FIELD_OBSERVATION"
-    },
-    {
-      "id": "stop_keur_massar_nord",
-      "name": "Keur Massar Nord",
-      "latitude": 14.785,
-      "longitude": -17.33,
-      "data_trust": "FIELD_OBSERVATION"
-    },
-    {
-      "id": "stop_dalifort_ter",
-      "name": "Dalifort - Gare TER",
-      "latitude": 14.73425,
-      "longitude": -17.419,
+      "id": "stop_thiaroye",
+      "name": "Thiaroye - Gare TER",
+      "latitude": 14.75877,
+      "longitude": -17.3803,
       "data_trust": "OFFICIAL"
     },
     {
-      "id": "stop_pnr",
-      "name": "PNR - Station TER",
-      "latitude": 14.72317,
-      "longitude": -17.28394,
+      "id": "stop_thiaroye_mer",
+      "name": "Thiaroye Sur Mer",
+      "latitude": 14.758,
+      "longitude": -17.365,
+      "data_trust": "FIELD_OBSERVATION"
+    },
+    {
+      "id": "stop_tivaouane_peulh",
+      "name": "Tivaouane Peulh - Niayes",
+      "latitude": 14.79,
+      "longitude": -17.36,
+      "data_trust": "FIELD_OBSERVATION"
+    },
+    {
+      "id": "stop_ucad",
+      "name": "UCAD - Université Cheikh Anta Diop",
+      "latitude": 14.69,
+      "longitude": -17.46,
       "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_wakhinane_nimzatt",
+      "name": "Wakhinane Nimzatt - Guédiawaye",
+      "latitude": 14.772,
+      "longitude": -17.4,
+      "data_trust": "FIELD_OBSERVATION"
+    },
+    {
+      "id": "stop_wakhinane_pikine",
+      "name": "Wakhinane - Pikine",
+      "latitude": 14.75,
+      "longitude": -17.4,
+      "data_trust": "FIELD_OBSERVATION"
+    },
+    {
+      "id": "stop_yenne",
+      "name": "Yenne - Petite Côte",
+      "latitude": 14.72,
+      "longitude": -17.21,
+      "data_trust": "FIELD_OBSERVATION"
+    },
+    {
+      "id": "stop_yeumbeul",
+      "name": "Yeumbeul - Station TER",
+      "latitude": 14.76491,
+      "longitude": -17.3565,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_yoff",
+      "name": "Yoff - Aéroport & Plage",
+      "latitude": 14.7604,
+      "longitude": -17.4681,
+      "data_trust": "OFFICIAL"
+    },
+    {
+      "id": "stop_yoff_pecheurs",
+      "name": "Yoff Pêcheurs - Tata",
+      "latitude": 14.7572,
+      "longitude": -17.4698,
+      "data_trust": "FIELD_OBSERVATION"
+    },
+    {
+      "id": "stop_yoff_tonghor",
+      "name": "Yoff Tonghor - Aéroport",
+      "latitude": 14.7487,
+      "longitude": -17.4723,
+      "data_trust": "FIELD_OBSERVATION"
     }
   ],
   "routes": [
@@ -714,38 +875,50 @@
       "id": "brt_b1_guediawaye_petersen",
       "operator_id": "brt",
       "short_name": "BRT B1",
-      "long_name": "PEM Guédiawaye ↔ PEM Petersen (Corridor SunuBRT 18 km)",
+      "long_name": "PEM Guédiawaye ↔ PEM Petersen (Corridor SunuBRT 23 stations)",
       "type": "BRT",
       "data_trust": "OFFICIAL",
       "stops": [
-        "stop_guediawaye",
-        "stop_dalal_jamm",
-        "stop_parcelles_u26",
-        "stop_camberene",
-        "stop_patte_doie",
-        "stop_grand_yoff",
-        "stop_fadia",
-        "stop_liberte6",
-        "stop_grand_medine",
-        "stop_sacre_coeur",
-        "stop_obelisque",
-        "stop_petersen"
+        "stop_brt_23_guediawaye",
+        "stop_brt_22_gadaye",
+        "stop_brt_21_golf_nord",
+        "stop_brt_20_fith_mith",
+        "stop_brt_19_dalal_jamm",
+        "stop_brt_18_golf_sud",
+        "stop_brt_17_ndingala",
+        "stop_brt_16_parcelles_assainies",
+        "stop_brt_15_croisement_22",
+        "stop_brt_14_police_parcelles",
+        "stop_brt_13_grand_medine",
+        "stop_brt_12_thiandoum",
+        "stop_brt_11_scat_urbam",
+        "stop_brt_10_khar_yallah",
+        "stop_brt_09_liberte_6",
+        "stop_brt_08_liberte_5",
+        "stop_brt_07_sacre_coeur",
+        "stop_brt_06_liberte_1",
+        "stop_brt_05_grand_dakar",
+        "stop_brt_04_dial_diop",
+        "stop_brt_03_obelisque",
+        "stop_brt_02_mosquee",
+        "stop_brt_01_petersen"
       ]
     },
     {
       "id": "brt_b2_express",
       "operator_id": "brt",
       "short_name": "BRT B2 Express",
-      "long_name": "Guédiawaye ↔ Petersen Express (Dalal Jamm, Parcelles, Grand Yoff seulement)",
+      "long_name": "Guédiawaye ↔ Petersen Express (7 stations directes)",
       "type": "BRT",
       "data_trust": "OFFICIAL",
       "stops": [
-        "stop_guediawaye",
-        "stop_dalal_jamm",
-        "stop_parcelles_u26",
-        "stop_grand_yoff",
-        "stop_obelisque",
-        "stop_petersen"
+        "stop_brt_23_guediawaye",
+        "stop_brt_19_dalal_jamm",
+        "stop_brt_16_parcelles_assainies",
+        "stop_brt_13_grand_medine",
+        "stop_brt_09_liberte_6",
+        "stop_brt_03_obelisque",
+        "stop_brt_01_petersen"
       ]
     },
     {

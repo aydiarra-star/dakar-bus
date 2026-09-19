@@ -1,1 +1,87 @@
-{"description_fr":"Gares TER Dakar-Diamniadio triees par sequence (correctif traces v5). Methode de secours de la specification : GTFS officiel indisponible dans l'environnement de generation, donc lignes droites reliant UNIQUEMENT les gares consecutives (jamais de direct premier-dernier arret). Pour activer la methode prioritaire (voies ferrees exactes) : convertir le shapes.txt GTFS officiel SETER/CETUD (shape_pt_lat, shape_pt_lon, shape_pt_sequence) en points intermediaires (stop_id=null) entre les memes ancres de gares, puis passer source_kind a gtfs-officiel. Les scripts basculent alors automatiquement sur les voies ferrees, sans autre changement.","gtfs_dropin_fr":"Champs GTFS utilises : shape_id (ici ter-rail-v5), shape_pt_lat, shape_pt_lon, shape_pt_sequence. Joindre les arrets par stop_id (a defaut : plus proche point de la forme).","provenance":"v5.0 : methode de secours (13 gares officielles exactes, segments consecutifs droits) ; shapes.txt GTFS officiel non publi/telechargeable au 2026-09-19 (environnement sans acces reseau).","shape_id":"ter-rail-v5","source_kind":"secours-consecutif","updated":"2026-09-19","points":[{"lat":14.67599,"lon":-17.43352,"shape_pt_sequence":1,"stop_id":"stop_dakar_ter"},{"lat":14.70035,"lon":-17.44165,"shape_pt_sequence":2,"stop_id":"stop_colobane"},{"lat":14.72209,"lon":-17.43207,"shape_pt_sequence":3,"stop_id":"stop_hann"},{"lat":14.73425,"lon":-17.419,"shape_pt_sequence":4,"stop_id":"stop_dalifort_ter"},{"lat":14.73971,"lon":-17.40361,"shape_pt_sequence":5,"stop_id":"stop_baux_maraichers"},{"lat":14.74986,"lon":-17.39169,"shape_pt_sequence":6,"stop_id":"stop_pikine"},{"lat":14.75877,"lon":-17.3803,"shape_pt_sequence":7,"stop_id":"stop_thiaroye"},{"lat":14.76491,"lon":-17.3565,"shape_pt_sequence":8,"stop_id":"stop_yeumbeul"},{"lat":14.74408,"lon":-17.31389,"shape_pt_sequence":9,"stop_id":"stop_keur_mbaye_fall"},{"lat":14.72317,"lon":-17.28394,"shape_pt_sequence":10,"stop_id":"stop_pnr"},{"lat":14.71596,"lon":-17.27,"shape_pt_sequence":11,"stop_id":"stop_rufisque"},{"lat":14.69818,"lon":-17.2292,"shape_pt_sequence":12,"stop_id":"stop_bargny"},{"lat":14.71606,"lon":-17.19845,"shape_pt_sequence":13,"stop_id":"stop_diamniadio"}]}
+{
+  "description_fr": "Voie ferrée express TER Dakar (13 gares officielles, Gare de Dakar ↔ Gare de Diamniadio)",
+  "provenance": "seter-cetud-officiel",
+  "shape_id": "ter-rail-v6",
+  "source_kind": "secours-consecutif",
+  "updated": "2026-09-19",
+  "points": [
+    {
+      "lat": 14.67599,
+      "lon": -17.43352,
+      "shape_pt_sequence": 1,
+      "stop_id": "stop_dakar_ter"
+    },
+    {
+      "lat": 14.70035,
+      "lon": -17.44165,
+      "shape_pt_sequence": 2,
+      "stop_id": "stop_colobane"
+    },
+    {
+      "lat": 14.72209,
+      "lon": -17.43207,
+      "shape_pt_sequence": 3,
+      "stop_id": "stop_hann"
+    },
+    {
+      "lat": 14.73425,
+      "lon": -17.419,
+      "shape_pt_sequence": 4,
+      "stop_id": "stop_dalifort_ter"
+    },
+    {
+      "lat": 14.73971,
+      "lon": -17.40361,
+      "shape_pt_sequence": 5,
+      "stop_id": "stop_baux_maraichers"
+    },
+    {
+      "lat": 14.74986,
+      "lon": -17.39169,
+      "shape_pt_sequence": 6,
+      "stop_id": "stop_pikine"
+    },
+    {
+      "lat": 14.75877,
+      "lon": -17.3803,
+      "shape_pt_sequence": 7,
+      "stop_id": "stop_thiaroye"
+    },
+    {
+      "lat": 14.76491,
+      "lon": -17.3565,
+      "shape_pt_sequence": 8,
+      "stop_id": "stop_yeumbeul"
+    },
+    {
+      "lat": 14.74408,
+      "lon": -17.31389,
+      "shape_pt_sequence": 9,
+      "stop_id": "stop_keur_mbaye_fall"
+    },
+    {
+      "lat": 14.72317,
+      "lon": -17.28394,
+      "shape_pt_sequence": 10,
+      "stop_id": "stop_pnr"
+    },
+    {
+      "lat": 14.71596,
+      "lon": -17.27,
+      "shape_pt_sequence": 11,
+      "stop_id": "stop_rufisque"
+    },
+    {
+      "lat": 14.69818,
+      "lon": -17.2292,
+      "shape_pt_sequence": 12,
+      "stop_id": "stop_bargny"
+    },
+    {
+      "lat": 14.71606,
+      "lon": -17.19845,
+      "shape_pt_sequence": 13,
+      "stop_id": "stop_diamniadio"
+    }
+  ]
+}
