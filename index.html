@@ -169,28 +169,68 @@ tailwind.config = {
         <p class="text-[15px] text-slate-600 dark:text-zinc-400 mt-2 leading-snug">Itinéraires multimodaux officiels (TER, BRT, DDD, TATA, AFTU).</p>
       </div>
       <div class="rounded-[24px] bg-white dark:bg-zinc-900 p-5 shadow-sm border border-slate-100 dark:border-zinc-800">
-        <div class="space-y-5">
+        <div class="space-y-4">
+          <!-- Bloc recherche repensé : Départ = Ma position + Arrivée placeholder + bouton inversion à droite -->
           <div class="relative">
-            <label class="absolute -top-2.5 left-4 px-2 bg-white dark:bg-zinc-900 text-[13px] text-slate-600 dark:text-zinc-400 font-medium z-10">Départ</label>
-            <div class="flex items-center gap-3 h-[56px] px-4 rounded-[14px] border-[1.5px] border-slate-900 dark:border-zinc-600 bg-white dark:bg-zinc-900">
-              <div class="w-7 h-7 rounded-full bg-[#E6F7ED] flex items-center justify-center shrink-0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="#00B140" stroke-width="2.5"/><circle cx="12" cy="12" r="8" stroke="#00B140" stroke-width="1.8"/><circle cx="12" cy="12" r="1" fill="#00B140"/></svg>
+            <div class="relative flex">
+              <div class="flex-1 space-y-3 pr-[64px]">
+                <!-- Champ Départ : Ma position avec icône géolocalisation -->
+                <div class="relative group">
+                  <label class="absolute -top-2.5 left-4 px-2 bg-white dark:bg-zinc-900 text-[12px] text-slate-500 dark:text-zinc-400 font-medium z-10 tracking-wide">Départ</label>
+                  <div class="flex items-center gap-3 h-[56px] px-4 rounded-[14px] border-[1.5px] border-slate-900 dark:border-zinc-600 bg-white dark:bg-zinc-900 focus-within:border-[#00B140] focus-within:ring-2 focus-within:ring-[#00B140]/20 transition-all">
+                    <div class="w-8 h-8 rounded-full bg-[#E6F7ED] dark:bg-[#00B140]/20 flex items-center justify-center shrink-0">
+                      <!-- Icône géolocalisation / flèche position -->
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00B140" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path>
+                        <circle cx="12" cy="12" r="8" stroke-opacity="0.25" stroke-width="1.6"></circle>
+                      </svg>
+                    </div>
+                    <input id="from-input" value="Ma position" class="flex-1 bg-transparent outline-none text-[16px] font-semibold text-slate-900 dark:text-white placeholder:text-slate-400" placeholder="Ma position">
+                    <button id="locate-me-btn" type="button" class="w-7 h-7 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 flex items-center justify-center text-slate-400 hover:text-[#00B140] transition shrink-0" title="Utiliser ma position">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 16a6 6 0 1 1 6-6 6 6 0 0 1-6 6Z"/><circle cx="12" cy="12" r="2"/></svg>
+                    </button>
+                  </div>
+                  <div id="from-suggest" class="absolute z-30 top-full mt-2 w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-2xl shadow-xl hidden overflow-hidden"></div>
+                </div>
+
+                <!-- Champ Arrivée : placeholder Gare, station, arrêt ou lieu -->
+                <div class="relative group">
+                  <label class="absolute -top-2.5 left-4 px-2 bg-white dark:bg-zinc-900 text-[12px] text-slate-500 dark:text-zinc-400 font-medium z-10 tracking-wide">Arrivée</label>
+                  <div class="flex items-center gap-3 h-[56px] px-4 rounded-[14px] border border-slate-300 dark:border-zinc-600 bg-[#f8fafc] dark:bg-zinc-800/50 focus-within:border-[#00B140] focus-within:bg-white dark:focus-within:bg-zinc-900 focus-within:ring-2 focus-within:ring-[#00B140]/20 transition-all">
+                    <div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-zinc-700 flex items-center justify-center shrink-0">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z"/>
+                        <circle cx="12" cy="10" r="3"/>
+                      </svg>
+                    </div>
+                    <input id="to-input" value="" class="flex-1 bg-transparent outline-none text-[16px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 placeholder:font-normal" placeholder="Gare, station, arrêt ou lieu">
+                  </div>
+                  <div id="to-suggest" class="absolute z-30 top-full mt-2 w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-2xl shadow-xl hidden overflow-hidden"></div>
+                </div>
               </div>
-              <input id="from-input" value="Parcelles Assainies" class="flex-1 bg-transparent outline-none text-[16px] font-medium text-slate-900 dark:text-white" placeholder="Parcelles Assainies">
-            </div>
-            <div id="from-suggest" class="absolute z-20 top-full mt-2 w-full bg-white dark:bg-zinc-900 border rounded-2xl shadow-xl hidden"></div>
-          </div>
-          <div class="relative">
-            <label class="absolute -top-2.5 left-4 px-2 bg-white dark:bg-zinc-900 text-[13px] text-slate-600 dark:text-zinc-400 font-medium z-10">Destination</label>
-            <div class="flex items-center gap-3 h-[56px] px-4 rounded-[14px] border border-slate-400 dark:border-zinc-600 bg-[#f8fafc] dark:bg-zinc-800/50">
-              <div class="w-7 h-7 flex items-center justify-center shrink-0 text-[#8B4513]">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="#8B4513"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+
+              <!-- Bouton d'inversion aller/retour sur le côté droit -->
+              <div class="absolute right-0 top-1/2 -translate-y-1/2">
+                <button id="swap-route" type="button" class="w-[48px] h-[48px] rounded-full bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 shadow-[0_4px_12px_rgba(0,0,0,0.08)] flex items-center justify-center text-slate-600 dark:text-zinc-300 hover:border-[#00B140] hover:text-[#00B140] hover:shadow-[0_6px_16px_rgba(0,177,64,0.2)] hover:bg-[#E6F7ED] dark:hover:bg-[#00B140]/20 transition-all group" title="Inverser départ et arrivée">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="group-hover:rotate-180 transition-transform duration-300">
+                    <path d="M7 16V4M7 4L3 8M7 4l4 4"/>
+                    <path d="M17 8v12M17 20l4-4M17 20l-4-4"/>
+                  </svg>
+                </button>
               </div>
-              <input id="to-input" value="Petersen" class="flex-1 bg-transparent outline-none text-[16px] font-medium text-slate-900 dark:text-white" placeholder="Petersen">
-              <button id="swap-route" class="w-8 h-8 rounded-full bg-white border shadow-sm flex items-center justify-center text-slate-500 hover:bg-slate-50">⇅</button>
             </div>
           </div>
-          <button id="search-itinerary" class="w-full h-[52px] rounded-[14px] bg-[#00B140] hover:bg-[#009138] text-white font-bold text-[16px] shadow-sm transition">Rechercher mon itinéraire</button>
+
+          <button id="search-itinerary" class="w-full h-[52px] rounded-[14px] bg-[#00B140] hover:bg-[#009138] text-white font-bold text-[16px] shadow-sm transition flex items-center justify-center gap-2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6"/><path d="M21 21l-4.3-4.3"/></svg>
+            Rechercher mon itinéraire
+          </button>
+
+          <div id="gps-depart-status" class="flex items-center gap-2 text-[11px] text-slate-500 dark:text-zinc-400 px-1 leading-snug">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#00B140] animate-pulse shrink-0"></span>
+            <span>Départ = <b class="text-slate-700 dark:text-zinc-300">Ma position GPS</b> • entrez seulement votre destination et cliquez sur Rechercher</span>
+          </div>
         </div>
       </div>
       <div class="px-1">
@@ -1420,37 +1460,119 @@ function showToast(msg, type='info'){
   setTimeout(()=>{ el.style.opacity='0'; setTimeout(()=>el.remove(), 300); }, 3500);
 }
 
-function startGPS(){
-  if(!navigator.geolocation){ showToast('GPS non supporté','error'); return; }
-  document.getElementById('gps-status').textContent='📡 Recherche...';
+function updateGPSDepartStatusUI(){
+  var statusEl = document.getElementById('gps-depart-status');
+  if(!statusEl) return;
+  if(userPos){
+    statusEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-[#00B140] animate-pulse shrink-0"></span><span>Départ = <b class="text-[#00B140] dark:text-[#00B140]">Ma position GPS ✓</b> • ${userPos.lat.toFixed(5)}, ${userPos.lng.toFixed(5)} • ±${Math.round(userPos.acc)}m</span>`;
+  } else {
+    statusEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse shrink-0"></span><span>Départ = <b class="text-slate-700 dark:text-zinc-300">Ma position GPS</b> • en attente de localisation • entrez seulement votre destination</span>`;
+  }
+}
+
+function setDepartToMyPosition(triggerGPS=true){
+  var fromInput = document.getElementById('from-input');
+  if(fromInput) fromInput.value = 'Ma position';
+  if(triggerGPS){
+    requestGPSForDepart(false);
+  }
+  updateGPSDepartStatusUI();
+}
+
+function requestGPSForDepart(showToastMsg=true){
+  if(!navigator.geolocation){
+    if(showToastMsg) showToast('GPS non supporté sur cet appareil','error');
+    return;
+  }
+  if(showToastMsg) showToast('📡 Localisation en cours...','info');
+  var statusEl = document.getElementById('gps-depart-status');
+  if(statusEl){
+    statusEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-[#00B140] animate-pulse shrink-0"></span><span>📡 Recherche de votre position GPS...</span>`;
+  }
+  navigator.geolocation.getCurrentPosition((pos)=>{
+    userPos = { lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy };
+    var gpsStatus = document.getElementById('gps-status');
+    if(gpsStatus) gpsStatus.textContent = `📍 ${userPos.lat.toFixed(4)} • ±${Math.round(userPos.acc)}m`;
+    var gpsAcc = document.getElementById('gps-accuracy');
+    if(gpsAcc) gpsAcc.textContent = `±${Math.round(userPos.acc)}m • Live`;
+    var userCard = document.getElementById('user-location-card');
+    if(userCard){
+      userCard.innerHTML = `<div class="flex items-center gap-2 mb-2"><span class="w-2 h-2 rounded-full bg-[#00B140] animate-pulse"></span><b>Vous êtes ici</b><span class="text-[11px] px-2 py-0.5 rounded-full bg-[#E6F7ED] text-[#007A2F] font-bold">LIVE</span></div><div class="text-[12px] opacity-70">${userPos.lat.toFixed(5)}, ${userPos.lng.toFixed(5)}</div><div class="mt-3 text-[13px]">🚏 Arrêt le plus proche calculé</div><button onclick="stopGPS()" class="mt-4 w-full h-10 rounded-full bg-white border text-[13px]">Désactiver</button>`;
+    }
+    if(map){
+      if(!userMarker){
+        userMarker=L.marker([userPos.lat,userPos.lng],{icon:L.divIcon({html:`<div style="width:18px;height:18px;background:#00B140;border:3px solid white;border-radius:9999px;box-shadow:0 0 0 8px rgba(0,177,64,0.15)"></div>`, iconSize:[18,18]})}).addTo(map);
+        userAccuracyCircle=L.circle([userPos.lat,userPos.lng],{radius:userPos.acc, color:'#00B140', fillOpacity:0.08}).addTo(map);
+      } else {
+        userMarker.setLatLng([userPos.lat,userPos.lng]);
+        userAccuracyCircle.setLatLng([userPos.lat,userPos.lng]).setRadius(userPos.acc);
+      }
+    }
+    updateGPSDepartStatusUI();
+    renderArrets();
+    if(showToastMsg) showToast(`📍 Position trouvée : ±${Math.round(userPos.acc)}m`);
+    // Si watch pas actif, on lance le watch pour suivi live
+    if(!watchId){
+      startGPSWatch();
+    }
+  }, (err)=>{
+    if(showToastMsg) showToast('GPS erreur: '+err.message,'error');
+    if(statusEl){
+      statusEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0"></span><span>GPS indisponible (${err.message}) • vous pouvez saisir manuellement votre départ</span>`;
+    }
+  }, {enableHighAccuracy:true, timeout:10000, maximumAge:30000});
+}
+
+function startGPSWatch(){
+  if(!navigator.geolocation) return;
+  if(watchId!==null) return;
   watchId=navigator.geolocation.watchPosition((pos)=>{
     userPos={ lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy };
-    document.getElementById('gps-status').textContent=`📍 ${userPos.lat.toFixed(4)} • ±${Math.round(userPos.acc)}m`;
-    document.getElementById('gps-accuracy').textContent=`±${Math.round(userPos.acc)}m • Live`;
-    document.getElementById('user-location-card').innerHTML=`<div class="flex items-center gap-2 mb-2"><span class="w-2 h-2 rounded-full bg-[#00B140] animate-pulse"></span><b>Vous êtes ici</b><span class="text-[11px] px-2 py-0.5 rounded-full bg-[#E6F7ED] text-[#007A2F] font-bold">LIVE</span></div><div class="text-[12px] opacity-70">${userPos.lat.toFixed(5)}, ${userPos.lng.toFixed(5)}</div><div class="mt-3 text-[13px]">🚏 Petersen - 120m • 2 min</div><button onclick="stopGPS()" class="mt-4 w-full h-10 rounded-full bg-white border text-[13px]">Désactiver</button>`;
-    if(!userMarker){
-      userMarker=L.marker([userPos.lat,userPos.lng],{icon:L.divIcon({html:`<div style="width:18px;height:18px;background:#00B140;border:3px solid white;border-radius:9999px;box-shadow:0 0 0 8px rgba(0,177,64,0.15)"></div>`, iconSize:[18,18]})}).addTo(map);
-      userAccuracyCircle=L.circle([userPos.lat,userPos.lng],{radius:userPos.acc, color:'#00B140', fillOpacity:0.08}).addTo(map);
-    } else {
-      userMarker.setLatLng([userPos.lat,userPos.lng]);
-      userAccuracyCircle.setLatLng([userPos.lat,userPos.lng]).setRadius(userPos.acc);
+    var gpsStatus = document.getElementById('gps-status');
+    if(gpsStatus) gpsStatus.textContent=`📍 ${userPos.lat.toFixed(4)} • ±${Math.round(userPos.acc)}m`;
+    var gpsAcc = document.getElementById('gps-accuracy');
+    if(gpsAcc) gpsAcc.textContent=`±${Math.round(userPos.acc)}m • Live`;
+    var userCard = document.getElementById('user-location-card');
+    if(userCard && userCard.innerHTML.includes('Vous êtes ici')){
+      userCard.innerHTML=`<div class="flex items-center gap-2 mb-2"><span class="w-2 h-2 rounded-full bg-[#00B140] animate-pulse"></span><b>Vous êtes ici</b><span class="text-[11px] px-2 py-0.5 rounded-full bg-[#E6F7ED] text-[#007A2F] font-bold">LIVE</span></div><div class="text-[12px] opacity-70">${userPos.lat.toFixed(5)}, ${userPos.lng.toFixed(5)}</div><div class="mt-3 text-[13px]">🚏 Position mise à jour</div><button onclick="stopGPS()" class="mt-4 w-full h-10 rounded-full bg-white border text-[13px]">Désactiver</button>`;
     }
+    if(userMarker){
+      userMarker.setLatLng([userPos.lat,userPos.lng]);
+      if(userAccuracyCircle) userAccuracyCircle.setLatLng([userPos.lat,userPos.lng]).setRadius(userPos.acc);
+    }
+    updateGPSDepartStatusUI();
     renderArrets();
-  }, (err)=>{ showToast('GPS erreur: '+err.message,'error'); }, {enableHighAccuracy:true});
+  }, (err)=>{ /* silent */ }, {enableHighAccuracy:true});
+}
+
+function startGPS(){
+  if(!navigator.geolocation){ showToast('GPS non supporté','error'); return; }
+  var gpsStatus = document.getElementById('gps-status');
+  if(gpsStatus) gpsStatus.textContent='📡 Recherche...';
+  requestGPSForDepart(true);
+  startGPSWatch();
   var btn=document.getElementById('gps-live-btn');
   if(btn){ btn.innerHTML='<span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> GPS ON'; btn.className='hidden md:flex items-center gap-2 px-4 h-9 rounded-full bg-[#00B140] text-white text-[13px] font-bold'; }
-  showToast('📡 GPS Dakar Bus activé');
 }
 
 function stopGPS(){
   if(watchId!==null) navigator.geolocation.clearWatch(watchId);
   watchId=null;
-  document.getElementById('gps-status').textContent='GPS inactif';
-  document.getElementById('user-location-card').innerHTML=`<div class="opacity-60">Activez le GPS</div><button id="activate-gps" class="mt-4 w-full h-11 rounded-full bg-[#00B140] text-white font-bold">📡 Activer GPS</button>`;
-  var b=document.getElementById('activate-gps');
-  if(b) b.onclick=startGPS;
+  userPos=null;
+  var gpsStatus = document.getElementById('gps-status');
+  if(gpsStatus) gpsStatus.textContent='GPS inactif';
+  var gpsAcc = document.getElementById('gps-accuracy');
+  if(gpsAcc) gpsAcc.textContent='En attente';
+  var userCard = document.getElementById('user-location-card');
+  if(userCard){
+    userCard.innerHTML=`<div class="opacity-60">Activez le GPS pour voir :</div><ul class="mt-2 space-y-1 list-disc pl-4 opacity-80"><li>Arrêts les plus proches avec ETA live</li><li>Trajets optimisés Dakar Bus</li></ul><button id="activate-gps" class="mt-4 w-full h-11 rounded-full bg-[#00B140] text-white font-bold text-[14px]">📡 Activer GPS en direct</button><div id="gps-coords" class="mt-3 text-[11px] font-mono opacity-50 hidden"></div>`;
+    var b=userCard.querySelector('#activate-gps');
+    if(b) b.onclick=startGPS;
+  }
+  updateGPSDepartStatusUI();
   var btn=document.getElementById('gps-live-btn');
   if(btn){ btn.innerHTML='<span class="w-2 h-2 rounded-full bg-[#00B140] animate-pulse"></span> GPS Live'; btn.className='hidden md:flex items-center gap-2 px-4 h-9 rounded-full bg-white border border-[#C2EAD0] text-[#00B140] text-[13px] font-semibold'; }
+  showToast('📡 GPS désactivé');
 }
 
 var ag=document.getElementById('activate-gps');
@@ -1473,63 +1595,6 @@ function renderPopular(){
     { from:'Plateau', to:'Almadies', mode:'DDD 10', time:'42 min', status:'+2 min', color:'bg-blue-500' }
   ];
   el.innerHTML=trips.map(t=>`<div class="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 border"><div class="w-10 h-10 rounded-xl ${t.color} text-white flex items-center justify-center font-bold text-[11px]">${t.mode[0]}</div><div class="flex-1"><div class="text-[13px] font-medium">${t.from} → ${t.to}</div><div class="text-[11px] opacity-60">${t.mode} • ${t.time}</div></div></div>`).join('');
-}
-
-function renderRouteResults(){
-  var el=document.getElementById('route-results');
-  if(!el) return;
-  var fromVal = (document.getElementById('from-input')?.value || '').toLowerCase();
-  var toVal = (document.getElementById('to-input')?.value || '').toLowerCase();
-
-  const isTER = fromVal.includes('ter') || toVal.includes('ter') || fromVal.includes('diamniadio') || toVal.includes('diamniadio') || fromVal.includes('rufisque') || toVal.includes('rufisque') || fromVal.includes('bargny') || toVal.includes('bargny');
-  const isBRT = fromVal.includes('brt') || toVal.includes('brt') || fromVal.includes('guédiawaye') || toVal.includes('guédiawaye') || fromVal.includes('petersen') || toVal.includes('petersen') || fromVal.includes('parcelles') || toVal.includes('parcelles');
-
-  let routes = [];
-  if(isTER){
-    routes = [
-      {
-        duration: '35 min',
-        walk: '3 min marche',
-        modes: ['TER'],
-        price: '1 500 FCFA',
-        steps: [
-          '🚶 Accès à la gare TER la plus proche (3 min)',
-          '🚆 Train Express Régional (TER) → Diamniadio (28 min direct)',
-          '📍 Arrivée en gare • Cadence 10 min • 160 km/h'
-        ]
-      }
-    ];
-  } else if(isBRT){
-    routes = [
-      {
-        duration: '26 min',
-        walk: '2 min marche',
-        modes: ['BRT'],
-        price: '400 FCFA',
-        steps: [
-          '🚶 Marche 120m vers la station SunuBRT',
-          '🚌 SunuBRT Ligne B1 Express (22 min • Voie dédiée)',
-          '📍 Arrivée station destination (100% électrique)'
-        ]
-      }
-    ];
-  } else {
-    routes = [
-      {
-        duration: '32 min',
-        walk: '4 min marche',
-        modes: ['BRT', 'DDD'],
-        price: '300 FCFA',
-        steps: [
-          '🚶 Marche 320m → PEM Petersen BRT',
-          '🚌 BRT 01 → Liberté 6 (14 min)',
-          '🚌 DDD 10 → UCAD (9 min)'
-        ]
-      }
-    ];
-  }
-
-  el.innerHTML=routes.map((r,i)=>`<div class="rounded-[18px] border ${i===0?'border-[#00B140] bg-[#E6F7ED]/50':'border-slate-200 bg-white'} p-4"><div class="flex justify-between items-center"><div class="flex items-center gap-2"><span class="text-[20px] font-bold text-slate-900 dark:text-white">${r.duration}</span><span class="text-[10px] px-2 py-0.5 rounded-full bg-[#00B140] text-white font-bold">LIVE</span></div><div class="font-bold text-[#007A2F] text-[15px]">${r.price}</div></div><div class="mt-2 text-[12px] opacity-75 space-y-1">${r.steps.map(s=>`<div>• ${s}</div>`).join('')}</div></div>`).join('');
 }
 
 let activeFilter = 'tous';
@@ -1677,9 +1742,80 @@ function setupFilters(){
   });
 }
 
+function renderRouteResults(){
+  var el=document.getElementById('route-results');
+  if(!el) return;
+  var fromInputEl = document.getElementById('from-input');
+  var toInputEl = document.getElementById('to-input');
+  var fromVal = (fromInputEl?.value || '').toLowerCase().trim();
+  var toVal = (toInputEl?.value || '').toLowerCase().trim();
+  var fromDisplay = fromInputEl?.value || 'Ma position';
+  var toDisplay = toInputEl?.value || '';
+
+  // Si destination vide, on n'affiche pas de résultat mais on garde l'ancien si déjà présent? On affiche message d'aide
+  if(!toDisplay){
+    el.innerHTML = `<div class="rounded-[16px] border border-dashed border-slate-300 bg-slate-50/70 p-4 text-[13px] text-slate-500 text-center">Entrez une destination pour voir les itinéraires<br><span class="text-[11px] opacity-70">Ex: Petersen, Diamniadio, UCAD, Yoff...</span></div>`;
+    return;
+  }
+
+  const isTER = fromVal.includes('ter') || toVal.includes('ter') || fromVal.includes('diamniadio') || toVal.includes('diamniadio') || fromVal.includes('rufisque') || toVal.includes('rufisque') || fromVal.includes('bargny') || toVal.includes('bargny') || toVal.includes('dakar');
+  const isBRT = fromVal.includes('brt') || toVal.includes('brt') || fromVal.includes('guédiawaye') || toVal.includes('guédiawaye') || fromVal.includes('petersen') || toVal.includes('petersen') || fromVal.includes('parcelles') || toVal.includes('parcelles');
+
+  let routes = [];
+  if(isTER){
+    routes = [
+      {
+        duration: '35 min',
+        walk: '3 min marche',
+        modes: ['TER'],
+        price: '1 500 FCFA',
+        fromLabel: fromDisplay,
+        toLabel: toDisplay,
+        steps: [
+          `🚶 Départ : ${fromDisplay} ${userPos ? `(GPS ${userPos.lat.toFixed(4)}, ${userPos.lng.toFixed(4)})` : ''} → gare TER la plus proche (3 min)`,
+          '🚆 Train Express Régional (TER) → Diamniadio (28 min direct)',
+          `📍 Arrivée : ${toDisplay} • Cadence 10 min • 160 km/h`
+        ]
+      }
+    ];
+  } else if(isBRT){
+    routes = [
+      {
+        duration: '26 min',
+        walk: '2 min marche',
+        modes: ['BRT'],
+        price: '400 FCFA',
+        fromLabel: fromDisplay,
+        toLabel: toDisplay,
+        steps: [
+          `🚶 Départ : ${fromDisplay} ${userPos ? `(GPS)` : ''} • Marche 120m vers station SunuBRT`,
+          '🚌 SunuBRT Ligne B1 Express (22 min • Voie dédiée)',
+          `📍 Arrivée : ${toDisplay} (100% électrique)`
+        ]
+      }
+    ];
+  } else {
+    routes = [
+      {
+        duration: '32 min',
+        walk: '4 min marche',
+        modes: ['BRT', 'DDD'],
+        price: '300 FCFA',
+        fromLabel: fromDisplay,
+        toLabel: toDisplay,
+        steps: [
+          `🚶 Départ : ${fromDisplay} ${userPos ? `(${userPos.lat.toFixed(4)}, ${userPos.lng.toFixed(4)})` : ''} → PEM Petersen BRT`,
+          '🚌 BRT 01 → Liberté 6 (14 min)',
+          `🚌 DDD 10 → ${toDisplay} (9 min)`
+        ]
+      }
+    ];
+  }
+
+  el.innerHTML=routes.map((r,i)=>`<div class="rounded-[18px] border ${i===0?'border-[#00B140] bg-[#E6F7ED]/50':'border-slate-200 bg-white'} p-4"><div class="flex justify-between items-center"><div class="flex items-center gap-2"><span class="text-[20px] font-bold text-slate-900 dark:text-white">${r.duration}</span><span class="text-[10px] px-2 py-0.5 rounded-full bg-[#00B140] text-white font-bold">LIVE</span></div><div class="font-bold text-[#007A2F] text-[15px]">${r.price}</div></div><div class="mt-1 text-[11px] text-slate-500 font-medium">${r.fromLabel} → ${r.toLabel}${userPos && fromVal.includes('ma position') ? ' • GPS actif' : ''}</div><div class="mt-2 text-[12px] opacity-75 space-y-1">${r.steps.map(s=>`<div>• ${s}</div>`).join('')}</div></div>`).join('');
+}
+
 function setupAutocomplete(){
-  var from = document.getElementById('from-input');
-  var box = document.getElementById('from-suggest');
   const allPlaces = [
     'Gare de Dakar (TER)', 'Colobane (TER)', 'Hann (TER)', 'Dalifort (TER)', 'Baux Maraîchers (TER)',
     'Pikine (TER)', 'Thiaroye (TER)', 'Yeumbeul (TER)', 'Keur Mbaye Fall (TER)', 'PNR (TER)',
@@ -1690,23 +1826,100 @@ function setupAutocomplete(){
     'Grand Médine (BRT)', 'Police des Parcelles (BRT)', 'Croisement 22 (BRT)',
     'Parcelles Assainies (BRT)', 'Ndingala (BRT)', 'Golf Sud (BRT)', 'Dalal Jam (BRT)',
     'Fith Mith (BRT)', 'Golf Nord (BRT)', 'Gadaye (BRT)', 'Préfecture Guédiawaye (BRT)',
-    'UCAD', 'Plateau - Indépendance', 'Ouakam', 'Almadies', 'Yoff', 'Ngor'
+    'UCAD', 'Plateau - Indépendance', 'Ouakam', 'Almadies', 'Yoff', 'Ngor', 'Colobane', 'Petersen'
   ];
 
-  if (from && box) {
+  var from = document.getElementById('from-input');
+  var fromBox = document.getElementById('from-suggest');
+  var to = document.getElementById('to-input');
+  var toBox = document.getElementById('to-suggest');
+
+  function buildSuggestHTML(list, isFrom=false){
+    let html = '';
+    if(isFrom){
+      html += `<div data-value="Ma position" class="px-4 py-3 hover:bg-[#E6F7ED] cursor-pointer text-[13px] border-b flex items-center gap-2 bg-[#E6F7ED]/50 font-semibold text-[#007A2F]"><span class="w-6 h-6 rounded-full bg-[#00B140] text-white flex items-center justify-center text-[10px]">📍</span> Ma position <span class="ml-auto text-[10px] px-1.5 py-0.5 rounded-full bg-[#00B140] text-white">GPS</span></div>`;
+    }
+    html += list.map(m => `<div data-value="${m}" class="px-4 py-3 hover:bg-[#E6F7ED] cursor-pointer text-[13px] border-b last:border-0 flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px]">${m.includes('TER')?'🚆':m.includes('BRT')?'🚌':'🚏'}</span> ${m}</div>`).join('');
+    return html;
+  }
+
+  function attachSuggestEvents(box, inputEl){
+    box.querySelectorAll('div[data-value]').forEach(d => {
+      d.onclick = () => {
+        inputEl.value = d.getAttribute('data-value');
+        box.classList.add('hidden');
+        if(inputEl.id === 'from-input' && inputEl.value === 'Ma position'){
+          requestGPSForDepart(false);
+        }
+      };
+    });
+  }
+
+  if (from && fromBox) {
+    from.addEventListener('focus', () => {
+      if(from.value.trim().toLowerCase() === 'ma position' || !from.value.trim()){
+        var matches = allPlaces.slice(0,6);
+        fromBox.innerHTML = buildSuggestHTML(matches, true);
+        fromBox.classList.remove('hidden');
+        attachSuggestEvents(fromBox, from);
+      }
+    });
     from.addEventListener('input', () => {
       var q = from.value.toLowerCase().trim();
-      if (!q) { box.classList.add('hidden'); return; }
+      if (!q) {
+        var matches = allPlaces.slice(0,6);
+        fromBox.innerHTML = buildSuggestHTML(matches, true);
+        fromBox.classList.remove('hidden');
+        attachSuggestEvents(fromBox, from);
+        return;
+      }
+      if(q === 'ma position'){
+        fromBox.classList.add('hidden');
+        requestGPSForDepart(false);
+        return;
+      }
       var matches = allPlaces.filter(p => p.toLowerCase().includes(q)).slice(0, 6);
-      if (!matches.length) { box.classList.add('hidden'); return; }
-      box.innerHTML = matches.map(m => `<div class="px-4 py-3 hover:bg-[#E6F7ED] cursor-pointer text-[13px] border-b last:border-0">${m}</div>`).join('');
-      box.classList.remove('hidden');
-      box.querySelectorAll('div').forEach(d => {
-        d.onclick = () => {
-          from.value = d.textContent;
-          box.classList.add('hidden');
-        };
-      });
+      if (!matches.length) { fromBox.classList.add('hidden'); return; }
+      fromBox.innerHTML = buildSuggestHTML(matches, q.length < 2);
+      fromBox.classList.remove('hidden');
+      attachSuggestEvents(fromBox, from);
+    });
+    // Fermer au clic extérieur
+    document.addEventListener('click', (e)=>{
+      if(!from.contains(e.target) && !fromBox.contains(e.target)){
+        fromBox.classList.add('hidden');
+      }
+    });
+  }
+
+  if (to && toBox) {
+    to.addEventListener('focus', () => {
+      if(!to.value.trim()){
+        var matches = allPlaces.slice(0,8);
+        toBox.innerHTML = buildSuggestHTML(matches, false);
+        toBox.classList.remove('hidden');
+        attachSuggestEvents(toBox, to);
+      }
+    });
+    to.addEventListener('input', () => {
+      var q = to.value.toLowerCase().trim();
+      if (!q) {
+        var matches = allPlaces.slice(0,8);
+        toBox.innerHTML = buildSuggestHTML(matches, false);
+        toBox.classList.remove('hidden');
+        attachSuggestEvents(toBox, to);
+        return;
+      }
+      var matches = allPlaces.filter(p => p.toLowerCase().includes(q)).slice(0, 8);
+      if (!matches.length) { toBox.classList.add('hidden'); return; }
+      toBox.innerHTML = buildSuggestHTML(matches, false);
+      toBox.classList.remove('hidden');
+      attachSuggestEvents(toBox, to);
+    });
+    document.addEventListener('click', (e)=>{
+      if(!to.contains(e.target) && !toBox.contains(e.target)){
+        toBox.classList.add('hidden');
+      }
     });
   }
 
@@ -1716,14 +1929,19 @@ function setupAutocomplete(){
     explorerSearch.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         var toInput = document.getElementById('to-input');
-        if (toInput) { toInput.value = explorerSearch.value; switchTab('trajets'); }
+        if (toInput) {
+          toInput.value = explorerSearch.value;
+          switchTab('trajets');
+          // focus destination field
+          setTimeout(()=>{ toInput.focus(); }, 300);
+        }
       }
     });
   }
 
   document.querySelectorAll('.suggestion-pill').forEach(btn => {
     btn.addEventListener('click', () => {
-      var fromVal = btn.dataset.from || '';
+      var fromVal = btn.dataset.from || 'Ma position';
       var toVal = btn.dataset.to || '';
       var fromInput = document.getElementById('from-input');
       var toInput = document.getElementById('to-input');
@@ -1737,8 +1955,54 @@ function setupAutocomplete(){
   var searchBtn = document.getElementById('search-itinerary');
   if (searchBtn) {
     searchBtn.addEventListener('click', () => {
-      renderRouteResults();
-      showToast('🔍 Recherche itinéraire Dakar Bus...');
+      var toVal = document.getElementById('to-input')?.value?.trim();
+      var fromVal = document.getElementById('from-input')?.value?.trim();
+      if(!toVal){
+        showToast('⚠️ Entrez votre destination (Gare, station, arrêt ou lieu)','error');
+        document.getElementById('to-input')?.focus();
+        return;
+      }
+      if(!fromVal){
+        document.getElementById('from-input').value = 'Ma position';
+        fromVal = 'Ma position';
+      }
+      if(fromVal.toLowerCase() === 'ma position' && !userPos){
+        showToast('📡 Récupération de votre position GPS...');
+        requestGPSForDepart(false);
+        setTimeout(()=>{
+          renderRouteResults();
+          showToast('🔍 Itinéraire depuis Ma position GPS');
+        }, 1200);
+      } else {
+        renderRouteResults();
+        showToast(`🔍 Recherche : ${fromVal} → ${toVal}`);
+      }
+    });
+  }
+
+  // Bouton locate me dans le champ départ
+  var locateBtn = document.getElementById('locate-me-btn');
+  if(locateBtn){
+    locateBtn.addEventListener('click', (e)=>{
+      e.preventDefault();
+      setDepartToMyPosition(true);
+      showToast('📍 Départ défini sur Ma position GPS');
+    });
+  }
+
+  // Entrée clavier sur les champs : Enter lance la recherche
+  if(to){
+    to.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter'){
+        document.getElementById('search-itinerary')?.click();
+      }
+    });
+  }
+  if(from){
+    from.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter'){
+        document.getElementById('to-input')?.focus();
+      }
     });
   }
 }
@@ -1746,6 +2010,14 @@ function setupAutocomplete(){
 window.addEventListener('load', ()=>{
   initMap();
   renderPopular();
+  // Valeurs par défaut demandées : Ma position + vide
+  var fromInput = document.getElementById('from-input');
+  var toInput = document.getElementById('to-input');
+  if(fromInput) fromInput.value = 'Ma position';
+  if(toInput){
+    toInput.value = '';
+    toInput.placeholder = 'Gare, station, arrêt ou lieu';
+  }
   renderRouteResults();
   renderArrets();
   renderTransports();
@@ -1753,13 +2025,33 @@ window.addEventListener('load', ()=>{
   renderAlerts();
   setupFilters();
   setupAutocomplete();
+
+  // Swap départ / arrivée avec animation et gestion du placeholder
   var sr=document.getElementById('swap-route');
   if(sr) sr.onclick=()=>{
-    var a=document.getElementById('from-input').value;
-    var b=document.getElementById('to-input').value;
-    document.getElementById('from-input').value=b;
-    document.getElementById('to-input').value=a;
+    var fromEl=document.getElementById('from-input');
+    var toEl=document.getElementById('to-input');
+    if(!fromEl || !toEl) return;
+    var a=fromEl.value;
+    var b=toEl.value;
+    // Si arrivée vide, on ne swap pas le placeholder mais on met l'ancien départ en arrivée
+    if(!b && a.toLowerCase() === 'ma position'){
+      showToast('⚠️ Entrez d\'abord une destination','error');
+      toEl.focus();
+      return;
+    }
+    fromEl.value=b || 'Ma position';
+    toEl.value=a === 'Ma position' ? '' : a;
+    if(toEl.value === '') toEl.placeholder = 'Gare, station, arrêt ou lieu';
+    // Animation visuelle
+    sr.classList.add('rotate-180');
+    setTimeout(()=> sr.classList.remove('rotate-180'), 300);
+    if(fromEl.value.toLowerCase() === 'ma position'){
+      requestGPSForDepart(false);
+    }
+    showToast(`🔄 ${fromEl.value} ⇄ ${toEl.value || 'destination'}`);
   };
+
   var ars=document.getElementById('arret-search');
   if(ars) ars.addEventListener('input', renderArrets);
   var ca=document.getElementById('clear-alerts');
@@ -1768,7 +2060,37 @@ window.addEventListener('load', ()=>{
   if(tv) tv.onclick=()=>{ switchTab('explorer'); };
   var assistantBtn=document.getElementById('assistant-ia-btn');
   if(assistantBtn) assistantBtn.onclick=()=>{ showToast('🤖 Assistant IA Dakar Bus - bientôt'); };
-  showToast('✅ Dakar Bus : 13 gares TER & 23 stations SunuBRT réelles');
+
+  // Auto GPS au chargement si permission déjà accordée, sans popup intrusive
+  if(navigator.geolocation){
+    navigator.permissions?.query?.({name:'geolocation'}).then(result=>{
+      if(result.state === 'granted'){
+        requestGPSForDepart(false);
+      } else {
+        // Tente quand même une fois en silencieux, si l'utilisateur a déjà autorisé
+        // mais le navigateur ne supporte pas permissions API, on attend l'interaction
+        updateGPSDepartStatusUI();
+      }
+    }).catch(()=> updateGPSDepartStatusUI());
+  }
+
+  // Quand on arrive sur l'onglet trajets, focus sur destination
+  var observer = new MutationObserver(()=>{
+    var trajetTab = document.getElementById('tab-trajets');
+    if(trajetTab && !trajetTab.classList.contains('hidden')){
+      setTimeout(()=>{
+        var toEl = document.getElementById('to-input');
+        if(toEl && !toEl.value){
+          // Ne pas auto-focus agressif sur mobile, juste mettre en évidence
+          toEl.classList.add('ring-2','ring-[#00B140]/30');
+          setTimeout(()=> toEl.classList.remove('ring-2','ring-[#00B140]/30'), 1500);
+        }
+      }, 400);
+    }
+  });
+  observer.observe(document.getElementById('tab-trajets'), {attributes:true, attributeFilter:['class']});
+
+  showToast('✅ Dakar Bus : Départ = Ma position GPS • Entrez votre destination');
 });
 </script>
 </body>
