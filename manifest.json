@@ -1,7 +1,7 @@
 {
   "name": "Dakar Bus - TER • BRT • DDD • AFTU • Tata",
   "short_name": "Dakar Bus",
-  "description": "Dakar Bus - Réseau multimodal Dakar : TER, BRT, DDD, AFTU, Tata. 40 lignes, 40 arrêts. Planificateur d'itinéraires, carte temps réel, assistant IA.",
+  "description": "Dakar Bus - Réseau multimodal Dakar : TER (13 gares, Dakar ↔ Diamniadio), BRT SunuBRT (23 stations, PEM Petersen ↔ PEM Guédiawaye), DDD, AFTU, Tata. 42 arrêts au total. Planificateur d'itinéraires, carte temps réel, assistant IA.",
   "start_url": "/dakar-bus/?source=pwa",
   "display": "standalone",
   "background_color": "#f6f7f5",
@@ -9,7 +9,10 @@
   "orientation": "portrait-primary",
   "scope": "/dakar-bus/",
   "lang": "fr",
-  "categories": ["navigation", "travel"],
+  "categories": [
+    "navigation",
+    "travel"
+  ],
   "icons": [
     {
       "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2300B140'/><text x='50%' y='58%' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-weight='800' font-size='42' fill='white'>D</text></svg>",
