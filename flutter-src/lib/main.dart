@@ -70,17 +70,45 @@ final AppStateNotifier globalState = AppStateNotifier();
 // ============================================================
 // GEOFENCING STRICT TERRE FERME DAKAR (ANTI-OCEAN)
 // ============================================================
+/// Garde-fou géographique de la région de Dakar.
+///
+/// GROUPE 1 (Step 4B) — aligné sur la DONNÉE ACTIVE.
+///
+/// AVANT : nord 14.7900, sud 14.6500, est -17.1500, ouest -17.5500, plus un
+///         rectangle d'exclusion dit « zone océan »
+///         (lat 14.7000-14.7450 × lon -17.4350 à -17.3750).
+///
+/// RAISON DU CHANGEMENT : ce rectangle rejetait 4 des 117 arrêts actifs, dont
+///         TROIS DES 13 GARES TER que le §6 interdit de supprimer :
+///           - stop_hann             « Hann - Maristes / TER »      14.72209, -17.43207
+///           - stop_dalifort_ter     « Dalifort - Gare TER »        14.73425, -17.41900
+///           - stop_baux_maraichers  « Baux Maraîchers - TER »      14.73971, -17.40361
+///         et la borne nord 14.7900 rejetait stop_malika (14.80150, -17.33760).
+///         La zone qualifiée d'« océan » couvre en réalité le corridor
+///         ferroviaire Dakar-Diamniadio à l'est du centre-ville.
+///
+/// SOURCE DE PREUVE : le validateur `eI` du binaire de production
+///         (gh-pages 94a84b60, main.dart.js) porte le commentaire de son
+///         propre auteur :
+///           « v4 : rectangle d'exclusion Hann/Dalifort retire (il couvrait
+///             3 gares TER officielles : Hann, Dalifort, Baux Maraichers).
+///             Garde-fou Dakar inchange. »
+///         Les trois gares qu'il nomme sont exactement celles recalculées
+///         indépendamment ici. Les bornes production lues dans ce même
+///         validateur sont 14.55 / 14.9 / -17.6 / -16.85.
+///
+/// DIVERGENCE ASSUMÉE vis-à-vis de la production : le garde (0,0) est CONSERVÉ
+///         alors que `eI` ne l'a pas. Aucune donnée active n'est concernée
+///         (latitude minimale réelle 14.6738), et le §11 interdit de traiter
+///         une position absente comme une position valable. Le conserver est
+///         strictement plus sûr et ne contredit aucune donnée active.
 class DakarBounds {
-  static const double north = 14.7900;
-  static const double south = 14.6500;
-  static const double east = -17.1500;
-  static const double west = -17.5500;
+  static const double north = 14.9;
+  static const double south = 14.55;
+  static const double east = -16.85;
+  static const double west = -17.6;
 
   static bool isValid(LatLng location) {
-    if (location.latitude > 14.7000 && location.latitude < 14.7450 &&
-        location.longitude > -17.4350 && location.longitude < -17.3750) {
-      return false;
-    }
     return location.latitude >= south &&
         location.latitude <= north &&
         location.longitude >= west &&
@@ -863,8 +891,25 @@ class DistanceHelper {
     return '${(meters / 1000.0).toStringAsFixed(1)} km';
   }
 
+  /// Distance orthodromique en mètres.
+  ///
+  /// GROUPE 1 (Step 4B) — rayon terrestre aligné sur la valeur prouvée.
+  ///
+  /// AVANT : earthRadius = 6371000.0
+  /// APRÈS : earthRadius = 6371008.8
+  ///
+  /// RAISON : le §10 impose « Haversine, Earth radius = 6 371 008,8 m ».
+  ///         L'écart relatif est de 1,4 ppm, mais les seuils de l'algorithme
+  ///         d'arrêt opposé (120 m puis 500 m) sont comparés à cette distance :
+  ///         deux implémentations doivent produire le même nombre pour que les
+  ///         tests et la production concordent.
+  ///
+  /// SOURCE DE PREUVE : la fonction `ew` du binaire de production
+  ///         (gh-pages 94a84b60, main.dart.js) calcule
+  ///         `12742017.6 * asin(sqrt(...))`, soit 2 × 6 371 008,8 — la forme
+  ///         « diamètre » de la même formule écrite ici avec `2 * earthRadius`.
   static double haversineMeters(LatLng a, LatLng b) {
-    const double earthRadius = 6371000.0;
+    const double earthRadius = 6371008.8;
     final double lat1 = a.latitude * math.pi / 180.0;
     final double lat2 = b.latitude * math.pi / 180.0;
     final double dLat = (b.latitude - a.latitude) * math.pi / 180.0;

@@ -50,15 +50,50 @@ void main() {
   });
 
   group('DataService', () {
-    test('loadNetworkData loads réseau complet 92 routes', () async {
+    // GROUPE 1 (Step 4B) — attentes portées de « >= 90 » à des valeurs EXACTES.
+    //
+    // AVANT : 'loadNetworkData loads réseau complet 92 routes',
+    //         routes >= 90, stops >= 90, operators >= 4, avec le commentaire
+    //         « 72 AFTU + 12 DDD + 5 Tata + 2 BRT + 1 TER = 92 ».
+    // RAISON : ces valeurs décrivaient la DONNÉE HISTORIQUE. La donnée ACTIVE
+    //         (gh-pages 94a84b60, md5 81c778f4644dcf5e1cf4ae25879218f0) compte
+    //         117 arrêts et 105 lignes : 1 TER + 2 BRT + 80 AFTU + 15 DDD
+    //         + 7 Tata. L'ancien libellé confondait arrêts et lignes.
+    //         Des bornes inférieures masquaient aussi un basculement silencieux
+    //         sur le repli en dur (5 lignes, 6 arrêts) : des valeurs exactes le
+    //         rendent impossible.
+    test('loadNetworkData charge la DONNÉE ACTIVE (117 arrêts, 105 lignes)',
+        () async {
       TestWidgetsFlutterBinding.ensureInitialized();
       final ds = DataService();
       await ds.loadNetworkData();
-      // Avec le JSON complet (40 routes) ou fallback (5 routes min), on attend >=5
-      expect(ds.routes.length, greaterThanOrEqualTo(90)); // 72 AFTU + 12 DDD + 5 Tata + 2 BRT + 1 TER = 92
-      expect(ds.stops.length, greaterThanOrEqualTo(90)); // 92 stops
-      expect(ds.operators.length, greaterThanOrEqualTo(4));
       expect(ds.isLoaded, true);
+      expect(ds.stops.length, 117);
+      expect(ds.routes.length, 105);
+      expect(ds.operators.length, 5);
+    });
+
+    test('le repli en dur n a PAS été utilisé', () async {
+      // Le repli de DataService contient 6 arrêts et 5 lignes. Si l'asset
+      // n'était pas lu, les comptes ci-dessus seraient 6 et 5.
+      TestWidgetsFlutterBinding.ensureInitialized();
+      final ds = DataService();
+      await ds.loadNetworkData();
+      expect(ds.stops.length, isNot(6));
+      expect(ds.routes.length, isNot(5));
+    });
+
+    test('décomposition par opérateur de la donnée ACTIVE', () async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      final ds = DataService();
+      await ds.loadNetworkData();
+      int byOp(String id) =>
+          ds.routes.where((r) => r.operatorId == id).length;
+      expect(byOp('ter'), 1);
+      expect(byOp('brt'), 2);
+      expect(byOp('aftu'), 80);
+      expect(byOp('ddd'), 15);
+      expect(byOp('tata'), 7);
     });
 
     test('stopsForRoute helper', () async {
