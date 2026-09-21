@@ -255,31 +255,55 @@ class DataSourceInfo {
 // ============================================================
 enum StopType { arrival, departure, boarding, terminus, correspondence, intermediate }
 
+/// Un arrêt tel qu'affiché dans la fiche détaillée d'une ligne.
+///
+/// GROUPE 2 (§8) — modèle aligné sur la production.
+/// AVANT : 8 champs (stopId, name, sequence, location, distanceFromStart,
+///         estimatedTime, isTerminal, type).
+/// APRÈS : 5 champs (stopId, name, location, distanceFromStart, estimatedTime),
+///         soit exactement le modèle du binaire de production (faisceau `aOu`,
+///         rapport 4A §12.2).
+/// RAISON : `sequence`, `isTerminal` et `type` n'étaient lus NULLE PART dans
+///         l'application (vérifié : 0 occurrence de `.sequence` et `.isTerminal`
+///         hors déclaration ; le `.type` restant appartient à `TransitRoute` et
+///         `TransportRoute`). Le numéro d'ordre affiché est déjà dérivé de
+///         l'index de la liste par `DetailedRoutePage` (`route.stops.asMap()`
+///         puis `idx + 1`). Les supprimer ne modifie donc aucun rendu (§21
+///         respecté) et retire trois valeurs que l'ancien `fromStop` fabriquait
+///         à la main.
 class DetailedStop {
+  /// Identifiant métier dans `dakar_network.json` (ex. `stop_dakar_ter`).
   final String stopId;
   final String name;
-  final int sequence;
   final LatLng location;
+
+  /// Distance cumulée depuis le PREMIER arrêt de la ligne, au format « N.N km ».
+  /// Calculée — jamais codée en dur (§9).
   final String distanceFromStart;
+
+  /// Estimation du temps écoulé depuis le premier arrêt, au format « ~N min ».
+  /// Le tilde marque explicitement l'approximation (§12 : aucune donnée
+  /// présentée comme certaine). `dakar_network.json` ne contient aucun horaire
+  /// d'arrêt intermédiaire : aucune heure n'est donc inventée. L'ancien code
+  /// produisait des pseudo-heures `i * 4` / `i * 6` au format « HH:00 »,
+  /// invalides dès que l'indice dépassait 23 (jusqu'à « 88:00 »).
   final String estimatedTime;
-  final bool isTerminal;
-  final String type;
 
   const DetailedStop({
     required this.stopId,
     required this.name,
-    required this.sequence,
     required this.location,
     required this.distanceFromStart,
     required this.estimatedTime,
-    required this.isTerminal,
-    required this.type,
   });
 }
 
 class DetailedRoute {
   final String routeId;
-  final int lineNumber;
+  /// Numéro de ligne extrait du `short_name` JSON (ex. « BRT B1 » donne 1).
+  /// `null` quand le code ne contient aucun chiffre (ex. « TER ») : aucun
+  /// numéro n'est inventé (§12). Ce champ n'est lu par aucune vue.
+  final int? lineNumber;
   final String operator;
   final Color color;
   String origin;
@@ -298,128 +322,256 @@ class DetailedRoute {
     required this.stops,
   });
 
-  static DetailedRoute fromStop(Stop stop, {bool isReturnRoute = false}) {
-    if (stop.modeLabel == 'TER') {
-      List<DetailedStop> terStops = [
-        const DetailedStop(stopId: 'ter_1', name: 'Gare de Dakar', sequence: 1, location: LatLng(14.6792, -17.4407), distanceFromStart: '0 km', estimatedTime: '00:00', isTerminal: true, type: 'Embarquement'),
-        const DetailedStop(stopId: 'ter_2', name: 'Colobane', sequence: 2, location: LatLng(14.6937, -17.4441), distanceFromStart: '1.2 km', estimatedTime: '03:00', isTerminal: false, type: 'Correspondance'),
-        const DetailedStop(stopId: 'ter_3', name: 'Hann', sequence: 3, location: LatLng(14.7190, -17.4450), distanceFromStart: '3.5 km', estimatedTime: '06:00', isTerminal: false, type: 'Intermédiaire'),
-        const DetailedStop(stopId: 'ter_4', name: 'Baux Maraîchers', sequence: 4, location: LatLng(14.7380, -17.4100), distanceFromStart: '5.5 km', estimatedTime: '09:00', isTerminal: false, type: 'Intermédiaire'),
-        const DetailedStop(stopId: 'ter_5', name: 'Pikine', sequence: 5, location: LatLng(14.7550, -17.3900), distanceFromStart: '7.2 km', estimatedTime: '12:00', isTerminal: false, type: 'Intermédiaire'),
-        const DetailedStop(stopId: 'ter_6', name: 'Thiaroye', sequence: 6, location: LatLng(14.7620, -17.3700), distanceFromStart: '9.0 km', estimatedTime: '15:00', isTerminal: false, type: 'Intermédiaire'),
-        const DetailedStop(stopId: 'ter_7', name: 'Yeumbeul', sequence: 7, location: LatLng(14.7700, -17.3400), distanceFromStart: '11.5 km', estimatedTime: '18:00', isTerminal: false, type: 'Intermédiaire'),
-        const DetailedStop(stopId: 'ter_8', name: 'Keur Massar', sequence: 8, location: LatLng(14.7900, -17.3250), distanceFromStart: '13.0 km', estimatedTime: '21:00', isTerminal: false, type: 'Intermédiaire'),
-        const DetailedStop(stopId: 'ter_9', name: 'Keur Mbaye Fall', sequence: 9, location: LatLng(14.7750, -17.3100), distanceFromStart: '14.2 km', estimatedTime: '24:00', isTerminal: false, type: 'Correspondance'),
-        const DetailedStop(stopId: 'ter_10', name: 'Rufisque', sequence: 10, location: LatLng(14.7150, -17.2700), distanceFromStart: '20.0 km', estimatedTime: '30:00', isTerminal: false, type: 'Intermédiaire'),
-        const DetailedStop(stopId: 'ter_11', name: 'Bargny', sequence: 11, location: LatLng(14.7100, -17.2350), distanceFromStart: '26.0 km', estimatedTime: '36:00', isTerminal: false, type: 'Intermédiaire'),
-        const DetailedStop(stopId: 'ter_12', name: 'Diamniadio', sequence: 12, location: LatLng(14.7160, -17.1986), distanceFromStart: '35.0 km', estimatedTime: '45:00', isTerminal: true, type: 'Arrivée'),
-      ];
+  /// Seuil de résolution géographique d'un arrêt, en mètres.
+  ///
+  /// Valeur PROUVÉE : c'est celle du faisceau `aS1` du binaire de production
+  /// (rapport 4A §12.1). Elle n'est pas élargie ici pour faire aboutir une
+  /// résolution qui échoue : un échec reste un « inconnu » (§12) et non un
+  /// arrêt de substitution.
+  static const double kMaxResolveMeters = 250.0;
 
-      if (isReturnRoute) {
-        terStops = terStops.reversed.toList();
-        for (int i = 0; i < terStops.length; i++) {
-          terStops[i] = DetailedStop(
-            stopId: 'ter_ret_$i',
-            name: terStops[i].name,
-            sequence: i + 1,
-            location: terStops[i].location,
-            distanceFromStart: '${(35.0 - double.parse(terStops[i].distanceFromStart.replaceAll(' km', ''))).toStringAsFixed(1)} km',
-            estimatedTime: '${i * 4}:00',
-            isTerminal: i == 0 || i == terStops.length - 1,
-            type: i == 0 ? 'Embarquement' : (i == terStops.length - 1 ? 'Arrivée' : 'Intermédiaire'),
-          );
-        }
+  /// Estimation du temps de parcours entre deux arrêts consécutifs, en minutes.
+  ///
+  /// Constante PROUVÉE du binaire de production (faisceau `aOu`, rapport 4A
+  /// §12.2 : estimatedTime = "~" + (j * 3) + " min"). Elle est conservée telle
+  /// quelle ; la seule correction appliquée est celle prescrite par 4A : le
+  /// compteur démarre à 0 pour que le premier arrêt affiche « ~0 min » (la
+  /// production affichait « ~3 min » au départ, ce qui est incohérent).
+  static const int kMinutesPerStop = 3;
+
+  /// Dérive la fiche d'une ligne depuis `dakar_network.json`, SOURCE UNIQUE (§8).
+  ///
+  /// AVANT : trois branches codées en dur. TER : 12 arrêts HISTORIQUES en
+  ///         littéral. BRT : 11 arrêts HISTORIQUES en littéral, modèle
+  ///         explicitement interdit par §7. Général : 3 arrêts dont un FABRIQUÉ
+  ///         (« Station Intermédiaire » posé à `stop.location + 0.01`), donnée
+  ///         inventée interdite par §12 et §30. Distances totales en littéraux
+  ///         ('35.0 km', '14.0 km', '3.5 km'). Temps estimés `i * 4` / `i * 6`.
+  /// APRÈS : algorithme du binaire de production (faisceau `aOu`, rapport 4A
+  ///         §12.2) réimplémenté à l'identique, plus la correction 4A décrite
+  ///         sur [kMinutesPerStop].
+  /// RAISON : §8 impose que les arrêts d'une fiche ligne proviennent du JSON
+  ///         courant, sans liste parallèle ; §9 impose de prouver la formule de
+  ///         distance avant de l'afficher.
+  ///
+  /// FORMULE DE DISTANCE — PROUVÉE (§9) :
+  ///   totalDistance = somme des haversine(arrêt_i, arrêt_i+1), R = 6371008.8 m
+  ///   Vérifiée sur le JSON courant : TER = 34.6 km, BRT B1 = 17.5 km,
+  ///   BRT B2 = 16.0 km — valeurs identiques à celles obtenues par simulation du
+  ///   binaire de production (rapport 4A §9). Ce sont des sommes de cordes
+  ///   géographiques, PAS des longueurs de voirie : la distance officielle du
+  ///   corridor BRT annoncée par le CETUD est de 18.3 km. Les deux grandeurs
+  ///   sont légitimes mais distinctes ; l'application affiche la grandeur
+  ///   calculée à partir de la source unique.
+  ///
+  /// Retourne `null` lorsque la ligne ne peut pas être dérivée des données
+  /// courantes : source non chargée, arrêt non résolu, ou ligne de moins de
+  /// deux arrêts. Un `null` est un « inconnu » honnête (§12) ; il ne doit
+  /// JAMAIS être remplacé par une fiche fabriquée.
+  ///
+  /// [reverse] produit la direction inverse par INVERSION de l'ordre courant du
+  /// JSON (§6 pour le TER, §7 pour le BRT). Aucune seconde liste n'est créée.
+  static DetailedRoute? fromStop(Stop stop, {bool reverse = false}) {
+    final BusStop? json = _resolveJsonStop(stop);
+    if (json == null) return null;
+
+    // Lignes desservant cet arrêt, dans l'ordre du JSON (ordre canonique, §6).
+    final List<TransportRoute> candidates = appDataService.routes
+        .where((TransportRoute r) => r.stopIds.contains(json.id))
+        .toList();
+    if (candidates.isEmpty) return null;
+
+    // Préférence d'exploitant. Un arrêt peut être desservi par plusieurs modes :
+    // `stop_colobane` est desservi par 28 lignes (TER, DDD, AFTU et Tata). Sans
+    // ce filtre, `aOu` ouvrirait la PREMIÈRE ligne trouvée — ici le TER — pour
+    // un arrêt consulté en tant qu'arrêt DDD. Le repli sur `candidates.first`
+    // conserve le comportement de production quand aucun exploitant ne
+    // correspond.
+    final String wanted = stop.modeLabel.toLowerCase();
+    final List<TransportRoute> sameOperator =
+        candidates.where((TransportRoute r) => r.operatorId == wanted).toList();
+    return _build(
+      sameOperator.isNotEmpty ? sameOperator.first : candidates.first,
+      reverse: reverse,
+    );
+  }
+
+  /// Dérive la fiche d'une ligne à partir de son exploitant, dans l'ordre du JSON.
+  ///
+  /// Utilisé par les suggestions de `TripsPage`. AVANT : ces suggestions
+  /// passaient des `Stop` de démonstration codés en dur, dont les coordonnées
+  /// sont héritées du JSON HISTORIQUE et ne correspondent plus aux arrêts
+  /// ACTUELS. Cas prouvé : « PEM Guediawaye » (14.7735, -17.3977) est à 322 m
+  /// du plus proche arrêt BRT actuel, au-delà du seuil de 250 m de `aS1` ; la
+  /// résolution par proximité échouait donc, et la résolution par nom tombait à
+  /// 0 m sur un arrêt homonyme « PEM Guédiawaye - Terminus BRT Nord » desservi
+  /// uniquement par AFTU, DDD et Tata — jamais par le BRT. La dérivation par
+  /// exploitant supprime toute résolution approximative.
+  static DetailedRoute? fromOperator(String operatorId, {bool reverse = false}) {
+    if (!appDataService.isLoaded) return null;
+    final List<TransportRoute> candidates = appDataService.routes
+        .where((TransportRoute r) => r.operatorId == operatorId)
+        .toList();
+    if (candidates.isEmpty) return null;
+    return _build(candidates.first, reverse: reverse);
+  }
+
+  /// Cœur de la dérivation : séquence d'arrêts, distances cumulées, temps estimé.
+  static DetailedRoute? _build(TransportRoute route, {bool reverse = false}) {
+    // §6 / §7 : la direction inverse est l'inversion de l'ordre courant.
+    final List<String> ids =
+        reverse ? route.stopIds.reversed.toList() : route.stopIds;
+
+    final List<DetailedStop> out = <DetailedStop>[];
+    double cumulatedMeters = 0.0;
+    LatLng? previous;
+
+    for (final String sid in ids) {
+      final List<BusStop> found =
+          appDataService.stops.where((BusStop s) => s.id == sid).toList();
+      // Arrêt référencé mais absent du JSON : on le saute sans interrompre la
+      // ligne (comportement de `aOu`). Aucun arrêt de substitution n'est
+      // inventé.
+      if (found.isEmpty) continue;
+      final BusStop s = found.first;
+      final LatLng location = LatLng(s.latitude, s.longitude);
+      if (previous != null) {
+        cumulatedMeters += DistanceHelper.haversineMeters(previous, location);
       }
+      final int elapsedMinutes = out.length * kMinutesPerStop;
+      out.add(DetailedStop(
+        stopId: s.id,
+        name: s.name,
+        location: location,
+        distanceFromStart: '${(cumulatedMeters / 1000).toStringAsFixed(1)} km',
+        estimatedTime: '~$elapsedMinutes min',
+      ));
+      previous = location;
+    }
 
-      return DetailedRoute(
-        routeId: isReturnRoute ? 'TER_DIAM_DAK' : 'TER_DAK_DIAM',
-        lineNumber: 1,
-        operator: 'TER (Train Express Régional)',
-        color: AppColors.ter,
-        origin: isReturnRoute ? 'Gare de Diamniadio' : 'Gare de Dakar',
-        destination: isReturnRoute ? 'Gare de Dakar' : 'Gare de Diamniadio',
-        totalDistance: '35.0 km',
-        stops: terStops,
-      );
-    } else if (stop.modeLabel == 'BRT') {
-      List<DetailedStop> brtStops = [
-        const DetailedStop(stopId: 'brt_1', name: 'Guédiawaye', sequence: 1, location: LatLng(14.7735, -17.3977), distanceFromStart: '0 km', estimatedTime: '00:00', isTerminal: true, type: 'Embarquement'),
-        const DetailedStop(stopId: 'brt_2', name: 'Hôpital Dalal Jamm', sequence: 2, location: LatLng(14.7620, -17.4100), distanceFromStart: '1.5 km', estimatedTime: '04:00', isTerminal: false, type: 'Intermédiaire'),
-        const DetailedStop(stopId: 'brt_3', name: 'Cambérène', sequence: 3, location: LatLng(14.7480, -17.4250), distanceFromStart: '3.0 km', estimatedTime: '08:00', isTerminal: false, type: 'Intermédiaire'),
-        const DetailedStop(stopId: 'brt_4', name: 'Fadia', sequence: 4, location: LatLng(14.7350, -17.4350), distanceFromStart: '4.2 km', estimatedTime: '11:00', isTerminal: false, type: 'Intermédiaire'),
-        const DetailedStop(stopId: 'brt_5', name: 'Parcelles Assainies', sequence: 5, location: LatLng(14.7220, -17.4420), distanceFromStart: '5.5 km', estimatedTime: '15:00', isTerminal: false, type: 'Intermédiaire'),
-        const DetailedStop(stopId: 'brt_6', name: 'Grand Médine', sequence: 6, location: LatLng(14.7150, -17.4450), distanceFromStart: '6.5 km', estimatedTime: '18:00', isTerminal: false, type: 'Intermédiaire'),
-        const DetailedStop(stopId: 'brt_7', name: 'Grand Yoff', sequence: 7, location: LatLng(14.7050, -17.4400), distanceFromStart: '7.8 km', estimatedTime: '22:00', isTerminal: false, type: 'Intermédiaire'),
-        const DetailedStop(stopId: 'brt_8', name: 'Liberté 6', sequence: 8, location: LatLng(14.7150, -17.4580), distanceFromStart: '9.2 km', estimatedTime: '26:00', isTerminal: false, type: 'Correspondance'),
-        const DetailedStop(stopId: 'brt_9', name: 'Sacré-Cœur', sequence: 9, location: LatLng(14.7100, -17.4650), distanceFromStart: '10.5 km', estimatedTime: '30:00', isTerminal: false, type: 'Intermédiaire'),
-        const DetailedStop(stopId: 'brt_10', name: 'Place de l’Obélisque', sequence: 10, location: LatLng(14.6850, -17.4500), distanceFromStart: '12.5 km', estimatedTime: '36:00', isTerminal: false, type: 'Intermédiaire'),
-        const DetailedStop(stopId: 'brt_11', name: 'Gare de Petersen', sequence: 11, location: LatLng(14.6720, -17.4400), distanceFromStart: '14.0 km', estimatedTime: '42:00', isTerminal: true, type: 'Arrivée'),
-      ];
+    // Moins de deux arrêts exploitables : aucune distance ne peut être calculée.
+    if (out.length < 2) return null;
 
-      if (isReturnRoute) {
-        brtStops = brtStops.reversed.toList();
-        for (int i = 0; i < brtStops.length; i++) {
-          brtStops[i] = DetailedStop(
-            stopId: 'brt_ret_$i',
-            name: brtStops[i].name,
-            sequence: i + 1,
-            location: brtStops[i].location,
-            distanceFromStart: '${(14.0 - double.parse(brtStops[i].distanceFromStart.replaceAll(' km', ''))).toStringAsFixed(1)} km',
-            estimatedTime: '${i * 4}:00',
-            isTerminal: i == 0 || i == brtStops.length - 1,
-            type: i == 0 ? 'Embarquement' : (i == brtStops.length - 1 ? 'Arrivée' : 'Intermédiaire'),
-          );
-        }
+    final Operator? exploitant = appDataService.operatorForRoute(route);
+    final String? digits =
+        RegExp(r'(\d+)').firstMatch(route.shortName)?.group(1);
+
+    return DetailedRoute(
+      routeId: route.id,
+      // `null` quand le code de ligne ne contient aucun chiffre (ex. « TER ») :
+      // aucun numéro n'est inventé (§12). Ce champ n'est lu par aucune vue.
+      lineNumber: digits == null ? null : int.tryParse(digits),
+      operator: exploitant?.name ?? route.operatorId.toUpperCase(),
+      color: _colorForOperatorId(route.operatorId),
+      origin: out.first.name,
+      destination: out.last.name,
+      totalDistance: '${(cumulatedMeters / 1000).toStringAsFixed(1)} km',
+      stops: out,
+    );
+  }
+
+  /// Résout un `Stop` de l'application vers son arrêt dans `dakar_network.json`.
+  ///
+  /// Ordre de résolution, entièrement déterministe :
+  ///  1. `stop.stopId`, quand l'arrêt provient déjà du JSON (cas nominal, c'est
+  ///     la voie utilisée par `aOu` en production) ;
+  ///  2. correspondance de NOM EXACT (le nom est déjà la clé de correspondance
+  ///     retenue par §10 pour les arrêts opposés) ;
+  ///  3. arrêt le plus proche à [kMaxResolveMeters] ou moins.
+  ///
+  /// Les étapes 2 et 3 sont restreintes aux arrêts desservis par le même
+  /// exploitant que `stop.modeLabel`, quand ce mode correspond à un exploitant
+  /// présent dans le JSON. Sans cette restriction, un arrêt de démonstration
+  /// libellé BRT se résoudrait sur un homonyme desservi par d'autres modes et
+  /// ouvrirait une ligne d'un autre mode.
+  ///
+  /// Retourne `null` si aucune résolution n'aboutit : c'est un « inconnu »
+  /// (§12), jamais un arrêt inventé.
+  static BusStop? _resolveJsonStop(Stop stop) {
+    if (!appDataService.isLoaded) return null;
+    final List<BusStop> all = appDataService.stops;
+    if (all.isEmpty) return null;
+
+    // 1. Identifiant métier : résolution exacte.
+    final String? sid = stop.stopId;
+    if (sid != null) {
+      final List<BusStop> byId = all.where((BusStop s) => s.id == sid).toList();
+      if (byId.isNotEmpty) return byId.first;
+    }
+
+    // Périmètre restreint au mode de l'arrêt consulté.
+    final String wanted = stop.modeLabel.toLowerCase();
+    final Set<String> idsOfOperator = <String>{
+      for (final TransportRoute ligne in appDataService.routes
+          .where((TransportRoute x) => x.operatorId == wanted)) ...ligne.stopIds,
+    };
+    final List<BusStop> scoped = idsOfOperator.isEmpty
+        ? all
+        : all.where((BusStop s) => idsOfOperator.contains(s.id)).toList();
+
+    // 2. Correspondance de nom exacte.
+    final List<BusStop> byName =
+        scoped.where((BusStop s) => s.name == stop.name).toList();
+    if (byName.isNotEmpty) return byName.first;
+
+    // 3. Arrêt le plus proche, à kMaxResolveMeters ou moins.
+    BusStop? nearest;
+    double best = double.infinity;
+    for (final BusStop s in scoped) {
+      final double d = DistanceHelper.haversineMeters(
+          stop.location, LatLng(s.latitude, s.longitude));
+      if (d < best) {
+        best = d;
+        nearest = s;
       }
+    }
+    return (nearest != null && best <= kMaxResolveMeters) ? nearest : null;
+  }
 
-      return DetailedRoute(
-        routeId: isReturnRoute ? 'BRT_PET_GUE' : 'BRT_GUE_PET',
-        lineNumber: 1,
-        operator: 'SunuBRT',
-        color: AppColors.brt,
-        origin: isReturnRoute ? 'Gare de Petersen' : 'Guédiawaye',
-        destination: isReturnRoute ? 'Guédiawaye' : 'Gare de Petersen',
-        totalDistance: '14.0 km',
-        stops: brtStops,
-      );
-    } else {
-      final originName = stop.name;
-      final destName = DirectionHelper.extractDestination(stop.direction);
-
-      List<DetailedStop> generalStops = [
-        DetailedStop(stopId: 'gen_1', name: originName, sequence: 1, location: stop.location, distanceFromStart: '0 km', estimatedTime: '00:00', isTerminal: true, type: 'Embarquement'),
-        DetailedStop(stopId: 'gen_2', name: 'Station Intermédiaire', sequence: 2, location: LatLng(stop.location.latitude + 0.01, stop.location.longitude + 0.01), distanceFromStart: '1.8 km', estimatedTime: '06:00', isTerminal: false, type: 'Intermédiaire'),
-        DetailedStop(stopId: 'gen_3', name: destName, sequence: 3, location: LatLng(stop.location.latitude + 0.02, stop.location.longitude + 0.02), distanceFromStart: '3.5 km', estimatedTime: '12:00', isTerminal: true, type: 'Arrivée'),
-      ];
-
-      if (isReturnRoute) {
-        generalStops = generalStops.reversed.toList();
-        for (int i = 0; i < generalStops.length; i++) {
-          generalStops[i] = DetailedStop(
-            stopId: 'gen_ret_$i',
-            name: generalStops[i].name,
-            sequence: i + 1,
-            location: generalStops[i].location,
-            distanceFromStart: '${(3.5 - double.parse(generalStops[i].distanceFromStart.replaceAll(' km', ''))).toStringAsFixed(1)} km',
-            estimatedTime: '${i * 6}:00',
-            isTerminal: i == 0 || i == generalStops.length - 1,
-            type: i == 0 ? 'Embarquement' : (i == generalStops.length - 1 ? 'Arrivée' : 'Intermédiaire'),
-          );
-        }
-      }
-
-      return DetailedRoute(
-        routeId: 'GEN_${stop.modeLabel}',
-        lineNumber: 1,
-        operator: stop.modeLabel,
-        color: stop.color,
-        origin: isReturnRoute ? destName : originName,
-        destination: isReturnRoute ? originName : destName,
-        totalDistance: '3.5 km',
-        stops: generalStops,
-      );
+  /// Couleur de la ligne. Les couleurs de l'interface sont conservées à
+  /// l'identique (§21) : ce sont les constantes `AppColors` déjà employées par
+  /// `_integrateNetworkData`, et non les `colorHex` du JSON. Les deux
+  /// coïncident d'ailleurs pour les deux modes structurants : TER #8B4513 =
+  /// `AppColors.ter` (0xFF8B4513), BRT #22C55E = `AppColors.brt` (0xFF22C55E).
+  static Color _colorForOperatorId(String operatorId) {
+    switch (operatorId) {
+      case 'ter':
+        return AppColors.ter;
+      case 'brt':
+        return AppColors.brt;
+      case 'ddd':
+        return AppColors.ddd;
+      case 'tata':
+        return AppColors.tata;
+      case 'aftu':
+        return AppColors.aftu;
+      default:
+        return AppColors.primary;
     }
   }
+}
+
+/// Ouvre la fiche détaillée d'une ligne, ou signale honnêtement son
+/// indisponibilité.
+///
+/// GROUPE 2 (§12) : quand la ligne ne peut pas être dérivée de la source
+/// unique, `DetailedRoute` vaut `null`. Il ne faut alors ni fabriquer une fiche
+/// ni naviguer vers une page vide : un message court explique l'indisponibilité.
+/// Aucun composant visuel n'est ajouté ni retiré (§21).
+void openLineDetail(BuildContext context, DetailedRoute? route) {
+  if (route == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+            'Détail de ligne indisponible : données réseau non chargées.'),
+      ),
+    );
+    return;
+  }
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (_) => DetailedRoutePage(route: route)),
+  );
 }
 
 // ============================================================
@@ -432,18 +584,28 @@ class Stop {
   final String modeLabel; final DataSourceInfo source;
   final StopType stopType;
 
+  /// Identifiant métier dans `dakar_network.json` (ex. `stop_dakar_ter`).
+  ///
+  /// GROUPE 2 (§8) : seul lien fiable entre un arrêt affiché et la source unique
+  /// de vérité. `null` pour les arrêts de démonstration antérieurs à
+  /// l'intégration JSON ; `DetailedRoute.fromStop` retombe alors sur le nom,
+  /// puis sur la proximité géographique. Le paramètre est optionnel : aucun
+  /// appel existant n'est cassé.
+  final String? stopId;
+
   const Stop({
     required this.name, required this.direction, required this.distanceMeters,
     required this.departureMinutesFromMidnight, required this.icon, required this.color,
     required this.location, required this.modeLabel, this.status = DataStatus.scheduled,
     this.source = DataSourceInfo.demo, this.stopType = StopType.departure,
+    this.stopId,
   });
 
   Stop copyWith({
     String? name, String? direction, double? distanceMeters,
     List<int>? departureMinutesFromMidnight, IconData? icon, Color? color,
     LatLng? location, DataStatus? status, String? modeLabel,
-    DataSourceInfo? source, StopType? stopType,
+    DataSourceInfo? source, StopType? stopType, String? stopId,
   }) => Stop(
     name: name ?? this.name,
     direction: direction ?? this.direction,
@@ -456,6 +618,7 @@ class Stop {
     modeLabel: modeLabel ?? this.modeLabel,
     source: source ?? this.source,
     stopType: stopType ?? this.stopType,
+    stopId: stopId ?? this.stopId,
   );
 
   bool get isContinuousFlow => modeLabel == 'AFTU' || modeLabel == 'Tata' || modeLabel == 'DDD';
@@ -668,6 +831,7 @@ void _integrateNetworkData() {
 
       final stop = Stop(
         name: busStop.name,
+        stopId: busStop.id,
         direction: i == stopIds.length - 1
             ? 'Terminus ${busStop.name} (Arrivée)'
             : 'Dir. ${appDataService.stops.lastWhere((s) => s.id == stopIds.last, orElse: () => busStop).name}',
@@ -722,6 +886,7 @@ void _integrateNetworkData() {
     const source = DataSourceInfo.aftuOfficial;
     final stop = Stop(
       name: bs.name,
+      stopId: bs.id,
       direction: 'Dir. Centre Dakar',
       distanceMeters: 500,
       departureMinutesFromMidnight: [],
@@ -1571,14 +1736,20 @@ class _TripsPageState extends State<TripsPage> {
                   Wrap(
                     spacing: 10, runSpacing: 10,
                     children: [
+                      // GROUPE 2 (§8) : les cibles sont dérivées du JSON par
+                      // exploitant. Les `Stop` de démonstration codés en dur ne
+                      // sont plus passés à `DetailedRoute` : leurs coordonnées
+                      // HISTORIQUES ne permettent plus de résoudre un arrêt
+                      // ACTUEL (voir `DetailedRoute.fromOperator`). Les trois
+                      // libellés ci-dessous sont conservés à l'identique (§21).
                       _suggestionChip('Dakar - Diamniadio (TER)', () {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(terStations.first))));
+                        openLineDetail(context, DetailedRoute.fromOperator('ter'));
                       }, dark),
                       _suggestionChip('Guédiawaye - Petersen (BRT)', () {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(brtStations.last))));
+                        openLineDetail(context, DetailedRoute.fromOperator('brt'));
                       }, dark),
                       _suggestionChip('Colobane - Yoff (DDD Ligne 1)', () {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: DetailedRoute.fromStop(dddStations.first))));
+                        openLineDetail(context, DetailedRoute.fromOperator('ddd'));
                       }, dark),
                     ],
                   ),
@@ -2409,7 +2580,9 @@ class SingleStopView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final crowd = TimeHelper.getCrowdLevel(stop);
-    final routeDetails = DetailedRoute.fromStop(stop);
+    // GROUPE 2 (§8) : `null` quand la ligne est indérivable des données
+    // courantes — un « inconnu » honnête (§12), jamais une fiche inventée.
+    final DetailedRoute? routeDetails = DetailedRoute.fromStop(stop);
 
     return AnimatedBuilder(
       animation: globalState,
@@ -2478,7 +2651,13 @@ class SingleStopView extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             ElevatedButton.icon(
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: routeDetails))),
+              // GROUPE 2 (§12) : bouton désactivé quand la ligne ne peut pas
+              // être dérivée de la source unique. Aucune fiche fabriquée n'est
+              // proposée en remplacement ; le composant et son style restent
+              // inchangés (§21).
+              onPressed: routeDetails == null
+                  ? null
+                  : () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: routeDetails!))),
               icon: const Icon(Icons.map_outlined, size: 18),
               label: const Text('Voir la ligne complète & stations', style: TextStyle(fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(
