@@ -391,12 +391,28 @@ void main() {
       expect(textes.where((String t) => t.startsWith('📍')), hasLength(2),
           reason: 'ni plus ni moins que les deux signalements existants');
 
-      // Le bouton de signalement reste actif : la fonctionnalité de publication
-      // n'est pas retirée par la correction.
-      final Finder bouton = find.widgetWithText(ElevatedButton, 'Signaler');
-      expect(bouton, findsOneWidget);
-      expect(tester.widget<ElevatedButton>(bouton).onPressed, isNotNull,
-          reason: 'la publication d\'un signalement doit rester possible');
+      // Le bouton de signalement reste actif : la fonctionnalité de
+      // publication n'est pas retirée par la correction.
+      //
+      // NB — `ElevatedButton.icon(…)` est une FABRIQUE qui retourne
+      // `_ElevatedButtonIcon`, une SOUS-CLASSE d'`ElevatedButton`. Or
+      // `find.widgetWithText` et `find.byType` comparent le `runtimeType`
+      // exact : ils ne trouvent donc aucun bouton ici. On remonte depuis le
+      // libellé avec un prédicat `is ElevatedButton`, qui reconnaît les
+      // sous-classes — d'où l'absence de dépendance à une classe concrète.
+      final Finder texteSignaler = find.text('Signaler');
+      expect(texteSignaler, findsOneWidget,
+          reason: 'le bouton de publication doit rester affiché');
+
+      final Finder boutons = find.ancestor(
+        of: texteSignaler,
+        matching: find.byWidgetPredicate((Widget w) => w is ElevatedButton),
+      );
+      expect(boutons, findsWidgets,
+          reason: 'E.4 — la publication d\'un signalement doit rester possible');
+      expect(tester.widget<ElevatedButton>(boutons.first).onPressed, isNotNull,
+          reason: 'E.4 — le bouton « Signaler » ne doit pas être désactivé : '
+              'la correction porte sur les libellés, pas sur la fonctionnalité');
 
       // Chaque signalement porte un horodatage explicitement non temporel, et
       // aucune date ni heure n'a été générée à la place.
