@@ -5,21 +5,24 @@ name: Flutter verify (Step 4B)
 # Objet : exécuter `flutter analyze` et `flutter test` sur la source Flutter
 #         située dans flutter-src/, parce que l'environnement de travail local
 #         ne peut pas installer le SDK Dart (sortie réseau restreinte :
-#         storage.googleapis.com et pub.dev inaccessibles).
+#         storage.googleapis.com et pub.dev inaccessibles, ainsi que les
+#         quatre miroirs de secours).
 #
 # Ce workflow ne déploie RIEN :
 #   - aucune permission `pages: write` ;
 #   - aucun job `deploy` ;
 #   - aucun `actions/upload-pages-artifact` ni `actions/deploy-pages` ;
-#   - aucune écriture sur la branche gh-pages ;
-#   - aucune publication, aucune release.
+#   - aucune écriture sur la branche gh-pages, ni sur main ;
+#   - aucune publication, aucune release, aucun commit de retour.
 #
-# Il ne se déclenche QUE sur la branche de session et sur appel manuel.
-# Il ne se déclenche pas sur `main` et pas sur `gh-pages`.
+# La permission `statuses: write` sert UNIQUEMENT à publier un statut de
+# commit portant le décompte des tests. Un statut ne modifie aucun fichier,
+# aucune branche, et ne peut rien déployer. Il est nécessaire parce que les
+# journaux de run sont hébergés sur results-receiver.actions.githubusercontent.com,
+# inaccessible depuis l'environnement de travail : sans ce canal, un
+# `flutter test` qui ne découvrirait AUCUN test passerait inaperçu.
 #
-# Le répertoire de travail est `flutter-src`, ce qui lève l'incompatibilité
-# n°2 relevée par la Phase 0 (le workflow historique `deploy.yml` n'avait
-# aucun répertoire de travail et supposait le projet à la racine).
+# Déclencheurs : la branche de session et l'appel manuel uniquement.
 
 on:
   push:
@@ -28,6 +31,7 @@ on:
 
 permissions:
   contents: read
+  statuses: write
 
 concurrency:
   group: flutter-verify-${{ github.ref }}
@@ -61,7 +65,34 @@ jobs:
         run: flutter pub get
 
       - name: Analyze (0 error exigé)
-        run: flutter analyze
+        run: |
+          flutter analyze 2>&1 | tee /tmp/analyze.log
+          exit ${PIPESTATUS[0]}
 
       - name: Test
-        run: flutter test --reporter expanded
+        run: |
+          flutter test --reporter expanded 2>&1 | tee /tmp/test.log
+          exit ${PIPESTATUS[0]}
+
+      - name: Publier le décompte (statut de commit, aucun fichier modifié)
+        if: always()
+        run: |
+          PASS=$(grep -oE '\+[0-9]+' /tmp/test.log 2>/dev/null | tail -1 | tr -d '+')
+          FAIL=$(grep -oE '\-[0-9]+' /tmp/test.log 2>/dev/null | tail -1 | tr -d '-')
+          ISSUES=$(grep -cE '^\s+(error|warning|info) ' /tmp/analyze.log 2>/dev/null || echo 0)
+          SUITES=$(ls test/*_test.dart 2>/dev/null | wc -l)
+          PASS=${PASS:-0}; FAIL=${FAIL:-0}; ISSUES=${ISSUES:-0}
+          DESC="tests +${PASS}/-${FAIL} | ${SUITES} fichiers | analyze: ${ISSUES} issue(s)"
+          DESC=$(printf '%s' "$DESC" | cut -c1-140)
+          if [ "${FAIL:-0}" = "0" ] && [ "${ISSUES:-0}" = "0" ] && [ "${PASS:-0}" != "0" ]; then
+            STATE=success
+          else
+            STATE=failure
+          fi
+          echo "Décompte publié : $DESC -> $STATE"
+          curl -sS -X POST \
+            -H "Authorization: Bearer ${{ github.token }}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }}" \
+            -d "{\"state\":\"$STATE\",\"description\":\"$DESC\",\"context\":\"flutter-4b/decompte\"}" \
+            -o /dev/null -w "  statut POST : HTTP %{http_code}\n"
