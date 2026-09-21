@@ -1181,9 +1181,193 @@ class MainShell extends StatefulWidget {
 
 enum GpsState { idle, loading, granted, denied, deniedForever, serviceDisabled, error }
 
+// ============================================================
+// GPS §11 — COUTURE PURE ET TESTABLE (Groupe 4, décision D3-i)
+// ------------------------------------------------------------
+// Toute la décision GPS (état, position, message) est calculée ici à partir
+// de types Dart simples, SANS aucune référence au plugin `geolocator`. Les
+// tests vérifient donc les décisions et les calculs sans dépendre du plugin
+// de géolocalisation, et sans ajouter de dépendance au `pubspec.yaml`.
+//
+// Règles appliquées :
+//   §11        position RÉELLE ou erreur/UNKNOWN — jamais de position
+//              fabriquée ; rayon 4000 m ; 30 résultats au maximum.
+//   §16        aucune position de substitution n'est produite ;
+//              `isSubstitutedPosition` reste `false` sur tous les chemins et
+//              aucune position substituée ne peut produire REAL_TIME
+//              (`DataStatus.live` n'est jamais assigné — 4A Carte 14).
+//   4A Carte 04 `A.ap3 = 4000`, `take(30)`,
+//              `LocationSettings(accuracy: high, distanceFilter: 10, 20 s)`.
+//
+// AVANT (défaut commun source + production, 4A §16) : une position mesurée
+// hors zone était remplacée par `LatLng(14.7167, -17.4677)` et l'état passait
+// à `granted` — une coordonnée inventée était exposée à tous les consommateurs
+// (carte, liste « à proximité », assistant, distances affichées).
+// APRÈS (décision D1-i) : aucune mesure exploitable → `position == null` et
+// état d'erreur explicite. Le recadrage sur Dakar reste assuré par
+// `_dakarCenter` dans `MapOptions.initialCenter`, donc la carte n'est jamais
+// vide et aucune coordonnée fabriquée n'est présentée comme la position de
+// l'utilisateur.
+// ============================================================
+
+/// Décision GPS pure : état + position + message.
+///
+/// [position] est `null` sauf si une position a été **mesurée** ET jugée
+/// valide par [DakarBounds]. Aucun chemin de [GpsResolver] ne produit une
+/// coordonnée non mesurée.
+class GpsResolution {
+  final GpsState state;
+  final LatLng? position;
+  final String? message;
+
+  /// §16 — drapeau « position substituée ».
+  ///
+  /// Toujours `false` dans cette application : il est conservé comme
+  /// **invariant vérifiable par les tests**. Si un chemin venait à exposer une
+  /// coordonnée non mesurée, ce drapeau devrait passer à `true` et le statut
+  /// REAL_TIME resterait interdit.
+  final bool isSubstitutedPosition;
+
+  const GpsResolution({
+    required this.state,
+    this.position,
+    this.message,
+    this.isSubstitutedPosition = false,
+  });
+
+  /// `true` uniquement pour une position réellement mesurée et exploitable.
+  bool get hasRealPosition => state == GpsState.granted && position != null;
+}
+
+/// Décisions GPS déterministes, sans plugin. Voir l'en-tête ci-dessus.
+class GpsResolver {
+  GpsResolver._();
+
+  /// Rayon « à proximité » prouvé — 4A Carte 04 : `A.ap3 = 4000`.
+  /// AVANT : 5000 m codés en dur dans `_filteredStops`.
+  static const double nearbyRadiusMeters = 4000.0;
+
+  /// Plafond de résultats Explorer prouvé — 4A Carte 04 : `take(30)`.
+  /// AVANT : `take(20)` (trois occurrences dans `_filteredStops`).
+  static const int nearbyLimit = 30;
+
+  /// `distanceFilter` du flux continu — 4A Carte 04 : `B.Lf`.
+  static const int streamDistanceFilterMeters = 10;
+
+  /// `timeLimit` du flux continu — 4A Carte 04 : `B.Lf` (20 s).
+  /// AVANT : `getCurrentPosition(timeLimit: 10 s)`, appel ponctuel.
+  static const Duration streamTimeLimit = Duration(seconds: 20);
+
+  static const GpsResolution idle = GpsResolution(state: GpsState.idle);
+  static const GpsResolution loading = GpsResolution(state: GpsState.loading);
+
+  /// Service de localisation désactivé (1ᵉʳ des 3 états d'erreur conservés).
+  static const GpsResolution serviceDisabled =
+      GpsResolution(state: GpsState.serviceDisabled, message: 'GPS désactivé.');
+
+  /// Échec technique du géolocaliseur (3ᵉ état d'erreur conservé).
+  static const GpsResolution error =
+      GpsResolution(state: GpsState.error, message: 'Erreur GPS.');
+
+  /// Permission refusée — simple ou définitive.
+  ///
+  /// 4A Carte 04 impose de conserver les 3 états d'erreur ; la décision D4
+  /// impose en plus que « refusée » et « refusée définitivement » soient
+  /// **distinguables** par l'utilisateur. `GpsState.deniedForever` était
+  /// déclaré dans l'enum sans jamais être assigné (les deux cas étaient
+  /// collapse en `denied`) : il est désormais utilisé. Aucun état nouveau n'est
+  /// créé — seule une valeur déjà déclarée reçoit son affectation.
+  static GpsResolution permissionDenied({required bool forever}) => forever
+      ? const GpsResolution(
+          state: GpsState.deniedForever,
+          message: 'Permission GPS refusée définitivement.',
+        )
+      : const GpsResolution(
+          state: GpsState.denied,
+          message: 'Permission GPS refusée.',
+        );
+
+  /// Position **mesurée** → décision (§11).
+  ///
+  /// - mesurée et dans [DakarBounds] → `granted`, coordonnée conservée telle
+  ///   quelle, aucune substitution ;
+  /// - mesurée mais hors zone → état d'erreur explicite et `position == null`
+  ///   (décision D1-i). Le message existant est conservé : il décrit un
+  ///   recadrage réellement effectué par `MapOptions.initialCenter` ;
+  /// - aucune mesure (`null`) → état d'erreur explicite et `position == null`.
+  static GpsResolution fromMeasuredPosition(LatLng? measured) {
+    if (measured == null) return error;
+    if (!DakarBounds.isValid(measured)) {
+      return const GpsResolution(
+        state: GpsState.error,
+        message: 'Position hors zone, recentré sur Dakar.',
+      );
+    }
+    return GpsResolution(
+      state: GpsState.granted,
+      position: measured,
+      message: 'Position GPS obtenue.',
+    );
+  }
+
+  /// Interruption du flux continu (erreur, ou `timeLimit` de 20 s atteint).
+  ///
+  /// Le `timeLimit` prouvé interrompt le flux dès qu'aucune nouvelle position
+  /// n'arrive dans ce délai — cas normal pour un utilisateur immobile, et le
+  /// `distanceFilter` de 10 m fait qu'un utilisateur statique n'émet justement
+  /// aucun nouvel événement. Détruire alors une position **réelle déjà
+  /// mesurée** ferait perdre une donnée valide, ce que le §11 interdit dans
+  /// son principe (« position réelle ou erreur » : ici la position réelle
+  /// existe). Elle est donc conservée. Sans aucune mesure préalable,
+  /// l'interruption est un échec GPS explicite.
+  ///
+  /// PORTÉ AU RAPPORT : la 4A ne décrit pas la politique d'erreur d'un flux
+  /// continu (le binaire prouve les réglages `B.Lf`, pas la gestion de son
+  /// interruption). Aucun redémarrage automatique n'est ajouté.
+  static GpsResolution fromStreamInterrupted(LatLng? lastMeasured) {
+    if (lastMeasured != null && DakarBounds.isValid(lastMeasured)) {
+      return GpsResolution(
+        state: GpsState.granted,
+        position: lastMeasured,
+        message: 'Position GPS obtenue.',
+      );
+    }
+    return error;
+  }
+
+  /// Liste « à proximité » prouvée — 4A Carte 04.
+  ///
+  /// Filtre à [nearbyRadiusMeters], tri par distance croissante depuis la
+  /// position **mesurée**, puis plafond [nearbyLimit].
+  ///
+  /// Sans position réelle, **aucune** liste n'est produite : `null` est
+  /// renvoyé et l'appelant conserve son ordre d'affichage existant. Aucune
+  /// distance n'est jamais calculée depuis une coordonnée fabriquée.
+  static List<Stop>? nearbyStops(Iterable<Stop> stops, LatLng? userPosition) {
+    if (userPosition == null) return null;
+    final within = stops
+        .where((s) =>
+            DistanceHelper.haversineMeters(userPosition, s.location) <
+            nearbyRadiusMeters)
+        .toList()
+      ..sort((a, b) => DistanceHelper
+          .haversineMeters(userPosition, a.location)
+          .compareTo(DistanceHelper.haversineMeters(userPosition, b.location)));
+    return within.take(nearbyLimit).toList();
+  }
+}
+
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
   Timer? _ticker;
+
+  /// GROUPE 4 (F4) — souscription au flux continu `getPositionStream`.
+  ///
+  /// DOIT être annulée dans [dispose] (règle générale n°9 : aucune fuite de
+  /// subscription). AVANT : aucun flux — un seul appel ponctuel
+  /// `getCurrentPosition` depuis `initState` puis à chaque appui sur le bouton.
+  StreamSubscription<Position>? _positionSub;
+
   LatLng? _userPosition;
   GpsState _gpsState = GpsState.idle;
   String? _gpsMessage;
@@ -1196,28 +1380,79 @@ class _MainShellState extends State<MainShell> {
   }
 
   @override
-  void dispose() { _ticker?.cancel(); super.dispose(); }
+  void dispose() {
+    // ✅ GROUPE 4 : annulation de la souscription GPS AVANT `super.dispose()`.
+    //    Sans cet appel, un State démonté continuerait de recevoir des
+    //    positions et de déclencher `setState` (fuite + exception).
+    //    AVANT : `void dispose() { _ticker?.cancel(); super.dispose(); }`
+    _positionSub?.cancel();
+    _ticker?.cancel();
+    super.dispose();
+  }
+
+  /// Reporte une décision pure de [GpsResolver] dans l'état du widget.
+  ///
+  /// Toute la logique de décision vit dans [GpsResolver], testable sans plugin
+  /// (décision D3-i). §11 : `_userPosition` ne reçoit qu'une position
+  /// réellement mesurée — jamais une coordonnée fabriquée.
+  void _applyGps(GpsResolution r) {
+    if (!mounted) return;
+    setState(() {
+      _gpsState = r.state;
+      _userPosition = r.position;
+      _gpsMessage = r.message;
+    });
+  }
 
   Future<void> _requestLocation() async {
     setState(() { _gpsState = GpsState.loading; _gpsMessage = null; });
     try {
-      if (!await Geolocator.isLocationServiceEnabled()) { setState(() { _gpsState = GpsState.serviceDisabled; _gpsMessage = 'GPS désactivé.'; }); return; }
+      if (!await Geolocator.isLocationServiceEnabled()) {
+        _applyGps(GpsResolver.serviceDisabled);
+        return;
+      }
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
-        setState(() { _gpsState = GpsState.denied; _gpsMessage = 'Permission GPS refusée.'; }); return;
+        // ✅ GROUPE 4 (D4) : refus simple et refus définitif désormais
+        //    distinguables. `GpsState.deniedForever` était déclaré dans l'enum
+        //    sans jamais être assigné (les deux cas étaient collapse en
+        //    `denied`) ; aucune valeur nouvelle n'est créée.
+        _applyGps(GpsResolver.permissionDenied(
+            forever: permission == LocationPermission.deniedForever));
+        return;
       }
-      final position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-        timeLimit: const Duration(seconds: 10),
+      // ✅ GROUPE 4 (F4) — flux continu prouvé, 4A Carte 04 :
+      //    `B.Lf = LocationSettings(accuracy: high, distanceFilter: 10,
+      //    timeLimit: 20 s)`, puis `getPositionStream(locationSettings: B.Lf)`.
+      //    AVANT : `getCurrentPosition(desiredAccuracy: high,
+      //    timeLimit: 10 s)`, ponctuel, sans `distanceFilter`.
+      //    Une souscription existante est annulée avant d'en ouvrir une
+      //    nouvelle : `_requestLocation` est appelé par `initState` ET par le
+      //    bouton GPS — deux flux simultanés seraient sinon possibles.
+      await _positionSub?.cancel();
+      _positionSub = Geolocator.getPositionStream(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          distanceFilter: GpsResolver.streamDistanceFilterMeters,
+          timeLimit: GpsResolver.streamTimeLimit,
+        ),
+      ).listen(
+        (position) => _applyGps(GpsResolver.fromMeasuredPosition(
+            LatLng(position.latitude, position.longitude))),
+        onError: (_) =>
+            _applyGps(GpsResolver.fromStreamInterrupted(_userPosition)),
+        onDone: () =>
+            _applyGps(GpsResolver.fromStreamInterrupted(_userPosition)),
+        cancelOnError: false,
       );
-      final latLng = LatLng(position.latitude, position.longitude);
-      if (DakarBounds.isValid(latLng)) {
-        setState(() { _userPosition = latLng; _gpsState = GpsState.granted; _gpsMessage = null; });
-      } else {
-        setState(() { _userPosition = const LatLng(14.7167, -17.4677); _gpsState = GpsState.granted; _gpsMessage = 'Position hors zone, recentré sur Dakar.'; });
-      }
-    } catch (_) { setState(() { _gpsState = GpsState.error; _gpsMessage = 'Erreur GPS.'; }); }
+    } catch (_) {
+      // AVANT : état `error` systématique. Désormais : une position réelle déjà
+      // mesurée est conservée (voir `GpsResolver.fromStreamInterrupted`). Au
+      // premier appel `_userPosition` est `null` → comportement identique à
+      // l'AVANT (`error` + 'Erreur GPS.').
+      _applyGps(GpsResolver.fromStreamInterrupted(_userPosition));
+    }
   }
 
   @override
@@ -1371,23 +1606,78 @@ class _ExplorerPageState extends State<ExplorerPage> {
         default: base = List.from(allStops); break;
       }
     }
+    // ✅ GROUPE 4 (F2 + F3) — 4A Carte 04 : rayon **4000 m** (`A.ap3`) et
+    //    plafond de **30 résultats** (`take(30)`).
+    //    AVANT : `< 5000` et `.take(20)` (trois occurrences).
+    //    Le calcul est délégué à `GpsResolver.nearbyStops`, couture pure
+    //    testable sans plugin de géolocalisation (décision D3-i).
+    //    Le tri **dupliqué** (deux `base.sort` identiques et consécutifs,
+    //    lignes 1374-1376 puis 1378-1379 avant édition) est supprimé : le même
+    //    comparateur appliqué deux fois de suite donne le même résultat, donc
+    //    aucun changement de comportement.
+    // ✅ Fluidité : n'affiche que les arrêts proches (4 km, 30 max) pour éviter la surcharge carte/liste
     if (widget.userPosition != null) {
       base.sort((a, b) => DistanceHelper.haversineMeters(widget.userPosition!, a.location).compareTo(DistanceHelper.haversineMeters(widget.userPosition!, b.location)));
-    }
-    // ✅ Fluidité : n'affiche que les arrêts proches (5km, 20 max) pour éviter la surcharge carte/liste
-    if (widget.userPosition != null) {
-      base.sort((a, b) => DistanceHelper.haversineMeters(widget.userPosition!, a.location).compareTo(DistanceHelper.haversineMeters(widget.userPosition!, b.location)));
-      final nearby = base.where((s) => DistanceHelper.haversineMeters(widget.userPosition!, s.location) < 5000).take(20).toList();
-      base = nearby.isNotEmpty ? nearby : base.take(20).toList();
+      final nearby = GpsResolver.nearbyStops(base, widget.userPosition) ?? const <Stop>[];
+      base = nearby.isNotEmpty ? nearby : base.take(GpsResolver.nearbyLimit).toList();
     } else {
+      // Sans position réelle, AUCUN « à proximité » n'est calculé depuis une
+      // coordonnée fabriquée : `dakarCenter` ne sert ici qu'à ORDONNER
+      // l'affichage (centre géographique de la zone couverte). Il n'est jamais
+      // exposé comme la position de l'utilisateur (décision D1-i).
       const dakarCenter = LatLng(14.7167, -17.4677);
       base.sort((a, b) => DistanceHelper.haversineMeters(dakarCenter, a.location).compareTo(DistanceHelper.haversineMeters(dakarCenter, b.location)));
-      base = base.take(20).toList();
+      base = base.take(GpsResolver.nearbyLimit).toList();
     }
     return base.where((s) => DakarBounds.isValid(s.location)).toList();
   }
 
+  /// GROUPE 4 (décision D6-i) — **COMPORTEMENT INCHANGÉ**.
+  ///
+  /// CONSTAT F7 PORTÉ AU RAPPORT, NON PROUVÉ / HORS PÉRIMÈTRE :
+  /// quand `_userPosition == null`, cette méthode retombe sur
+  /// `s.distanceMeters`, c'est-à-dire une valeur portée par le modèle `Stop`
+  /// (500, 350, `35000`, valeurs dérivées d'un index pour les arrêts de
+  /// démonstration), et `StopCard` l'affiche comme s'il s'agissait de la
+  /// distance de l'utilisateur à l'arrêt.
+  ///
+  /// Aucune preuve 4A ne couvre ce point (ni Carte 04, ni Carte 08, ni
+  /// Carte 15). Conformément à la règle 3 (« ne rien réimplémenter de NON
+  /// PROUVÉ ») et à la décision D6-i, la distance affichée n'est **pas**
+  /// modifiée et n'est **pas** transformée en « inconnue ». Le constat est
+  /// uniquement documenté ici et dans le rapport final du Groupe 4.
+  ///
+  /// Note : depuis la décision D1-i, `_userPosition` est `null` tant qu'aucune
+  /// position réelle n'a été mesurée — ce chemin de repli est donc désormais
+  /// atteint plus souvent qu'avant, sans jamais exposer de coordonnée
+  /// fabriquée comme position utilisateur.
   double _distanceTo(Stop s) => widget.userPosition == null ? s.distanceMeters : DistanceHelper.haversineMeters(widget.userPosition!, s.location);
+
+  /// GROUPE 4 (D4-i) — icône du bandeau GPS.
+  ///
+  /// Reflète uniquement l'état réel produit par [GpsResolver]. Les quatre cas
+  /// exigés par D4 sont visuellement séparés : position obtenue, permission
+  /// refusée (simple ou définitive), service désactivé, erreur.
+  IconData get _gpsBannerIcon => switch (widget.gpsState) {
+        GpsState.granted => Icons.my_location,
+        GpsState.denied || GpsState.deniedForever => Icons.location_off,
+        GpsState.serviceDisabled => Icons.location_disabled,
+        GpsState.idle || GpsState.loading || GpsState.error => Icons.gps_not_fixed,
+      };
+
+  /// GROUPE 4 (D4-i) — couleur du bandeau GPS.
+  ///
+  /// Palette existante uniquement : `AppColors.success` (vert officiel, déjà
+  /// utilisé pour une position obtenue sur le bouton GPS), `AppColors.warning`
+  /// (déjà utilisé pour « Bientôt » dans `StopCard`) et `AppColors.textSecondary`.
+  Color _gpsBannerColor(bool dark) => switch (widget.gpsState) {
+        GpsState.granted => AppColors.success,
+        GpsState.denied ||
+        GpsState.deniedForever ||
+        GpsState.serviceDisabled =>
+          AppColors.warning,
+        GpsState.idle || GpsState.loading || GpsState.error => AppColors.textSecondary(dark),
+      };
 
   List<Stop> get _searchResults {
     final q = _searchCtrl.text.trim().toLowerCase();
@@ -1414,7 +1704,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
     final activePolylines = filterColor == null
         ? basePolylines.where((p) => p.color == AppColors.ter || p.color == AppColors.brt).toList() // Tous : seulement TER/BRT (tracés dédiés, pas le spaghetti)
         : basePolylines.where((p) => p.color == filterColor).toList();
-    final mapStops = _filteredStops; // ✅ Toujours filtré à proximité (20 max), pas allStops
+    final mapStops = _filteredStops; // ✅ Toujours filtré à proximité (30 max — Groupe 4), pas allStops
 
     return AnimatedBuilder(
       animation: globalState,
@@ -1425,6 +1715,44 @@ class _ExplorerPageState extends State<ExplorerPage> {
             bottom: false,
             child: Column(
               children: [
+                // ✅ GROUPE 4 (F5, décision D4-i) — BANDEAU GPS PERSISTANT.
+                //
+                // `gpsMessage` était déjà transmis à `ExplorerPage` par
+                // `MainShell.build` et déclaré comme champ de ce widget, mais
+                // n'était lu dans AUCUN `build` : les messages produits par le
+                // code étaient **invisibles** pour l'utilisateur (constat absent
+                // du rapport 4A, qui les supposait « transitoires »).
+                // 4A Carte 04 — tests (b), (c), (d), (e) — et la décision D4
+                // exigent qu'ils le deviennent et soient distinguables :
+                // position obtenue / refusée / refusée définitivement / erreur.
+                //
+                // Intervention UI minimale : aucun composant nouveau, aucune
+                // refonte d'Explorer. Mêmes couleurs (`AppColors.surface`,
+                // `divider`, `success`, `warning`, `textSecondary`), même rayon
+                // 16, mêmes marges et même corps de texte 11 gras que le reste
+                // de l'écran. Le bandeau reste affiché tant qu'un message
+                // existe (§16 : persistance) et ne contient AUCUNE information
+                // inventée — uniquement l'état réel du géolocaliseur.
+                if (widget.gpsMessage != null)
+                  Container(
+                    margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface(dark),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.divider(dark)),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(_gpsBannerIcon, size: 14, color: _gpsBannerColor(dark)),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(widget.gpsMessage!,
+                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: _gpsBannerColor(dark))),
+                        ),
+                      ],
+                    ),
+                  ),
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 250),
                   height: _mapHeight.toDouble(),
