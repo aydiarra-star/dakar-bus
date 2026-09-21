@@ -52,7 +52,7 @@ const double _metersPerDegreeLat = 6371008.8 * math.pi / 180.0;
 /// Position de référence des fixtures : gare TER de Dakar, réelle et valide
 /// au sens de [DakarBounds]. Volontairement différente de la coordonnée de
 /// recadrage historique `LatLng(14.7167, -17.4677)`.
-final LatLng _user = const LatLng(14.67599, -17.43352);
+const LatLng _user = LatLng(14.67599, -17.43352);
 
 LatLng _northOf(LatLng from, double meters) =>
     LatLng(from.latitude + meters / _metersPerDegreeLat, from.longitude);
@@ -175,7 +175,7 @@ void main() {
 
     test('(e) position mesurée HORS zone → position null + état d\'erreur explicite (D1-i)', () {
       // Au nord de DakarBounds.north = 14.9
-      final horsZone = const LatLng(15.5, -17.0);
+      const horsZone = LatLng(15.5, -17.0);
       expect(DakarBounds.isValid(horsZone), isFalse, reason: 'fixture doit être hors zone');
 
       final r = GpsResolver.fromMeasuredPosition(horsZone);
@@ -260,7 +260,7 @@ void main() {
 
   group('Groupe 4 — les 3 états d\'erreur conservés + D4 distinguables', () {
     test('(b) service de localisation désactivé → serviceDisabled', () {
-      final r = GpsResolver.serviceDisabled;
+      const r = GpsResolver.serviceDisabled;
 
       expect(r.state, GpsState.serviceDisabled);
       expect(r.message, 'GPS désactivé.');
@@ -285,7 +285,7 @@ void main() {
     });
 
     test('(d) erreur du géolocaliseur → error', () {
-      final r = GpsResolver.error;
+      const r = GpsResolver.error;
 
       expect(r.state, GpsState.error);
       expect(r.message, 'Erreur GPS.');
