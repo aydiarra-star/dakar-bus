@@ -2353,12 +2353,35 @@ class AlertsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final List<Map<String, dynamic>> officialAlerts = [
       {
+        // GROUPE 5 — micro-correction (§6 : TER = 13 gares, ordre exact).
+        //
+        // AVANT : « (14 Gares) », « dessert officiellement 14 gares … Keur
+        //         Massar … », badge « 14 Gares Officielles ».
+        // PREUVE : ces trois textes sont une invention du source récupéré. Le
+        //         binaire de production (gh-pages 94a84b6070569, main.dart.js)
+        //         ne contient AUCUNE occurrence de « 14 Gares », « 14 gares »
+        //         ni « Gares Officielles », et n'a aucune carte « Réseau CETUD
+        //         & SETER ». Son alerte TER réelle annonce « 13 gares
+        //         desservies ».
+        // CONTRADICTION : `stop_keur_massar` est desservi par 6 lignes — DDD 23,
+        //         AFTU 5, AFTU 38, AFTU 46, AFTU 53 et Tata 218 — et par
+        //         AUCUNE ligne TER. Le présenter comme une gare du TER
+        //         contredit le §6 et la source unique.
+        // APRÈS : 13 gares, et les cinq gares citées en exemple sont toutes des
+        //         gares TER officielles de `ter_dakar_diamniadio` — Colobane
+        //         (#2), Hann (#3), Pikine (#6), Keur Mbaye Fall (#9,
+        //         `stop_keur_mbaye_fall`) et Rufisque (#11). Keur Massar est
+        //         remplacé par Keur Mbaye Fall, gare officielle dont le nom
+        //         proche est la source vraisemblable de la confusion.
+        // PÉRIMÈTRE : textes uniquement. Aucun widget, badge, icône, couleur,
+        //         sévérité ni structure modifié ; JSON inchangé ; Keur Massar
+        //         n'est ajouté à aucune donnée TER.
         'type': 'TER',
-        'title': 'Réseau CETUD & SETER (14 Gares)',
+        'title': 'Réseau CETUD & SETER (13 Gares)',
         'source': 'Source officielle : CETUD / SETER',
-        'message': 'Le TER dessert officiellement 14 gares de Dakar à Diamniadio en passant par Colobane, Hann, Pikine, Keur Massar et Rufisque.',
+        'message': 'Le TER dessert officiellement 13 gares de Dakar à Diamniadio en passant par Colobane, Hann, Pikine, Keur Mbaye Fall et Rufisque.',
         'severity': 'success',
-        'badge': '14 Gares Officielles',
+        'badge': '13 Gares Officielles',
         'icon': Icons.train_rounded,
         'color': AppColors.ter,
       },
