@@ -2386,12 +2386,41 @@ class AlertsPage extends StatelessWidget {
         'color': AppColors.ter,
       },
       {
+        // GROUPE 6 — corrections factuelles minimales. Rapport d'audit :
+        // `docs/dakar-bus/groupe-6/RAPPORT_AUDIT.md`, incohérences E.2 et E.3.
+        //
+        // E.2 — « Grand Yoff » RETIRÉ de l'énumération du corridor.
+        //   PREUVE : dans `dakar_network.json` (source unique), la ligne
+        //   `brt_b1_guediawaye_petersen` compte 23 stations et AUCUNE ne porte
+        //   ce nom. L'arrêt `stop_grand_yoff` (« Grand Yoff - BRT & AFTU Hub »)
+        //   existe bien dans le JSON, mais il est desservi par des lignes DDD
+        //   et AFTU — pas par le B1. Le citer comme station du corridor BRT
+        //   contredisait donc la source unique. Les lieux conservés sont tous
+        //   confirmés : Guédiawaye (#1), Dalal Jamm (#5), Parcelles Assainies
+        //   (#8), Obélisque (#21), Petersen (#23).
+        //   PÉRIMÈTRE : aucune station créée, la liste des 23 stations n'est
+        //   pas modifiée, la carte et les polylignes ne sont pas touchées. La
+        //   formulation retenue est celle que l'audit a classée « CONFIRMÉ PAR
+        //   LES DONNÉES » (E.16) pour le descriptif BRT de l'assistant — les
+        //   deux textes décrivent désormais le même corridor, sans qu'aucun
+        //   des deux n'ait été inventé.
+        //
+        // E.3 — badge « En direct » remplacé par « Données officielles ».
+        //   PREUVE : `DataStatus.live` n'est JAMAIS assigné dans `lib/` (enum
+        //   déclaré L719, seule valeur effectivement utilisée : `scheduled`).
+        //   Aucun flux temps réel n'existe : les trois cartes ci-dessus sont
+        //   des littéraux statiques. Le badge affirmait donc un direct sans
+        //   aucune donnée pour l'étayer, ce que le §18 interdit.
+        //   Le libellé retenu s'appuie sur un statut RÉEL de la source unique :
+        //   `brt_b1_guediawaye_petersen.data_trust == 'OFFICIAL'`
+        //   (`DataTrust.official`). Aucun horodatage n'est créé, aucun statut
+        //   REAL_TIME n'est introduit, aucune donnée nouvelle n'est inventée.
         'type': 'BRT',
         'title': 'Corridor officiel SunuBRT',
         'source': 'Source officielle : Dakar Mobilité / CETUD',
-        'message': 'Le corridor relie Guédiawaye à Petersen en passant par Dalal Jamm, Parcelles Assainies, Grand Yoff et la Place de l’Obélisque.',
+        'message': 'Le corridor relie Guédiawaye à Petersen en passant par Dalal Jamm, Parcelles Assainies et la Place de l’Obélisque.',
         'severity': 'success',
-        'badge': 'En direct',
+        'badge': 'Données officielles',
         'icon': Icons.directions_bus_rounded,
         'color': AppColors.brt,
       },
@@ -2481,9 +2510,31 @@ class CommunityAlertsPage extends StatefulWidget {
 }
 
 class CommunityAlertsPageState extends State<CommunityAlertsPage> {
+  // GROUPE 6 — correction factuelle minimale. Rapport d'audit :
+  // `docs/dakar-bus/groupe-6/RAPPORT_AUDIT.md`, incohérence E.4.
+  //
+  // AVANT : `time: 'Il y a 3 min'` et `'Il y a 6 min'` — chaînes FIGÉES,
+  //         rendues telles quelles par le build (`Text(report['time']!)`).
+  //         Elles affirmaient une ancienneté relative à l'instant présent
+  //         alors qu'aucun horodatage n'existe : un signalement affiché
+  //         « il y a 3 min » le restait indéfiniment, y compris après
+  //         plusieurs jours. C'est présenter une donnée statique comme un
+  //         événement temps réel actuellement observé (§18, §20).
+  // PREUVE : `dakar_network.json` (source unique) ne contient aucune donnée de
+  //         signalement ; il n'y a ni backend ni persistance ; `DataStatus.live`
+  //         n'est jamais assigné dans `lib/`.
+  // APRÈS : `'Sans horodatage'` — formulation explicitement NON temps réel,
+  //         choisie parmi les deux options autorisées par la consigne (statut
+  //         déjà présent, ou libellé explicitement non live). Aucune date ni
+  //         heure n'est générée, aucun signalement n'est créé, la
+  //         fonctionnalité est intégralement conservée.
+  // PÉRIMÈTRE : mêmes clés, mêmes valeurs pour `user`/`location`/`type`, même
+  //         structure de carte, même widget de rendu. Seule la chaîne `time`
+  //         change. La clé `status` n'est lue par AUCUN widget (vérifié) :
+  //         elle est laissée inchangée, hors périmètre.
   final List<Map<String, String>> _communityReports = [
-    {'user': 'Mamadou S.', 'location': 'Parcelles Assainies (BRT)', 'type': 'Trafic fluide', 'time': 'Il y a 3 min', 'status': '🟢 Fluide'},
-    {'user': 'Aïssatou N.', 'location': 'Gare de Dakar (TER)', 'type': 'Embarquement régulier', 'time': 'Il y a 6 min', 'status': '🟢 Fluide'},
+    {'user': 'Mamadou S.', 'location': 'Parcelles Assainies (BRT)', 'type': 'Trafic fluide', 'time': 'Sans horodatage', 'status': '🟢 Fluide'},
+    {'user': 'Aïssatou N.', 'location': 'Gare de Dakar (TER)', 'type': 'Embarquement régulier', 'time': 'Sans horodatage', 'status': '🟢 Fluide'},
   ];
 
   void _showAddReportModal() {
@@ -2575,7 +2626,16 @@ class CommunityAlertsPageState extends State<CommunityAlertsPage> {
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Text('Direct rue & Communauté', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
                       const SizedBox(height: 4),
-                      Text('Signalements en temps réel par les usagistes à Dakar.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary(dark))),
+                      // GROUPE 6 (E.4 / E.5) : « en temps réel » RETIRÉ —
+                      // aucun flux live n'existe (aucune donnée de signalement
+                      // dans la source unique, `DataStatus.live` jamais
+                      // assigné). « usagistes » → « usagers » : c'est la seule
+                      // formulation attestée, le binaire de production
+                      // contenant exactement « Signalements en temps réel par
+                      // les usagers à Dakar. » (`usagistes` : 0 occurrence).
+                      // La structure du widget, son style et sa place dans la
+                      // mise en page sont inchangés.
+                      Text('Signalements publiés par les usagers à Dakar.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary(dark))),
                     ])),
                     ElevatedButton.icon(
                       onPressed: _showAddReportModal,
