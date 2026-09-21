@@ -1,0 +1,671 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:dakar_bus/main.dart';
+import 'package:dakar_bus/models/transport_network.dart';
+
+/// CORRECTION TER + BRT — structure des données et des itinéraires.
+///
+/// Ce fichier fige la séparation imposée entre les deux notions :
+///
+///   `<MODE>_NETWORK_POINTS`       les points du réseau visibles dans Explorer
+///   `<MODE>_OFFICIAL_ROUTE_STOPS` les arrêts officiels d'un itinéraire
+///
+/// Explorer peut afficher davantage de points que l'itinéraire officiel ne
+/// compte de stations ; l'inverse n'est jamais vrai, et un point d'Explorer
+/// n'est jamais promu dans un itinéraire officiel au seul motif qu'il apparaît
+/// sur la carte.
+///
+/// Données de référence : `assets/data/dakar_network.json`,
+/// md5 81c778f4644dcf5e1cf4ae25879218f0, 59 189 octets — source unique (§4-§5),
+/// identique octet par octet au JSON servi par gh-pages 94a84b6070569.
+///
+/// Référence du comportement combattu : la branche BRT codée en dur du binaire
+/// de production (`a3j`, gh-pages) renvoyait **11** stations regroupées —
+/// Guédiawaye, Hôpital Dalal Jamm, Parcelles Assainies, Cambérène, Grand Yoff,
+/// Fadia, Liberté 6, Grand Médine, Sacré-Cœur, Place de l'Obélisque,
+/// Gare de Petersen — avec l'en-tête littéral « 14.0 km ». Le §7 interdit ce
+/// modèle ; les tests ci-dessous verrouillent les 23 stations officielles
+/// distinctes à la place.
+
+/// Les 13 gares de l'itinéraire TER, ordre Dakar -> Diamniadio (§6).
+const List<String> kTer13 = <String>[
+  'stop_dakar_ter',
+  'stop_colobane',
+  'stop_hann',
+  'stop_dalifort_ter',
+  'stop_baux_maraichers',
+  'stop_pikine',
+  'stop_thiaroye',
+  'stop_yeumbeul',
+  'stop_keur_mbaye_fall',
+  'stop_pnr',
+  'stop_rufisque',
+  'stop_bargny',
+  'stop_diamniadio',
+];
+
+/// Les 23 stations SunuBRT de B1, ordre Guédiawaye -> Petersen (§7).
+const List<String> kBrtB123 = <String>[
+  'stop_brt_23_guediawaye',
+  'stop_brt_22_gadaye',
+  'stop_brt_21_golf_nord',
+  'stop_brt_20_fith_mith',
+  'stop_brt_19_dalal_jamm',
+  'stop_brt_18_golf_sud',
+  'stop_brt_17_ndingala',
+  'stop_brt_16_parcelles_assainies',
+  'stop_brt_15_croisement_22',
+  'stop_brt_14_police_parcelles',
+  'stop_brt_13_grand_medine',
+  'stop_brt_12_thiandoum',
+  'stop_brt_11_scat_urbam',
+  'stop_brt_10_khar_yallah',
+  'stop_brt_09_liberte_6',
+  'stop_brt_08_liberte_5',
+  'stop_brt_07_sacre_coeur',
+  'stop_brt_06_liberte_1',
+  'stop_brt_05_grand_dakar',
+  'stop_brt_04_dial_diop',
+  'stop_brt_03_obelisque',
+  'stop_brt_02_mosquee',
+  'stop_brt_01_petersen',
+];
+
+/// Les 7 stations directes de B2 Express, toutes incluses dans B1.
+const List<String> kBrtB27 = <String>[
+  'stop_brt_23_guediawaye',
+  'stop_brt_19_dalal_jamm',
+  'stop_brt_16_parcelles_assainies',
+  'stop_brt_13_grand_medine',
+  'stop_brt_09_liberte_6',
+  'stop_brt_03_obelisque',
+  'stop_brt_01_petersen',
+];
+
+/// Les 11 libellés regroupés de la branche BRT codée en dur de production.
+/// Aucun ne doit constituer, à lui seul, une station de l'itinéraire officiel.
+const List<String> kLegacyBrt11 = <String>[
+  'Guédiawaye',
+  'Hôpital Dalal Jamm',
+  'Parcelles Assainies',
+  'Cambérène',
+  'Grand Yoff',
+  'Fadia',
+  'Liberté 6',
+  'Grand Médine',
+  'Sacré-Cœur',
+  'Place de l’Obélisque',
+  'Gare de Petersen',
+];
+
+const String kTerRouteId = 'ter_dakar_diamniadio';
+const String kBrtB1Id = 'brt_b1_guediawaye_petersen';
+const String kBrtB2Id = 'brt_b2_express';
+
+/// Nombre de points TER affichés par Explorer. Base figée : 8 points issus de
+/// la liste de démonstration `terStations` + les 13 gares officielles du JSON,
+/// sans collision de clé `nom_latitude_longitude`. Ce nombre est SUPÉRIEUR aux
+/// 13 gares de l'itinéraire, ce qui est attendu (§6) : il ne doit jamais être
+/// réduit artificiellement pour correspondre à l'itinéraire.
+const int kTerExplorerPoints = 21;
+
+/// Nombre de points BRT affichés par Explorer : 4 + 23, même raisonnement.
+const int kBrtExplorerPoints = 27;
+
+/// Charge la DONNÉE ACTIVE sur la globale [appDataService] puis exécute
+/// l'intégration, dans les mêmes conditions que `main()`.
+Future<void> prepareNetwork() async {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  if (!appDataService.isLoaded) {
+    await appDataService.loadNetworkData();
+  }
+  expect(appDataService.isLoaded, true);
+  // Garde : sans lecture de l'asset, le repli codé en dur donnerait 6 arrêts.
+  expect(appDataService.stops.length, 117,
+      reason: 'la DONNÉE ACTIVE doit être chargée, pas le repli en dur');
+  expect(appDataService.routes.length, 105);
+  integrateNetworkDataForTest();
+}
+
+/// Clé de coordonnées à la précision employée par le service de routage.
+String coordKey(double lat, double lon) =>
+    '${lat.toStringAsFixed(5)},${lon.toStringAsFixed(5)}';
+
+void main() {
+  setUpAll(() async {
+    await prepareNetwork();
+  });
+
+  // ==================================================================
+  group('§1 / §6 — Explorer ≠ itinéraire : les deux ensembles restent distincts',
+      () {
+    test('TER : Explorer conserve tous ses points existants', () {
+      final List<Stop> points = networkPoints(AppColors.ter);
+      expect(points.length, kTerExplorerPoints,
+          reason: 'aucun point d\'Explorer ne doit disparaître (§6, Test TER 1)');
+    });
+
+    test('BRT : Explorer conserve tous ses points existants', () {
+      final List<Stop> points = networkPoints(AppColors.brt);
+      expect(points.length, kBrtExplorerPoints,
+          reason: 'aucun point d\'Explorer ne doit disparaître (§6, Test BRT 1)');
+    });
+
+    test('Explorer affiche PLUS de points TER que l\'itinéraire ne compte de gares',
+        () {
+      expect(networkPoints(AppColors.ter).length,
+          greaterThan(officialRouteStops(kTerRouteId)!.length),
+          reason: 'le compteur Explorer ne doit pas être aligné sur l\'itinéraire');
+    });
+
+    test('Explorer affiche PLUS de points BRT que B1 ne compte de stations', () {
+      expect(networkPoints(AppColors.brt).length,
+          greaterThan(officialRouteStops(kBrtB1Id)!.length));
+    });
+
+    test('les 13 gares officielles TER sont bien présentes dans Explorer', () {
+      final Set<String> idsAffiches = networkPoints(AppColors.ter)
+          .map((Stop s) => s.stopId)
+          .whereType<String>()
+          .toSet();
+      for (final String id in kTer13) {
+        expect(idsAffiches.contains(id), true,
+            reason: 'la gare officielle $id doit rester visible dans Explorer');
+      }
+    });
+
+    test('les 23 stations officielles B1 sont bien présentes dans Explorer', () {
+      final Set<String> idsAffiches = networkPoints(AppColors.brt)
+          .map((Stop s) => s.stopId)
+          .whereType<String>()
+          .toSet();
+      for (final String id in kBrtB123) {
+        expect(idsAffiches.contains(id), true,
+            reason: 'la station officielle $id doit rester visible dans Explorer');
+      }
+    });
+
+    test('aucun point d\'Explorer n\'est promu dans l\'itinéraire TER', () {
+      // L'itinéraire reste à 13 alors qu'Explorer affiche 21 points : la
+      // promotion d'un point d'Explorer ferait croître la liste officielle.
+      expect(officialRouteStops(kTerRouteId)!.length, 13);
+    });
+
+    test('Keur Massar reste hors de l\'itinéraire TER (§6)', () {
+      final List<String> ids =
+          officialRouteStops(kTerRouteId)!.map((BusStop s) => s.id).toList();
+      expect(ids.contains('stop_keur_massar'), false,
+          reason: 'Keur Massar est desservi par DDD/AFTU/Tata, jamais par le TER');
+      // Il subsiste comme point du réseau, desservi hors TER.
+      expect(appDataService.stops.any((BusStop s) => s.id == 'stop_keur_massar'),
+          true);
+    });
+  });
+
+  // ==================================================================
+  group('§6 — itinéraire TER : 13 gares officielles, ordre et sens inverse', () {
+    test('l\'itinéraire TER compte exactement 13 gares', () {
+      expect(officialRouteStops(kTerRouteId)!.length, 13);
+    });
+
+    test('ordre exact Dakar -> Diamniadio (§6, Test TER 3)', () {
+      expect(officialRouteStops(kTerRouteId)!.map((BusStop s) => s.id).toList(),
+          orderedEquals(kTer13));
+    });
+
+    test('ordre inverse exact Diamniadio -> Dakar (§7, Test TER 4)', () {
+      expect(
+          officialRouteStops(kTerRouteId, reverse: true)!
+              .map((BusStop s) => s.id)
+              .toList(),
+          orderedEquals(kTer13.reversed.toList()));
+    });
+
+    test('le sens inverse est une INVERSION, pas une seconde liste (§7)', () {
+      final List<String> aller =
+          officialRouteStops(kTerRouteId)!.map((BusStop s) => s.id).toList();
+      final List<String> retour = officialRouteStops(kTerRouteId, reverse: true)!
+          .map((BusStop s) => s.id)
+          .toList();
+      expect(retour, orderedEquals(aller.reversed.toList()));
+      expect(retour.toSet(), aller.toSet(),
+          reason: 'les deux sens décrivent exactement les mêmes gares');
+      expect(retour.length, aller.length);
+    });
+
+    test('terminus : Gare TER Dakar en tête, Diamniadio en queue', () {
+      final List<BusStop> gares = officialRouteStops(kTerRouteId)!;
+      expect(gares.first.name, 'Gare TER Dakar');
+      expect(gares.last.name, 'Diamniadio - Gare TER Terminus');
+    });
+
+    test('réseau de l\'itinéraire TER = ter', () {
+      expect(networkOfRoute(kTerRouteId), 'ter');
+    });
+
+    test('chaque gare porte un statut de donnée connu (§9)', () {
+      for (final BusStop s in officialRouteStops(kTerRouteId)!) {
+        expect(DataTrust.values.contains(s.dataTrust), true,
+            reason: '${s.id} : statut de donnée inconnu du modèle');
+      }
+    });
+
+    test('chaque gare a des coordonnées valides, aucune n\'est à (0,0)', () {
+      for (final BusStop s in officialRouteStops(kTerRouteId)!) {
+        expect(DakarBounds.isValid(LatLng(s.latitude, s.longitude)), true,
+            reason: '${s.id} hors du garde-fou Dakar');
+        expect(s.latitude == 0.0 && s.longitude == 0.0, false);
+      }
+    });
+
+    test('la fiche de ligne TER expose les 13 gares dans l\'ordre', () {
+      final DetailedRoute? fiche = DetailedRoute.fromOperator('ter');
+      expect(fiche, isNotNull);
+      expect(fiche!.stops.length, 13);
+      expect(fiche.stops.map((DetailedStop s) => s.stopId).toList(),
+          orderedEquals(kTer13));
+      expect(fiche.origin, 'Gare TER Dakar');
+      expect(fiche.destination, 'Diamniadio - Gare TER Terminus');
+    });
+
+    test('la fiche de ligne TER en sens inverse expose l\'ordre retourné', () {
+      final DetailedRoute? fiche =
+          DetailedRoute.fromOperator('ter', reverse: true);
+      expect(fiche, isNotNull);
+      expect(fiche!.stops.map((DetailedStop s) => s.stopId).toList(),
+          orderedEquals(kTer13.reversed.toList()));
+      expect(fiche.origin, 'Diamniadio - Gare TER Terminus');
+      expect(fiche.destination, 'Gare TER Dakar');
+    });
+  });
+
+  // ==================================================================
+  group('§7 — itinéraire BRT B1 : 23 stations distinctes, ordre et sens inverse',
+      () {
+    test('B1 compte exactement 23 stations officielles', () {
+      expect(officialRouteStops(kBrtB1Id)!.length, 23);
+    });
+
+    test('ordre exact Guédiawaye -> Petersen (§7, Test BRT 3)', () {
+      expect(officialRouteStops(kBrtB1Id)!.map((BusStop s) => s.id).toList(),
+          orderedEquals(kBrtB123));
+    });
+
+    test('ordre inverse exact Petersen -> Guédiawaye (§7, Test BRT 4)', () {
+      expect(
+          officialRouteStops(kBrtB1Id, reverse: true)!
+              .map((BusStop s) => s.id)
+              .toList(),
+          orderedEquals(kBrtB123.reversed.toList()));
+    });
+
+    test('le sens inverse est une INVERSION, pas une seconde liste (§7)', () {
+      final List<String> aller =
+          officialRouteStops(kBrtB1Id)!.map((BusStop s) => s.id).toList();
+      final List<String> retour = officialRouteStops(kBrtB1Id, reverse: true)!
+          .map((BusStop s) => s.id)
+          .toList();
+      expect(retour, orderedEquals(aller.reversed.toList()));
+      expect(retour.toSet(), aller.toSet());
+      expect(retour.length, 23);
+    });
+
+    test('les 23 stations sont des entités DISTINCTES — identifiants', () {
+      final List<String> ids =
+          officialRouteStops(kBrtB1Id)!.map((BusStop s) => s.id).toList();
+      expect(ids.toSet().length, 23,
+          reason: 'une station ne doit pas apparaître deux fois');
+    });
+
+    test('les 23 stations sont des entités DISTINCTES — noms officiels', () {
+      final List<String> noms =
+          officialRouteStops(kBrtB1Id)!.map((BusStop s) => s.name).toList();
+      expect(noms.toSet().length, 23,
+          reason: 'deux stations officielles ne partagent pas un nom');
+    });
+
+    test('les 23 stations sont des entités DISTINCTES — coordonnées', () {
+      final Set<String> coords = officialRouteStops(kBrtB1Id)!
+          .map((BusStop s) => coordKey(s.latitude, s.longitude))
+          .toSet();
+      expect(coords.length, 23,
+          reason: 'deux stations officielles ne partagent pas une position');
+    });
+
+    test('B1 n\'est PAS les 11 regroupements historiques (§7, Test BRT 2)', () {
+      final List<String> noms =
+          officialRouteStops(kBrtB1Id)!.map((BusStop s) => s.name).toList();
+      expect(noms.length, isNot(11),
+          reason: 'le modèle à 11 stations est interdit par le §7');
+      for (final String legacy in kLegacyBrt11) {
+        expect(noms.contains(legacy), false,
+            reason: '« $legacy » est un regroupement historique de plusieurs '
+                'stations ou zones ; ce n\'est pas une station officielle '
+                'distincte de B1');
+      }
+    });
+
+    test('les stations officiellement distinctes ne sont pas fusionnées (§7)',
+        () {
+      // Cas précis du regroupement historique « Liberté 6 » : le corridor
+      // officiel distingue Liberté 6, Liberté 5 et Liberté 1.
+      final List<String> noms =
+          officialRouteStops(kBrtB1Id)!.map((BusStop s) => s.name).toList();
+      expect(noms.where((String n) => n.startsWith('Liberté')).length, 3,
+          reason: 'Liberté 6, Liberté 5 et Liberté 1 sont trois stations');
+      // Cas du regroupement historique « Guédiawaye » : le corridor distingue
+      // Préfecture Guédiawaye, Gadaye - Cambérène, Golf Nord, Fith Mith.
+      expect(
+          noms
+              .where((String n) =>
+                  n.contains('Guédiawaye') ||
+                  n.contains('Gadaye') ||
+                  n.contains('Golf Nord') ||
+                  n.contains('Fith Mith'))
+              .length,
+          4);
+    });
+
+    test('terminus : Préfecture Guédiawaye en tête, Petersen en queue', () {
+      final List<BusStop> st = officialRouteStops(kBrtB1Id)!;
+      expect(st.first.name, 'Préfecture Guédiawaye - PEM BRT');
+      expect(st.last.name, 'Papa Gueye Fall - PEM Petersen BRT');
+    });
+
+    test('réseau de l\'itinéraire B1 = brt', () {
+      expect(networkOfRoute(kBrtB1Id), 'brt');
+    });
+
+    test('chaque station a des coordonnées valides, aucune n\'est à (0,0)', () {
+      for (final BusStop s in officialRouteStops(kBrtB1Id)!) {
+        expect(DakarBounds.isValid(LatLng(s.latitude, s.longitude)), true,
+            reason: '${s.id} hors du garde-fou Dakar');
+        expect(s.latitude == 0.0 && s.longitude == 0.0, false);
+      }
+    });
+
+    test('B2 Express compte 7 stations, toutes incluses dans B1', () {
+      final List<BusStop> b2 = officialRouteStops(kBrtB2Id)!;
+      expect(b2.length, 7);
+      expect(b2.map((BusStop s) => s.id).toList(), orderedEquals(kBrtB27));
+      final Set<String> b1 =
+          officialRouteStops(kBrtB1Id)!.map((BusStop s) => s.id).toSet();
+      for (final BusStop s in b2) {
+        expect(b1.contains(s.id), true,
+            reason: '${s.id} dessert B2 mais pas B1');
+      }
+    });
+
+    test('la fiche de ligne BRT expose les 23 stations dans l\'ordre', () {
+      final DetailedRoute? fiche = DetailedRoute.fromOperator('brt');
+      expect(fiche, isNotNull);
+      expect(fiche!.stops.length, 23);
+      expect(fiche.stops.map((DetailedStop s) => s.stopId).toList(),
+          orderedEquals(kBrtB123));
+      expect(fiche.origin, 'Préfecture Guédiawaye - PEM BRT');
+      expect(fiche.destination, 'Papa Gueye Fall - PEM Petersen BRT');
+    });
+
+    test('la fiche de ligne BRT en sens inverse expose l\'ordre retourné', () {
+      final DetailedRoute? fiche =
+          DetailedRoute.fromOperator('brt', reverse: true);
+      expect(fiche, isNotNull);
+      expect(fiche!.stops.map((DetailedStop s) => s.stopId).toList(),
+          orderedEquals(kBrtB123.reversed.toList()));
+      expect(fiche.origin, 'Papa Gueye Fall - PEM Petersen BRT');
+      expect(fiche.destination, 'Préfecture Guédiawaye - PEM BRT');
+    });
+  });
+
+  // ==================================================================
+  group('§9 — aucune station inventée, aucune donnée fabriquée', () {
+    test('chaque station officielle provient des stopIds du JSON (§9, Test BRT 5)',
+        () {
+      final TransportRoute route = appDataService.routes
+          .firstWhere((TransportRoute r) => r.id == kBrtB1Id);
+      final List<String> ids =
+          officialRouteStops(kBrtB1Id)!.map((BusStop s) => s.id).toList();
+      // Aucune station n'est issue d'une résolution par approximation
+      // géographique ou d'une recherche : toutes viennent de la liste de la
+      // ligne dans la source unique.
+      expect(ids.toSet().difference(route.stopIds.toSet()), isEmpty);
+      expect(ids.length, route.stopIds.length);
+    });
+
+    test('même garantie pour le TER', () {
+      final TransportRoute route = appDataService.routes
+          .firstWhere((TransportRoute r) => r.id == kTerRouteId);
+      final List<String> ids =
+          officialRouteStops(kTerRouteId)!.map((BusStop s) => s.id).toList();
+      expect(ids.toSet().difference(route.stopIds.toSet()), isEmpty);
+      expect(ids.length, route.stopIds.length);
+    });
+
+    test('aucun arrêt fabriqué « Station Intermédiaire » (branche production)',
+        () {
+      // La branche générique de `a3j` en production fabriquait un arrêt
+      // « Station Intermédiaire » posé à `location + 0.01`. Données inventées,
+      // interdites (§9).
+      expect(
+          allStops.any((Stop s) => s.name == 'Station Intermédiaire'), false);
+      expect(
+          appDataService.stops
+              .any((BusStop s) => s.name == 'Station Intermédiaire'),
+          false);
+    });
+
+    test('totalDistance est CALCULÉ, jamais les littéraux historiques', () {
+      final DetailedRoute brt = DetailedRoute.fromOperator('brt')!;
+      final DetailedRoute ter = DetailedRoute.fromOperator('ter')!;
+      expect(brt.totalDistance, isNot('14.0 km'),
+          reason: '« 14.0 km » est le littéral de la branche BRT codée en dur');
+      expect(ter.totalDistance, isNot('35.0 km'),
+          reason: '« 35.0 km » est le littéral de la branche TER codée en dur');
+      expect(RegExp(r'^\d+\.\d km$').hasMatch(brt.totalDistance), true);
+      expect(RegExp(r'^\d+\.\d km$').hasMatch(ter.totalDistance), true);
+    });
+
+    test('un point du réseau non résoluble ne fabrique AUCUNE fiche (§9)', () {
+      // « Gare TER Keur Mbaye Fall » est un point de la liste de démonstration
+      // situé à 3,46 km de la gare officielle `stop_keur_mbaye_fall`, au-delà
+      // du seuil de résolution de 250 m. Aucune correspondance fiable ne peut
+      // être établie : la fiche est `null`, jamais inventée, et le bouton
+      // « Voir la ligne complète » reste désactivé.
+      final List<Stop> legacy = networkPoints(AppColors.ter)
+          .where((Stop s) => s.name == 'Gare TER Keur Mbaye Fall')
+          .toList();
+      expect(legacy.length, 1);
+      expect(DetailedRoute.fromStop(legacy.first), isNull,
+          reason: 'aucune donnée inventée : un inconnu reste un inconnu');
+    });
+
+    test('un point BRT non résoluble ne fabrique AUCUNE fiche (§9)', () {
+      final List<Stop> legacy = networkPoints(AppColors.brt)
+          .where((Stop s) => s.name == 'PEM Guediawaye')
+          .toList();
+      expect(legacy.length, 1);
+      expect(DetailedRoute.fromStop(legacy.first), isNull);
+    });
+
+    test('une gare officielle résout bien vers sa ligne TER', () {
+      final List<Stop> candidats = networkPoints(AppColors.ter)
+          .where((Stop s) => s.stopId == 'stop_thiaroye')
+          .toList();
+      expect(candidats.length, 1);
+      final DetailedRoute? fiche = DetailedRoute.fromStop(candidats.first);
+      expect(fiche, isNotNull);
+      expect(fiche!.routeId, kTerRouteId);
+      expect(fiche.stops.length, 13);
+    });
+
+    test('une station officielle résout bien vers B1 et ses 23 stations', () {
+      final List<Stop> candidates = networkPoints(AppColors.brt)
+          .where((Stop s) => s.stopId == 'stop_brt_11_scat_urbam')
+          .toList();
+      expect(candidates.length, 1);
+      final DetailedRoute? fiche = DetailedRoute.fromStop(candidates.first);
+      expect(fiche, isNotNull);
+      expect(fiche!.routeId, kBrtB1Id);
+      expect(fiche.stops.length, 23);
+    });
+  });
+
+  // ==================================================================
+  group('§8 — la polyligne reste cohérente avec les stations officielles', () {
+    test('un seul tracé TER sur la carte, de 13 points', () {
+      final List<TransitRoute> ter =
+          demoRoutes.where((TransitRoute r) => r.code == 'TER').toList();
+      expect(ter.length, 1, reason: 'le TER ne doit plus être dessiné en double');
+      expect(ter.first.points.length, 13,
+          reason: 'la polyligne TER doit passer par les 13 gares officielles');
+    });
+
+    test('les 13 points du tracé TER SONT les 13 gares officielles, dans l\'ordre',
+        () {
+      final TransitRoute ter =
+          demoRoutes.firstWhere((TransitRoute r) => r.code == 'TER');
+      final List<BusStop> gares = officialRouteStops(kTerRouteId)!;
+      expect(ter.points.length, gares.length);
+      for (int i = 0; i < gares.length; i++) {
+        expect(ter.points[i].latitude, closeTo(gares[i].latitude, 1e-9),
+            reason: 'gare ${i + 1} (${gares[i].name}) : latitude divergente');
+        expect(ter.points[i].longitude, closeTo(gares[i].longitude, 1e-9),
+            reason: 'gare ${i + 1} (${gares[i].name}) : longitude divergente');
+      }
+    });
+
+    test('un seul tracé BRT B1 sur la carte, de 23 points', () {
+      final List<TransitRoute> b1 =
+          demoRoutes.where((TransitRoute r) => r.code == 'BRT B1').toList();
+      expect(b1.length, 1,
+          reason: 'B1 était dessiné deux fois (démo 10 points + JSON 23 points)');
+      expect(b1.first.points.length, 23);
+    });
+
+    test('les 23 points du tracé B1 SONT les 23 stations officielles, dans l\'ordre',
+        () {
+      final TransitRoute b1 =
+          demoRoutes.firstWhere((TransitRoute r) => r.code == 'BRT B1');
+      final List<BusStop> stations = officialRouteStops(kBrtB1Id)!;
+      expect(b1.points.length, stations.length);
+      for (int i = 0; i < stations.length; i++) {
+        expect(b1.points[i].latitude, closeTo(stations[i].latitude, 1e-9),
+            reason: 'station ${i + 1} (${stations[i].name})');
+        expect(b1.points[i].longitude, closeTo(stations[i].longitude, 1e-9),
+            reason: 'station ${i + 1} (${stations[i].name})');
+      }
+    });
+
+    test('aucun tracé en double : deux lignes ne partagent pas une géométrie',
+        () {
+      final Set<String> geometries = <String>{};
+      for (final TransitRoute r in demoRoutes) {
+        final String cle =
+            r.points.map((LatLng p) => coordKey(p.latitude, p.longitude)).join(';');
+        expect(geometries.add(cle), true,
+            reason: 'le tracé de « ${r.code} » est dessiné en double');
+      }
+    });
+
+    test('AUCUNE coordonnée de tracé ne subsiste hors de la source unique (§4)',
+        () {
+      final Set<String> coordsJson = appDataService.stops
+          .map((BusStop s) => coordKey(s.latitude, s.longitude))
+          .toSet();
+      for (final TransitRoute r in demoRoutes) {
+        for (final LatLng p in r.points) {
+          expect(coordsJson.contains(coordKey(p.latitude, p.longitude)), true,
+              reason: 'le tracé « ${r.code} » contient un point qui n\'est '
+                  'aucun arrêt du JSON : coordonnée inventée ou héritée d\'un '
+                  'JSON historique ($p)');
+        }
+      }
+    });
+
+    test('tous les points de tous les tracés valident le garde-fou Dakar', () {
+      for (final TransitRoute r in demoRoutes) {
+        expect(r.points.length, greaterThanOrEqualTo(2));
+        for (final LatLng p in r.points) {
+          expect(DakarBounds.isValid(p), true,
+              reason: 'tracé « ${r.code} » : point $p hors bornes');
+        }
+      }
+    });
+
+    test('toutes les lignes du JSON ont un tracé, aucune démo résiduelle', () {
+      expect(demoRoutes.length, appDataService.routes.length,
+          reason: 'chaque ligne officielle a exactement un tracé, et il n\'en '
+              'existe aucun hors JSON');
+    });
+
+    test('couleurs et types dérivés : le rendu TER/BRT est conservé (§10)', () {
+      final TransitRoute ter =
+          demoRoutes.firstWhere((TransitRoute r) => r.code == 'TER');
+      final TransitRoute brt =
+          demoRoutes.firstWhere((TransitRoute r) => r.code == 'BRT B1');
+      expect(ter.color, AppColors.ter, reason: 'la couleur TER ne change pas');
+      expect(brt.color, AppColors.brt, reason: 'la couleur BRT ne change pas');
+      expect(ter.type, 'TER');
+      expect(brt.type, 'BRT');
+    });
+
+    test('isDedicated conservé : TER et BRT restent chargés au démarrage', () {
+      final TransitRoute ter =
+          demoRoutes.firstWhere((TransitRoute r) => r.code == 'TER');
+      final TransitRoute brt =
+          demoRoutes.firstWhere((TransitRoute r) => r.code == 'BRT B1');
+      expect(ter.isDedicated, true);
+      expect(brt.isDedicated, true);
+      // Le périmètre du chargement initial n'est pas élargi : aucune requête
+      // OSRM supplémentaire n'est provoquée par cette correction.
+      expect(demoRoutes.where((TransitRoute r) => r.isDedicated).length, 3,
+          reason: 'TER + BRT B1 + BRT B2, comme avant la correction');
+    });
+
+    test('l\'intégration est idempotente : rien ne se duplique au rechargement',
+        () {
+      final int tracesAvant = demoRoutes.length;
+      final int arretsAvant = allStops.length;
+      integrateNetworkDataForTest();
+      expect(demoRoutes.length, tracesAvant);
+      expect(allStops.length, arretsAvant);
+    });
+  });
+
+  // ==================================================================
+  group('§5 — structure : réseau, ligne, station, itinéraire', () {
+    test('une ligne officielle porte identifiant, réseau, nom et stopIds', () {
+      final TransportRoute b1 = appDataService.routes
+          .firstWhere((TransportRoute r) => r.id == kBrtB1Id);
+      expect(b1.id, kBrtB1Id);
+      expect(b1.operatorId, 'brt');
+      expect(b1.shortName, 'BRT B1');
+      expect(b1.stopIds.length, 23);
+      expect(b1.stopIds, orderedEquals(kBrtB123));
+    });
+
+    test('une station officielle porte identifiant, nom, coordonnées et statut',
+        () {
+      final BusStop s = appDataService.stops
+          .firstWhere((BusStop x) => x.id == 'stop_brt_09_liberte_6');
+      expect(s.name, 'Liberté 6 - BRT Correspondance');
+      expect(s.latitude, closeTo(14.72631, 1e-9));
+      expect(s.longitude, closeTo(-17.45919, 1e-9));
+      expect(s.dataTrust, DataTrust.official);
+    });
+
+    test('l\'ordre dans l\'itinéraire est la position dans stopIds, sans champ dupliqué',
+        () {
+      final List<BusStop> stations = officialRouteStops(kBrtB1Id)!;
+      for (int i = 0; i < stations.length; i++) {
+        expect(stations[i].id, kBrtB123[i],
+            reason: 'l\'ordre de l\'itinéraire est porté par la liste elle-même');
+      }
+    });
+
+    test('une ligne inconnue renvoie null, jamais une liste fabriquée (§9)', () {
+      expect(officialRouteStops('ligne_inexistante'), isNull);
+      expect(networkOfRoute('ligne_inexistante'), isNull);
+    });
+  });
+}

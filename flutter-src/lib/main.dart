@@ -793,8 +793,96 @@ final List<Stop> allStops = [...terStations, ...brtStations, ...dddStations, ...
     .toList();
 
 // ============================================================
+// §1 / §3 / §6 — SÉPARATION EXPLICITE DE DEUX NOTIONS DISTINCTES
+//
+//   <MODE>_NETWORK_POINTS        les points du réseau visibles dans Explorer
+//   <MODE>_OFFICIAL_ROUTE_STOPS  les arrêts officiels d'un itinéraire
+//
+// Ces deux ensembles ne sont PAS interchangeables : un point affiché dans
+// Explorer n'est pas une gare de l'itinéraire officiel. Leur confusion est la
+// cause du défaut corrigé ici — un point d'Explorer ne doit jamais être promu
+// dans un itinéraire officiel au seul motif qu'il apparaît sur la carte (§1).
+// ============================================================
+
+/// `<MODE>_NETWORK_POINTS` — points du réseau affichables dans Explorer.
+///
+/// Explorer peut afficher **davantage** de points que l'itinéraire officiel ne
+/// compte de stations (§6). Cette liste n'est donc jamais réduite pour
+/// correspondre à un itinéraire, et le compteur Explorer n'est jamais ajusté
+/// artificiellement.
+///
+/// Le prédicat reproduit à l'identique celui, existant, de `_filteredStops` :
+/// le mode y est porté par la couleur (`AppColors.ter`, `AppColors.brt`, …).
+/// Aucun filtre, aucune couleur et aucun calcul de proximité n'est modifié
+/// (§1, §10).
+List<Stop> networkPoints(Color modeColor) =>
+    allStops.where((Stop s) => s.color == modeColor).toList();
+
+/// `<MODE>_OFFICIAL_ROUTE_STOPS` — arrêts officiels d'une ligne, dans l'ordre
+/// canonique de `dakar_network.json` (source unique, §4-§5).
+///
+/// Chaque arrêt porte, sans duplication ni synthèse :
+///   • identifiant de gare      — [BusStop.id]
+///   • nom officiel             — [BusStop.name]
+///   • coordonnées              — [BusStop.latitude] / [BusStop.longitude]
+///   • réseau                   — [networkOfRoute]
+///   • ordre dans l'itinéraire  — sa position dans la liste retournée
+///   • statut de la donnée      — [BusStop.dataTrust]
+///
+/// La direction (§7) est portée par [reverse] : elle **inverse l'ordre
+/// courant**, ce qui produit Diamniadio → Dakar et Petersen → Guédiawaye sans
+/// créer de seconde liste ni de copie divergente des mêmes arrêts (§6, §7).
+///
+/// Retourne `null` quand le réseau n'est pas chargé, quand la ligne est
+/// inconnue, ou quand aucun de ses arrêts n'est résoluble : un « inconnu »
+/// honnête (§9), jamais une liste fabriquée. Contrairement à
+/// `DataService.stopsForRoute` — qui lève une exception — un arrêt référencé
+/// mais absent du JSON est sauté sans interrompre la ligne, et aucun arrêt de
+/// substitution n'est inventé.
+List<BusStop>? officialRouteStops(String routeId, {bool reverse = false}) {
+  if (!appDataService.isLoaded) return null;
+  final List<TransportRoute> found = appDataService.routes
+      .where((TransportRoute r) => r.id == routeId)
+      .toList();
+  if (found.isEmpty) return null;
+  final List<String> ids =
+      reverse ? found.first.stopIds.reversed.toList() : found.first.stopIds;
+  final List<BusStop> out = <BusStop>[];
+  for (final String id in ids) {
+    final List<BusStop> match =
+        appDataService.stops.where((BusStop s) => s.id == id).toList();
+    if (match.isNotEmpty) out.add(match.first);
+  }
+  return out.isEmpty ? null : out;
+}
+
+/// Réseau (`operatorId`) porteur d'une ligne officielle, ou `null` si la ligne
+/// est inconnue ou le réseau non chargé. Complète [officialRouteStops] pour le
+/// champ « réseau » de la structure demandée au §1.
+String? networkOfRoute(String routeId) {
+  if (!appDataService.isLoaded) return null;
+  final List<TransportRoute> found = appDataService.routes
+      .where((TransportRoute r) => r.id == routeId)
+      .toList();
+  return found.isEmpty ? null : found.first.operatorId;
+}
+
+// ============================================================
 // INTEGRATION DataService → Stop / TransitRoute (Appelé depuis main())
 // ============================================================
+
+/// Couture de test pour [_integrateNetworkData], qui est privée et opère sur la
+/// globale [appDataService].
+///
+/// Même schéma que la décision D3-i du Groupe 4 : couture **pure**, sans
+/// nouvelle dépendance et sans modification de `pubspec.yaml`. Elle permet de
+/// figer par test la cohérence entre les arrêts officiels d'un itinéraire et les
+/// polylignes dessinées sur la carte Explorer (§8), sans rien changer au
+/// comportement de l'application : `main()` reste le seul appelant en
+/// production.
+@visibleForTesting
+void integrateNetworkDataForTest() => _integrateNetworkData();
+
 void _integrateNetworkData() {
   if (!appDataService.isLoaded) return;
   if (appDataService.stops.isEmpty || appDataService.routes.isEmpty) return;
@@ -954,40 +1042,57 @@ void _integrateNetworkData() {
 }
 
 // ============================================================
-// TRACES DES ROUTES
+// TRACES DES ROUTES — POLYLIGNES DE LA CARTE EXPLORER
 // ============================================================
-final List<TransitRoute> demoRoutes = [
-  TransitRoute(
-    name: 'TER', code: 'TER', type: 'TER', color: AppColors.ter,
-    points: [
-      const LatLng(14.6792, -17.4407), const LatLng(14.6937, -17.4441),
-      const LatLng(14.7190, -17.4450), const LatLng(14.7550, -17.3900),
-      const LatLng(14.7750, -17.3100), const LatLng(14.7160, -17.1986),
-    ],
-  ),
-  TransitRoute(
-    name: 'BRT', code: 'B1', type: 'BRT', color: AppColors.brt,
-    points: [
-      const LatLng(14.6720, -17.4400), const LatLng(14.6850, -17.4500),
-      const LatLng(14.7100, -17.4650), const LatLng(14.7150, -17.4580),
-      const LatLng(14.7050, -17.4400), const LatLng(14.7220, -17.4420),
-      const LatLng(14.7350, -17.4350), const LatLng(14.7480, -17.4250),
-      const LatLng(14.7620, -17.4100), const LatLng(14.7735, -17.3977),
-    ],
-  ),
-  TransitRoute(
-    name: 'DDD Lignes', code: 'DDD', type: 'DDD', color: AppColors.ddd,
-    points: [
-      const LatLng(14.6950, -17.4440), const LatLng(14.6730, -17.4420), const LatLng(14.6720, -17.4390),
-    ],
-  ),
-  TransitRoute(
-    name: 'TATA Bus', code: 'TATA', type: 'Tata', color: AppColors.tata,
-    points: [
-      const LatLng(14.7700, -17.3950), const LatLng(14.7500, -17.3880), const LatLng(14.7120, -17.4650),
-    ],
-  ),
-];
+/// Tracés de lignes dessinés sur la carte Explorer.
+///
+/// CORRECTION TER/BRT (§8 : « la polyligne doit rester cohérente avec les
+/// stations »). Cette liste démarre **vide** et n'est alimentée que par
+/// `_integrateNetworkData`, depuis `assets/data/dakar_network.json` — la source
+/// unique (§4-§5). Aucune coordonnée de ligne n'est plus codée en dur ici.
+///
+/// AVANT : quatre tracés littéraux hérités d'un JSON historique, dont AUCUN ne
+///         correspondait aux arrêts officiels actuels :
+///           TER  →  6 points   (13 gares officielles)
+///           B1   → 10 points   (23 stations officielles)
+///           DDD  →  3 points   (coordonnées divergentes de `ddd_12`)
+///           TATA →  3 points   (coordonnées divergentes de `tata_219`)
+///
+/// DEUX DÉFAUTS DÉMONTRÉS de ces littéraux :
+///  1. TER AMPUTÉ. La déduplication de `_integrateNetworkData` compare le
+///     `code` de la démo au `short_name` du JSON. `'TER' == 'TER'` → la ligne
+///     officielle `ter_dakar_diamniadio` (13 gares) était **court-circuitée**
+///     et jamais ajoutée. La carte ne dessinait que 6 points : 7 des 13 gares
+///     officielles étaient absentes du tracé, en contradiction de rendu avec le
+///     §6 alors même que la donnée JSON est exacte.
+///  2. DOUBLONS. `'B1' ≠ 'BRT B1'`, `'DDD' ≠ 'DDD 12'`, `'TATA' ≠ 'Tata 219'`
+///     → ces trois lignes étaient **dessinées deux fois**, avec deux géométries
+///     divergentes superposées sur la même carte.
+///
+/// APRÈS : un seul tracé par ligne officielle, construit depuis les arrêts du
+/// JSON — TER 13 points, BRT B1 23 points, BRT B2 7, DDD 12 3, Tata 219 2. Les
+/// doublons disparaissent **à la racine** au lieu d'être masqués par un recalage
+/// des littéraux sur le JSON.
+///
+/// ÉQUIVALENCE VÉRIFIÉE (aucun rendu perdu). Pour chacune des quatre lignes, la
+/// couleur et le type dérivés du JSON sont identiques à ceux des anciens
+/// littéraux : `colorForOperator('ter'|'brt'|'ddd'|'tata')` rend
+/// `AppColors.ter|brt|ddd|tata`, et `labelForOperator` rend
+/// `'TER'|'BRT'|'DDD'|'Tata'`. `TransitRoute.isDedicated` (`type == 'TER' ||
+/// type == 'BRT'`) reste donc vrai pour le TER et le BRT : le périmètre chargé
+/// au démarrage par `_loadDynamicRoutes` est conservé, et aucune requête OSRM
+/// supplémentaire n'est provoquée.
+///
+/// Le champ `name` de `TransitRoute` n'est lu par **aucune** vue (seule sa
+/// déclaration le mentionne) : la disparition de `'DDD Lignes'` et
+/// `'TATA Bus'` n'a aucun effet observable.
+///
+/// AUCUN POINT D'EXPLORER N'EST RETIRÉ par ce changement. Les marqueurs
+/// proviennent de `allStops`, liste **distincte** de celle-ci : Explorer peut
+/// afficher plus de points que l'itinéraire officiel ne compte de stations (§6),
+/// et le compteur Explorer n'est jamais ajusté artificiellement pour
+/// correspondre à un itinéraire.
+final List<TransitRoute> demoRoutes = <TransitRoute>[];
 
 // ============================================================
 // MOTEUR D ITINERAIRES INTELLIGENT
