@@ -97,7 +97,7 @@ jobs:
           PASS=$(grep -oE '\+[0-9]+' /tmp/test.log 2>/dev/null | tail -1 | tr -d '+'); PASS=${PASS:-0}
           FAIL=$(grep -oE '\+[0-9]+ -[0-9]+' /tmp/test.log 2>/dev/null | tail -1 | grep -oE '\-[0-9]+' | tr -d '-'); FAIL=${FAIL:-0}
           SUITES=$(ls test/*_test.dart 2>/dev/null | wc -l | tr -d ' ')
-          AISSUES=$(grep -cE '^[[:space:]]+(error|warning|info)[[:space:]]' /tmp/analyze.log 2>/dev/null | tr -dc '0-9'); AISSUES=${AISSUES:-0}
+          AISSUES=$(grep -cE '^[[:space:]]*(error|warning|info)[[:space:]]' /tmp/analyze.log 2>/dev/null | tr -dc '0-9'); AISSUES=${AISSUES:-0}
           FLUTTER_V=$(flutter --version 2>/dev/null | head -1)
 
           SUMMARY="tests +${PASS}/-${FAIL} | ${SUITES} fichiers | analyze ${AISSUES} issue(s) | exit a=${AEXIT} t=${TEXIT} | ${FLUTTER_V}"

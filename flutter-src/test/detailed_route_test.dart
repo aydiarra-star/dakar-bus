@@ -517,7 +517,7 @@ void main() {
       // Nord » (`stop_guediawaye`), desservi uniquement par AFTU, DDD et Tata.
       // Consulté en tant qu'arrêt AFTU, il doit résoudre cet homonyme ; consulté
       // en tant qu'arrêt BRT, il ne doit PAS tomber dessus.
-      final LatLng ici = const LatLng(14.7735, -17.3977);
+      const LatLng ici = LatLng(14.7735, -17.3977);
       final DetailedRoute? enAftu =
           DetailedRoute.fromStop(arret(name: 'x', location: ici, modeLabel: 'AFTU'));
       expect(enAftu, isNotNull);

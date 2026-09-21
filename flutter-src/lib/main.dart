@@ -2657,7 +2657,7 @@ class SingleStopView extends StatelessWidget {
               // inchangés (§21).
               onPressed: routeDetails == null
                   ? null
-                  : () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: routeDetails!))),
+                  : () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: routeDetails))),
               icon: const Icon(Icons.map_outlined, size: 18),
               label: const Text('Voir la ligne complète & stations', style: TextStyle(fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(
