@@ -1,0 +1,67 @@
+name: Flutter verify (Step 4B)
+
+# Workflow de VÉRIFICATION UNIQUEMENT — Step 4B.
+#
+# Objet : exécuter `flutter analyze` et `flutter test` sur la source Flutter
+#         située dans flutter-src/, parce que l'environnement de travail local
+#         ne peut pas installer le SDK Dart (sortie réseau restreinte :
+#         storage.googleapis.com et pub.dev inaccessibles).
+#
+# Ce workflow ne déploie RIEN :
+#   - aucune permission `pages: write` ;
+#   - aucun job `deploy` ;
+#   - aucun `actions/upload-pages-artifact` ni `actions/deploy-pages` ;
+#   - aucune écriture sur la branche gh-pages ;
+#   - aucune publication, aucune release.
+#
+# Il ne se déclenche QUE sur la branche de session et sur appel manuel.
+# Il ne se déclenche pas sur `main` et pas sur `gh-pages`.
+#
+# Le répertoire de travail est `flutter-src`, ce qui lève l'incompatibilité
+# n°2 relevée par la Phase 0 (le workflow historique `deploy.yml` n'avait
+# aucun répertoire de travail et supposait le projet à la racine).
+
+on:
+  push:
+    branches: [ arena/01a0c385-dakar-bus ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: flutter-verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: analyze + test (Flutter 3.24.5)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: flutter-src
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze (0 error exigé)
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test --reporter expanded

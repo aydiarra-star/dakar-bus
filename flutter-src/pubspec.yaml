@@ -1,0 +1,28 @@
+name: dakar_bus
+description: Application multimodale de transport en commun à Dakar - TER, BRT, DDD, AFTU, Tata (92 arrêts, 105 lignes (72 AFTU complètes + 13 nouvelles communes)) - Réseau complet CETUD/SETER.
+publish_to: 'none'
+
+version: 9.3.0+4
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+  flutter: '>=3.19.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  flutter_map: ^6.1.0
+  latlong2: ^0.9.1
+  geolocator: ^12.0.0
+  http: ^1.2.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/data/dakar_network.json
