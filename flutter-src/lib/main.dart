@@ -161,7 +161,42 @@ class RoutingService {
 // ============================================================
 // SERVICE DE DETECTION DES DEUX SENS & INVERSION PROPRE
 // ============================================================
+/// Détection de l'arrêt situé en face, de l'autre côté de la voie — les deux
+/// sens d'un même point physique.
+///
+/// GROUPE 3 (§10) — algorithme PROUVÉ du binaire de production `A.adD(a, b)`,
+/// réintégré à l'identique, sans simplification (rapport 4A, Carte 03 :
+/// « NE PAS simplifier l'algorithme d'arrêt opposé : les 2 passes sont
+/// conservées intégralement »).
+///
+/// Les deux passes sont strictement ordonnées et indépendantes :
+///   passe 1 — inclusion de nom dans les DEUX sens, à 120 m ou moins ;
+///   passe 2 — même mode, direction différente, à 500 m ou moins.
+/// La passe 2 n'est consultée que si la passe 1 n'a rien donné. Elles ne sont
+/// JAMAIS fusionnées (Carte 03, ligne 10).
+///
+/// Contrat : la fonction retourne `null` quand aucune correspondance fiable
+/// n'existe. Elle ne force jamais de correspondance, n'élargit jamais un seuil
+/// et ne crée jamais d'arrêt de substitution (§12).
 class OppositeStopService {
+  /// Passe 1 — seuil de correspondance de nom, en mètres.
+  ///
+  /// AVANT : 50.0, littéral anonyme écrit en ligne dans la boucle.
+  /// APRÈS : 120.0, constante nommée.
+  /// PREUVE : le binaire de production compare à 120 puis à 500 (rapport 4A,
+  ///   Carte 03, ligne « 6. Preuve » : extrait `adD(a,b)` @ ~188500,
+  ///   `k = A.ew(b.r, m.r)`, comparaison à 120 puis 500). La Carte 03 isole
+  ///   précisément cet écart (« 4. Différence : seuil de la passe 1 :
+  ///   50 m → 120 m ») et conclut (« 8. Décision ») : « À RÉINTÉGRER à 120 m —
+  ///   sans simplifier l'algorithme ».
+  /// RAISON : il ne s'agit donc pas d'un élargissement décidé ici, mais du
+  ///   rétablissement de la valeur de production. Aucun seuil n'est porté
+  ///   au-delà de 120 m / 500 m : une correspondance qui échoue reste un
+  ///   échec, jamais un repli inventé (§12).
+  static const double _maxNameMatchDistanceMeters = 120.0;
+
+  /// Passe 2 — seuil « même mode, direction opposée », en mètres.
+  /// Valeur PROUVÉE : 500 m dans `A.adD` (rapport 4A, Carte 03). Inchangée.
   static const double _maxOppositeDistanceMeters = 500.0;
 
   static Stop? findOppositeStop({required Stop currentStop, required List<Stop> allStops}) {
@@ -169,12 +204,19 @@ class OppositeStopService {
     double minDistance = double.infinity;
     final currentName = currentStop.name.toLowerCase();
 
+    // ---- PASSE 1 : inclusion de nom dans les deux sens, à 120 m ou moins ----
+    // L'inclusion réciproque (`a contient b` OU `b contient a`) est conservée
+    // telle quelle : la Carte 03 interdit explicitement de la remplacer par une
+    // égalité stricte (« 12. Ne pas modifier »). Elle apparie les libellés
+    // croisés du type « X - BRT » / « BRT X ».
     for (final stop in allStops) {
       if (identical(stop, currentStop)) continue;
+      // Même nom ET même direction : c'est la même entrée physique, pas son
+      // vis-à-vis. Exclusion conservée de la source existante.
       if (stop.name == currentStop.name && stop.direction == currentStop.direction) continue;
 
       final double distance = DistanceHelper.haversineMeters(currentStop.location, stop.location);
-      if (distance <= 50.0 && distance < minDistance) {
+      if (distance <= _maxNameMatchDistanceMeters && distance < minDistance) {
         final stopName = stop.name.toLowerCase();
         if (currentName.contains(stopName) || stopName.contains(currentName)) {
           minDistance = distance;
@@ -182,8 +224,11 @@ class OppositeStopService {
         }
       }
     }
+    // La passe 1 a priorité absolue : si elle aboutit, la passe 2 n'est pas
+    // consultée. Les deux passes ne sont jamais fusionnées (Carte 03).
     if (bestCandidate != null) return bestCandidate;
 
+    // ---- PASSE 2 : même mode, direction différente, à 500 m ou moins --------
     for (final stop in allStops) {
       if (identical(stop, currentStop)) continue;
       if (stop.modeLabel != currentStop.modeLabel) continue;
@@ -195,6 +240,9 @@ class OppositeStopService {
         bestCandidate = stop;
       }
     }
+    // Aucune des deux passes n'a abouti : `null`. C'est un « inconnu » (§12),
+    // jamais un arrêt de substitution. Il appartient à l'appelant de le traiter
+    // comme tel — en aucun cas de fabriquer un vis-à-vis.
     return bestCandidate;
   }
 }
@@ -2537,10 +2585,25 @@ class DualStopDetailPage extends StatelessWidget {
       stopType: StopType.boarding,
     );
 
-    final retourStop = OppositeStopService.findOppositeStop(currentStop: stop, allStops: allStops) ?? stop.copyWith(
-      direction: 'Dir. Dakar / Centre',
-      stopType: StopType.departure,
-    );
+    // GROUPE 3 (§10, §12) — AVANT : l'absence de correspondance fiable était
+    // masquée par un arrêt FABRIQUÉ, `stop.copyWith(direction: 'Dir. Dakar /
+    // Centre')` : le MÊME arrêt, affublé d'un libellé de sens inventé, présenté
+    // dans l'onglet « Sens Retour » comme un vis-à-vis réel. C'est forcer une
+    // correspondance, ce que le §12 interdit.
+    // APRÈS : le `null` renvoyé par le service est conservé tel quel et l'onglet
+    // affiche un état « non identifié » explicite.
+    //
+    // Limite structurelle portée au rapport : `dakar_network.json` ne contient
+    // AUCUN champ de sens — un arrêt n'y porte que id, name, latitude,
+    // longitude et data_trust. La « direction » que compare la passe 2 est donc
+    // un libellé synthétisé par `_integrateNetworkData` d'après la position de
+    // l'arrêt dans sa ligne, et non un sens réel issu de la source unique.
+    // L'algorithme de production `adD` fonctionnait déjà sur ce même champ ; il
+    // est réintégré à l'identique, et cette limite est documentée plutôt que
+    // corrigée ici (la correction exigerait de créer un sens que la donnée ne
+    // fournit pas, ce qui serait une invention).
+    final Stop? retourStop =
+        OppositeStopService.findOppositeStop(currentStop: stop, allStops: allStops);
 
     return DefaultTabController(
       length: 2,
@@ -2562,7 +2625,26 @@ class DualStopDetailPage extends StatelessWidget {
         body: TabBarView(
           children: [
             SingleStopView(stop: allerStop),
-            SingleStopView(stop: retourStop),
+            // §12 : aucune correspondance fiable -> état explicite, jamais un
+            // arrêt inventé. L'architecture à deux onglets, leurs libellés et
+            // les styles sont conservés à l'identique (§21) : seul le contenu
+            // de l'onglet « Sens Retour » cesse d'être fabriqué.
+            if (retourStop != null)
+              SingleStopView(stop: retourStop)
+            else
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    'Arrêt en face non identifié\n\n'
+                    'Aucune correspondance fiable dans les données réseau '
+                    'pour « ${stop.name} ».',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: AppColors.textSecondary(globalState.darkMode)),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
