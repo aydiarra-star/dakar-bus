@@ -6,8 +6,11 @@
     "start": "node server/server.js",
     "dev": "node server/server.js",
     "test-cetud": "node server/test-cetud.js",
-    "test": "node scripts/check-arrets.js",
-    "check:arrets": "node scripts/check-arrets.js"
+    "test": "node --test tests/*.test.js",
+    "check:arrets": "node scripts/check-arrets.js",
+    "validate:data": "node scripts/check-arrets.js",
+    "audit:pages": "node scripts/audit-pages.js",
+    "prebuild": "npm run validate:data"
   },
   "engines": {
     "node": ">=18"

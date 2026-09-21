@@ -1,0 +1,27 @@
+{
+  "reviewedAt": "2026-09-21",
+  "scope": "Référentiel de contrôle, pas un jeu de coordonnées ni une preuve de trafic temps réel",
+  "networks": {
+    "TER": {
+      "expectedCount": 13,
+      "scope": "Dakar ↔ Diamniadio, hors extension AIBD",
+      "directions": ["DAKAR", "DIAMNIADIO"],
+      "sources": ["https://sentersa.sn/plan-de-transport/", "https://www.terdakar.sn/acceder-au-plan-de-la-ligne/"],
+      "maxStopDistanceMeters": 100
+    },
+    "BRT": {
+      "expectedCount": 23,
+      "scope": "Corridor complet ; ne constitue pas une confirmation des ouvertures en temps réel",
+      "directions": ["PAPA_GUEYE_FALL", "PREFECTURE_GUEDIAWAYE"],
+      "sources": ["https://www.sunubrt.sn/quest-ce-quun-brt/dakar-mobilite/", "https://www.sunubrt.sn/toutes-les-stations-du-reseau-sunubrt-sont-maintenant-operationnelles/"],
+      "maxStopDistanceMeters": 100
+    }
+  },
+  "thresholdNote": "100 m est un seuil technique de contrôle, non une donnée officielle. Il doit être justifié selon la précision du référentiel importé. Aucune géométrie inconnue ne peut réussir ce contrôle.",
+  "unresolved": [
+    "Liste TER : Dalifort/Mbao et nomenclature Keur Mbaye Fall à recouper avec le plan opérateur.",
+    "Liste BRT : Liberté 4 absente et variantes Ndinguela/Ndingala à vérifier.",
+    "Coordonnées et géométries indépendantes non vérifiées.",
+    "Sources Flutter de l'application GitHub Pages absentes du dépôt examiné."
+  ]
+}

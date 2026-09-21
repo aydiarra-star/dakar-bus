@@ -1,3 +1,5 @@
+> **État au 21 septembre 2026 — correction non terminée.** Les anciens résultats « conforme » ci-dessous ne certifient pas la carte publiée. GitHub Pages sert Flutter depuis `gh-pages`, et non cette PWA. Le nouveau validateur bloque les données non sourcées. Voir [le rapport de reprise](docs/CORRECTION_TER_BRT_2026-09-21.md). Ne pas déployer cette PWA à la place de l’interface Flutter.
+
 # Dakar Mobilité - PWA Temps Réel + GTFS-RT CETUD
 
 **Site live :** https://tonuser.github.io/dakar-mobilite/ (après déploiement)
