@@ -5,22 +5,27 @@ name: Flutter verify (Step 4B)
 # Objet : exécuter `flutter analyze` et `flutter test` sur la source Flutter
 #         située dans flutter-src/, parce que l'environnement de travail local
 #         ne peut pas installer le SDK Dart (sortie réseau restreinte :
-#         storage.googleapis.com et pub.dev inaccessibles, ainsi que les
-#         quatre miroirs de secours).
+#         storage.googleapis.com, pub.dev et les quatre miroirs de secours
+#         ont leur poignée de main TLS interrompue).
 #
 # Ce workflow ne déploie RIEN :
 #   - aucune permission `pages: write` ;
 #   - aucun job `deploy` ;
 #   - aucun `actions/upload-pages-artifact` ni `actions/deploy-pages` ;
 #   - aucune écriture sur la branche gh-pages, ni sur main ;
-#   - aucune publication, aucune release, aucun commit de retour.
+#   - aucune publication, aucune release, aucun commit de retour,
+#     aucun fichier du dépôt modifié.
 #
-# La permission `statuses: write` sert UNIQUEMENT à publier un statut de
-# commit portant le décompte des tests. Un statut ne modifie aucun fichier,
-# aucune branche, et ne peut rien déployer. Il est nécessaire parce que les
-# journaux de run sont hébergés sur results-receiver.actions.githubusercontent.com,
-# inaccessible depuis l'environnement de travail : sans ce canal, un
-# `flutter test` qui ne découvrirait AUCUN test passerait inaperçu.
+# Les permissions `checks: write` et `statuses: write` servent UNIQUEMENT à
+# publier le résultat chiffré de la vérification. Ni un check run ni un statut
+# ne modifie de fichier, de branche, et ne peut rien déployer.
+#
+# Pourquoi ce canal : les journaux de run sont hébergés sur
+# results-receiver.actions.githubusercontent.com, inaccessible depuis
+# l'environnement de travail. La conclusion `success` d'une étape ne prouve
+# donc pas à elle seule que des tests ont été exécutés — `flutter test`
+# réussit aussi lorsqu'il ne découvre AUCUN test. La sortie du check run,
+# elle, est lisible via api.github.com.
 #
 # Déclencheurs : la branche de session et l'appel manuel uniquement.
 
@@ -31,6 +36,7 @@ on:
 
 permissions:
   contents: read
+  checks: write
   statuses: write
 
 concurrency:
@@ -66,33 +72,76 @@ jobs:
 
       - name: Analyze (0 error exigé)
         run: |
-          flutter analyze 2>&1 | tee /tmp/analyze.log
-          exit ${PIPESTATUS[0]}
+          set +e
+          flutter analyze > /tmp/analyze.log 2>&1
+          echo "analyze_exit=$?" | tee /tmp/analyze.exit
+          tail -30 /tmp/analyze.log
 
       - name: Test
         run: |
-          flutter test --reporter expanded 2>&1 | tee /tmp/test.log
-          exit ${PIPESTATUS[0]}
+          set +e
+          flutter test --reporter expanded > /tmp/test.log 2>&1
+          echo "test_exit=$?" | tee /tmp/test.exit
+          tail -40 /tmp/test.log
 
-      - name: Publier le décompte (statut de commit, aucun fichier modifié)
+      - name: Publier le résultat (check run + statut, aucun fichier modifié)
         if: always()
         run: |
-          PASS=$(grep -oE '\+[0-9]+' /tmp/test.log 2>/dev/null | tail -1 | tr -d '+')
-          FAIL=$(grep -oE '\-[0-9]+' /tmp/test.log 2>/dev/null | tail -1 | tr -d '-')
-          ISSUES=$(grep -cE '^\s+(error|warning|info) ' /tmp/analyze.log 2>/dev/null || echo 0)
-          SUITES=$(ls test/*_test.dart 2>/dev/null | wc -l)
-          PASS=${PASS:-0}; FAIL=${FAIL:-0}; ISSUES=${ISSUES:-0}
-          DESC="tests +${PASS}/-${FAIL} | ${SUITES} fichiers | analyze: ${ISSUES} issue(s)"
-          DESC=$(printf '%s' "$DESC" | cut -c1-140)
-          if [ "${FAIL:-0}" = "0" ] && [ "${ISSUES:-0}" = "0" ] && [ "${PASS:-0}" != "0" ]; then
+          set +e
+          TOKEN="${{ github.token }}"
+          REPO="${{ github.repository }}"
+          SHA="${{ github.sha }}"
+          API="https://api.github.com/repos/$REPO"
+
+          AEXIT=$(grep -oE '[0-9]+' /tmp/analyze.exit 2>/dev/null | head -1); AEXIT=${AEXIT:-NA}
+          TEXIT=$(grep -oE '[0-9]+' /tmp/test.exit 2>/dev/null | head -1); TEXIT=${TEXIT:-NA}
+          PASS=$(grep -oE '\+[0-9]+' /tmp/test.log 2>/dev/null | tail -1 | tr -d '+'); PASS=${PASS:-0}
+          FAIL=$(grep -oE '\+[0-9]+ -[0-9]+' /tmp/test.log 2>/dev/null | tail -1 | grep -oE '\-[0-9]+' | tr -d '-'); FAIL=${FAIL:-0}
+          SUITES=$(ls test/*_test.dart 2>/dev/null | wc -l | tr -d ' ')
+          AISSUES=$(grep -cE '^\s+(error|warning|info)\s' /tmp/analyze.log 2>/dev/null); AISSUES=${AISSUES:-0}
+
+          SUMMARY="tests +$PASS/-$FAIL | $SUITES fichiers | analyze: $AISSUES issue(s) | exit analyze=$AEXIT test=$TEXIT"
+          echo "$SUMMARY"
+
+          # --- corps JSON construit par python3 (échappement sûr) ---
+          TEXT=$( { echo "=== RÉSUMÉ ==="; echo "$SUMMARY"; \
+                    echo; echo "=== flutter analyze (intégral) ==="; cat /tmp/analyze.log 2>/dev/null; \
+                    echo; echo "=== flutter test (intégral) ==="; cat /tmp/test.log 2>/dev/null; } | head -c 60000 )
+          BODY=$(python3 - "$SUMMARY" "$TEXT" <<'PY'
+import json,sys
+summary, text = sys.argv[1], sys.argv[2]
+print(json.dumps({"output": {"title": "Flutter verify (4B)", "summary": summary, "text": text}}))
+PY
+          )
+
+          # --- retrouve l'identifiant du check run de ce job ---
+          CRID=$(curl -sS -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.github+json" \
+                 "$API/commits/$SHA/check-runs" | python3 -c \
+                 "import json,sys; d=json.load(sys.stdin); c=[x for x in d.get('check_runs',[]) if 'analyze' in x.get('name','')]; print(c[0]['id'] if c else (d['check_runs'][0]['id'] if d.get('check_runs') else ''))")
+          echo "check_run_id=$CRID"
+
+          if [ -n "$CRID" ]; then
+            printf '%s' "$BODY" > /tmp/cr.json
+            CODE=$(curl -sS -o /tmp/cr.out -w "%{http_code}" -X PATCH \
+                   -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.github+json" \
+                   "$API/check-runs/$CRID" --data-binary @/tmp/cr.json)
+            echo "PATCH check-run -> HTTP $CODE"
+          fi
+
+          # --- statut de commit (canal secondaire) ---
+          if [ "$FAIL" = "0" ] && [ "$AISSUES" = "0" ] && [ "$PASS" != "0" ] && [ "$AEXIT" = "0" ] && [ "$TEXIT" = "0" ]; then
             STATE=success
           else
             STATE=failure
           fi
-          echo "Décompte publié : $DESC -> $STATE"
-          curl -sS -X POST \
-            -H "Authorization: Bearer ${{ github.token }}" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }}" \
-            -d "{\"state\":\"$STATE\",\"description\":\"$DESC\",\"context\":\"flutter-4b/decompte\"}" \
-            -o /dev/null -w "  statut POST : HTTP %{http_code}\n"
+          DESC=$(printf '%s' "$SUMMARY" | cut -c1-140)
+          SCODE=$(curl -sS -o /tmp/st.out -w "%{http_code}" -X POST \
+                  -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.github+json" \
+                  "$API/statuses/$SHA" \
+                  --data-binary "$(python3 -c "import json,sys; print(json.dumps({'state':sys.argv[1],'description':sys.argv[2],'context':'flutter-4b/decompte'}))" "$STATE" "$DESC")")
+          echo "POST statut -> HTTP $SCODE ($STATE)"
+          head -c 300 /tmp/st.out 2>/dev/null; echo
+
+          # Le canal est un moyen, pas une fin : l'étape n'échoue que sur un
+          # véritable échec analyze/test, jamais sur un échec de publication.
+          if [ "$AEXIT" != "0" ] || [ "$TEXIT" != "0" ]; then exit 1; fi
