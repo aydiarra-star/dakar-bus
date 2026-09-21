@@ -556,15 +556,49 @@ void main() {
       }
     });
 
-    test('aucun tracé en double : deux lignes ne partagent pas une géométrie',
-        () {
+    test('aucun doublon de tracé pour le TER et le BRT (défaut corrigé)', () {
+      // Le défaut corrigé : la démo TER (6 points) et la ligne officielle TER
+      // (13 gares) coexistaient, de même que la démo B1 (10 points) et
+      // `BRT B1` (23 stations). Chaque ligne dédiée n'a plus qu'un tracé.
       final Set<String> geometries = <String>{};
-      for (final TransitRoute r in demoRoutes) {
-        final String cle =
-            r.points.map((LatLng p) => coordKey(p.latitude, p.longitude)).join(';');
+      for (final TransitRoute r
+          in demoRoutes.where((TransitRoute r) => r.isDedicated)) {
+        final String cle = r.points
+            .map((LatLng p) => coordKey(p.latitude, p.longitude))
+            .join(';');
         expect(geometries.add(cle), true,
             reason: 'le tracé de « ${r.code} » est dessiné en double');
       }
+      expect(geometries.length, 3, reason: 'TER + BRT B1 + BRT B2');
+    });
+
+    test('les seules géométries partagées sont deux couloirs AFTU/Tata distincts',
+        () {
+      // CONSTAT DE DONNÉE, pas un défaut. Sur les 105 lignes du JSON, 103
+      // géométries sont distinctes ; les deux paires qui partagent un tracé
+      // sont des lignes **distinctes** exploitant le même couloir :
+      //   `aftu_2`  (AFTU 2)  / `tata_50`  (Tata 50)  — Guédiawaye ↔ Sandaga
+      //   `aftu_38` (AFTU 38) / `tata_218` (Tata 218) — Mermoz ↔ Keur Massar
+      // Elles diffèrent par `id`, `short_name`, `long_name` et `operator_id`.
+      // Le JSON est la source unique (§4-§5) : rien n'est fusionné, rien n'est
+      // supprimé, aucune donnée n'est inventée. Ce test fige ce fait afin
+      // qu'un doublon NOUVEAU — lui, réel — soit immédiatement détecté.
+      final Map<String, List<String>> parGeometrie = <String, List<String>>{};
+      for (final TransitRoute r in demoRoutes) {
+        final String cle = r.points
+            .map((LatLng p) => coordKey(p.latitude, p.longitude))
+            .join(';');
+        parGeometrie.putIfAbsent(cle, () => <String>[]).add(r.code);
+      }
+      final List<List<String>> partagees = parGeometrie.values
+          .where((List<String> v) => v.length > 1)
+          .toList();
+      expect(partagees.length, 2,
+          reason: 'toute géométrie partagée supplémentaire est un doublon réel');
+      expect(parGeometrie.length, 103,
+          reason: '105 lignes officielles, 103 géométries distinctes');
+      expect(partagees.expand((List<String> v) => v).toSet(),
+          <String>{'AFTU 2', 'Tata 50', 'AFTU 38', 'Tata 218'});
     });
 
     test('AUCUNE coordonnée de tracé ne subsiste hors de la source unique (§4)',
