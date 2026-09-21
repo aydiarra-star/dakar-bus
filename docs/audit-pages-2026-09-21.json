@@ -1,0 +1,131 @@
+{
+  "auditDate": "2026-09-21",
+  "repository": "aydiarra-star/dakar-bus",
+  "branch": "gh-pages",
+  "commit": "94a84b6070569bed708b8e779b9e70b7c9dafa45",
+  "url": "https://aydiarra-star.github.io/dakar-bus/",
+  "counts": {
+    "TER": {
+      "routeStops": 13,
+      "embeddedDemoEntries": 12,
+      "namedOutsideRoutes": [],
+      "sharedWithOtherNetworks": [
+        "stop_colobane",
+        "stop_pikine",
+        "stop_rufisque",
+        "stop_yeumbeul",
+        "stop_dakar_ter",
+        "stop_keur_mbaye_fall",
+        "stop_bargny",
+        "stop_baux_maraichers",
+        "stop_thiaroye",
+        "stop_hann",
+        "stop_diamniadio"
+      ]
+    },
+    "BRT": {
+      "routeStops": 23,
+      "embeddedDemoEntries": 6,
+      "namedOutsideRoutes": [
+        {
+          "id": "stop_camberene",
+          "name": "Cambérène - BRT"
+        },
+        {
+          "id": "stop_dalal_jamm",
+          "name": "Hôpital Dalal Jamm - BRT"
+        },
+        {
+          "id": "stop_fadia",
+          "name": "Fadia - BRT"
+        },
+        {
+          "id": "stop_grand_medine",
+          "name": "Grand Médine - BRT"
+        },
+        {
+          "id": "stop_grand_yoff",
+          "name": "Grand Yoff - BRT & AFTU Hub"
+        },
+        {
+          "id": "stop_guediawaye",
+          "name": "PEM Guédiawaye - Terminus BRT Nord"
+        },
+        {
+          "id": "stop_liberte6",
+          "name": "Liberté 6 - BRT Correspondance"
+        },
+        {
+          "id": "stop_obelisque",
+          "name": "Place de l'Obélisque - BRT"
+        },
+        {
+          "id": "stop_parcelles_u26",
+          "name": "Parcelles Assainies U26 - BRT"
+        },
+        {
+          "id": "stop_patte_doie",
+          "name": "Patte d'Oie - BRT"
+        },
+        {
+          "id": "stop_sacre_coeur",
+          "name": "Sacré-Cœur - BRT"
+        }
+      ],
+      "sharedWithOtherNetworks": []
+    }
+  },
+  "findings": [
+    {
+      "severity": "ERROR",
+      "code": "FLUTTER_SOURCE_UNAVAILABLE",
+      "detail": "Application Flutter compilée ; aucun projet Dart trouvé dans cet arbre."
+    },
+    {
+      "severity": "ERROR",
+      "code": "DEMO_AND_REFERENCE_MERGED",
+      "detail": "TER: 12 entrées de démonstration puis 13 identifiants du JSON ; pas un compte de gares physiques."
+    },
+    {
+      "severity": "ERROR",
+      "code": "GUIDED_STOP_SHARED_WITH_OTHER_NETWORKS",
+      "detail": "TER: 11 identifiants également utilisés par des routes d'autres réseaux."
+    },
+    {
+      "severity": "ERROR",
+      "code": "PUBLISHED_GEOMETRY_UNVERIFIED",
+      "detail": "TER: secours-consecutif"
+    },
+    {
+      "severity": "ERROR",
+      "code": "DEMO_AND_REFERENCE_MERGED",
+      "detail": "BRT: 6 entrées de démonstration puis 23 identifiants du JSON ; pas un compte de gares physiques."
+    },
+    {
+      "severity": "ERROR",
+      "code": "NETWORK_NAMES_OUTSIDE_REFERENCE",
+      "detail": "BRT: 11 entrées nommées hors des lignes de ce réseau (à examiner, ne pas supprimer aveuglément)."
+    },
+    {
+      "severity": "ERROR",
+      "code": "PUBLISHED_GEOMETRY_UNVERIFIED",
+      "detail": "BRT: secours-consecutif"
+    },
+    {
+      "severity": "ERROR",
+      "code": "EXPLICIT_NETWORK_MISSING",
+      "detail": "Le JSON publié ne définit pas un champ network pour chaque arrêt."
+    },
+    {
+      "severity": "ERROR",
+      "code": "STOP_PROVENANCE_MISSING",
+      "detail": "data_trust=OFFICIAL seul ne justifie pas les coordonnées."
+    },
+    {
+      "severity": "ERROR",
+      "code": "STRAIGHT_LINE_ROUTING_FALLBACK",
+      "detail": "Repli routage sur les deux extrémités détecté dans le programme compilé."
+    }
+  ],
+  "releaseReady": false
+}

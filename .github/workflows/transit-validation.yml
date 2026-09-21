@@ -1,0 +1,18 @@
+name: TER BRT data validation
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validator unit tests (synthetic fixtures only)
+        run: npm test
+      - name: Real data release gate (expected to block until source data is verified)
+        run: npm run validate:data
