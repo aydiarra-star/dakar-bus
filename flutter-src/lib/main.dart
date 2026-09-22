@@ -1204,9 +1204,47 @@ class TimeHelper {
 }
 
 class DistanceHelper {
+  /// Formate une distance en mètres pour l'affichage.
+  ///
+  /// GROUPE 7 (P1) — aligné sur le formateur réellement observé dans le
+  /// binaire de production (gh-pages `94a84b60`, `main.dart.js`), fonction
+  /// `A.azr` :
+  ///
+  ///     azr(a){ var s;
+  ///       if (a < 950) return "" + a.round() + " m";
+  ///       s = a / 1000;
+  ///       if (s < 10) return s.toStringAsFixed(1) + " km";
+  ///       return "" + s.round() + " km"; }
+  ///
+  /// `A.azr` est appelée aux deux seuls endroits où ce formateur est utilisé
+  /// ici : le sous-titre de `StopCard` et la réponse « Tu es près de » de
+  /// l'assistant — les mêmes points d'appel que `format` (L2123, L2916).
+  ///
+  /// AVANT : seuil de bascule à 1000 m et une décimale conservée au-delà de
+  ///         10 km. Deux divergences avec la production (audit Groupe 7,
+  ///         anomalie O1) : 17 900 m s'affichait « 17.9 km » au lieu de
+  ///         « 18 km », et 999 m « 999 m » au lieu de « 1.0 km ».
+  /// APRÈS : seuil à 950 m ; kilomètres entiers à partir de 10 km.
+  ///
+  /// Preuves des deux opérateurs du binaire :
+  ///  * `B.c.a4` = `Math.round` (round, et non `ceil` : la définition du
+  ///    binaire porte le message d'erreur `".round()"`) ;
+  ///  * `B.c.aa(a, b)` = `a.toFixed(b)`, c'est-à-dire `toStringAsFixed`.
+  ///
+  /// Note sur la valeur charnière 950 m : `950 / 1000.0` vaut exactement
+  /// 0.94999999999999995559 en IEEE-754, donc `toStringAsFixed(1)` donne
+  /// « 0.9 » et non « 1.0 ». La production affiche bien **« 0.9 km »** pour
+  /// 950 m. C'est une conséquence directe de l'arrondi binaire, vérifiée sur
+  /// `toFixed` : le test ci-dessous verrouille cette valeur réelle.
+  ///
+  /// `haversineMeters`, `_distanceTo`, `distanceMeters` et les distances de
+  /// `DetailedRoute` (L494, L516, formatées en ligne et non via `format`) ne
+  /// sont pas concernés.
   static String format(double meters) {
-    if (meters < 1000) return '${meters.round()} m';
-    return '${(meters / 1000.0).toStringAsFixed(1)} km';
+    if (meters < 950) return '${meters.round()} m';
+    final double km = meters / 1000.0;
+    if (km < 10) return '${km.toStringAsFixed(1)} km';
+    return '${km.round()} km';
   }
 
   /// Distance orthodromique en mètres.

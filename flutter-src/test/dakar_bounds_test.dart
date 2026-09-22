@@ -107,8 +107,55 @@ void main() {
     });
 
     test('format', () {
+      // GROUPE 7 (P1) — comportement aligné sur le formateur de production
+      // `A.azr` (gh-pages 94a84b60) :
+      //   if (a < 950) return round(a) + " m";
+      //   s = a / 1000;
+      //   if (s < 10) return s.toStringAsFixed(1) + " km";
+      //   return round(s) + " km";
+      //
+      // Branche 1 — mètres, seuil 950 m EXCLU.
+      expect(DistanceHelper.format(0), '0 m');
+      expect(DistanceHelper.format(1), '1 m');
+      expect(DistanceHelper.format(100), '100 m');
       expect(DistanceHelper.format(850), '850 m');
+      expect(DistanceHelper.format(949), '949 m');
+
+      // Branche 2 — kilomètres à une décimale, de 950 m inclus à 10 km exclu.
+      //
+      // Valeur charnière 950 m : `950 / 1000.0` vaut exactement
+      // 0.94999999999999995559 en IEEE-754, donc `toStringAsFixed(1)` —
+      // compilé par dart2js en `toFixed(1)` — donne « 0.9 » et non « 1.0 ».
+      // La production affiche « 0.9 km » pour 950 m ; c'est cette valeur
+      // réelle qui est verrouillée ici, et non un arrondi décimal mental.
+      expect(DistanceHelper.format(950), '0.9 km');
+      expect(DistanceHelper.format(999), '1.0 km');
+      expect(DistanceHelper.format(1000), '1.0 km');
       expect(DistanceHelper.format(1500), '1.5 km');
+      // 9.999 reste dans la branche 2 (s < 10) et arrondit à « 10.0 ».
+      expect(DistanceHelper.format(9999), '10.0 km');
+
+      // Branche 3 — kilomètres ENTIERS à partir de 10 km inclus.
+      expect(DistanceHelper.format(10000), '10 km');
+      expect(DistanceHelper.format(12345), '12 km');
+      expect(DistanceHelper.format(17900), '18 km');
+      expect(DistanceHelper.format(35000), '35 km');
+    });
+
+    test('format — les trois branches de A.azr sont distinctes (Groupe 7 P1)',
+        () {
+      // Garde-fou contre les deux divergences corrigées (anomalie O1) :
+      //  1. le seuil mètres/kilomètres est 950 et non 1000 ;
+      //  2. au-delà de 10 km le résultat est entier et non à une décimale.
+      // Chaque branche doit produire un format reconnaissable et stable.
+      expect(DistanceHelper.format(949), endsWith(' m'));
+      expect(DistanceHelper.format(950), endsWith(' km'));
+      expect(DistanceHelper.format(9999), endsWith('.0 km'));
+      expect(DistanceHelper.format(10000), endsWith(' km'));
+      expect(DistanceHelper.format(10000).contains('.'), isFalse,
+          reason: 'à partir de 10 km, A.azr arrondit à l\'entier');
+      expect(DistanceHelper.format(17900).contains('.'), isFalse,
+          reason: '17900 m doit donner « 18 km », jamais « 17.9 km »');
     });
   });
 
