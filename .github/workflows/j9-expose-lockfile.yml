@@ -1,0 +1,90 @@
+name: J9 — exposer le pubspec.lock d'un run (lecture seule)
+
+# ============================================================================
+# OUTIL DE RÉCUPÉRATION (J9) — NE CONSTRUIT RIEN, NE PUBLIE RIEN, NE COMMITE RIEN.
+#
+# Le téléchargement des artefacts GitHub Actions passe par un stockage blob
+# externe qui n'est pas joignable depuis l'environnement d'audit. Ce workflow
+# télécharge l'artefact « pubspec.lock » d'un run validé du workflow
+# « Flutter web build (J9) » et en expose le contenu EXACT (base64 + brut,
+# avec empreinte SHA-256 et taille) dans la sortie du check-run de ce job,
+# lisible via l'API GitHub : GET /repos/{repo}/check-runs/{job_id} → output.text
+#
+# Le fichier n'est ni modifié, ni régénéré : aucune nouvelle résolution pub.
+# ============================================================================
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "ID du run « Flutter web build (J9) » dont l'artefact pubspec.lock doit être exposé"
+        required: true
+        default: '35782638226'
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
+jobs:
+  expose:
+    name: "exposer pubspec.lock du run"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Télécharger l'artefact pubspec.lock du run ${{ inputs.run_id }}
+        uses: actions/download-artifact@v4
+        with:
+          name: pubspec.lock
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ github.token }}
+          path: lock
+
+      - name: Empreinte, taille et encodage (contenu inchangé)
+        id: enc
+        shell: bash
+        run: |
+          f=lock/pubspec.lock
+          test -s "$f"
+          sha="$(sha256sum "$f" | cut -d' ' -f1)"
+          size="$(wc -c < "$f")"
+          echo "sha256=${sha}" >> "$GITHUB_OUTPUT"
+          echo "size=${size}" >> "$GITHUB_OUTPUT"
+          echo "::notice title=pubspec.lock du run ${{ inputs.run_id }}::sha256=${sha} taille=${size} octets"
+          {
+            echo "run_id: ${{ inputs.run_id }}"
+            echo "artefact: pubspec.lock"
+            echo "sha256: ${sha}"
+            echo "size: ${size}"
+            echo "----- BEGIN BASE64 -----"
+            base64 -w 76 "$f"
+            echo "----- END BASE64 -----"
+            echo "----- BEGIN RAW -----"
+            cat "$f"
+            echo "----- END RAW -----"
+          } > payload.txt
+          echo "payload : $(wc -c < payload.txt) octets"
+          cat payload.txt
+
+      - name: Publier le contenu dans la sortie du check-run de ce job (lisible via l'API)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Pour un job GitHub Actions, l'identifiant du job est celui de son check-run.
+          jobid="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/jobs" \
+                    --jq '[.jobs[] | select(.status == "in_progress")] | sort_by(.id) | last | .id')"
+          if [ -z "${jobid}" ] || [ "${jobid}" = "null" ]; then
+            echo "::error::Impossible d'identifier le job courant"
+            exit 1
+          fi
+          echo "check-run/job id : ${jobid}"
+          jq -n \
+            --arg title "pubspec.lock du run ${{ inputs.run_id }}" \
+            --arg summary "sha256=${{ steps.enc.outputs.sha256 }} taille=${{ steps.enc.outputs.size }} octets — contenu exact (base64 + brut) dans le texte" \
+            --rawfile text payload.txt \
+            '{output: {title: $title, summary: $summary, text: $text}}' > body.json
+          gh api -X PATCH "repos/${GITHUB_REPOSITORY}/check-runs/${jobid}" --input body.json \
+            --jq '"check-run \(.id) mis à jour : \(.output.title) — texte \((.output.text // "") | length) caractères"'
+          echo "Lecture : gh api repos/${GITHUB_REPOSITORY}/check-runs/${jobid} --jq .output.text"
