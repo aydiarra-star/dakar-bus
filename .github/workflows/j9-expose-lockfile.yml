@@ -14,6 +14,14 @@ name: J9 — exposer le pubspec.lock d'un run (lecture seule)
 # ============================================================================
 
 on:
+  # Un workflow n'est enregistré côté GitHub (et donc déclenchable manuellement)
+  # qu'après une première exécution : le push de ce fichier lui-même l'exécute
+  # une fois, sur le run validé par défaut (35782638226).
+  push:
+    branches:
+      - arena/01a0ca19-dakar-bus
+    paths:
+      - '.github/workflows/j9-expose-lockfile.yml'
   workflow_dispatch:
     inputs:
       run_id:
@@ -21,6 +29,10 @@ on:
         required: true
         default: '35782638226'
         type: string
+
+env:
+  # Entrée manuelle si présente, sinon le run validé du 2026-09-22.
+  RUN_ID: ${{ inputs.run_id || '35782638226' }}
 
 permissions:
   contents: read
@@ -33,11 +45,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Télécharger l'artefact pubspec.lock du run ${{ inputs.run_id }}
+      - name: Télécharger l'artefact pubspec.lock du run ${{ env.RUN_ID }}
         uses: actions/download-artifact@v4
         with:
           name: pubspec.lock
-          run-id: ${{ inputs.run_id }}
+          run-id: ${{ env.RUN_ID }}
           github-token: ${{ github.token }}
           path: lock
 
@@ -51,9 +63,9 @@ jobs:
           size="$(wc -c < "$f")"
           echo "sha256=${sha}" >> "$GITHUB_OUTPUT"
           echo "size=${size}" >> "$GITHUB_OUTPUT"
-          echo "::notice title=pubspec.lock du run ${{ inputs.run_id }}::sha256=${sha} taille=${size} octets"
+          echo "::notice title=pubspec.lock du run ${{ env.RUN_ID }}::sha256=${sha} taille=${size} octets"
           {
-            echo "run_id: ${{ inputs.run_id }}"
+            echo "run_id: ${{ env.RUN_ID }}"
             echo "artefact: pubspec.lock"
             echo "sha256: ${sha}"
             echo "size: ${size}"
@@ -81,7 +93,7 @@ jobs:
           fi
           echo "check-run/job id : ${jobid}"
           jq -n \
-            --arg title "pubspec.lock du run ${{ inputs.run_id }}" \
+            --arg title "pubspec.lock du run ${{ env.RUN_ID }}" \
             --arg summary "sha256=${{ steps.enc.outputs.sha256 }} taille=${{ steps.enc.outputs.size }} octets — contenu exact (base64 + brut) dans le texte" \
             --rawfile text payload.txt \
             '{output: {title: $title, summary: $summary, text: $text}}' > body.json
