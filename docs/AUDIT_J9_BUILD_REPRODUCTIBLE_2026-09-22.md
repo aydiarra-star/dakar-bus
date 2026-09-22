@@ -1,7 +1,8 @@
 # AUDIT J9 — CHAÎNE DE BUILD REPRODUCTIBLE (Flutter → GitHub Pages)
 
 - Date : 2026-09-22
-- Branche de travail : `arena/01a0ca19-dakar-bus` (HEAD `ce8c94f` = `main`), **aucun commit, aucun push**
+- Branche de travail : `arena/01a0ca19-dakar-bus` (base `ce8c94f` = `main`)
+- État : **J9 EXÉCUTÉ ET VÉRIFIÉ** — commits `f62ef9e` (restauration), `2d0fcf3`/`50e0370` (outil de récupération du lockfile), `f924691` (`pubspec.lock`) ; runs GitHub Actions `35782638226` (sans lock), `35783754750` (exposition du lock), `35783905099` (avec `--enforce-lockfile`). Détails et preuves : **section O**. Les sections A→N ci-dessous décrivent la préparation (rédigées avant le premier run) ; les points désormais résolus sont signalés par « ✅ (voir O) ».
 - Périmètre : J9 uniquement (chaîne SOURCE FLUTTER COMMITÉ → Flutter 3.24.5 → `pub get` → `test` → `build web` → ARTEFACT → GH-PAGES)
 - Hors périmètre (documentés, **non corrigés**) : GPS hors Dakar, arrêts codés en dur, TER/BRT, DakarBounds, J1-J8, J10, interface
 - Projet officiel : Flutter `dakar_bus` 9.3.2+12 (base B = `ac03557`). PWA JavaScript racine = archive intouchable.
@@ -73,10 +74,11 @@ Import : `git -C /tmp/dakar-mirror.git archive ac03557 flutter-src | tar -x -C /
 - **Jamais commité** dans tout l'historique du dépôt (`git log --all --diff-filter=A -- pubspec.lock flutter-src/pubspec.lock` sur le miroir complet : vide). Ni A ni B n'en ont.
 - `flutter-src/.gitignore` l'autorise explicitement (`*.lock` puis `!pubspec.lock`) : il est destiné à être commité.
 - **Non généré ici** : le SDK Flutter/Dart ne peut pas être installé dans cet environnement (voir G). Un lockfile écrit à la main serait une falsification (versions transitives et `sha256` des archives pub non vérifiables) — refusé.
+- ✅ (voir O) : le lockfile a été **généré par Flutter 3.24.5 sur GitHub Actions** (run `35782638226`), récupéré à l'identique (SHA-256 vérifié) et commité dans `flutter-src/pubspec.lock` (`f924691`) ; le run suivant (`35783905099`) l'a imposé avec `--enforce-lockfile`.
 - Traitement dans le workflow (aucune version changée arbitrairement ; `pubspec.yaml` intact) :
   - si `flutter-src/pubspec.lock` est présent → `flutter pub get --enforce-lockfile` (résolution imposée, build reproductible) ;
   - s'il est absent → `flutter pub get` normal + `::warning::` + le `pubspec.lock` généré par Flutter 3.24.5 est affiché dans le log et publié comme artefact `pubspec.lock`, **à vérifier puis commiter dans `flutter-src/` après validation** (étape humaine, pas de commit automatique).
-- Dépendances déclarées (inchangées) : `flutter` (sdk), `cupertino_icons ^1.0.8`, `flutter_map ^6.1.0`, `geolocator ^12.0.0`, `http ^1.2.2` ; dev : `flutter_test` (sdk), `flutter_lints ^4.0.0`.
+- Dépendances déclarées (inchangées) : `flutter` (sdk), `cupertino_icons ^1.0.8`, `flutter_map ^6.1.0`, `latlong2 ^0.9.1`, `geolocator ^12.0.0`, `http ^1.2.2` ; dev : `flutter_test` (sdk), `flutter_lints ^4.0.0`. (Correctif de rédaction : `latlong2` manquait dans la première version de cette liste ; le `pubspec.yaml` n'a pas changé.)
 
 ## F. Workflow : `.github/workflows/flutter-web-build.yml` (racine du dépôt)
 
@@ -128,17 +130,17 @@ Exécutées dans cet environnement :
 | `npx action-validator .github/workflows/flutter-web-build.yml` | OK |
 | `gh api repos/aydiarra-star/dakar-bus/pages` | `build_type: legacy`, source `gh-pages` `/`, status `built` |
 
-**Non exécutées** (impossible ici, sans SDK) : `flutter pub get`, `flutter analyze`, `flutter test`, `flutter build web`. Aucune de ces commandes n'a été lancée ; **la validation réelle sera faite par le premier run de GitHub Actions** après push (validation à donner). Je ne prétends à aucun résultat local.
+**Non exécutées localement** (impossible ici, sans SDK) : `flutter pub get`, `flutter analyze`, `flutter test`, `flutter build web`. ✅ (voir O) Elles ont été **réellement exécutées par GitHub Actions** dans les runs `35782638226` et `35783905099` ; les résultats rapportés en O proviennent des conclusions d'étapes et des annotations de ces runs (API GitHub), pas d'une exécution locale.
 
 ## H. Résultat `flutter test`
 
 - **Non exécuté localement** (cf. G).
 - Résultat connu le plus récent sur ce même source (`ac03557`, CI de la base B `flutter-verify.yml`, résumé récupéré via l'API GitHub, `/tmp/checkrun_ac03557.txt`) : `flutter analyze` → « No issues found! » ; `flutter test` → **232 tests, 232 réussis, 0 échec**, 9 fichiers de test, Flutter 3.24.5 stable.
-- Le nouveau workflow rejoue `flutter test --reporter expanded` sur le même source ; le résultat attendu est identique, **à confirmer par le run**. Aucun test n'est ignoré, filtré ni contourné (pas de `--exclude-tags`, pas de `continue-on-error`).
+- ✅ (voir O) Confirmé par les deux runs : `00:04 +232: All tests passed!` (run `35782638226`, sans lock) et `00:03 +232: All tests passed!` (run `35783905099`, avec `--enforce-lockfile`). Aucun test n'est ignoré, filtré ni contourné (pas de `--exclude-tags`, pas de `continue-on-error`).
 
 ## I. Résultat `flutter build web`
 
-- **Non exécuté localement** (cf. G). `flutter build web` n'a jamais été exécuté sur B (constat mission 4) ; le premier run du workflow sera la première compilation web de `ac03557`.
+- **Non exécuté localement** (cf. G). ✅ (voir O) Exécuté par GitHub Actions : `✓ Built build/web`, 28 fichiers, dans les deux runs ; `main.dart.js` **identique octet pour octet** entre les deux runs (SHA-256 `a5ee5158…`).
 - Points vérifiés statiquement pour anticiper le build :
   - `web/index.html` l.4 `<base href="$FLUTTER_BASE_HREF">` → substitué par `--base-href "/dakar-bus/"` (contrôlé par le workflow) ; chargeur `flutter.js` + `loadEntrypoint` sans `serviceWorker` configuré → `flutter.js` 3.24.5 loggue « Null serviceWorker configuration. Skipping. » (chaîne présente dans le `flutter.js` du build historique `2c96eef`) ; le fichier `flutter_service_worker.js` est tout de même généré par défaut.
   - `pubspec.yaml` : `assets: - assets/data/dakar_network.json` → sortie `build/web/assets/assets/data/dakar_network.json` (même chemin que sur `gh-pages` aujourd'hui), vérifié par `cmp` dans le workflow.
@@ -181,9 +183,9 @@ Chaque `main.dart.js` publié est identifiable par son empreinte SHA-256 et ratt
 
 | # | Risque | Nature | Périmètre |
 |---|---|---|---|
-| 1 | La chaîne n'a **pas été exécutée** : un échec au premier run (résolution pub, analyse, test, compilation web) reste possible tant que GitHub Actions ne l'a pas prouvée. | Validation | J9 — premier run |
-| 2 | Sans `pubspec.lock` commité, deux runs peuvent résoudre des versions différentes de `flutter_map`/`geolocator`/`http` (dans les bornes `^`). Le workflow le signale et fournit le lock à commiter. | Reproductibilité | J9 — étape 2 (validation humaine) |
-| 3 | Mode Pages `legacy` : aucune publication possible depuis le workflow tant que le changement documenté en K n'est pas validé et appliqué. | Publication | J9/J10 — décision |
+| 1 | ~~La chaîne n'a pas été exécutée~~ ✅ résolu : runs `35782638226` et `35783905099` réussis (voir O). | Validation | clos |
+| 2 | ~~Sans `pubspec.lock` commité…~~ ✅ résolu : `flutter-src/pubspec.lock` commité (`f924691`), `--enforce-lockfile` effectif au run `35783905099`. | Reproductibilité | clos |
+| 3 | Mode Pages `legacy` : aucune publication possible depuis le workflow tant que le changement documenté en K n'est pas validé et appliqué. **Seul verrou restant avant une republication.** | Publication | J9/J10 — décision |
 | 4 | Transition service worker : le site actuel enregistre un SW (`flutter_service_worker.js` prod + `service-worker.js` ad hoc). Après publication du nouveau build, le SW existant se mettra à jour avec le nouveau `flutter_service_worker.js` ; le `service-worker.js` ad hoc ne sera plus servi. Un rechargement peut être nécessaire chez les utilisateurs. | Runtime | J10 |
 | 5 | Le bundle OSRM (`osrm/`) et les patches manuels de `gh-pages` ne font pas partie du build Flutter : le nouveau build appelle `router.project-osrm.org` directement (`data_service.dart` l.134). Fonctionnalité à réévaluer avant publication. | Fonctionnel | Hors périmètre (documenté mission 4) |
 | 6 | `flutter-src/.github/workflows/deploy.yml` (hérité) est inerte tant que `flutter-src/` n'est pas à la racine ; s'il y était déplacé un jour, il déploierait automatiquement à chaque push sur `main`. | Latent | Hors périmètre |
@@ -194,12 +196,82 @@ Chaque `main.dart.js` publié est identifiable par son empreinte SHA-256 et ratt
 
 ## N. Prochaine étape (après validation explicite — rien n'est fait sans elle)
 
-1. **Validation → commit + push** sur `arena/01a0ca19-dakar-bus` de : `flutter-src/` (20 fichiers), `.github/workflows/flutter-web-build.yml`, `docs/AUDIT_J9_BUILD_REPRODUCTIBLE_2026-09-22.md` (et, si souhaité, les 4 rapports précédents). Ne pas commiter `flutter-src/build/` (ignoré).
-2. **Premier run** (automatique sur push) : lire le résumé ; si échec → corriger uniquement ce qui relève de la chaîne de build, jamais `main.dart.js`.
-3. **Lockfile** : télécharger l'artefact `pubspec.lock` du premier run, le relire (versions résolues, `sha256` pub), le placer dans `flutter-src/pubspec.lock`, commiter → le run suivant passe en `--enforce-lockfile`.
-4. **Décision Pages** : valider (ou non) le passage en mode « GitHub Actions » (K). Tant que non validé, aucune publication.
+1. ✅ fait — commit + push `f62ef9e` (flutter-src, workflow, rapports B et J9).
+2. ✅ fait — premier run `35782638226` : succès complet.
+3. ✅ fait — lockfile récupéré à l'identique (run `35783754750`), commité (`f924691`), run `35783905099` en `--enforce-lockfile` : succès complet.
+4. **Décision Pages** (en attente de validation) : passage en mode « GitHub Actions » (K). Tant que non validé, aucune publication.
 5. **Publication** (après 4) : `gh workflow run flutter-web-build.yml --ref <branche> -f publish_pages=true`, puis comparer les SHA-256 du site servi avec l'artefact `dakar-bus-web-checksums-<sha>`.
-6. J10 (séparé) : traitement de la branche `gh-pages` (archive, bundle OSRM, anciens artefacts).
+6. J10 (séparé) : traitement de la branche `gh-pages` (archive, bundle OSRM, anciens artefacts) ; suppression éventuelle de l'outil `j9-expose-lockfile.yml` devenu inutile.
+
+---
+
+## O. Exécution réelle sur GitHub Actions (mise à jour finale, 2026-09-22 soir)
+
+### O.1 Commits poussés sur `arena/01a0ca19-dakar-bus`
+
+| Commit | Contenu | Déclenche |
+|---|---|---|
+| `f62ef9effdc21fa65d971825dc67ffcf7699daf7` | `flutter-src/` (20 fichiers = `ac03557:flutter-src`, arbre `c4337fa4…`), `.github/workflows/flutter-web-build.yml`, `docs/AUDIT_BASE_B_2026-09-22.md`, ce rapport | run `35782638226` |
+| `2d0fcf3` puis `50e0370` | `.github/workflows/j9-expose-lockfile.yml` — outil de récupération en lecture seule (voir O.3) ; le second commit ajoute le déclencheur `push` sur son propre chemin, nécessaire pour que GitHub enregistre le workflow (un workflow `workflow_dispatch` seul n'est pas enregistré : `HTTP 404` au `gh workflow run`) | run `35783754750` |
+| `f924691c00f7346c39836fd45ec5c6da4ee07c7c` | `flutter-src/pubspec.lock` **uniquement** (410 lignes) — message « J9: lock Flutter dependencies » | run `35783905099` |
+
+Aucun autre fichier modifié ; `lib/`, `assets/`, `pubspec.yaml`, `web/`, tests : inchangés depuis `ac03557`. Aucune PR créée.
+
+### O.2 Run 1 — `35782638226` (commit `f62ef9e`, sans lockfile)
+
+https://github.com/aydiarra-star/dakar-bus/actions/runs/35782638226 — événement `push`, `success`, 20:48:12 → 20:49:46 UTC.
+
+| Étape | Résultat |
+|---|---|
+| Flutter | `Flutter 3.24.5 • channel stable` (contrôle exact OK) |
+| `flutter pub get` | OK (lock absent → résolution normale, avertissement émis, `pubspec.lock` généré et téléversé en artefact) |
+| `flutter analyze` | `No issues found! (ran in 11.1s)` |
+| `flutter test` | `00:04 +232: All tests passed!` |
+| `flutter build web --release --base-href /dakar-bus/` | `✓ Built build/web` — 28 fichiers |
+| `version.json` | `{"app_name":"dakar_bus","version":"9.3.2","build_number":"12","package_name":"dakar_bus"}` |
+| Cohérence | base href OK ; `dakar_network.json` embarqué identique (`cmp`) ; empreintes avant publication identiques |
+| `main.dart.js` | SHA-256 `a5ee51589b85424d0b52f704b50d33bdd85a54cc917e7f21ea52844e2b072746` |
+| Artefacts | `dakar-bus-web-f62ef9e…` (7 690 070 o), `dakar-bus-web-checksums-f62ef9e…` (1 520 o), `pubspec.lock` (3 042 o zippés), `j9-logs-f62ef9e…` (12 653 o), `github-pages` (7 689 079 o, non déployé) |
+| `deploy-pages` | skipped (pas de `workflow_dispatch`) |
+
+### O.3 Récupération du lockfile — run `35783754750`
+
+- Contrainte : le téléchargement des artefacts et des logs redirige vers `productionresults*.blob.core.windows.net` / `results-receiver.actions.githubusercontent.com`, injoignables depuis l'environnement d'audit (HTTP 000). `gh run download` échoue (`EOF`).
+- Mécanisme GitHub/API utilisé : workflow `j9-expose-lockfile.yml` (lecture seule ; permissions `contents: read`, `actions: read`, `checks: write`) → `actions/download-artifact@v4` de l'artefact `pubspec.lock` du run `35782638226` → `sha256sum`, `wc -c`, `base64` → contenu (base64 + brut) écrit dans `output.text` du check-run de son propre job via `PATCH /repos/…/check-runs/{job_id}` (procédé déjà employé par le CI de la base B).
+- Lecture depuis l'environnement : `gh api repos/aydiarra-star/dakar-bus/check-runs/106935397282 --jq .output.text` → bloc base64 → `base64 -d` → fichier.
+- **Vérification d'identité** : SHA-256 du fichier reconstruit `16b73eef4974518cd6010e1635e62a79ba155c6498a51a3e9de50d3a89432b16`, 11 749 octets = empreinte et taille calculées **sur le runner** (présentes à la fois dans le texte du check-run et dans une annotation `::notice::`, canal indépendant) ; bloc brut et bloc base64 identiques (`cmp`). Aucune ligne écrite ou modifiée à la main.
+- **Vérification de contenu** : en-tête `# Generated by pub` ; 52 paquets (48 `hosted` sur `https://pub.dev`, 4 `sdk`) ; versions **identiques** à la liste annoncée par le run `35782638226` (`diff` vide sur les 52 entrées) ; dépendances directes conformes à `pubspec.yaml` inchangé : `cupertino_icons 1.0.8` (^1.0.8), `flutter_map 6.2.1` (^6.1.0), `latlong2 0.9.1` (^0.9.1), `geolocator 12.0.0` (^12.0.0), `http 1.6.0` (^1.2.2), `flutter_lints 4.0.0` (^4.0.0) ; `sdks: dart ">=3.5.0 <4.0.0"`, `flutter ">=3.19.0"` (Dart 3.5.4 de Flutter 3.24.5).
+- Emplacement : `flutter-src/pubspec.lock` (autorisé par `flutter-src/.gitignore` l.10 `!pubspec.lock`).
+
+### O.4 Run 2 — `35783905099` (commit `f924691`, avec lockfile)
+
+https://github.com/aydiarra-star/dakar-bus/actions/runs/35783905099 — événement `push`, `success`, 21:00:23 → 21:02:02 UTC.
+
+| Étape | Résultat |
+|---|---|
+| Flutter | `Flutter 3.24.5 • channel stable` |
+| État du lockfile | présent → étape « flutter pub get (lockfile imposé) » **exécutée** (`success`) ; étape « première exécution » **skipped** ; artefact `pubspec.lock` non produit (skipped) ; plus aucun avertissement « lockfile absent » |
+| `flutter pub get --enforce-lockfile` | OK |
+| `flutter analyze` | `No issues found! (ran in 11.3s)` |
+| `flutter test` | `00:03 +232: All tests passed!` |
+| `flutter build web --release --base-href /dakar-bus/` | `✓ Built build/web` — 28 fichiers |
+| `version.json` | `{"app_name":"dakar_bus","version":"9.3.2","build_number":"12","package_name":"dakar_bus"}` |
+| Cohérence | base href OK ; asset réseau identique ; empreintes avant publication identiques |
+| `main.dart.js` | SHA-256 `a5ee51589b85424d0b52f704b50d33bdd85a54cc917e7f21ea52844e2b072746` — **identique au run 1** |
+| Artefacts | `dakar-bus-web-f924691…` (7 690 068 o), `dakar-bus-web-checksums-f924691…` (1 518 o), `j9-logs-f924691…` (8 270 o), `github-pages` (7 689 062 o, non déployé) |
+| `deploy-pages` | skipped |
+
+### O.5 Zéro post-traitement JS — confirmation
+
+- Le workflow ne contient aucun interpréteur ni outil de réécriture et n'écrit rien dans `build/web` après compilation (section L) ; l'étape « Empreintes au moment de la publication » (recalcul + `diff`) a réussi dans les deux runs.
+- Le même source (`lib/`, `assets/`, `pubspec.yaml` inchangés) avec le même SDK produit un `main.dart.js` **octet pour octet identique** dans deux runs distincts (même SHA-256), avec et sans lockfile — la résolution figée est bien celle du build validé, et la sortie est déterministe.
+- Le `main.dart.js` actuellement servi par `gh-pages` (`94a84b6`, patché à la main) n'a pas été touché ; le nouveau binaire n'existe que dans les artefacts des runs.
+
+### O.6 État après J9
+
+- Pages : `build_type=legacy`, source `gh-pages:/` — inchangé ; `gh-pages` = `94a84b6` — inchangé ; dernier déploiement Pages : 2026-09-19 — aucun nouveau.
+- Aucune PR, aucun merge, aucune correction fonctionnelle (GPS, TER, BRT, arrêts, gares, tracés, DakarBounds, UI), aucun J1-J8/J10.
+- Fichiers locaux non commités (volontairement, non autorisés) : `docs/AUDIT_GPS_HORS_DAKAR_2026-09-22.md`, `docs/AUDIT_SOURCE_FLUTTER_GPS_2026-09-22.md`, `docs/AUDIT_TER_BRT_DONNEES_2026-09-22.md`.
 
 ---
 
@@ -207,14 +279,8 @@ Chaque `main.dart.js` publié est identifiable par son empreinte SHA-256 et ratt
 
 > « Si je modifie `lib/main.dart` demain, puis-je reconstruire et republier sans modifier manuellement `main.dart.js` ? »
 
-**Reconstruire : la chaîne est définie mais NON prouvée** — le workflow est écrit, validé syntaxiquement, verrouillé sur Flutter 3.24.5 et sans aucun post-traitement ; mais aucune commande Flutter n'a pu être exécutée ici.
+**Reconstruire : OUI — prouvé.** Preuves (section O) : deux runs GitHub Actions réels sur le source commité, Flutter 3.24.5 épinglé et contrôlé, `flutter pub get` (puis `--enforce-lockfile` avec le `pubspec.lock` commité), `flutter analyze` 0 issue, `flutter test` 232/232, `flutter build web --release` OK, `version.json` généré depuis `pubspec.yaml`, empreintes recalculées identiques avant l'artefact Pages (zéro post-traitement), et `main.dart.js` **byte-identique entre les deux runs** (`a5ee5158…`). Une modification de `lib/main.dart` poussée sur la branche relance automatiquement exactement cette chaîne ; le `main.dart.js` obtenu est uniquement celui écrit par `flutter build web`.
 
-**Republier : NON, pas encore.** Il manque exactement :
+**Republier : NON, pas encore — un seul point manque** : la décision sur le mode GitHub Pages. Le site est en mode `legacy` (branche `gh-pages`, contenu patché + bundle OSRM à préserver jusqu'à J10). Le job `deploy-pages` du workflow est prêt (manuel, `publish_pages=true`) mais refuse de publier tant que Pages n'est pas en mode « GitHub Actions » (`build_type: workflow`) — changement documenté en K, **non appliqué, à valider**. Une fois validé et appliqué : `gh workflow run flutter-web-build.yml --ref <branche> -f publish_pages=true` publie l'artefact tel quel, sans aucune intervention sur `main.dart.js`.
 
-1. **Le premier run réel de GitHub Actions** (après votre validation du push) prouvant `pub get` → `analyze` → `test` (232 attendus) → `build web` → artefact sur `ac03557`/9.3.2+12.
-2. **`flutter-src/pubspec.lock` commité** (fourni en artefact par ce premier run) pour que le build soit reproductible et non seulement automatisé.
-3. **La décision sur le mode Pages** : passage de `legacy` (branche `gh-pages`) à « GitHub Actions » (`build_type: workflow`) — changement documenté en K, **non appliqué**. Sans lui, le job de publication refuse de publier ; l'alternative (pousser sur `gh-pages`) écraserait le contenu actuel et relève de J10.
-
-Une fois ces trois points réglés, la réponse devient OUI : modification de `lib/main.dart` → push → build automatique → `main.dart.js` produit uniquement par `flutter build web`, empreinte SHA-256 vérifiée, publication manuelle par `publish_pages=true`.
-
-**ARRÊT.** Aucun commit, aucun push, aucun déploiement, aucune modification de `gh-pages`, aucun merge, aucune correction J1-J8/J10 n'a été effectué.
+**ARRÊT.** Commits/push limités à la branche de travail (autorisés) ; aucun déploiement, aucune modification de `gh-pages` ni du mode Pages, aucune PR, aucun merge, aucune correction J1-J8/J10, aucune modification de `main.dart.js`.
