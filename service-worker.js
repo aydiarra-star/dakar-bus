@@ -1,5 +1,5 @@
 // Dakar Mobilité - Service Worker PWA + Offline + GTFS-RT cache
-const CACHE_VERSION = 'dakar-mobilite-v2.3-arrets';
+const CACHE_VERSION = 'dakar-mobilite-v2.5-gps-final';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const GTFS_CACHE = `${CACHE_VERSION}-gtfs`;
