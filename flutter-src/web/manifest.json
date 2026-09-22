@@ -1,0 +1,10 @@
+{
+  "name": "Dakar Bus - Transport Dakar",
+  "short_name": "Dakar Bus",
+  "description": "Réseau multimodal Dakar - TER, BRT, DDD, AFTU, Tata - 40 lignes, 40 arrêts",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#00B140",
+  "theme_color": "#00B140",
+  "icons": []
+}
