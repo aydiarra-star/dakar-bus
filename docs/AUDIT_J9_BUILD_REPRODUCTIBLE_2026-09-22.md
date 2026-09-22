@@ -275,6 +275,101 @@ https://github.com/aydiarra-star/dakar-bus/actions/runs/35783905099 — événem
 
 ---
 
+## P. Vérification de la configuration GitHub Pages avant bascule (lecture seule, 2026-09-22)
+
+Vérifié via l'API GitHub (`GET /repos/aydiarra-star/dakar-bus/pages`, `/pages/builds/latest`, `/branches/gh-pages`, `/environments/github-pages`, `/environments/github-pages/deployment-branch-policies`, `/deployments?environment=github-pages`) et la description OpenAPI officielle de `PUT /repos/{owner}/{repo}/pages`. **Rien n'a été changé.**
+
+### P.1 Configuration actuelle
+
+| Élément | Valeur constatée |
+|---|---|
+| Mode (`build_type`) | `legacy` (« Deploy from a branch ») |
+| Source | branche `gh-pages`, chemin `/` |
+| Branche `gh-pages` | `94a84b6070569bed708b8e779b9e70b7c9dafa45` (2026-09-19 12:14:28 Z, non protégée) |
+| Dernier build Pages (legacy) | `built`, commit `94a84b6`, 2026-09-19 12:14:29 Z, 18 s, pusher `arena-ai-coding-agent[bot]` |
+| Déploiement actif (environnement `github-pages`) | id `6540734411`, `sha 94a84b6`, `ref gh-pages`, statut `success`, créé par `github-pages[bot]` |
+| URL | `https://aydiarra-star.github.io/dakar-bus/` (`cname: null`, `https_enforced: true`, `public: true`, `custom_404: false`, `protected_domain_state: null`) |
+| Dépôt | public, propriétaire = compte utilisateur, `default_branch: main`, `has_pages: true` |
+| Environnement `github-pages` | existe ; `deployment_branch_policy: custom_branch_policies: true` ; branches autorisées : **`gh-pages`, `main`** (2 règles) ; aucun relecteur requis, pas de délai |
+| Workflow système | `pages-build-deployment` (dernier run 35442297686, `success`, branche `gh-pages`) |
+
+### P.2 Configuration cible
+
+`build_type: workflow` (« GitHub Actions ») ; source de branche sans objet ; même URL `https://aydiarra-star.github.io/dakar-bus/` ; publication exclusivement par le job `deploy-pages` du workflow `flutter-web-build.yml` (manuel, `publish_pages=true`), qui déploie l'artefact `github-pages` (= `flutter-src/build/web`, 7,69 Mo, sortie brute de `flutter build web`).
+
+### P.3 Le dépôt permet-il le mode GitHub Actions ? — OUI
+
+- Dépôt public (Pages sur Actions disponible avec GitHub Free) ; Actions activées et actions tierces autorisées (vérifié empiriquement : runs `35782638226`/`35783905099` avec `subosito/flutter-action` ; l'endpoint `actions/permissions` renvoie 403 au jeton du sandbox).
+- L'environnement `github-pages` existe déjà (créé par les déploiements précédents).
+- **Limite du sandbox** : le jeton utilisé ici n'est pas administrateur (`permissions.admin=false`, 403 sur les endpoints d'administration) → la bascule (`PUT /pages`) **ne peut pas être exécutée depuis ici** ; elle doit l'être par le propriétaire (interface ou jeton personnel `repo`).
+
+### P.4 Le workflow actuel est-il compatible ? — OUI, avec UNE réserve
+
+- Conforme au modèle officiel : `actions/upload-pages-artifact@v3` (artefact `github-pages`, produit avec succès dans les deux runs) + `actions/deploy-pages@v4`, permissions `pages: write` + `id-token: write` limitées au job, `environment: github-pages`, `concurrency`, `needs: build`, `permissions: contents: read` au niveau racine. Garde-fou : `GET /pages` (`pages: read` suffit) doit renvoyer `build_type == workflow`, sinon arrêt sans publication.
+- **Réserve — politique de branches de l'environnement** : `github-pages` n'autorise que `gh-pages` et `main`. Un `deploy-pages` déclenché depuis `arena/01a0ca19-dakar-bus` serait **refusé par la règle de branche avant toute étape** (« Branch … is not allowed to deploy to github-pages due to environment protection rules »). Pour publier depuis la branche de travail il faut, en plus de la bascule, **ajouter une règle de branche** `arena/01a0ca19-dakar-bus` à l'environnement (Settings → Environments → github-pages → Deployment branches and tags → Add rule ; API : `POST /repos/…/environments/github-pages/deployment-branch-policies {"name":"arena/01a0ca19-dakar-bus","type":"branch"}`). Alternative : publier depuis `main` après fusion (fusion non autorisée à ce stade).
+
+### P.5 Action exacte nécessaire pour la bascule (NON effectuée)
+
+1. Interface : Settings → Pages → Build and deployment → Source : « Deploy from a branch » → **« GitHub Actions »**.
+   API équivalente (administrateur/mainteneur ou permission « manage GitHub Pages settings ») : `PUT /repos/aydiarra-star/dakar-bus/pages` avec `{"build_type":"workflow"}` (`gh api -X PUT repos/aydiarra-star/dakar-bus/pages -f build_type=workflow`) → réponse `204`.
+2. (Pour publier depuis la branche de travail) ajouter la règle de branche décrite en P.4.
+3. Aucune modification de fichier, de `gh-pages`, ni du workflow n'est nécessaire pour la bascule elle-même.
+4. Retour arrière : `Source → Deploy from a branch → gh-pages / (root)` (API : `PUT /pages {"build_type":"legacy","source":{"branch":"gh-pages","path":"/"}}`) → `pages-build-deployment` republie `94a84b6` automatiquement (~20 s observés).
+
+### P.6 La bascule déclenche-t-elle un déploiement ? — NON
+
+Le mode « GitHub Actions » n'associe aucun workflow à Pages (documentation officielle) : rien n'est publié tant qu'un workflow n'appelle pas `actions/deploy-pages`. Dans `flutter-web-build.yml`, ce job ne s'exécute que sur `workflow_dispatch` avec `publish_pages=true` ; les pushes et PR ne publient jamais. Le workflow système `pages-build-deployment` cesse d'être déclenché par les pushes sur `gh-pages`.
+
+### P.7 La bascule peut-elle modifier ou supprimer le site actuel ? — branche NON ; site servi : INCERTAIN
+
+- La branche `gh-pages` n'est **jamais modifiée** par un changement de mode (Pages ne réécrit pas sa source) ; son contenu (bundle OSRM, patches, anciens artefacts) reste intact jusqu'à J10.
+- Le site actuellement servi : la documentation officielle ne précise pas si le dernier déploiement legacy reste servi après la bascule. Les retours de terrain divergent (certains rapportent une continuité de service, d'autres un `404` jusqu'au premier `deploy-pages`). **À traiter comme une interruption possible** entre la bascule et la première publication → recommandation : n'effectuer la bascule que dans la même fenêtre validée que la première publication (bascule → règle de branche → `gh workflow run flutter-web-build.yml --ref arena/01a0ca19-dakar-bus -f publish_pages=true`, ~2 min), avec le retour arrière P.5.4 disponible.
+- La première publication Actions **remplace intégralement** le site servi par le contenu de l'artefact : `osrm/`, `tools/`, `service-worker.js`, le `main.dart.js` patché ne seront plus servis (ils restent dans la branche). Conséquences fonctionnelles (OSRM direct, service worker) : voir M.4/M.5 — décision J10.
+
+### P.8 URL
+
+Inchangée dans les deux modes : `https://aydiarra-star.github.io/dakar-bus/` (site de projet, pas de domaine personnalisé) ; `--base-href /dakar-bus/` du build reste correct ; `https_enforced` conservé.
+
+### P.9 Nécessité d'un déploiement immédiat ?
+
+Non requis techniquement : la bascule seule ne publie rien. Mais à cause de P.7 (interruption possible du site legacy après bascule), il est **recommandé** de coupler la bascule et la première publication validée dans la même fenêtre, ou de ne pas basculer tant que la publication n'est pas décidée. Les artefacts `dakar-bus-web-*` des runs restent disponibles 30 jours indépendamment de Pages.
+
+---
+
+## Q. Tentative de bascule Pages + premier déploiement (2026-09-22, 21:17 UTC) — BLOQUÉE, rien n'a changé
+
+| Étape | État | Preuve |
+|---|---|---|
+| 0. Réalignement local | **fait** | `git fetch origin` → `origin/arena/01a0ca19-dakar-bus` = `34a6190` (= API) ; branche locale réalignée par `update-ref` + `reset` (index seulement, arbre de travail intact) ; seule différence locale : section P du rapport (61 insertions, 0 suppression) |
+| 1. Règle d'environnement `arena/01a0ca19-dakar-bus` | **bloquée** | `POST /repos/aydiarra-star/dakar-bus/environments/github-pages/deployment-branch-policies {"name":"arena/01a0ca19-dakar-bus","type":"branch"}` → **HTTP 403 « Resource not accessible by integration »** ; règles inchangées (`gh-pages`, `main`) |
+| 2. Bascule Pages → GitHub Actions | **non faite (bloquée)** | sondage sans effet `PUT /pages {"https_enforced":true}` (valeur déjà en place) → **HTTP 403** ; configuration vérifiée identique avant/après (`legacy`, `gh-pages:/`, `https_enforced: true`). La bascule n'aurait de toute façon pas été effectuée sans la règle de l'étape 1 (publication impossible ensuite → interruption possible du site, cf. P.7/P.9) |
+| 3. Déclenchement manuel du workflow | **bloquée d'avance** | sondage sans effet `PUT /actions/workflows/364594347/enable` (workflow déjà actif) → **HTTP 403** ⇒ le jeton n'a pas `actions: write`, aucun `workflow_dispatch` possible depuis l'environnement d'audit |
+| 4-5. Validation du déploiement | **non exécutées** | aucun déploiement n'a eu lieu |
+
+Cause unique : le jeton de l'environnement d'audit est celui de l'application GitHub `arena-ai-coding-agent[bot]`, qui dispose de `contents: write` (les pushes fonctionnent) mais **pas** des permissions dépôt *Administration* (règles d'environnement), *Pages* (bascule) ni *Actions* (déclenchement manuel).
+
+État après la tentative (vérifié) : Pages `legacy` / `gh-pages:/` ; règles d'environnement `gh-pages`, `main` ; `gh-pages` = `94a84b6` ; workflow `Flutter web build (J9)` actif ; aucun run lancé ; site public inchangé (`version.json` servi = `{"app_name": "dakarbus", …}` indenté — fichier édité à la main, repère utile : le build Actions sert `{"app_name":"dakar_bus","version":"9.3.2","build_number":"12","package_name":"dakar_bus"}` compact).
+
+### Q.1 Actions requises du propriétaire (exactes, dans cet ordre, dans la même fenêtre)
+
+1. **Règle d'environnement** — Settings → Environments → `github-pages` → Deployment branches and tags → *Add deployment branch or tag rule* → Ref type *Branch* → `arena/01a0ca19-dakar-bus` → Add rule.
+   API : `gh api -X POST repos/aydiarra-star/dakar-bus/environments/github-pages/deployment-branch-policies -f name='arena/01a0ca19-dakar-bus' -f type=branch`
+2. **Bascule Pages** — Settings → Pages → Build and deployment → Source → **GitHub Actions** (ne rien supprimer ; `gh-pages` reste intacte).
+   API : `gh api -X PUT repos/aydiarra-star/dakar-bus/pages -f build_type=workflow`
+3. **Premier déploiement** (immédiatement après, pour limiter toute interruption) — Actions → *Flutter web build (J9)* → *Run workflow* → Branch `arena/01a0ca19-dakar-bus` → cocher `publish_pages` → Run.
+   API : `gh workflow run flutter-web-build.yml --ref arena/01a0ca19-dakar-bus -f publish_pages=true`
+   Le workflow exécute lui-même : Flutter 3.24.5 → `pub get --enforce-lockfile` → `analyze` → `test` → `build web --release --base-href /dakar-bus/` → contrôles `version.json`/`dakar_network.json`/empreintes → `upload-pages-artifact` → garde-fou `build_type == workflow` → `deploy-pages`. Aucune modification post-build.
+
+Alternative (plus large que nécessaire, non recommandée) : accorder à l'application `arena-ai-coding-agent` les permissions *Administration (write)*, *Pages (write)* et *Actions (write)* sur le dépôt.
+
+Retour arrière si nécessaire : Settings → Pages → Source → *Deploy from a branch* → `gh-pages` / `/ (root)` → republication automatique de `94a84b6` (~20 s).
+
+### Q.2 Ce qui pourra être vérifié depuis l'environnement d'audit une fois les 3 actions faites
+
+API GitHub : statut du run et des jobs `build`/`deploy-pages`, `GET /pages` (`build_type`, `status`), déploiements de l'environnement `github-pages` (nouveau déploiement `success`, `environment_url`), `gh-pages` toujours `94a84b6`, annotations (empreinte `main.dart.js`, `version.json`). Site public : le sandbox n'atteint pas `github.io` (HTTP 000) mais le lecteur web externe fonctionne (`version.json`, `index.html`) — comparaison `version.json` servi ↔ généré, `<base href="/dakar-bus/">`, présence de `main.dart.js`/`flutter_bootstrap.js`.
+
+---
+
 ## Réponse à la question finale
 
 > « Si je modifie `lib/main.dart` demain, puis-je reconstruire et republier sans modifier manuellement `main.dart.js` ? »
