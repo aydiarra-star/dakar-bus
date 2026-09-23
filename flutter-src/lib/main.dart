@@ -1741,24 +1741,75 @@ class _ExplorerPageState extends State<ExplorerPage> {
       base = allStops.where((s) => globalState.isFavorite(s.name)).toList();
     } else {
       switch (_selectedFilter) {
-        case 'TER': base = allStops.where((s) => s.color == AppColors.ter).toList(); break;
-        case 'BRT': base = allStops.where((s) => s.color == AppColors.brt).toList(); break;
+        case 'TER': {
+          // CORRECTIF TER/BRT — afficher les marqueurs officiels exactement sur le tracé
+          // Cause: l'ancien filtre couleur incluait 8 points historiques TER (ex: 14.6792,-17.4407)
+          // décalés de 600-3400m par rapport aux 13 gares officielles (ex: 14.67599,-17.43352),
+          // et le filtre proximité `take(30)` masquait les gares éloignées (Diamniadio 29km)
+          // en vue "Tous". Les marqueurs n'étaient donc ni visibles ni alignés.
+          // Fix: pour TER/BRT/Tous, on projette sur les arrêts officiels de la source unique
+          // (officialRouteStops) — mêmes coordonnées que la polyligne — sans limite de proximité
+          // et sans doublon historique. Aucune coordonnée inventée.
+          final ids = officialRouteStops('ter_dakar_diamniadio')?.map((e) => e.id).toList();
+          if (ids != null && ids.isNotEmpty) {
+            final idSet = ids.toSet();
+            base = allStops.where((s) => s.stopId != null && idSet.contains(s.stopId)).toList();
+            base.sort((a, b) => ids.indexOf(a.stopId!).compareTo(ids.indexOf(b.stopId!)));
+          } else {
+            base = allStops.where((s) => s.color == AppColors.ter).toList();
+          }
+          break;
+        }
+        case 'BRT': {
+          final ids = officialRouteStops('brt_b1_guediawaye_petersen')?.map((e) => e.id).toList();
+          if (ids != null && ids.isNotEmpty) {
+            final idSet = ids.toSet();
+            base = allStops.where((s) => s.stopId != null && idSet.contains(s.stopId)).toList();
+            base.sort((a, b) => ids.indexOf(a.stopId!).compareTo(ids.indexOf(b.stopId!)));
+          } else {
+            base = allStops.where((s) => s.color == AppColors.brt).toList();
+          }
+          break;
+        }
         case 'DDD': base = allStops.where((s) => s.color == AppColors.ddd).toList(); break;
         case 'TATA': base = allStops.where((s) => s.color == AppColors.tata).toList(); break;
         case 'AFTU': base = allStops.where((s) => s.color == AppColors.aftu).toList(); break;
         default: base = List.from(allStops); break;
       }
     }
+    // Pour TER/BRT, ne pas appliquer le filtre de proximité : l'itinéraire complet
+    // (13 gares / 23 stations) doit rester visible le long du tracé, même lointain.
+    // Pour "Tous", on affiche uniquement les marqueurs des tracés dédiés (TER+BRT)
+    // officiels, sans limite de proximité ni doublon historique, afin qu'ils suivent
+    // visuellement les polylignes (qui elles-mêmes sont limitées à TER/BRT en vue Tous).
+    if (_selectedFilter == 'TER' || _selectedFilter == 'BRT') {
+      return base.where((s) => DakarBounds.isValid(s.location)).toList();
+    }
+    if (_selectedFilter == 'Tous') {
+      final terIds = officialRouteStops('ter_dakar_diamniadio')?.map((e) => e.id).toSet() ?? {};
+      final brtIds = officialRouteStops('brt_b1_guediawaye_petersen')?.map((e) => e.id).toSet() ?? {};
+      if (terIds.isNotEmpty || brtIds.isNotEmpty) {
+        final allIds = {...terIds, ...brtIds};
+        base = allStops.where((s) => s.stopId != null && allIds.contains(s.stopId)).toList();
+        final terOrder = officialRouteStops('ter_dakar_diamniadio')?.map((e) => e.id).toList() ?? [];
+        final brtOrder = officialRouteStops('brt_b1_guediawaye_petersen')?.map((e) => e.id).toList() ?? [];
+        base.sort((a, b) {
+          final aIsTer = terIds.contains(a.stopId);
+          final bIsTer = terIds.contains(b.stopId);
+          if (aIsTer && !bIsTer) return -1;
+          if (!aIsTer && bIsTer) return 1;
+          if (aIsTer && bIsTer) return terOrder.indexOf(a.stopId!).compareTo(terOrder.indexOf(b.stopId!));
+          return brtOrder.indexOf(a.stopId!).compareTo(brtOrder.indexOf(b.stopId!));
+        });
+        return base.where((s) => DakarBounds.isValid(s.location)).toList();
+      }
+      // Données non chargées : laisser le traitement générique (limite proximité) s'appliquer
+    }
     // ✅ GROUPE 4 (F2 + F3) — 4A Carte 04 : rayon **4000 m** (`A.ap3`) et
     //    plafond de **30 résultats** (`take(30)`).
-    //    AVANT : `< 5000` et `.take(20)` (trois occurrences).
-    //    Le calcul est délégué à `GpsResolver.nearbyStops`, couture pure
-    //    testable sans plugin de géolocalisation (décision D3-i).
-    //    Le tri **dupliqué** (deux `base.sort` identiques et consécutifs,
-    //    lignes 1374-1376 puis 1378-1379 avant édition) est supprimé : le même
-    //    comparateur appliqué deux fois de suite donne le même résultat, donc
-    //    aucun changement de comportement.
-    // ✅ Fluidité : n'affiche que les arrêts proches (4 km, 30 max) pour éviter la surcharge carte/liste
+    //    Pour les filtres spécifiques autres que TER/BRT/Tous (DDD, TATA, AFTU, Favoris),
+    //    on conserve la fluidité proximité. Pour TER/BRT/Tous, le retour anticipé ci-dessus
+    //    garantit déjà l'affichage complet le long du tracé.
     if (widget.userPosition != null) {
       base.sort((a, b) => DistanceHelper.haversineMeters(widget.userPosition!, a.location).compareTo(DistanceHelper.haversineMeters(widget.userPosition!, b.location)));
       final nearby = GpsResolver.nearbyStops(base, widget.userPosition) ?? const <Stop>[];
@@ -1847,7 +1898,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
     final activePolylines = filterColor == null
         ? basePolylines.where((p) => p.color == AppColors.ter || p.color == AppColors.brt).toList() // Tous : seulement TER/BRT (tracés dédiés, pas le spaghetti)
         : basePolylines.where((p) => p.color == filterColor).toList();
-    final mapStops = _filteredStops; // ✅ Toujours filtré à proximité (30 max — Groupe 4), pas allStops
+    final mapStops = _filteredStops; // ✅ CORRECTIF TER/BRT : _filteredStops retourne désormais les marqueurs officiels (13 TER / 23 BRT / 36 Tous) exactement sur la polyligne, sans limite proximité ni doublon historique. Aucune coordonnée inventée.
 
     return AnimatedBuilder(
       animation: globalState,
