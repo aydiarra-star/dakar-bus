@@ -1,0 +1,349 @@
+name: Flutter web build (J9)
+
+# ============================================================================
+# J9 — CHAÎNE DE BUILD REPRODUCTIBLE DE DAKAR BUS (projet officiel : Flutter,
+# dossier flutter-src/, version unique = flutter-src/pubspec.yaml)
+#
+# SOURCE FLUTTER COMMITÉ
+#   → Flutter 3.24.5
+#   → flutter pub get
+#   → flutter analyze
+#   → flutter test
+#   → flutter build web --release --base-href /dakar-bus/
+#   → ARTEFACTS
+#   → publication GitHub Pages uniquement sur workflow_dispatch
+#
+# RÈGLES ABSOLUES
+#   - aucun script Python
+#   - aucun sed/regex de post-traitement
+#   - aucune modification de main.dart.js après compilation
+#   - aucune modification de la PWA JavaScript historique
+#   - le contenu publié est strictement celui produit par flutter build web
+# ============================================================================
+
+on:
+  push:
+    branches:
+      - main
+      - arena/01a0ca19-dakar-bus
+    paths:
+      - 'flutter-src/**'
+      - '.github/workflows/flutter-web-build.yml'
+
+  pull_request:
+    paths:
+      - 'flutter-src/**'
+      - '.github/workflows/flutter-web-build.yml'
+
+  workflow_dispatch:
+    inputs:
+      publish_pages:
+        description: >-
+          Publier le build sur GitHub Pages. Exige (1) une validation explicite,
+          (2) Pages configuré en mode « GitHub Actions » (build_type=workflow).
+          Sinon le job de publication s'arrête sans rien publier.
+        type: boolean
+        default: false
+
+env:
+  FLUTTER_VERSION: '3.24.5'
+  FLUTTER_CHANNEL: 'stable'
+  BASE_HREF: '/dakar-bus/'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: flutter-web-build-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: "pub get → analyze → test → build web (Flutter 3.24.5)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: flutter-src
+
+    outputs:
+      app_version: ${{ steps.version.outputs.app_version }}
+      lockfile_present: ${{ steps.lockfile.outputs.present }}
+
+    steps:
+      - name: Checkout du source commité
+        uses: actions/checkout@v4
+
+      - name: Installer Flutter ${{ env.FLUTTER_VERSION }} (${{ env.FLUTTER_CHANNEL }})
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: ${{ env.FLUTTER_CHANNEL }}
+          cache: true
+
+      - name: Vérifier la version exacte de Flutter
+        run: |
+          mkdir -p "${RUNNER_TEMP}/j9-logs"
+          flutter --version 2>&1 | tee "${RUNNER_TEMP}/j9-logs/flutter-version.txt"
+          dart --version 2>&1 | tee -a "${RUNNER_TEMP}/j9-logs/flutter-version.txt"
+
+          got="$(flutter --version --machine | jq -r .frameworkVersion)"
+
+          if [ "$got" != "${FLUTTER_VERSION}" ]; then
+            echo "::error::Flutter ${got} installé au lieu de ${FLUTTER_VERSION}"
+            exit 1
+          fi
+
+          echo "::notice title=Flutter::$(head -1 "${RUNNER_TEMP}/j9-logs/flutter-version.txt")"
+
+      - name: Version applicative — source unique flutter-src/pubspec.yaml
+        id: version
+        run: |
+          line="$(grep -E '^version:' pubspec.yaml)"
+          full="${line#version:}"
+          full="${full//[[:space:]]/}"
+
+          if [ -z "$full" ]; then
+            echo "::error::Aucun champ version dans flutter-src/pubspec.yaml"
+            exit 1
+          fi
+
+          echo "app_version=${full}" >> "$GITHUB_OUTPUT"
+          echo "Version applicative (pubspec.yaml) : ${full}"
+
+      - name: État du lockfile
+        id: lockfile
+        run: |
+          if [ -f pubspec.lock ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+            echo "pubspec.lock commité : résolution des dépendances imposée."
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::warning file=flutter-src/pubspec.yaml::pubspec.lock ABSENT — le build n'est pas encore reproductible."
+          fi
+
+      - name: flutter pub get (lockfile imposé)
+        if: steps.lockfile.outputs.present == 'true'
+        run: |
+          flutter pub get --enforce-lockfile \
+            2>&1 | tee "${RUNNER_TEMP}/j9-logs/pub-get.txt"
+
+      - name: flutter pub get (première exécution)
+        if: steps.lockfile.outputs.present != 'true'
+        run: |
+          flutter pub get \
+            2>&1 | tee "${RUNNER_TEMP}/j9-logs/pub-get.txt"
+
+          echo "----- pubspec.lock généré -----"
+          cat pubspec.lock
+
+          cp pubspec.lock "${RUNNER_TEMP}/j9-logs/pubspec.lock"
+
+      - name: flutter analyze
+        run: |
+          flutter analyze \
+            2>&1 | tee "${RUNNER_TEMP}/j9-logs/analyze.txt"
+
+      - name: flutter test
+        run: |
+          flutter test --reporter expanded \
+            2>&1 | tee "${RUNNER_TEMP}/j9-logs/test.txt"
+
+      - name: flutter build web
+        run: |
+          flutter build web --release --base-href "${BASE_HREF}" \
+            2>&1 | tee "${RUNNER_TEMP}/j9-logs/build-web.txt"
+
+      - name: Résultats des commandes
+        if: always()
+        run: |
+          logs="${RUNNER_TEMP}/j9-logs"
+
+          {
+            echo "## Résultats des commandes Flutter"
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          report() {
+            if [ -f "${logs}/$2" ]; then
+              last="$(grep -v '^[[:space:]]*$' "${logs}/$2" | tail -n 1)"
+
+              echo "::notice title=$1::${last}"
+
+              {
+                echo "### $1"
+                echo '```text'
+                tail -n "$3" "${logs}/$2"
+                echo '```'
+              } >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "::notice title=$1::non exécuté"
+              echo "### $1 — non exécuté" >> "$GITHUB_STEP_SUMMARY"
+            fi
+          }
+
+          report "flutter pub get" pub-get.txt 15
+          report "flutter analyze" analyze.txt 5
+          report "flutter test" test.txt 5
+          report "flutter build web" build-web.txt 10
+
+      - name: Artefact — journal brut
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: j9-logs-${{ github.sha }}
+          path: ${{ runner.temp }}/j9-logs
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Empreintes SHA-256 du build
+        run: |
+          find build/web -type f -print0 |
+            sort -z |
+            xargs -0 sha256sum > build/web-checksums.txt
+
+          echo "Fichiers produits : $(wc -l < build/web-checksums.txt)"
+
+          grep -E '/(main\.dart\.js|flutter_bootstrap\.js|flutter\.js|index\.html|version\.json)$' \
+            build/web-checksums.txt
+
+          echo "::notice title=main.dart.js::$(grep -E '/main\.dart\.js$' build/web-checksums.txt)"
+
+      - name: Vérifications de cohérence
+        run: |
+          expected="${{ steps.version.outputs.app_version }}"
+
+          exp_ver="${expected%%+*}"
+          exp_build="${expected##*+}"
+
+          got_ver="$(jq -r .version build/web/version.json)"
+          got_build="$(jq -r .build_number build/web/version.json)"
+
+          echo "version.json : $(cat build/web/version.json)"
+
+          if [ "$got_ver" != "$exp_ver" ] ||
+             [ "$got_build" != "$exp_build" ]; then
+            echo "::error::version.json ne correspond pas à pubspec.yaml"
+            exit 1
+          fi
+
+          if ! grep -q "<base href=\"${BASE_HREF}\">" build/web/index.html; then
+            echo "::error::base href incorrect"
+            exit 1
+          fi
+
+          if ! cmp -s \
+            assets/data/dakar_network.json \
+            build/web/assets/assets/data/dakar_network.json; then
+            echo "::error::L'asset réseau embarqué diffère du source"
+            exit 1
+          fi
+
+          test -s build/web/main.dart.js
+
+          echo "OK — version, base href et asset réseau vérifiés."
+
+      - name: Résumé du run
+        run: |
+          {
+            echo "## Dakar Bus — build Flutter web (J9)"
+            echo ""
+            echo "| Élément | Valeur |"
+            echo "|---|---|"
+            echo "| Source | \`${{ github.sha }}\` |"
+            echo "| Branche | \`${{ github.ref_name }}\` |"
+            echo "| Flutter | $(flutter --version | head -1) |"
+            echo "| Version | \`${{ steps.version.outputs.app_version }}\` |"
+            echo "| Post-traitement main.dart.js | AUCUN |"
+            echo ""
+            echo "### Empreintes SHA-256"
+            echo '```'
+            grep -E '/(main\.dart\.js|flutter_bootstrap\.js|flutter\.js|index\.html|version\.json|flutter_service_worker\.js)$' \
+              build/web-checksums.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Artefact — build/web
+        uses: actions/upload-artifact@v4
+        with:
+          name: dakar-bus-web-${{ github.sha }}
+          path: flutter-src/build/web
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Artefact — empreintes SHA-256
+        uses: actions/upload-artifact@v4
+        with:
+          name: dakar-bus-web-checksums-${{ github.sha }}
+          path: flutter-src/build/web-checksums.txt
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Artefact — pubspec.lock généré
+        if: steps.lockfile.outputs.present != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pubspec.lock
+          path: flutter-src/pubspec.lock
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Empreintes au moment de la publication
+        run: |
+          find build/web -type f -print0 |
+            sort -z |
+            xargs -0 sha256sum > build/web-checksums-final.txt
+
+          if ! diff build/web-checksums.txt build/web-checksums-final.txt; then
+            echo "::error::Le contenu de build/web a changé entre compilation et publication"
+            exit 1
+          fi
+
+          echo "Aucune modification post-build."
+
+      - name: Préparer l'artefact GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: flutter-src/build/web
+
+  deploy-pages:
+    name: "Publication GitHub Pages (manuelle, après validation)"
+
+    if: github.event_name == 'workflow_dispatch' && inputs.publish_pages == true
+
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    concurrency:
+      group: github-pages-deploy
+      cancel-in-progress: false
+
+    steps:
+      - name: Vérifier le mode GitHub Pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mode="$(gh api "repos/${GITHUB_REPOSITORY}/pages" --jq .build_type)"
+
+          echo "Mode GitHub Pages actuel : ${mode}"
+
+          if [ "${mode}" != "workflow" ]; then
+            echo "::error::GitHub Pages n'est pas en mode GitHub Actions."
+            exit 1
+          fi
+
+      - name: Déployer l'artefact Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
