@@ -702,4 +702,172 @@ void main() {
       expect(networkOfRoute('ligne_inexistante'), isNull);
     });
   });
+
+  // ==================================================================
+  // CORRECTIF AFFICHAGE CARTOGRAPHIQUE DES ARRÊTS TER/BRT.
+  //
+  // Cause verrouillée ici : la couche marqueurs d'Explorer était alimentée
+  // par le seul flux « à proximité » (`_filteredStops` : 30 arrêts max,
+  // rayon 4 km si GPS). En vue « Tous », ce plafond ne laissait visibles
+  // qu'1 gare TER et 8 stations BRT pendant que les tracés complets
+  // (13 + 23) étaient dessinés. `explorerMapMarkerStops` garantit
+  // désormais les arrêts officiels des réseaux affichés, sans donnée
+  // nouvelle (mêmes objets `Stop` intégrés du JSON, `stopId` non nul).
+  // ==================================================================
+  group('§10 — marqueurs de la carte : gares/stations officielles garanties',
+      () {
+    /// Réplique du comportement réel d'Explorer : `proximityStops` =
+    /// `_filteredStops` (arrêts de la couleur du filtre, plafonnés à 30 par
+    /// la proximité — les réseaux ci-dessous comptent moins de 30 arrêts) et
+    /// `terDisplayed`/`brtDisplayed` = prédicat des `activePolylines`
+    /// (« Tous » → TER + BRT, sinon la couleur sélectionnée).
+    List<Stop> markersFor(String filtre) {
+      final List<Stop> prox;
+      switch (filtre) {
+        case 'TER':
+          prox = networkPoints(AppColors.ter);
+          break;
+        case 'BRT':
+          prox = networkPoints(AppColors.brt);
+          break;
+        case 'DDD':
+          prox = networkPoints(AppColors.ddd);
+          break;
+        default: // « Tous »
+          prox = [
+            ...networkPoints(AppColors.ter),
+            ...networkPoints(AppColors.brt),
+          ];
+          break;
+      }
+      return explorerMapMarkerStops(
+        proximityStops: prox,
+        terDisplayed: filtre == 'Tous' || filtre == 'TER',
+        brtDisplayed: filtre == 'Tous' || filtre == 'BRT',
+      );
+    }
+
+    test('« Tous » : chaque gare TER officielle (13) a son marqueur', () {
+      final List<Stop> tous = markersFor('Tous');
+      final Set<String> ids =
+          tous.map((Stop s) => s.stopId).whereType<String>().toSet();
+      for (final String id in kTer13) {
+        expect(ids.contains(id), true, reason: 'gare $id absente de la carte');
+      }
+      expect(
+          tous.where((Stop s) =>
+                  s.stopId != null && s.color == AppColors.ter).length,
+          13,
+          reason: '13 marqueurs TER, un par gare officielle, sans doublon');
+    });
+
+    test('« Tous » : chaque station BRT officielle (23) a son marqueur', () {
+      final List<Stop> tous = markersFor('Tous');
+      final Set<String> ids =
+          tous.map((Stop s) => s.stopId).whereType<String>().toSet();
+      for (final String id in kBrtB123) {
+        expect(ids.contains(id), true,
+            reason: 'station $id absente de la carte');
+      }
+      expect(
+          tous.where((Stop s) =>
+                  s.stopId != null && s.color == AppColors.brt).length,
+          23,
+          reason: '23 marqueurs BRT, un par station officielle, sans doublon');
+    });
+
+    test('« Tous » : plus aucun doublon démo héritée / officielle sur la carte',
+        () {
+      // Les listes Explorer conservent leurs 21 + 27 points (§6, inchangés),
+      // mais la carte ne dessine plus les 8 + 4 arrêts de démonstration
+      // hérités (sans `stopId`, coordonnées hors tracé) en plus des
+      // officiels.
+      final List<Stop> tous = markersFor('Tous');
+      expect(
+          tous.where((Stop s) =>
+              s.color == AppColors.ter && s.stopId == null).length,
+          0,
+          reason: 'aucun arrêt TER de démonstration redessiné sur la carte');
+      expect(
+          tous.where((Stop s) =>
+              s.color == AppColors.brt && s.stopId == null).length,
+          0,
+          reason: 'aucune station BRT de démonstration redessinée sur la carte');
+      expect(tous.length, 36,
+          reason: '13 gares TER + 23 stations BRT, rien d\'autre');
+    });
+
+    test('filtre TER : exactement les 13 gares officielles, aucune station BRT',
+        () {
+      final List<Stop> ter = markersFor('TER');
+      expect(ter.length, 13, reason: 'un marqueur par gare officielle');
+      expect(
+          ter.where((Stop s) =>
+                  s.stopId != null && s.color == AppColors.ter).length,
+          13);
+      expect(ter.where((Stop s) => s.color == AppColors.brt).length, 0);
+    });
+
+    test('filtre BRT : exactement les 23 stations officielles, aucune gare TER',
+        () {
+      final List<Stop> brt = markersFor('BRT');
+      expect(brt.length, 23, reason: 'un marqueur par station officielle');
+      expect(
+          brt.where((Stop s) =>
+                  s.stopId != null && s.color == AppColors.brt).length,
+          23);
+      expect(brt.where((Stop s) => s.color == AppColors.ter).length, 0);
+    });
+
+    test('chaque marqueur TER officiel est posé sur un sommet du tracé TER',
+        () {
+      final TransitRoute ter =
+          demoRoutes.firstWhere((TransitRoute r) => r.code == 'TER');
+      final Set<String> sommets = ter.points
+          .map((LatLng p) => coordKey(p.latitude, p.longitude))
+          .toSet();
+      for (final Stop s in markersFor('TER')
+          .where((Stop s) => s.stopId != null && s.color == AppColors.ter)) {
+        expect(
+            sommets.contains(
+                coordKey(s.location.latitude, s.location.longitude)),
+            true,
+            reason: '${s.name} (${s.stopId}) n\'est pas sur le tracé TER');
+      }
+    });
+
+    test('chaque marqueur BRT officiel est posé sur un sommet du tracé B1',
+        () {
+      final TransitRoute b1 = demoRoutes
+          .firstWhere((TransitRoute r) => r.code == 'BRT B1');
+      final Set<String> sommets = b1.points
+          .map((LatLng p) => coordKey(p.latitude, p.longitude))
+          .toSet();
+      for (final Stop s in markersFor('BRT')
+          .where((Stop s) => s.stopId != null && s.color == AppColors.brt)) {
+        expect(
+            sommets.contains(
+                coordKey(s.location.latitude, s.location.longitude)),
+            true,
+            reason: '${s.name} (${s.stopId}) n\'est pas sur le tracé B1');
+      }
+    });
+
+    test('hors TER/BRT (DDD, TATA, AFTU, Favoris) : comportement inchangé', () {
+      final List<Stop> prox = networkPoints(AppColors.ddd);
+      final List<Stop> out = explorerMapMarkerStops(
+          proximityStops: prox, terDisplayed: false, brtDisplayed: false);
+      expect(out.length, prox.length,
+          reason: 'sans réseau dédié affiché, la couche est inchangée');
+    });
+
+    test('tous les marqueurs produits restent dans les bornes Dakar', () {
+      for (final String f in const <String>['Tous', 'TER', 'BRT']) {
+        for (final Stop s in markersFor(f)) {
+          expect(DakarBounds.isValid(s.location), true,
+              reason: '${s.name} ($f) hors bornes');
+        }
+      }
+    });
+  });
 }
