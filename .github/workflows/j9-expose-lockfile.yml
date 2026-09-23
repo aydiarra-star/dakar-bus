@@ -47,7 +47,7 @@ env:
   # Généralisation lecture seule (diagnostic) : exposer n'importe quel fichier
   # d'artefact (ex. test.txt de l'artefact j9-logs) sans le modifier.
   ARTIFACT_NAME: ${{ inputs.artifact_name || 'j9-logs-580de303c195f3002c18132a9553a13bdd9415e0' }}  # TEMPORAIRE (diagnostic)
-  FILE_PATH: ${{ inputs.file_path || 'test.txt' }}  # TEMPORAIRE (diagnostic)
+  FILE_PATH: ${{ inputs.file_path || 'analyze.txt' }}  # TEMPORAIRE (diagnostic)
 
 permissions:
   contents: read
