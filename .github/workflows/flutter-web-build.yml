@@ -2,6 +2,7 @@ name: Flutter web build (J9)
 
 # ============================================================================
 # J9 — CHAÎNE DE BUILD REPRODUCTIBLE DE DAKAR BUS
+# (Branche cible : arena/01a0ca19-dakar-bus)
 # ============================================================================
 
 on:
@@ -55,6 +56,8 @@ jobs:
     steps:
       - name: Checkout du source commité
         uses: actions/checkout@v4
+        with:
+          ref: arena/01a0ca19-dakar-bus
 
       - name: Installer Flutter ${{ env.FLUTTER_VERSION }} (${{ env.FLUTTER_CHANNEL }})
         uses: subosito/flutter-action@v2
