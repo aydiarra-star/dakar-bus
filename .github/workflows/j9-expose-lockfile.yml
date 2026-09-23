@@ -43,10 +43,10 @@ on:
 
 env:
   # Entrée manuelle si présente, sinon le run validé du 2026-09-22.
-  RUN_ID: ${{ inputs.run_id || '35870183712' }}  # TEMPORAIRE (diagnostic)
+  RUN_ID: ${{ inputs.run_id || '35871009790' }}  # TEMPORAIRE (diagnostic)
   # Généralisation lecture seule (diagnostic) : exposer n'importe quel fichier
   # d'artefact (ex. test.txt de l'artefact j9-logs) sans le modifier.
-  ARTIFACT_NAME: ${{ inputs.artifact_name || 'j9-logs-1a944aec1696c0c2e0b0990565928a65c25d9b03' }}  # TEMPORAIRE (diagnostic)
+  ARTIFACT_NAME: ${{ inputs.artifact_name || 'j9-logs-580de303c195f3002c18132a9553a13bdd9415e0' }}  # TEMPORAIRE (diagnostic)
   FILE_PATH: ${{ inputs.file_path || 'test.txt' }}  # TEMPORAIRE (diagnostic)
 
 permissions:
