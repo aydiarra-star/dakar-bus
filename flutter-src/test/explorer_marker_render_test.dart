@@ -53,6 +53,9 @@ class _PngHttpClient implements HttpClient {
   Future<HttpClientRequest> getUrl(Uri url) => openUrl('GET', url);
 
   @override
+  void close({bool force = false}) {}
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -79,6 +82,12 @@ class _PngRequest implements HttpClientRequest {
 
   @override
   Future<HttpClientResponse> close() async => _PngResponse();
+
+  @override
+  Future<HttpClientResponse> get done => close();
+
+  @override
+  Future<void> addStream(Stream<List<int>> stream) => stream.drain<void>();
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -210,6 +219,25 @@ Future<void> pumpExplorer(
   }, createHttpClient: (SecurityContext? _) => _PngHttpClient());
 }
 
+/// Active le VRAI chip de filtre de l'écran Explorer (même `onTap` que l'appui
+/// utilisateur). Le rayon de chips — `SizedBox(height: 40, child: ListView)` —
+/// est unique à l'écran ; les `GestureDetector` des marqueurs ne contiennent
+/// aucun `Text`.
+void tapChip(WidgetTester tester, String label) {
+  final Finder chipsRow = find.byWidgetPredicate(
+    (Widget w) => w is SizedBox && w.height == 40.0 && w.child is ListView,
+  );
+  expect(chipsRow, findsOneWidget,
+      reason: 'le rayon de chips de filtres est unique');
+  final Finder chip = find.descendant(
+    of: chipsRow,
+    matching: find.widgetWithText(GestureDetector, label),
+  );
+  expect(chip, findsOneWidget, reason: 'chip « $label » présent une seule fois');
+  final GestureDetector detector = tester.widget<GestureDetector>(chip);
+  detector.onTap!();
+}
+
 /// Le `FlutterMap` rendu et sa couche de marqueurs d'arrêts (première couche
 /// `MarkerLayer` des enfants de la carte ; la couche position utilisateur,
 /// ajoutée ensuite, est exclue).
@@ -297,12 +325,7 @@ void main() {
       'aucune station BRT', (WidgetTester tester) async {
     await pumpExplorer(
       tester,
-      mutate: () {
-        final State<dynamic> st = tester.state(find.byType(ExplorerPage));
-        (st as dynamic).setState(() {
-          (st as dynamic)._selectedFilter = 'TER';
-        });
-      },
+      mutate: () => tapChip(tester, 'TER'),
     );
 
     final (FlutterMap _, MarkerLayer stops) = renderedMapAndStopsLayer(tester);
@@ -325,12 +348,7 @@ void main() {
       'aucune gare TER', (WidgetTester tester) async {
     await pumpExplorer(
       tester,
-      mutate: () {
-        final State<dynamic> st = tester.state(find.byType(ExplorerPage));
-        (st as dynamic).setState(() {
-          (st as dynamic)._selectedFilter = 'BRT';
-        });
-      },
+      mutate: () => tapChip(tester, 'BRT'),
     );
 
     final (FlutterMap _, MarkerLayer stops) = renderedMapAndStopsLayer(tester);
