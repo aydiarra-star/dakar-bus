@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Dakar Bus - TER • BRT • DDD • AFTU • Tata (76 lignes • 42 arrêts)</title>
-<meta name="description" content="Dakar Bus - Réseau multimodal Dakar : TER (13 gares, Dakar ↔ Diamniadio), BRT SunuBRT (23 stations, Petersen ↔ Guédiawaye), DDD, AFTU, Tata. 42 arrêts au total. Planificateur d'itinéraires, carte temps réel, assistant IA.">
+<title>Dakar Bus -  •  • DDD • AFTU • Tata (76 lignes • 42 arrêts)</title>
+<meta name="description" content="Dakar Bus - Réseau multimodal Dakar :  (13 gares, Dakar ↔ Diamniadio),  Sunu (23 stations, Pesen ↔ Guédiawaye), DDD, AFTU, Tata. 42 arrêts au total. Planificateur d'itinéraires, carte temps réel, assistant IA.">
 <meta name="theme-color" content="#00B140">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -31,63 +31,63 @@ tailwind.config = {
 </script>
 <style>
 * { font-family: 'Outfit', sans-serif; }
-.glass { backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+.glass { backdrop-fil: blur(16px); -webkit-backdrop-fil: blur(16px); }
 .leaflet-container { font-family: 'Outfit', sans-serif; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 .tab-active { background: #00B140; color: white !important; box-shadow: 0 8px 20px rgba(0,177,64,0.25); border-color: #00B140 !important; }
-.filter-active { background: #E6F7ED; color: #007A2F; border-color: #00B140 !important; font-weight: 700; border-width: 2px !important; }
+.fil-active { background: #E6F7ED; color: #007A2F; border-color: #00B140 !important; font-weight: 700; border-width: 2px !important; }
 .bottom-nav-active { background: #E6F7ED; color: #00B140; }
 .bottom-nav-active svg, .bottom-nav-active span { color: #00B140; }
 .live-pulse::before { content:''; position:absolute; inset:-4px; border-radius:9999px; background: currentColor; opacity:0.2; animation: liveDot 1.5s infinite; }
 @keyframes liveDot { 0%,100% { transform: scale(1); opacity:1 } 50% { transform: scale(1.4); opacity:0.6 } }
 
 /* ---- Comptage fiable des arrêts : 1 marqueur = 1 arrêt, numéroté ----
-   TER  : 13 gares   (Dakar -> Diamniadio)
-   BRT  : 23 stations (PEM Petersen <-> PEM Guediawaye)
+     : 13 gares   (Dakar -> Diamniadio)
+     : 23 stations (PEM Pesen <-> PEM Guediawaye)
    BUS  : 6 pôles
    Les véhicules sont visuellement distincts (pas des arrêts) et filtrables. */
-.stop-pin{display:flex;align-items:center;justify-content:center;border-radius:9999px;border:2px solid #fff;color:#fff;font-weight:800;line-height:1;box-shadow:0 2px 6px rgba(15,23,42,.35);font-variant-numeric:tabular-nums}
-.stop-pin.ter{width:26px;height:26px;background:#10B981;font-size:11px}
-.stop-pin.brt{width:22px;height:22px;background:#00B140;font-size:10px}
+.stop-pin{display:flex;align-items:cen;justify-content:cen;border-radius:9999px;border:2px solid #fff;color:#fff;font-weight:800;line-height:1;box-shadow:0 2px 6px rgba(15,23,42,.35);font-variant-numeric:tabular-nums}
+.stop-pin.{width:26px;height:26px;background:#10B981;font-size:11px}
+.stop-pin.{width:22px;height:22px;background:#00B140;font-size:10px}
 .stop-pin.bus{width:16px;height:16px;background:#3B82F6;font-size:8px}
-.vehicle-pin{display:flex;align-items:center;justify-content:center;width:30px;height:22px;border-radius:11px;border:2px solid #fff;font-size:12px;box-shadow:0 3px 10px rgba(15,23,42,.35);animation:vehPulse 2.2s ease-in-out infinite}
-.vehicle-pin.ter{background:#047857}
-.vehicle-pin.brt{background:#008A33}
+.vehicle-pin{display:flex;align-items:cen;justify-content:cen;width:30px;height:22px;border-radius:11px;border:2px solid #fff;font-size:12px;box-shadow:0 3px 10px rgba(15,23,42,.35);animation:vehPulse 2.2s ease-in-out infinite}
+.vehicle-pin.{background:#047857}
+.vehicle-pin.{background:#008A33}
 .vehicle-pin.ddd{background:#2563EB}
 @keyframes vehPulse { 0%,100% { transform: scale(1) } 50% { transform: scale(1.08) } }
 #map-layers input{accent-color:#00B140}
-.line-row{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;border:1px solid #E2E8F0;background:#fff}
-.line-row .lg-num{width:28px;height:28px;border-radius:9999px;background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex:0 0 auto}
-.line-row.ter .lg-num{background:#10B981}
-.line-row.brt .lg-num{background:#00B140}
+.line-row{display:flex;align-items:cen;gap:12px;padding:10px 12px;border-radius:14px;border:1px solid #E2E8F0;background:#fff}
+.line-row .lg-num{width:28px;height:28px;border-radius:9999px;background:#0f172a;color:#fff;display:flex;align-items:cen;justify-content:cen;font-size:12px;font-weight:800;flex:0 0 auto}
+.line-row. .lg-num{background:#10B981}
+.line-row. .lg-num{background:#00B140}
 </style>
 </head>
 <body class="bg-[#f6f7f5] dark:bg-[#0a0a0b] text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-300 overflow-x-hidden pb-[84px] lg:pb-0">
 
 <!-- Header -->
 <header class="sticky top-0 z-[1000] bg-white/90 dark:bg-zinc-900/90 glass border-b border-slate-200/60 dark:border-zinc-800">
-  <div class="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8 h-[68px] flex items-center justify-between">
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-[12px] bg-[#00B140] flex items-center justify-center font-display font-bold text-white text-[20px]">D</div>
+  <div class="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8 h-[68px] flex items-cen justify-between">
+    <div class="flex items-cen gap-3">
+      <div class="w-10 h-10 rounded-[12px] bg-[#00B140] flex items-cen justify-cen font-display font-bold text-white text-[20px]">D</div>
       <div>
         <div class="font-display font-bold text-[18px] leading-none">DAKAR<span class="font-light"> BUS</span></div>
-        <div class="text-[11px] tracking-[0.12em] text-slate-500 font-medium -mt-0.5 flex items-center gap-1.5"><span class="relative w-2 h-2 rounded-full bg-[#00B140] inline-block"><span class="absolute inset-0 rounded-full bg-[#00B140] live-pulse"></span></span> TER • BRT • DDD • AFTU • Tata • PWA</div>
+        <div class="text-[11px] tracking-[0.12em] text-slate-500 font-medium -mt-0.5 flex items-cen gap-1.5"><span class="relative w-2 h-2 rounded-full bg-[#00B140] inline-block"><span class="absolute inset-0 rounded-full bg-[#00B140] live-pulse"></span></span>  •  • DDD • AFTU • Tata • PWA</div>
       </div>
     </div>
-    <nav class="hidden lg:flex items-center gap-1.5 p-1 rounded-full bg-slate-100 dark:bg-zinc-800">
+    <nav class="hidden lg:flex items-cen gap-1.5 p-1 rounded-full bg-slate-100 dark:bg-zinc-800">
       <button data-tab="explorer" class="tab-btn px-5 py-2 rounded-full text-[14px] font-medium transition-all border border-transparent">Explorer</button>
       <button data-tab="trajets" class="tab-btn px-5 py-2 rounded-full text-[14px] font-medium">Trajets</button>
       <button data-tab="arrets" class="tab-btn px-5 py-2 rounded-full text-[14px] font-medium">Arrêts</button>
       <button data-tab="transports" class="tab-btn px-5 py-2 rounded-full text-[14px] font-medium">Transports</button>
       <button data-tab="alertes" class="tab-btn px-5 py-2 rounded-full text-[14px] font-medium relative">Alertes <span id="alert-count" class="ml-1.5 bg-[#00B140] text-white text-[10px] px-1.5 py-0.5 rounded-full">3</span></button>
     </nav>
-    <div class="flex items-center gap-2">
-      <div id="pwa-status" class="hidden md:flex items-center gap-1.5 px-2.5 h-7 rounded-full bg-[#00B140] text-white text-[11px] font-medium"><span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>Dakar Bus PWA</div>
-      <div id="gtfs-status" class="hidden md:flex items-center gap-1.5 px-2.5 h-7 rounded-full bg-[#E6F7ED] border border-[#C2EAD0] text-[#007A2F] text-[11px] font-medium">● GTFS-RT</div>
-      <button id="gps-live-btn" class="hidden md:flex items-center gap-2 px-4 h-9 rounded-full bg-white border border-[#C2EAD0] text-[#00B140] text-[13px] font-semibold hover:bg-[#E6F7ED] transition"><span class="w-2 h-2 rounded-full bg-[#00B140] animate-pulse"></span> GPS Live</button>
-      <button id="theme-toggle" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-zinc-800 flex items-center justify-center">🌙</button>
-      <button id="mobile-menu" class="lg:hidden w-9 h-9 rounded-full bg-[#0f172a] dark:bg-white text-white dark:text-black flex items-center justify-center">☰</button>
+    <div class="flex items-cen gap-2">
+      <div id="pwa-status" class="hidden md:flex items-cen gap-1.5 px-2.5 h-7 rounded-full bg-[#00B140] text-white text-[11px] font-medium"><span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>Dakar Bus PWA</div>
+      <div id="gtfs-status" class="hidden md:flex items-cen gap-1.5 px-2.5 h-7 rounded-full bg-[#E6F7ED] border border-[#C2EAD0] text-[#007A2F] text-[11px] font-medium">● GTFS-RT</div>
+      <button id="gps-live-btn" class="hidden md:flex items-cen gap-2 px-4 h-9 rounded-full bg-white border border-[#C2EAD0] text-[#00B140] text-[13px] font-semibold hover:bg-[#E6F7ED] transition"><span class="w-2 h-2 rounded-full bg-[#00B140] animate-pulse"></span> GPS Live</button>
+      <button id="theme-toggle" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-zinc-800 flex items-cen justify-cen">🌙</button>
+      <button id="mobile-menu" class="lg:hidden w-9 h-9 rounded-full bg-[#0f172a] dark:bg-white text-white dark:text-black flex items-cen justify-cen">☰</button>
     </div>
   </div>
   <div id="mobile-nav" class="lg:hidden hidden border-t border-slate-100 dark:border-zinc-800 px-3 py-3 bg-white/95 dark:bg-zinc-900/95">
@@ -104,7 +104,7 @@ tailwind.config = {
 <div class="max-w-[1440px] mx-auto mt-3 mx-4 md:mx-6 lg:mx-8">
   <div id="fix-banner" class="bg-[#0f172a] text-white rounded-[16px] px-4 py-3 flex items-start gap-3 text-[13px] leading-snug">
     <span class="text-[#00B140] mt-0.5">✓</span>
-    <div><b>Dakar Bus - Réseau officiel :</b> Carte interactive — 13 gares TER (Dakar ↔ Diamniadio) + 23 stations SunuBRT (PEM Petersen ↔ PEM Guédiawaye) + 6 pôles bus = <b>42 arrêts</b>. Chaque réseau se filtre sur la carte (arrêts numérotés 1 → 13 et 1 → 23). <span id="sw-status" class="opacity-70">PWA prêt</span> <button onclick="this.parentElement.parentElement.remove()" class="ml-2 underline opacity-70">Fermer</button></div>
+    <div><b>Dakar Bus - Réseau officiel :</b> Carte inactive — 13 gares  (Dakar ↔ Diamniadio) + 23 stations Sunu (PEM Pesen ↔ PEM Guédiawaye) + 6 pôles bus = <b>42 arrêts</b>. Chaque réseau se filtre sur la carte (arrêts numérotés 1 → 13 et 1 → 23). <span id="sw-status" class="opacity-70">PWA prêt</span> <button onclick="this.parentElement.parentElement.remove()" class="ml-2 underline opacity-70">Fermer</button></div>
   </div>
 </div>
 
@@ -120,51 +120,51 @@ tailwind.config = {
 
           <!-- Panneau calques : compte officiel des arrêts affichés -->
           <div id="map-layers" class="absolute top-3 left-3 z-[400] w-[218px] rounded-2xl bg-white/95 dark:bg-zinc-900/95 backdrop-blur shadow-lg border border-slate-200 dark:border-zinc-700 text-[12px]">
-            <button id="map-layers-toggle" class="w-full h-9 px-3 flex items-center justify-between gap-2 font-bold rounded-2xl">
-              <span class="flex items-center gap-1.5">🧭 Calques réseau
+            <button id="map-layers-toggle" class="w-full h-9 px-3 flex items-cen justify-between gap-2 font-bold rounded-2xl">
+              <span class="flex items-cen gap-1.5">🧭 Calques réseau
                 <span id="map-layers-count" class="px-2 py-0.5 rounded-full bg-[#E6F7ED] text-[#007A2F] font-bold text-[11px]">42</span>
               </span>
               <span id="map-layers-caret">▾</span>
             </button>
             <div id="map-layers-body" class="px-3 pb-3 space-y-1.5">
-              <label class="flex items-center justify-between gap-2 cursor-pointer">
-                <span class="flex items-center gap-1.5"><input type="checkbox" data-layer="ter" checked> 🚆 TER — gares</span><b class="text-emerald-700" data-count-ter>13</b>
+              <label class="flex items-cen justify-between gap-2 cursor-poin">
+                <span class="flex items-cen gap-1.5"><input type="checkbox" data-layer="" checked> 🚆  — gares</span><b class="text-emerald-700" data-count->13</b>
               </label>
-              <label class="flex items-center justify-between gap-2 cursor-pointer">
-                <span class="flex items-center gap-1.5"><input type="checkbox" data-layer="brt" checked> 🚌 SunuBRT — stations</span><b class="text-[#007A2F]" data-count-brt>23</b>
+              <label class="flex items-cen justify-between gap-2 cursor-poin">
+                <span class="flex items-cen gap-1.5"><input type="checkbox" data-layer="" checked> 🚌 Sunu — stations</span><b class="text-[#007A2F]" data-count->23</b>
               </label>
-              <label class="flex items-center justify-between gap-2 cursor-pointer">
-                <span class="flex items-center gap-1.5"><input type="checkbox" data-layer="bus" checked> 🚏 Bus — pôles</span><b class="text-blue-700" data-count-bus>6</b>
+              <label class="flex items-cen justify-between gap-2 cursor-poin">
+                <span class="flex items-cen gap-1.5"><input type="checkbox" data-layer="bus" checked> 🚏 Bus — pôles</span><b class="text-blue-700" data-count-bus>6</b>
               </label>
-              <label class="flex items-center justify-between gap-2 cursor-pointer border-t border-slate-100 dark:border-zinc-800 pt-1.5">
-                <span class="flex items-center gap-1.5"><input type="checkbox" data-layer="vehicles" checked> 🚍 Véhicules en direct</span><b class="text-slate-500" data-count-vehicles>13</b>
+              <label class="flex items-cen justify-between gap-2 cursor-poin border-t border-slate-100 dark:border-zinc-800 pt-1.5">
+                <span class="flex items-cen gap-1.5"><input type="checkbox" data-layer="vehicles" checked> 🚍 Véhicules en direct</span><b class="text-slate-500" data-count-vehicles>13</b>
               </label>
               <div class="flex gap-1.5 pt-1">
-                <button id="map-detail-ter" class="flex-1 h-7 rounded-full bg-[#ECFDF5] text-[#065F46] border border-[#A7F3D0] font-bold">🚆 1→13</button>
-                <button id="map-detail-brt" class="flex-1 h-7 rounded-full bg-[#E6F7ED] text-[#007A2F] border border-[#C2EAD0] font-bold">🚌 1→23</button>
+                <button id="map-detail-" class="flex-1 h-7 rounded-full bg-[#ECFDF5] text-[#065F46] border border-[#A7F3D0] font-bold">🚆 1→13</button>
+                <button id="map-detail-" class="flex-1 h-7 rounded-full bg-[#E6F7ED] text-[#007A2F] border border-[#C2EAD0] font-bold">🚌 1→23</button>
               </div>
             </div>
           </div>
 
           <!-- Badge : ce qui est réellement affiché sur la carte -->
-          <div id="map-network-badge" class="hidden md:flex absolute top-3 left-1/2 -translate-x-1/2 z-[400] px-3 h-8 rounded-full bg-[#0f172a]/92 text-white text-[12px] font-bold items-center gap-1.5 shadow-lg">
+          <div id="map-network-badge" class="hidden md:flex absolute top-3 left-1/2 -translate-x-1/2 z-[400] px-3 h-8 rounded-full bg-[#0f172a]/92 text-white text-[12px] font-bold items-cen gap-1.5 shadow-lg">
             42 arrêts affichés
           </div>
           <!-- Réduire top right -->
           <div class="absolute top-3 right-3 z-[400]">
-            <button id="reduce-map" class="px-4 h-9 rounded-full bg-white shadow-md border border-slate-200 text-[#00B140] text-[13px] font-bold flex items-center gap-1.5">
+            <button id="reduce-map" class="px-4 h-9 rounded-full bg-white shadow-md border border-slate-200 text-[#00B140] text-[13px] font-bold flex items-cen gap-1.5">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00B140" stroke-width="2.5"><path d="M18 15l-6-6-6 6"/></svg> Réduire
             </button>
           </div>
           <!-- Activer GPS bottom left blanc/vert -->
           <div class="absolute bottom-4 left-4 z-[400]">
-            <button id="activate-gps-map" class="px-4 h-10 rounded-full bg-white shadow-lg border border-[#C2EAD0] text-[#00B140] text-[13px] font-bold flex items-center gap-2 hover:bg-[#E6F7ED]">
+            <button id="activate-gps-map" class="px-4 h-10 rounded-full bg-white shadow-lg border border-[#C2EAD0] text-[#00B140] text-[13px] font-bold flex items-cen gap-2 hover:bg-[#E6F7ED]">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00B140" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg> Activer GPS
             </button>
           </div>
           <!-- Assistant IA bottom right vert -->
           <div class="absolute bottom-4 right-4 z-[400]">
-            <button id="assistant-ia-btn" class="px-5 h-11 rounded-full bg-[#00B140] shadow-lg text-white text-[13px] font-bold flex items-center gap-2 hover:bg-[#009138] border border-[#00B140]">
+            <button id="assistant-ia-btn" class="px-5 h-11 rounded-full bg-[#00B140] shadow-lg text-white text-[13px] font-bold flex items-cen gap-2 hover:bg-[#009138] border border-[#00B140]">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 0L13.5 8.5L22 10L13.5 11.5L12 20L10.5 11.5L2 10L10.5 8.5L12 0Z"/></svg> Assistant IA
             </button>
           </div>
@@ -173,13 +173,13 @@ tailwind.config = {
       </div>
 
       <!-- Dakar Bus title block -->
-      <div class="px-1 py-3 flex items-center gap-3">
-        <div class="w-[52px] h-[52px] rounded-[14px] bg-[#E6F7ED] flex items-center justify-center">
+      <div class="px-1 py-3 flex items-cen gap-3">
+        <div class="w-[52px] h-[52px] rounded-[14px] bg-[#E6F7ED] flex items-cen justify-cen">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="#00B140"><path d="M6 4a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h1v2a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-2h4v2a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-2h1a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H6Zm0 2h12v8H6V6Zm2 9a1 1 0 1 1 0 2 1 1 0 0 1 0-2Zm8 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2Z"/></svg>
         </div>
         <div>
           <div class="font-bold text-[22px] leading-tight">Dakar Bus</div>
-          <div class="text-[13px] tracking-[0.08em] text-slate-500 font-medium">TER / BRT / DDD / TATA / AFTU</div>
+          <div class="text-[13px] tracking-[0.08em] text-slate-500 font-medium"> /  / DDD / TATA / AFTU</div>
         </div>
       </div>
 
@@ -191,24 +191,24 @@ tailwind.config = {
         <input id="explorer-search" class="w-full h-[56px] pl-12 pr-4 rounded-[16px] bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#00B140] text-[15px]" placeholder="Où voulez-vous aller ? (ex: Colobane, Y...">
       </div>
 
-      <!-- Filters -->
+      <!-- Fils -->
       <div class="flex gap-2 overflow-x-auto scrollbar-hide py-1">
-        <button data-filter="tous" class="filter-btn filter-active whitespace-nowrap px-6 py-2.5 rounded-full border-2 text-[15px] font-bold">Tous</button>
-        <button data-filter="favoris" class="filter-btn whitespace-nowrap px-5 py-2.5 rounded-full bg-white dark:bg-zinc-900 border border-slate-200 text-[14px]">☆ Favoris</button>
-        <button data-filter="ter" class="filter-btn whitespace-nowrap px-6 py-2.5 rounded-full bg-white dark:bg-zinc-900 border border-slate-200 text-[14px]">TER</button>
-        <button data-filter="brt" class="filter-btn whitespace-nowrap px-6 py-2.5 rounded-full bg-white dark:bg-zinc-900 border border-slate-200 text-[14px]">BRT</button>
-        <button data-filter="ddd" class="filter-btn whitespace-nowrap px-6 py-2.5 rounded-full bg-white dark:bg-zinc-900 border border-slate-200 text-[14px]">DDD</button>
-        <button data-filter="aftu" class="filter-btn whitespace-nowrap px-5 py-2.5 rounded-full bg-white dark:bg-zinc-900 border border-slate-200 text-[14px]">AFTU</button>
-        <button data-filter="tata" class="filter-btn whitespace-nowrap px-5 py-2.5 rounded-full bg-white dark:bg-zinc-900 border border-slate-200 text-[14px]">TATA</button>
+        <button data-fil="tous" class="fil-btn fil-active whitespace-nowrap px-6 py-2.5 rounded-full border-2 text-[15px] font-bold">Tous</button>
+        <button data-fil="favoris" class="fil-btn whitespace-nowrap px-5 py-2.5 rounded-full bg-white dark:bg-zinc-900 border border-slate-200 text-[14px]">☆ Favoris</button>
+        <button data-fil="" class="fil-btn whitespace-nowrap px-6 py-2.5 rounded-full bg-white dark:bg-zinc-900 border border-slate-200 text-[14px]"></button>
+        <button data-fil="" class="fil-btn whitespace-nowrap px-6 py-2.5 rounded-full bg-white dark:bg-zinc-900 border border-slate-200 text-[14px]"></button>
+        <button data-fil="ddd" class="fil-btn whitespace-nowrap px-6 py-2.5 rounded-full bg-white dark:bg-zinc-900 border border-slate-200 text-[14px]">DDD</button>
+        <button data-fil="aftu" class="fil-btn whitespace-nowrap px-5 py-2.5 rounded-full bg-white dark:bg-zinc-900 border border-slate-200 text-[14px]">AFTU</button>
+        <button data-fil="tata" class="fil-btn whitespace-nowrap px-5 py-2.5 rounded-full bg-white dark:bg-zinc-900 border border-slate-200 text-[14px]">TATA</button>
       </div>
 
       <!-- Count -->
-      <div class="text-[14px] px-1 pt-1 flex flex-wrap items-center gap-x-2 gap-y-2">
+      <div class="text-[14px] px-1 pt-1 flex flex-wrap items-cen gap-x-2 gap-y-2">
         <span class="font-bold text-[18px]" id="arrets-count">42 arrêts</span>
-        <span class="opacity-70 text-[13px]" id="network-summary">13 gares TER + 23 stations SunuBRT + 6 pôles bus • cliquez sur un arrêt pour le localiser</span>
+        <span class="opacity-70 text-[13px]" id="network-summary">13 gares  + 23 stations Sunu + 6 pôles bus • cliquez sur un arrêt pour le localiser</span>
         <span class="flex gap-1.5">
-          <button id="btn-detail-ter" class="px-3 h-7 rounded-full bg-[#ECFDF5] text-[#065F46] border border-[#A7F3D0] text-[12px] font-bold">🚆 Voir les 13 gares</button>
-          <button id="btn-detail-brt" class="px-3 h-7 rounded-full bg-[#E6F7ED] text-[#007A2F] border border-[#C2EAD0] text-[12px] font-bold">🚌 Voir les 23 stations</button>
+          <button id="btn-detail-" class="px-3 h-7 rounded-full bg-[#ECFDF5] text-[#065F46] border border-[#A7F3D0] text-[12px] font-bold">🚆 Voir les 13 gares</button>
+          <button id="btn-detail-" class="px-3 h-7 rounded-full bg-[#E6F7ED] text-[#007A2F] border border-[#C2EAD0] text-[12px] font-bold">🚌 Voir les 23 stations</button>
         </span>
       </div>
 
@@ -218,7 +218,7 @@ tailwind.config = {
       <!-- Hidden for JS compat -->
       <div class="hidden">
         <div id="popular-trips"></div>
-        <div id="stat-buses">127</div><div id="stat-speed">24</div><div id="stat-alerts">3</div><div id="center-gps"></div>
+        <div id="stat-buses">127</div><div id="stat-speed">24</div><div id="stat-alerts">3</div><div id="cen-gps"></div>
       </div>
     </section>
 
@@ -226,14 +226,14 @@ tailwind.config = {
     <section id="tab-trajets" class="tab-content hidden space-y-4">
       <div class="px-1">
         <h1 class="font-bold text-[30px] leading-[1.1] tracking-tight">Planifier un trajet</h1>
-        <p class="text-[15px] text-slate-600 dark:text-zinc-400 mt-2 leading-snug">Itinéraires multimodaux officiels (TER, BRT, DDD, TATA, AFTU).</p>
+        <p class="text-[15px] text-slate-600 dark:text-zinc-400 mt-2 leading-snug">Itinéraires multimodaux officiels (, , DDD, TATA, AFTU).</p>
       </div>
       <div class="rounded-[24px] bg-white dark:bg-zinc-900 p-5 shadow-sm border border-slate-100 dark:border-zinc-800">
         <div class="space-y-5">
           <div class="relative">
             <label class="absolute -top-2.5 left-4 px-2 bg-white dark:bg-zinc-900 text-[13px] text-slate-600 dark:text-zinc-400 font-medium z-10">Départ</label>
-            <div class="flex items-center gap-3 h-[56px] px-4 rounded-[14px] border-[1.5px] border-slate-900 dark:border-zinc-600 bg-white dark:bg-zinc-900">
-              <div class="w-7 h-7 rounded-full bg-[#E6F7ED] flex items-center justify-center shrink-0">
+            <div class="flex items-cen gap-3 h-[56px] px-4 rounded-[14px] border-[1.5px] border-slate-900 dark:border-zinc-600 bg-white dark:bg-zinc-900">
+              <div class="w-7 h-7 rounded-full bg-[#E6F7ED] flex items-cen justify-cen shrink-0">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="#00B140" stroke-width="2.5"/><circle cx="12" cy="12" r="8" stroke="#00B140" stroke-width="1.8"/><circle cx="12" cy="12" r="1" fill="#00B140"/></svg>
               </div>
               <input id="from-input" value="Parcelles Assainies" class="flex-1 bg-transparent outline-none text-[16px] font-medium text-slate-900 dark:text-white" placeholder="Parcelles Assainies">
@@ -242,22 +242,22 @@ tailwind.config = {
           </div>
           <div class="relative">
             <label class="absolute -top-2.5 left-4 px-2 bg-white dark:bg-zinc-900 text-[13px] text-slate-600 dark:text-zinc-400 font-medium z-10">Destination</label>
-            <div class="flex items-center gap-3 h-[56px] px-4 rounded-[14px] border border-slate-400 dark:border-zinc-600 bg-[#f8fafc] dark:bg-zinc-800/50">
-              <div class="w-7 h-7 flex items-center justify-center shrink-0 text-[#8B4513]">
+            <div class="flex items-cen gap-3 h-[56px] px-4 rounded-[14px] border border-slate-400 dark:border-zinc-600 bg-[#f8fafc] dark:bg-zinc-800/50">
+              <div class="w-7 h-7 flex items-cen justify-cen shrink-0 text-[#8B4513]">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="#8B4513"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
               </div>
-              <input id="to-input" value="Petersen" class="flex-1 bg-transparent outline-none text-[16px] font-medium text-slate-900 dark:text-white" placeholder="Petersen">
-              <button id="swap-route" class="w-8 h-8 rounded-full bg-white border shadow-sm flex items-center justify-center text-slate-500 hover:bg-slate-50">⇅</button>
+              <input id="to-input" value="Pesen" class="flex-1 bg-transparent outline-none text-[16px] font-medium text-slate-900 dark:text-white" placeholder="Pesen">
+              <button id="swap-route" class="w-8 h-8 rounded-full bg-white border shadow-sm flex items-cen justify-cen text-slate-500 hover:bg-slate-50">⇅</button>
             </div>
           </div>
           <button id="search-itinerary" class="w-full h-[52px] rounded-[14px] bg-[#00B140] hover:bg-[#009138] text-white font-bold text-[16px] shadow-sm transition">Rechercher mon itinéraire</button>
         </div>
       </div>
       <div class="px-1">
-        <h3 class="font-bold text-[18px] leading-tight">Suggestions populaires (TER, BRT, DDD, TATA)</h3>
+        <h3 class="font-bold text-[18px] leading-tight">Suggestions populaires (, , DDD, TATA)</h3>
         <div class="mt-3 flex flex-wrap gap-2.5">
-          <button class="suggestion-pill px-4 py-2.5 rounded-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 text-[14px] font-medium shadow-sm hover:border-[#00B140] hover:text-[#00B140] transition" data-from="Dakar" data-to="Diamniadio">Dakar - Diamniadio (TER)</button>
-          <button class="suggestion-pill px-4 py-2.5 rounded-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 text-[14px] font-medium shadow-sm hover:border-[#00B140] hover:text-[#00B140] transition" data-from="Guédiawaye" data-to="Petersen">Guédiawaye - Petersen (BRT)</button>
+          <button class="suggestion-pill px-4 py-2.5 rounded-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 text-[14px] font-medium shadow-sm hover:border-[#00B140] hover:text-[#00B140] transition" data-from="Dakar" data-to="Diamniadio">Dakar - Diamniadio ()</button>
+          <button class="suggestion-pill px-4 py-2.5 rounded-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 text-[14px] font-medium shadow-sm hover:border-[#00B140] hover:text-[#00B140] transition" data-from="Guédiawaye" data-to="Pesen">Guédiawaye - Pesen ()</button>
           <button class="suggestion-pill px-4 py-2.5 rounded-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 text-[14px] font-medium shadow-sm hover:border-[#00B140] hover:text-[#00B140] transition" data-from="Colobane" data-to="Yoff">Colobane - Yoff (DDD Ligne 1)</button>
         </div>
       </div>
@@ -269,7 +269,7 @@ tailwind.config = {
     <!-- TAB: ARRETS -->
     <section id="tab-arrets" class="tab-content hidden">
       <div class="rounded-[24px] bg-white dark:bg-zinc-900 border p-5 md:p-6">
-        <div class="flex flex-wrap gap-3 items-center justify-between mb-5">
+        <div class="flex flex-wrap gap-3 items-cen justify-between mb-5">
           <h2 class="font-display text-[24px] font-bold"><span id="arrets-count-2">42 arrêts</span> <span class="text-[13px] font-normal text-slate-500">réseau Dakar Bus officiel</span></h2>
           <input id="arret-search" placeholder="Rechercher arrêt..." class="h-10 px-4 rounded-full bg-slate-100 text-[13px] w-[220px] focus:outline-none border focus:border-[#00B140]">
         </div>
@@ -280,8 +280,8 @@ tailwind.config = {
     <!-- TAB: TRANSPORTS -->
     <section id="tab-transports" class="tab-content hidden">
       <div class="grid md:grid-cols-3 gap-4">
-        <div class="md:col-span-3 rounded-[24px] bg-white border p-6 flex flex-wrap items-center justify-between gap-4">
-          <div><h2 class="font-display text-[22px] font-bold">Dakar Bus - Flotte en direct</h2><p class="text-[13px] text-slate-500"><span data-count-ter>13</span> gares TER • <span data-count-brt>23</span> stations SunuBRT • <span data-count-bus>6</span> pôles bus • <span id="lines-count">76</span> lignes GTFS</p></div>
+        <div class="md:col-span-3 rounded-[24px] bg-white border p-6 flex flex-wrap items-cen justify-between gap-4">
+          <div><h2 class="font-display text-[22px] font-bold">Dakar Bus - Flotte en direct</h2><p class="text-[13px] text-slate-500"><span data-count->13</span> gares  • <span data-count->23</span> stations Sunu • <span data-count-bus>6</span> pôles bus • <span id="lines-count">76</span> lignes GTFS</p></div>
           <div class="flex gap-2"><span class="px-3 py-1.5 rounded-full bg-[#E6F7ED] text-[#007A2F] border border-[#C2EAD0] text-[12px] font-bold">● 127 véhicules actifs</span><button id="toggle-vehicles" class="px-4 h-9 rounded-full bg-[#00B140] text-white text-[12px] font-bold">Afficher sur carte</button></div>
         </div>
         <div id="transport-cards" class="md:col-span-3 grid md:grid-cols-3 gap-4"></div>
@@ -291,9 +291,9 @@ tailwind.config = {
     <!-- TAB: ALERTES -->
     <section id="tab-alertes" class="tab-content hidden">
       <div class="rounded-[24px] bg-white border p-5 md:p-6">
-        <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
-          <h2 class="font-display text-[24px] font-bold flex items-center gap-3">Alertes Dakar Bus <span class="w-2 h-2 rounded-full bg-[#00B140] animate-pulse"></span> <span class="text-[11px] px-2.5 py-1 rounded-full bg-[#00B140] text-white font-bold">GTFS-RT LIVE</span></h2>
-          <div class="flex items-center gap-2 text-[12px]"><button id="enable-push" class="px-4 h-9 rounded-full bg-[#00B140] text-white font-bold">🔔 Push</button><button id="clear-alerts" class="px-4 h-9 rounded-full bg-white border">Effacer</button></div>
+        <div class="flex flex-wrap items-cen justify-between gap-3 mb-5">
+          <h2 class="font-display text-[24px] font-bold flex items-cen gap-3">Alertes Dakar Bus <span class="w-2 h-2 rounded-full bg-[#00B140] animate-pulse"></span> <span class="text-[11px] px-2.5 py-1 rounded-full bg-[#00B140] text-white font-bold">GTFS-RT LIVE</span></h2>
+          <div class="flex items-cen gap-2 text-[12px]"><button id="enable-push" class="px-4 h-9 rounded-full bg-[#00B140] text-white font-bold">🔔 Push</button><button id="clear-alerts" class="px-4 h-9 rounded-full bg-white border">Effacer</button></div>
         </div>
         <div id="alerts-feed" class="space-y-3"></div>
       </div>
@@ -302,7 +302,7 @@ tailwind.config = {
 
   <aside class="hidden lg:block col-span-12 lg:col-span-4 xl:col-span-4 space-y-4">
     <div class="rounded-[20px] bg-white border p-5">
-      <div class="flex items-center justify-between mb-4">
+      <div class="flex items-cen justify-between mb-4">
         <h3 class="font-semibold text-[15px]">Ma position live</h3>
         <span id="gps-accuracy" class="text-[11px] px-2 py-1 rounded-full bg-slate-100">En attente</span>
       </div>
@@ -317,66 +317,66 @@ tailwind.config = {
       </div>
     </div>
     <div class="rounded-[20px] bg-white border p-5">
-      <h3 class="font-semibold text-[15px] mb-4 flex items-center justify-between">Prochains passages <span class="text-[11px] px-2 py-1 rounded-full bg-[#E6F7ED] text-[#007A2F] border font-bold">LIVE</span></h3>
+      <h3 class="font-semibold text-[15px] mb-4 flex items-cen justify-between">Prochains passages <span class="text-[11px] px-2 py-1 rounded-full bg-[#E6F7ED] text-[#007A2F] border font-bold">LIVE</span></h3>
       <div id="next-arrivals" class="space-y-3"></div>
     </div>
   </aside>
 </main>
 
-<footer class="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8 pb-[100px] lg:pb-8 mt-8">
-  <div class="rounded-[20px] bg-white border p-6 flex flex-wrap gap-6 justify-between items-center">
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-[12px] bg-[#00B140] text-white flex items-center justify-center font-bold">D</div>
+<foo class="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8 pb-[100px] lg:pb-8 mt-8">
+  <div class="rounded-[20px] bg-white border p-6 flex flex-wrap gap-6 justify-between items-cen">
+    <div class="flex items-cen gap-3">
+      <div class="w-10 h-10 rounded-[12px] bg-[#00B140] text-white flex items-cen justify-cen font-bold">D</div>
       <div>
-        <div class="font-bold text-[14px]">DAKAR BUS • TER • BRT • DDD • AFTU • Tata</div>
-        <div class="text-[11px] opacity-60"><span data-count-ter>13</span> gares TER • <span data-count-brt>23</span> stations SunuBRT • <span data-count-bus>6</span> pôles bus • <span data-count-total>42 arrêts</span> • <span id="lines-count-2">76</span> lignes • PWA • aydiarra-star.github.io/dakar-bus</div>
+        <div class="font-bold text-[14px]">DAKAR BUS •  •  • DDD • AFTU • Tata</div>
+        <div class="text-[11px] opacity-60"><span data-count->13</span> gares  • <span data-count->23</span> stations Sunu • <span data-count-bus>6</span> pôles bus • <span data-count-total>42 arrêts</span> • <span id="lines-count-2">76</span> lignes • PWA • aydiarra-star.github.io/dakar-bus</div>
       </div>
     </div>
     <div class="flex flex-wrap gap-2 text-[12px]">
-      <a href="mailto:contact@dakarbus.sn" class="px-4 h-9 rounded-full bg-[#00B140] text-white flex items-center gap-2 font-bold">✉️ contact@dakarbus.sn</a>
-      <a href="https://github.com/aydiarra-star/dakar-bus" target="_blank" class="px-4 h-9 rounded-full bg-white border flex items-center gap-2">GitHub</a>
+      <a href="mailto:contact@dakarbus.sn" class="px-4 h-9 rounded-full bg-[#00B140] text-white flex items-cen gap-2 font-bold">✉️ contact@dakarbus.sn</a>
+      <a href="https://github.com/aydiarra-star/dakar-bus" target="_blank" class="px-4 h-9 rounded-full bg-white border flex items-cen gap-2">GitHub</a>
     </div>
   </div>
-  <div class="text-center mt-4 text-[11px] opacity-50">© 2026 Dakar Bus • CETUD • Dakar Dem Dikk • SunuBRT • TER • AFTU • 40 lignes • PWA</div>
-</footer>
+  <div class="text-cen mt-4 text-[11px] opacity-50">© 2026 Dakar Bus • CETUD • Dakar Dem Dikk • Sunu •  • AFTU • 40 lignes • PWA</div>
+</foo>
 
 <!-- Bottom Nav exactement comme screenshot -->
 <nav class="lg:hidden fixed bottom-0 left-0 right-0 z-[1100] bg-white dark:bg-zinc-900 border-t border-slate-200 px-2 py-1">
-  <div class="flex justify-around items-center">
-    <button data-tab="explorer" class="tab-btn bottom-nav-active flex flex-col items-center gap-1 px-4 py-2 rounded-[16px] transition">
+  <div class="flex justify-around items-cen">
+    <button data-tab="explorer" class="tab-btn bottom-nav-active flex flex-col items-cen gap-1 px-4 py-2 rounded-[16px] transition">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M16.2 8.2l-3.6 7.2-7.2-3.6 3.6-7.2z"/></svg>
       <span class="text-[11px] font-medium">Explorer</span>
     </button>
-    <button data-tab="trajets" class="tab-btn flex flex-col items-center gap-1 px-4 py-2 rounded-[16px] text-slate-500">
+    <button data-tab="trajets" class="tab-btn flex flex-col items-cen gap-1 px-4 py-2 rounded-[16px] text-slate-500">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3l4 4-4 4"/><path d="M16 3l4 4-4 4"/><path d="M4 21l8-8"/><path d="M12 21l8-8"/></svg>
       <span class="text-[11px]">Trajets</span>
     </button>
-    <button data-tab="alertes" class="tab-btn flex flex-col items-center gap-1 px-4 py-2 rounded-[16px] text-slate-500 relative">
+    <button data-tab="alertes" class="tab-btn flex flex-col items-cen gap-1 px-4 py-2 rounded-[16px] text-slate-500 relative">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 6 5 6 10H0c0-5 6-3 6-10"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>
-      <span class="text-[11px]">Alertes</span><span id="alert-count-mobile" class="absolute top-1 right-2 w-4 h-4 bg-red-500 text-white text-[9px] rounded-full flex items-center justify-center">3</span>
+      <span class="text-[11px]">Alertes</span><span id="alert-count-mobile" class="absolute top-1 right-2 w-4 h-4 bg-red-500 text-white text-[9px] rounded-full flex items-cen justify-cen">3</span>
     </button>
-    <button class="flex flex-col items-center gap-1 px-4 py-2 rounded-[16px] text-slate-500">
+    <button class="flex flex-col items-cen gap-1 px-4 py-2 rounded-[16px] text-slate-500">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       <span class="text-[11px]">Direct rue</span>
     </button>
-    <button class="flex flex-col items-center gap-1 px-4 py-2 rounded-[16px] text-slate-500">
+    <button class="flex flex-col items-cen gap-1 px-4 py-2 rounded-[16px] text-slate-500">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 9 15a1.65 1.65 0 0 0-1-1.51V13a2 2 0 0 1 4 0v.49c.39.23.84.37 1.32.37.48 0 .93-.14 1.32-.37V13a2 2 0 0 1 4 0v.49a1.65 1.65 0 0 0 1 1.51Z"/></svg>
       <span class="text-[11px]">Réglages</span>
     </button>
   </div>
 </nav>
 
-<div id="toast-container" class="fixed bottom-[90px] lg:bottom-4 right-4 z-[2000] space-y-2 pointer-events-none"></div>
+<div id="toast-container" class="fixed bottom-[90px] lg:bottom-4 right-4 z-[2000] space-y-2 poin-events-none"></div>
 
 <!-- Détail de ligne : liste numérotée officielle (preuve du nombre d'arrêts) -->
 <div id="line-modal" class="hidden fixed inset-0 z-[2100] bg-black/50 backdrop-blur-sm">
   <div class="absolute inset-x-0 bottom-0 md:inset-y-0 md:right-0 md:left-auto md:w-[470px] bg-white dark:bg-zinc-900 rounded-t-[24px] md:rounded-none max-h-[85vh] md:max-h-full overflow-y-auto">
-    <div class="sticky top-0 z-10 bg-white/95 dark:bg-zinc-900/95 backdrop-blur border-b border-slate-200 dark:border-zinc-800 px-5 py-4 flex items-center justify-between gap-3">
+    <div class="sticky top-0 z-10 bg-white/95 dark:bg-zinc-900/95 backdrop-blur border-b border-slate-200 dark:border-zinc-800 px-5 py-4 flex items-cen justify-between gap-3">
       <div>
-        <div class="font-display font-bold text-[17px]" id="line-modal-title">TER</div>
+        <div class="font-display font-bold text-[17px]" id="line-modal-title"></div>
         <div class="text-[12px] text-slate-500" id="line-modal-sub">13 gares officielles</div>
       </div>
-      <button id="line-modal-close" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-zinc-800 flex items-center justify-center">✕</button>
+      <button id="line-modal-close" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-zinc-800 flex items-cen justify-cen">✕</button>
     </div>
     <div id="line-modal-body" class="p-4 space-y-2"></div>
     <div class="px-5 pb-6 text-[11px] text-slate-400" id="line-modal-foot"></div>
@@ -469,7 +469,7 @@ let deferredPrompt = null;
 let swRegistration = null;
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js').then(reg => {
+    navigator.serviceWorker.regis('/service-worker.js').then(reg => {
       swRegistration = reg;
       document.getElementById('pwa-status')?.classList.remove('hidden');
       document.getElementById('sw-status').textContent='Service Worker: actif • Dakar Bus PWA ✓';
@@ -479,11 +479,11 @@ if ('serviceWorker' in navigator) {
 window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
 
 // GTFS-RT
-const GTFS_CONFIG = { pollInterval: 3000 };
+const GTFS_CONFIG = { pollInval: 3000 };
 
 // TRACES OFFICIELS REELS
-const BRT_SHAPE = [[14.67548, -17.44157], [14.677, -17.4418], [14.67822, -17.44219], [14.6815, -17.4435], [14.6855, -17.445], [14.69, -17.4468], [14.6943, -17.44826], [14.697, -17.4502], [14.69956, -17.45244], [14.7025, -17.4552], [14.7052, -17.4578], [14.7075, -17.4602], [14.70993, -17.4625], [14.7135, -17.463], [14.7166, -17.4635], [14.7185, -17.464], [14.72044, -17.46444], [14.723, -17.4625], [14.72631, -17.45919], [14.729, -17.4575], [14.7315, -17.456], [14.7345, -17.4556], [14.73681, -17.45531], [14.739, -17.4535], [14.74156, -17.45131], [14.7448, -17.449], [14.74795, -17.44715], [14.7495, -17.4435], [14.7512, -17.4395], [14.7525, -17.4355], [14.75369, -17.43181], [14.7565, -17.4285], [14.7595, -17.426], [14.76269, -17.42431], [14.764, -17.4215], [14.76462, -17.41969], [14.766, -17.4165], [14.76756, -17.41356], [14.769, -17.4075], [14.77287, -17.40979], [14.771, -17.405], [14.77019, -17.40156], [14.7735, -17.4], [14.77619, -17.39881], [14.7755, -17.3955], [14.7745, -17.393], [14.773, -17.39], [14.77156, -17.38694]];
-const TER_SHAPE = [[14.67599, -17.43352], [14.6795, -17.433], [14.6845, -17.4332], [14.688, -17.4338], [14.692, -17.4355], [14.696, -17.4382], [14.6985, -17.4402], [14.70035, -17.44165], [14.7045, -17.441], [14.709, -17.4395], [14.7135, -17.437], [14.718, -17.4345], [14.72209, -17.43207], [14.7255, -17.4285], [14.729, -17.425], [14.7318, -17.422], [14.73425, -17.419], [14.736, -17.4145], [14.7378, -17.4095], [14.739, -17.406], [14.73971, -17.40361], [14.7425, -17.3995], [14.7455, -17.3965], [14.748, -17.3935], [14.74986, -17.39169], [14.7525, -17.388], [14.7555, -17.3845], [14.7575, -17.382], [14.75877, -17.3803], [14.7605, -17.3735], [14.762, -17.367], [14.7635, -17.3615], [14.76491, -17.3565], [14.764, -17.3485], [14.7615, -17.3395], [14.7575, -17.331], [14.7515, -17.3225], [14.747, -17.3175], [14.74408, -17.31389], [14.7395, -17.307], [14.7345, -17.2995], [14.7295, -17.2925], [14.726, -17.288], [14.72317, -17.28394], [14.7205, -17.279], [14.718, -17.2745], [14.71596, -17.27], [14.7125, -17.26], [14.708, -17.25], [14.7035, -17.24], [14.7005, -17.234], [14.69818, -17.2292], [14.6995, -17.221], [14.703, -17.2135], [14.7075, -17.207], [14.712, -17.2025], [14.71606, -17.19845]];
+const _SHAPE = [[14.67548, -17.44157], [14.677, -17.4418], [14.67822, -17.44219], [14.6815, -17.4435], [14.6855, -17.445], [14.69, -17.4468], [14.6943, -17.44826], [14.697, -17.4502], [14.69956, -17.45244], [14.7025, -17.4552], [14.7052, -17.4578], [14.7075, -17.4602], [14.70993, -17.4625], [14.7135, -17.463], [14.7166, -17.4635], [14.7185, -17.464], [14.72044, -17.46444], [14.723, -17.4625], [14.72631, -17.45919], [14.729, -17.4575], [14.7315, -17.456], [14.7345, -17.4556], [14.73681, -17.45531], [14.739, -17.4535], [14.74156, -17.45131], [14.7448, -17.449], [14.74795, -17.44715], [14.7495, -17.4435], [14.7512, -17.4395], [14.7525, -17.4355], [14.75369, -17.43181], [14.7565, -17.4285], [14.7595, -17.426], [14.76269, -17.42431], [14.764, -17.4215], [14.76462, -17.41969], [14.766, -17.4165], [14.76756, -17.41356], [14.769, -17.4075], [14.77287, -17.40979], [14.771, -17.405], [14.77019, -17.40156], [14.7735, -17.4], [14.77619, -17.39881], [14.7755, -17.3955], [14.7745, -17.393], [14.773, -17.39], [14.77156, -17.38694]];
+const _SHAPE = [[14.67599, -17.43352], [14.6795, -17.433], [14.6845, -17.4332], [14.688, -17.4338], [14.692, -17.4355], [14.696, -17.4382], [14.6985, -17.4402], [14.70035, -17.44165], [14.7045, -17.441], [14.709, -17.4395], [14.7135, -17.437], [14.718, -17.4345], [14.72209, -17.43207], [14.7255, -17.4285], [14.729, -17.425], [14.7318, -17.422], [14.73425, -17.419], [14.736, -17.4145], [14.7378, -17.4095], [14.739, -17.406], [14.73971, -17.40361], [14.7425, -17.3995], [14.7455, -17.3965], [14.748, -17.3935], [14.74986, -17.39169], [14.7525, -17.388], [14.7555, -17.3845], [14.7575, -17.382], [14.75877, -17.3803], [14.7605, -17.3735], [14.762, -17.367], [14.7635, -17.3615], [14.76491, -17.3565], [14.764, -17.3485], [14.7615, -17.3395], [14.7575, -17.331], [14.7515, -17.3225], [14.747, -17.3175], [14.74408, -17.31389], [14.7395, -17.307], [14.7345, -17.2995], [14.7295, -17.2925], [14.726, -17.288], [14.72317, -17.28394], [14.7205, -17.279], [14.718, -17.2745], [14.71596, -17.27], [14.7125, -17.26], [14.708, -17.25], [14.7035, -17.24], [14.7005, -17.234], [14.69818, -17.2292], [14.6995, -17.221], [14.703, -17.2135], [14.7075, -17.207], [14.712, -17.2025], [14.71606, -17.19845]];
 const DDD_SHAPE = [
   [14.67548, -17.44157],
   [14.70035, -17.44165],
@@ -493,14 +493,14 @@ const DDD_SHAPE = [
   [14.745, -17.512]
 ];
 
-// 42 ARRETS OFFICIELS (13 TER Dakar ↔ Diamniadio, 23 SunuBRT, 6 pôles)
+// 42 ARRETS OFFICIELS (13  Dakar ↔ Diamniadio, 23 Sunu, 6 pôles)
 const ALL_ARRETS = [
   {
-    "id": "BRT_01_Papa_Gueye",
-    "name": "Papa Gueye Fall - PEM Petersen",
-    "dir": "Petersen ↔ Guédiawaye",
+    "id": "_01_Papa_Gueye",
+    "name": "Papa Gueye Fall - PEM Pesen",
+    "dir": "Pesen ↔ Guédiawaye",
     "lines": [
-      "BRT 01"
+      " 01"
     ],
     "distance": 0.3,
     "next": [
@@ -508,16 +508,16 @@ const ALL_ARRETS = [
       "7 min"
     ],
     "status": "Voie réservée",
-    "type": "BRT",
+    "type": "",
     "lat": 14.67548,
     "lng": -17.44157
   },
   {
-    "id": "BRT_02_Grande_Mos",
+    "id": "_02_Grande_Mos",
     "name": "Grande Mosquée",
-    "dir": "Petersen ↔ Guédiawaye",
+    "dir": "Pesen ↔ Guédiawaye",
     "lines": [
-      "BRT 01"
+      " 01"
     ],
     "distance": 0.3,
     "next": [
@@ -525,16 +525,16 @@ const ALL_ARRETS = [
       "7 min"
     ],
     "status": "Voie réservée",
-    "type": "BRT",
+    "type": "",
     "lat": 14.67822,
     "lng": -17.44219
   },
   {
-    "id": "BRT_03_Place_de_l",
+    "id": "_03_Place_de_l",
     "name": "Place de la Nation - Obélisque",
-    "dir": "Petersen ↔ Guédiawaye",
+    "dir": "Pesen ↔ Guédiawaye",
     "lines": [
-      "BRT 01"
+      " 01"
     ],
     "distance": 0.3,
     "next": [
@@ -542,16 +542,16 @@ const ALL_ARRETS = [
       "7 min"
     ],
     "status": "Voie réservée",
-    "type": "BRT",
+    "type": "",
     "lat": 14.6943,
     "lng": -17.44826
   },
   {
-    "id": "BRT_04_Dial_Diop",
+    "id": "_04_Dial_Diop",
     "name": "Dial Diop",
-    "dir": "Petersen ↔ Guédiawaye",
+    "dir": "Pesen ↔ Guédiawaye",
     "lines": [
-      "BRT 01"
+      " 01"
     ],
     "distance": 0.3,
     "next": [
@@ -559,16 +559,16 @@ const ALL_ARRETS = [
       "7 min"
     ],
     "status": "Voie réservée",
-    "type": "BRT",
+    "type": "",
     "lat": 14.69956,
     "lng": -17.45244
   },
   {
-    "id": "BRT_05_Grand_Dakar",
+    "id": "_05_Grand_Dakar",
     "name": "Grand Dakar",
-    "dir": "Petersen ↔ Guédiawaye",
+    "dir": "Pesen ↔ Guédiawaye",
     "lines": [
-      "BRT 01"
+      " 01"
     ],
     "distance": 0.3,
     "next": [
@@ -576,16 +576,16 @@ const ALL_ARRETS = [
       "7 min"
     ],
     "status": "Voie réservée",
-    "type": "BRT",
+    "type": "",
     "lat": 14.7052,
     "lng": -17.4578
   },
   {
-    "id": "BRT_06_Liberte_1",
+    "id": "_06_Liberte_1",
     "name": "Liberté 1",
-    "dir": "Petersen ↔ Guédiawaye",
+    "dir": "Pesen ↔ Guédiawaye",
     "lines": [
-      "BRT 01"
+      " 01"
     ],
     "distance": 0.3,
     "next": [
@@ -593,16 +593,16 @@ const ALL_ARRETS = [
       "7 min"
     ],
     "status": "Voie réservée",
-    "type": "BRT",
+    "type": "",
     "lat": 14.70993,
     "lng": -17.4625
   },
   {
-    "id": "BRT_07_Sacre_Coeur",
+    "id": "_07_Sacre_Coeur",
     "name": "Sacré-Cœur",
-    "dir": "Petersen ↔ Guédiawaye",
+    "dir": "Pesen ↔ Guédiawaye",
     "lines": [
-      "BRT 01"
+      " 01"
     ],
     "distance": 0.3,
     "next": [
@@ -610,16 +610,16 @@ const ALL_ARRETS = [
       "7 min"
     ],
     "status": "Voie réservée",
-    "type": "BRT",
+    "type": "",
     "lat": 14.7166,
     "lng": -17.4635
   },
   {
-    "id": "BRT_08_Liberte_5",
+    "id": "_08_Liberte_5",
     "name": "Liberté 5",
-    "dir": "Petersen ↔ Guédiawaye",
+    "dir": "Pesen ↔ Guédiawaye",
     "lines": [
-      "BRT 01"
+      " 01"
     ],
     "distance": 0.3,
     "next": [
@@ -627,16 +627,16 @@ const ALL_ARRETS = [
       "7 min"
     ],
     "status": "Voie réservée",
-    "type": "BRT",
+    "type": "",
     "lat": 14.72044,
     "lng": -17.46444
   },
   {
-    "id": "BRT_09_Liberte_6",
+    "id": "_09_Liberte_6",
     "name": "Liberté 6",
-    "dir": "Petersen ↔ Guédiawaye",
+    "dir": "Pesen ↔ Guédiawaye",
     "lines": [
-      "BRT 01"
+      " 01"
     ],
     "distance": 0.3,
     "next": [
@@ -644,16 +644,16 @@ const ALL_ARRETS = [
       "7 min"
     ],
     "status": "Voie réservée",
-    "type": "BRT",
+    "type": "",
     "lat": 14.72631,
     "lng": -17.45919
   },
   {
-    "id": "BRT_10_Khar_Yalla",
+    "id": "_10_Khar_Yalla",
     "name": "Khar Yallah",
-    "dir": "Petersen ↔ Guédiawaye",
+    "dir": "Pesen ↔ Guédiawaye",
     "lines": [
-      "BRT 01"
+      " 01"
     ],
     "distance": 0.3,
     "next": [
@@ -661,16 +661,16 @@ const ALL_ARRETS = [
       "7 min"
     ],
     "status": "Voie réservée",
-    "type": "BRT",
+    "type": "",
     "lat": 14.7315,
     "lng": -17.456
   },
   {
-    "id": "BRT_11_Scat_Urbam",
+    "id": "_11_Scat_Urbam",
     "name": "Scat Urbam",
-    "dir": "Petersen ↔ Guédiawaye",
+    "dir": "Pesen ↔ Guédiawaye",
     "lines": [
-      "BRT 01"
+      " 01"
     ],
     "distance": 0.3,
     "next": [
@@ -678,16 +678,16 @@ const ALL_ARRETS = [
       "7 min"
     ],
     "status": "Voie réservée",
-    "type": "BRT",
+    "type": "",
     "lat": 14.73681,
     "lng": -17.45531
   },
   {
-    "id": "BRT_12_Cardinal_H",
+    "id": "_12_Cardinal_H",
     "name": "Cardinal Hyacinthe Thiandoum",
-    "dir": "Petersen ↔ Guédiawaye",
+    "dir": "Pesen ↔ Guédiawaye",
     "lines": [
-      "BRT 01"
+      " 01"
     ],
     "distance": 0.3,
     "next": [
@@ -695,16 +695,16 @@ const ALL_ARRETS = [
       "7 min"
     ],
     "status": "Voie réservée",
-    "type": "BRT",
+    "type": "",
     "lat": 14.74156,
     "lng": -17.45131
   },
   {
-    "id": "BRT_13_Grand_Medine",
+    "id": "_13_Grand_Medine",
     "name": "Grand Médine - PEM",
-    "dir": "Petersen ↔ Guédiawaye",
+    "dir": "Pesen ↔ Guédiawaye",
     "lines": [
-      "BRT 01"
+      " 01"
     ],
     "distance": 0.3,
     "next": [
@@ -712,16 +712,16 @@ const ALL_ARRETS = [
       "7 min"
     ],
     "status": "Voie réservée",
-    "type": "BRT",
+    "type": "",
     "lat": 14.74795,
     "lng": -17.44715
   },
   {
-    "id": "BRT_14_Police_des",
+    "id": "_14_Police_des",
     "name": "Police des Parcelles",
-    "dir": "Petersen ↔ Guédiawaye",
+    "dir": "Pesen ↔ Guédiawaye",
     "lines": [
-      "BRT 01"
+      " 01"
     ],
     "distance": 0.3,
     "next": [
@@ -729,16 +729,16 @@ const ALL_ARRETS = [
       "7 min"
     ],
     "status": "Voie réservée",
-    "type": "BRT",
+    "type": "",
     "lat": 14.7512,
     "lng": -17.4395
   },
   {
-    "id": "BRT_15_Croisement",
+    "id": "_15_Croisement",
     "name": "Croisement 22",
-    "dir": "Petersen ↔ Guédiawaye",
+    "dir": "Pesen ↔ Guédiawaye",
     "lines": [
-      "BRT 01"
+      " 01"
     ],
     "distance": 0.3,
     "next": [
@@ -746,16 +746,16 @@ const ALL_ARRETS = [
       "7 min"
     ],
     "status": "Voie réservée",
-    "type": "BRT",
+    "type": "",
     "lat": 14.75369,
     "lng": -17.43181
   },
   {
-    "id": "BRT_16_Parcelles",
+    "id": "_16_Parcelles",
     "name": "Parcelles Assainies",
-    "dir": "Petersen ↔ Guédiawaye",
+    "dir": "Pesen ↔ Guédiawaye",
     "lines": [
-      "BRT 01"
+      " 01"
     ],
     "distance": 0.3,
     "next": [
@@ -763,16 +763,16 @@ const ALL_ARRETS = [
       "7 min"
     ],
     "status": "Voie réservée",
-    "type": "BRT",
+    "type": "",
     "lat": 14.76269,
     "lng": -17.42431
   },
   {
-    "id": "BRT_17_Ndingala",
+    "id": "_17_Ndingala",
     "name": "Ndingala - Golf Sud",
-    "dir": "Petersen ↔ Guédiawaye",
+    "dir": "Pesen ↔ Guédiawaye",
     "lines": [
-      "BRT 01"
+      " 01"
     ],
     "distance": 0.3,
     "next": [
@@ -780,16 +780,16 @@ const ALL_ARRETS = [
       "7 min"
     ],
     "status": "Voie réservée",
-    "type": "BRT",
+    "type": "",
     "lat": 14.76462,
     "lng": -17.41969
   },
   {
-    "id": "BRT_18_Golf_Sud",
+    "id": "_18_Golf_Sud",
     "name": "Golf Sud",
-    "dir": "Petersen ↔ Guédiawaye",
+    "dir": "Pesen ↔ Guédiawaye",
     "lines": [
-      "BRT 01"
+      " 01"
     ],
     "distance": 0.3,
     "next": [
@@ -797,16 +797,16 @@ const ALL_ARRETS = [
       "7 min"
     ],
     "status": "Voie réservée",
-    "type": "BRT",
+    "type": "",
     "lat": 14.76756,
     "lng": -17.41356
   },
   {
-    "id": "BRT_19_Dalal_Jam",
+    "id": "_19_Dalal_Jam",
     "name": "Dalal Jam - Hôpital",
-    "dir": "Petersen ↔ Guédiawaye",
+    "dir": "Pesen ↔ Guédiawaye",
     "lines": [
-      "BRT 01"
+      " 01"
     ],
     "distance": 0.3,
     "next": [
@@ -814,16 +814,16 @@ const ALL_ARRETS = [
       "7 min"
     ],
     "status": "Voie réservée",
-    "type": "BRT",
+    "type": "",
     "lat": 14.77287,
     "lng": -17.40979
   },
   {
-    "id": "BRT_20_Fith_Mith",
+    "id": "_20_Fith_Mith",
     "name": "Fith Mith",
-    "dir": "Petersen ↔ Guédiawaye",
+    "dir": "Pesen ↔ Guédiawaye",
     "lines": [
-      "BRT 01"
+      " 01"
     ],
     "distance": 0.3,
     "next": [
@@ -831,16 +831,16 @@ const ALL_ARRETS = [
       "7 min"
     ],
     "status": "Voie réservée",
-    "type": "BRT",
+    "type": "",
     "lat": 14.77019,
     "lng": -17.40156
   },
   {
-    "id": "BRT_21_Golf_Nord",
+    "id": "_21_Golf_Nord",
     "name": "Golf Nord",
-    "dir": "Petersen ↔ Guédiawaye",
+    "dir": "Pesen ↔ Guédiawaye",
     "lines": [
-      "BRT 01"
+      " 01"
     ],
     "distance": 0.3,
     "next": [
@@ -848,16 +848,16 @@ const ALL_ARRETS = [
       "7 min"
     ],
     "status": "Voie réservée",
-    "type": "BRT",
+    "type": "",
     "lat": 14.77619,
     "lng": -17.39881
   },
   {
-    "id": "BRT_22_Gadaye",
+    "id": "_22_Gadaye",
     "name": "Gadaye - Cambérène",
-    "dir": "Petersen ↔ Guédiawaye",
+    "dir": "Pesen ↔ Guédiawaye",
     "lines": [
-      "BRT 01"
+      " 01"
     ],
     "distance": 0.3,
     "next": [
@@ -865,16 +865,16 @@ const ALL_ARRETS = [
       "7 min"
     ],
     "status": "Voie réservée",
-    "type": "BRT",
+    "type": "",
     "lat": 14.7745,
     "lng": -17.393
   },
   {
-    "id": "BRT_23_Prefecture",
+    "id": "_23_Prefecture",
     "name": "Préfecture Guédiawaye - PEM",
-    "dir": "Petersen ↔ Guédiawaye",
+    "dir": "Pesen ↔ Guédiawaye",
     "lines": [
-      "BRT 01"
+      " 01"
     ],
     "distance": 0.3,
     "next": [
@@ -882,16 +882,16 @@ const ALL_ARRETS = [
       "7 min"
     ],
     "status": "Voie réservée",
-    "type": "BRT",
+    "type": "",
     "lat": 14.77156,
     "lng": -17.38694
   },
   {
-    "id": "TER_01_Dakar",
+    "id": "_01_Dakar",
     "name": "Gare de Dakar",
     "dir": "Dakar ↔ Diamniadio",
     "lines": [
-      "TER"
+      ""
     ],
     "distance": 0.8,
     "next": [
@@ -899,16 +899,16 @@ const ALL_ARRETS = [
       "14 min"
     ],
     "status": "Gare officielle",
-    "type": "TER",
+    "type": "",
     "lat": 14.67599,
     "lng": -17.43352
   },
   {
-    "id": "TER_02_Colobane",
+    "id": "_02_Colobane",
     "name": "Colobane",
     "dir": "Dakar ↔ Diamniadio",
     "lines": [
-      "TER"
+      ""
     ],
     "distance": 0.8,
     "next": [
@@ -916,16 +916,16 @@ const ALL_ARRETS = [
       "14 min"
     ],
     "status": "Gare officielle",
-    "type": "TER",
+    "type": "",
     "lat": 14.70035,
     "lng": -17.44165
   },
   {
-    "id": "TER_03_Hann",
+    "id": "_03_Hann",
     "name": "Hann",
     "dir": "Dakar ↔ Diamniadio",
     "lines": [
-      "TER"
+      ""
     ],
     "distance": 0.8,
     "next": [
@@ -933,16 +933,16 @@ const ALL_ARRETS = [
       "14 min"
     ],
     "status": "Gare officielle",
-    "type": "TER",
+    "type": "",
     "lat": 14.72209,
     "lng": -17.43207
   },
   {
-    "id": "TER_04_Dalifort",
+    "id": "_04_Dalifort",
     "name": "Dalifort",
     "dir": "Dakar ↔ Diamniadio",
     "lines": [
-      "TER"
+      ""
     ],
     "distance": 0.8,
     "next": [
@@ -950,16 +950,16 @@ const ALL_ARRETS = [
       "14 min"
     ],
     "status": "Gare officielle",
-    "type": "TER",
+    "type": "",
     "lat": 14.73425,
     "lng": -17.419
   },
   {
-    "id": "TER_05_Beaux_Mara",
+    "id": "_05_Beaux_Mara",
     "name": "Baux Maraîchers",
     "dir": "Dakar ↔ Diamniadio",
     "lines": [
-      "TER"
+      ""
     ],
     "distance": 0.8,
     "next": [
@@ -967,16 +967,16 @@ const ALL_ARRETS = [
       "14 min"
     ],
     "status": "Gare officielle",
-    "type": "TER",
+    "type": "",
     "lat": 14.73971,
     "lng": -17.40361
   },
   {
-    "id": "TER_06_Pikine",
+    "id": "_06_Pikine",
     "name": "Pikine",
     "dir": "Dakar ↔ Diamniadio",
     "lines": [
-      "TER"
+      ""
     ],
     "distance": 0.8,
     "next": [
@@ -984,16 +984,16 @@ const ALL_ARRETS = [
       "14 min"
     ],
     "status": "Gare officielle",
-    "type": "TER",
+    "type": "",
     "lat": 14.74986,
     "lng": -17.39169
   },
   {
-    "id": "TER_07_Thiaroye",
+    "id": "_07_Thiaroye",
     "name": "Thiaroye",
     "dir": "Dakar ↔ Diamniadio",
     "lines": [
-      "TER"
+      ""
     ],
     "distance": 0.8,
     "next": [
@@ -1001,16 +1001,16 @@ const ALL_ARRETS = [
       "14 min"
     ],
     "status": "Gare officielle",
-    "type": "TER",
+    "type": "",
     "lat": 14.75877,
     "lng": -17.3803
   },
   {
-    "id": "TER_08_Yeumbeul",
+    "id": "_08_Yeumbeul",
     "name": "Yeumbeul",
     "dir": "Dakar ↔ Diamniadio",
     "lines": [
-      "TER"
+      ""
     ],
     "distance": 0.8,
     "next": [
@@ -1018,16 +1018,16 @@ const ALL_ARRETS = [
       "14 min"
     ],
     "status": "Gare officielle",
-    "type": "TER",
+    "type": "",
     "lat": 14.76491,
     "lng": -17.3565
   },
   {
-    "id": "TER_09_Keur_Mbaye_Fall",
+    "id": "_09_Keur_Mbaye_Fall",
     "name": "Keur Mbaye Fall",
     "dir": "Dakar ↔ Diamniadio",
     "lines": [
-      "TER"
+      ""
     ],
     "distance": 0.8,
     "next": [
@@ -1035,16 +1035,16 @@ const ALL_ARRETS = [
       "14 min"
     ],
     "status": "Gare officielle",
-    "type": "TER",
+    "type": "",
     "lat": 14.74408,
     "lng": -17.31389
   },
   {
-    "id": "TER_10_PNR",
+    "id": "_10_PNR",
     "name": "PNR",
     "dir": "Dakar ↔ Diamniadio",
     "lines": [
-      "TER"
+      ""
     ],
     "distance": 0.8,
     "next": [
@@ -1052,16 +1052,16 @@ const ALL_ARRETS = [
       "14 min"
     ],
     "status": "Gare officielle",
-    "type": "TER",
+    "type": "",
     "lat": 14.72317,
     "lng": -17.28394
   },
   {
-    "id": "TER_11_Rufisque",
+    "id": "_11_Rufisque",
     "name": "Rufisque",
     "dir": "Dakar ↔ Diamniadio",
     "lines": [
-      "TER"
+      ""
     ],
     "distance": 0.8,
     "next": [
@@ -1069,16 +1069,16 @@ const ALL_ARRETS = [
       "14 min"
     ],
     "status": "Gare officielle",
-    "type": "TER",
+    "type": "",
     "lat": 14.71596,
     "lng": -17.27
   },
   {
-    "id": "TER_12_Bargny",
+    "id": "_12_Bargny",
     "name": "Bargny",
     "dir": "Dakar ↔ Diamniadio",
     "lines": [
-      "TER"
+      ""
     ],
     "distance": 0.8,
     "next": [
@@ -1086,16 +1086,16 @@ const ALL_ARRETS = [
       "14 min"
     ],
     "status": "Gare officielle",
-    "type": "TER",
+    "type": "",
     "lat": 14.69818,
     "lng": -17.2292
   },
   {
-    "id": "TER_13_Diamniadio",
+    "id": "_13_Diamniadio",
     "name": "Diamniadio",
     "dir": "Dakar ↔ Diamniadio",
     "lines": [
-      "TER"
+      ""
     ],
     "distance": 0.8,
     "next": [
@@ -1103,7 +1103,7 @@ const ALL_ARRETS = [
       "14 min"
     ],
     "status": "Gare officielle",
-    "type": "TER",
+    "type": "",
     "lat": 14.71606,
     "lng": -17.19845
   },
@@ -1227,53 +1227,53 @@ class GTFSRTClient {
     updateVehicles();
     return { ok: true };
   }
-  startPolling(){ this.fetchNow(); setInterval(()=>this.fetchNow(), GTFS_CONFIG.pollInterval); }
+  startPolling(){ this.fetchNow(); setInval(()=>this.fetchNow(), GTFS_CONFIG.pollInval); }
 }
 window.gtfsClient = new GTFSRTClient();
 
 // MAP
 let map, userMarker, userAccuracyCircle;
 let vehicleMarkers=[], vehicles=[], gtfsStaticData=null;
-let brtPolyline, terPolyline, brtCasing, terCasing;
-let brtGroup=null, terGroup=null, busGroup=null;
+let Polyline, Polyline, Casing, Casing;
+let Group=null, Group=null, busGroup=null;
 let stopMarkers=[];
-const DAKAR_CENTER=[14.7167,-17.4677];
+const DAKAR_CEN=[14.7167,-17.4677];
 
 /* =============================================================================
    COMPTAGE OFFICIEL DES ARRÊTS — SOURCE UNIQUE (data/gtfs/stops.txt)
-   TER  : 13 gares    (Dakar -> Diamniadio)            -> marqueurs 1 à 13
-   BRT  : 23 stations (PEM Petersen <-> PEM Guédiawaye) -> marqueurs 1 à 23
+     : 13 gares    (Dakar -> Diamniadio)            -> marqueurs 1 à 13
+     : 23 stations (PEM Pesen <-> PEM Guédiawaye) -> marqueurs 1 à 23
    BUS  : 6 pôles
    Règle : quand un filtre réseau est actif, la carte n'affiche QUE les arrêts
    de ce réseau (les autres lignes, et les véhicules des autres lignes, sont
    retirés de la carte). 1 marqueur numéroté = 1 arrêt.
    ========================================================================== */
 const NETWORKS = {
-  TER: { key:'TER', label:'TER Dakar ↔ Diamniadio', emoji:'🚆', color:'#10B981', plural:'gares', kind:'gare' },
-  BRT: { key:'BRT', label:'SunuBRT — Ligne B1 omnibus', emoji:'🚌', color:'#00B140', plural:'stations', kind:'station' },
+  : { key:'', label:' Dakar ↔ Diamniadio', emoji:'🚆', color:'#10B981', plural:'gares', kind:'gare' },
+  : { key:'', label:'Sunu — Ligne B1 omnibus', emoji:'🚌', color:'#00B140', plural:'stations', kind:'station' },
   BUS: { key:'BUS', label:'Pôles bus Dakar (DDD / AFTU)', emoji:'🚏', color:'#3B82F6', plural:'pôles bus', kind:'pôle' }
 };
-const LAYERS = { ter:true, brt:true, bus:true, vehicles:true };
+const LAYERS = { :true, :true, bus:true, vehicles:true };
 const vehicleGroups = {};                 // route -> L.layerGroup
-let NETWORK_STATS = { TER:13, BRT:23, BUS:6, total:42 };
-const NETWORK_OFFICIEL = { TER:13, BRT:23, BUS:6 };
+let NETWORK_STATS = { :13, :23, BUS:6, total:42 };
+const NETWORK_OFFICIEL = { :13, :23, BUS:6 };
 let LINES_TOTAL = 76;
 
 function networkOf(stop){
   if(!stop) return 'BUS';
   const id = String(stop.id || '');
-  if(stop.type === 'TER' || id.startsWith('TER_')) return 'TER';
-  if(stop.type === 'BRT' || id.startsWith('BRT_')) return 'BRT';
+  if(stop.type === '' || id.startsWith('_')) return '';
+  if(stop.type === '' || id.startsWith('_')) return '';
   return 'BUS';
 }
 function networkStats(list){
-  const out = { TER:0, BRT:0, BUS:0, total:0 };
+  const out = { :0, :0, BUS:0, total:0 };
   (list||[]).forEach(s => { out[networkOf(s)]++; out.total++; });
   return out;
 }
 function sequenceOf(stop, index){
   if(stop && stop.seq) return stop.seq;
-  const m = /^(?:TER|BRT)_(\d+)/.exec(String(stop && stop.id || ''));
+  const m = /^(?:|)_(\d+)/.exec(String(stop && stop.id || ''));
   return m ? parseInt(m[1],10) : (index+1);
 }
 function sortBySequence(list){ return [...list].sort((a,b) => (a.seq||99) - (b.seq||99)); }
@@ -1292,38 +1292,38 @@ function setLineOnMap(line, casing, on){
 }
 function visibleStopsOnMap(net){
   const s = NETWORK_STATS;
-  if(net === 'TER') return LAYERS.ter ? s.TER : 0;
-  if(net === 'BRT') return LAYERS.brt ? s.BRT : 0;
+  if(net === '') return LAYERS. ? s. : 0;
+  if(net === '') return LAYERS. ? s. : 0;
   if(net === 'BUS') return LAYERS.bus ? s.BUS : 0;
-  return (LAYERS.ter ? s.TER : 0) + (LAYERS.brt ? s.BRT : 0) + (LAYERS.bus ? s.BUS : 0);
+  return (LAYERS. ? s. : 0) + (LAYERS. ? s. : 0) + (LAYERS.bus ? s.BUS : 0);
 }
 function currentNetwork(){
-  if(activeFilter === 'ter') return 'TER';
-  if(activeFilter === 'brt') return 'BRT';
-  if(activeFilter === 'ddd' || activeFilter === 'aftu' || activeFilter === 'tata') return 'BUS';
+  if(activeFil === '') return '';
+  if(activeFil === '') return '';
+  if(activeFil === 'ddd' || activeFil === 'aftu' || activeFil === 'tata') return 'BUS';
   return 'ALL';
 }
 function updateMapBadge(net){
   const el = document.getElementById('map-network-badge');
   const s = NETWORK_STATS;
   if(el){
-    if(net === 'TER'){
-      el.innerHTML = LAYERS.ter
-        ? `🚆 TER : <b>${s.TER}</b> gares affichées (1 → ${s.TER}) — aucun autre arrêt`
-        : `🚆 TER : calque masqué — <b>0</b> gare affichée`;
-    } else if(net === 'BRT'){
-      el.innerHTML = LAYERS.brt
-        ? `🚌 SunuBRT : <b>${s.BRT}</b> stations affichées (1 → ${s.BRT}) — aucun autre arrêt`
-        : `🚌 SunuBRT : calque masqué — <b>0</b> station affichée`;
+    if(net === ''){
+      el.innerHTML = LAYERS.
+        ? `🚆  : <b>${s.}</b> gares affichées (1 → ${s.}) — aucun autre arrêt`
+        : `🚆  : calque masqué — <b>0</b> gare affichée`;
+    } else if(net === ''){
+      el.innerHTML = LAYERS.
+        ? `🚌 Sunu : <b>${s.}</b> stations affichées (1 → ${s.}) — aucun autre arrêt`
+        : `🚌 Sunu : calque masqué — <b>0</b> station affichée`;
     } else if(net === 'BUS'){
       el.innerHTML = LAYERS.bus
-        ? `🚏 Bus : <b>${s.BUS}</b> pôles affichés — aucun arrêt TER/BRT`
+        ? `🚏 Bus : <b>${s.BUS}</b> pôles affichés — aucun arrêt /`
         : `🚏 Bus : calque masqué — <b>0</b> pôle affiché`;
     } else {
       // "Tous" : n'annonce que les réseaux dont le calque est réellement visible
       const visibles = [];
-      if(LAYERS.ter) visibles.push(`${s.TER} TER`);
-      if(LAYERS.brt) visibles.push(`${s.BRT} BRT`);
+      if(LAYERS.) visibles.push(`${s.} `);
+      if(LAYERS.) visibles.push(`${s.} `);
       if(LAYERS.bus) visibles.push(`${s.BUS} bus`);
       el.innerHTML = `<b>${visibleStopsOnMap('ALL')}</b> arrêts affichés : ${visibles.join(' + ') || 'aucun'}`;
     }
@@ -1335,15 +1335,15 @@ function updateNetworkSummary(){
   const el = document.getElementById('network-summary');
   const s = NETWORK_STATS;
   if(!el) return;
-  if(activeFilter === 'ter') el.textContent = `Filtre TER : les ${s.TER} gares sont affichées (1 → ${s.TER}) — les ${s.BRT} stations BRT et les ${s.BUS} pôles bus sont masqués.`;
-  else if(activeFilter === 'brt') el.textContent = `Filtre BRT : les ${s.BRT} stations sont affichées (1 → ${s.BRT}) — les ${s.TER} gares TER et les ${s.BUS} pôles bus sont masqués.`;
-  else if(activeFilter === 'ddd' || activeFilter === 'aftu' || activeFilter === 'tata') el.textContent = `Filtre bus : ${s.BUS} pôles affichés — les ${s.TER} gares TER et les ${s.BRT} stations BRT sont masqués.`;
-  else el.textContent = `Comptage officiel : ${s.TER} gares TER + ${s.BRT} stations SunuBRT + ${s.BUS} pôles bus = ${s.total} arrêts — cliquez sur un arrêt pour le localiser.`;
+  if(activeFil === '') el.textContent = `Filtre  : les ${s.} gares sont affichées (1 → ${s.}) — les ${s.} stations  et les ${s.BUS} pôles bus sont masqués.`;
+  else if(activeFil === '') el.textContent = `Filtre  : les ${s.} stations sont affichées (1 → ${s.}) — les ${s.} gares  et les ${s.BUS} pôles bus sont masqués.`;
+  else if(activeFil === 'ddd' || activeFil === 'aftu' || activeFil === 'tata') el.textContent = `Filtre bus : ${s.BUS} pôles affichés — les ${s.} gares  et les ${s.} stations  sont masqués.`;
+  else el.textContent = `Comptage officiel : ${s.} gares  + ${s.} stations Sunu + ${s.BUS} pôles bus = ${s.total} arrêts — cliquez sur un arrêt pour le localiser.`;
 }
 function updateNetworkCounts(){
   const s = NETWORK_STATS;
-  document.querySelectorAll('[data-count-ter]').forEach(el => el.textContent = String(s.TER));
-  document.querySelectorAll('[data-count-brt]').forEach(el => el.textContent = String(s.BRT));
+  document.querySelectorAll('[data-count-]').forEach(el => el.textContent = String(s.));
+  document.querySelectorAll('[data-count-]').forEach(el => el.textContent = String(s.));
   document.querySelectorAll('[data-count-bus]').forEach(el => el.textContent = String(s.BUS));
   document.querySelectorAll('[data-count-total]').forEach(el => el.textContent = s.total + ' arrêts');
   document.querySelectorAll('[data-count-vehicles]').forEach(el => el.textContent = String(vehicleMarkers.length));
@@ -1353,27 +1353,27 @@ function updateNetworkCounts(){
   updateNetworkSummary();
   updateMapBadge(currentNetwork());
 }
-function applyMapFilter(){
+function applyMapFil(){
   if(!map) return;
   const net = currentNetwork();
-  const showTER = (net === 'ALL' || net === 'TER') && LAYERS.ter;
-  const showBRT = (net === 'ALL' || net === 'BRT') && LAYERS.brt;
+  const show = (net === 'ALL' || net === '') && LAYERS.;
+  const show = (net === 'ALL' || net === '') && LAYERS.;
   const showBUS = (net === 'ALL' || net === 'BUS') && LAYERS.bus;
 
-  setGroupOnMap(terGroup, showTER);
-  setGroupOnMap(brtGroup, showBRT);
+  setGroupOnMap(Group, show);
+  setGroupOnMap(Group, show);
   setGroupOnMap(busGroup, showBUS);
-  setLineOnMap(terPolyline, terCasing, showTER);
-  setLineOnMap(brtPolyline, brtCasing, showBRT);
+  setLineOnMap(Polyline, Casing, show);
+  setLineOnMap(Polyline, Casing, show);
 
   Object.keys(vehicleGroups).forEach(route => {
-    const isTERroute = (route === 'TER');
-    const isBRTroute = (route === 'BRT 01');
+    const isroute = (route === '');
+    const isroute = (route === ' 01');
     const ok = LAYERS.vehicles && (
       net === 'ALL' ||
-      (net === 'TER' && isTERroute) ||
-      (net === 'BRT' && isBRTroute) ||
-      (net === 'BUS' && !isTERroute && !isBRTroute)
+      (net === '' && isroute) ||
+      (net === '' && isroute) ||
+      (net === 'BUS' && !isroute && !isroute)
     );
     setGroupOnMap(vehicleGroups[route], ok);
   });
@@ -1393,7 +1393,7 @@ window.openLineDetail = function(net){
   const modal = document.getElementById('line-modal');
   if(!modal) return;
   const all = (window.gtfsStops && window.gtfsStops.length) ? [...window.gtfsStops] : [...ALL_ARRETS];
-  const list = sortBySequence(all.filter(s => networkOf(s) === net));
+  const list = sortBySequence(all.fil(s => networkOf(s) === net));
   const def = NETWORKS[net] || NETWORKS.BUS;
   const title = document.getElementById('line-modal-title');
   const sub = document.getElementById('line-modal-sub');
@@ -1402,18 +1402,18 @@ window.openLineDetail = function(net){
   if(title) title.textContent = def.emoji + ' ' + def.label;
   if(sub) sub.textContent = `${list.length} ${def.plural} — liste numérotée 1 → ${list.length}`;
   if(body) body.innerHTML = list.map((s,i) => `
-    <div class="line-row ${net === 'TER' ? 'ter' : net === 'BRT' ? 'brt' : ''}" style="cursor:pointer" onclick="window.closeLineDetail(); window.focusStop(${s.lat}, ${s.lng}, '${String(s.name).replace(/'/g, "\\'")}')">
+    <div class="line-row ${net === '' ? '' : net === '' ? '' : ''}" style="cursor:poin" onclick="window.closeLineDetail(); window.focusStop(${s.lat}, ${s.lng}, '${String(s.name).replace(/'/g, "\\'")}')">
       <div class="lg-num">${s.seq || (i+1)}</div>
       <div class="flex-1 min-w-0">
         <div class="font-bold text-[14px] truncate">${s.name}</div>
         <div class="text-[11px] text-slate-500">${s.time ? 'Passage de référence ' + s.time + ' • ' : ''}${s.dir || ''}</div>
       </div>
-      <span class="text-[11px] font-bold ${net === 'TER' ? 'text-emerald-700' : 'text-[#007A2F]'}">${i+1}/${list.length}</span>
+      <span class="text-[11px] font-bold ${net === '' ? 'text-emerald-700' : 'text-[#007A2F]'}">${i+1}/${list.length}</span>
     </div>`).join('');
-  if(foot) foot.textContent = net === 'TER'
-    ? 'Source : SETER / CETUD — phase 1 Dakar ↔ Diamniadio, 36 km, 13 gares. La 14e gare (AIBD) relève de la phase 2, non ouverte.'
-    : net === 'BRT'
-      ? 'Source : CETUD / SunuBRT — corridor B1 omnibus PEM Petersen ↔ PEM Guédiawaye, 18,3 km, 23 stations.'
+  if(foot) foot.textContent = net === ''
+    ? 'Source : SE / CETUD — phase 1 Dakar ↔ Diamniadio, 36 km, 13 gares. La 14e gare (AIBD) relève de la phase 2, non ouverte.'
+    : net === ''
+      ? 'Source : CETUD / Sunu — corridor B1 omnibus PEM Pesen ↔ PEM Guédiawaye, 18,3 km, 23 stations.'
       : "Source : GTFS Dakar Bus — pôles d'échange DDD / AFTU.";
   modal.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
@@ -1428,7 +1428,7 @@ window.focusStop = function(lat, lng, name){
   }
   const mapEl = document.getElementById('map-card') || document.getElementById('map');
   if(mapEl && window.innerWidth < 1024){
-    mapEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    mapEl.scrollIntoView({ behavior: 'smooth', block: 'cen' });
   }
 };
 
@@ -1443,7 +1443,7 @@ async function loadGTFSStatic(){
         stText.trim().split('\n').slice(1).forEach(line=>{
           const c=line.split(',');
           const trip=(c[0]||'').trim();
-          if(trip==='TER_01_001'||trip==='BRT_01_001'){
+          if(trip==='_01_001'||trip==='_01_001'){
             const sid=(c[3]||'').trim();
             if(sid) stopTimes[sid]=((c[2]||c[1]||'').trim()||'').slice(0,5);
           }
@@ -1466,7 +1466,7 @@ async function loadGTFSStatic(){
         stops=lines.map(line=>{
           const parts=line.split(',');
           return { stop_id:parts[0]?.trim(), stop_name:parts[1]?.trim(), stop_lat:parts[2]?.trim(), stop_lon:parts[3]?.trim() };
-        }).filter(s=>s.stop_id && s.stop_name && !isNaN(parseFloat(s.stop_lat)));
+        }).fil(s=>s.stop_id && s.stop_name && !isNaN(parseFloat(s.stop_lat)));
       }
     }catch(err){
       console.warn('Fallback to embedded ALL_ARRETS', err);
@@ -1475,17 +1475,17 @@ async function loadGTFSStatic(){
     let parsedStops=[];
     if(stops && stops.length){
       parsedStops=stops.map(s=>{
-        const isTER=s.stop_id.startsWith('TER_');
-        const isBRT=s.stop_id.startsWith('BRT_');
+        const is=s.stop_id.startsWith('_');
+        const is=s.stop_id.startsWith('_');
         return {
           id: s.stop_id,
           name: s.stop_name,
-          dir: isTER ? 'Dakar ↔ Diamniadio' : isBRT ? 'Petersen ↔ Guédiawaye' : 'Dakar Urbain',
-          lines: isTER ? ['TER'] : isBRT ? ['BRT 01'] : ['DDD 10'],
-          distance: isTER ? 0.8 : isBRT ? 0.3 : 1.2,
-          next: isTER ? ['4 min', '14 min'] : isBRT ? ['2 min', '7 min'] : ['5 min', '12 min'],
-          status: isTER ? 'Gare officielle' : isBRT ? 'Voie réservée' : 'Fluide',
-          type: isTER ? 'TER' : isBRT ? 'BRT' : 'DDD',
+          dir: is ? 'Dakar ↔ Diamniadio' : is ? 'Pesen ↔ Guédiawaye' : 'Dakar Urbain',
+          lines: is ? [''] : is ? [' 01'] : ['DDD 10'],
+          distance: is ? 0.8 : is ? 0.3 : 1.2,
+          next: is ? ['4 min', '14 min'] : is ? ['2 min', '7 min'] : ['5 min', '12 min'],
+          status: is ? 'Gare officielle' : is ? 'Voie réservée' : 'Fluide',
+          type: is ? '' : is ? '' : 'DDD',
           time: stopTimes[s.stop_id] || null,
           lat: parseFloat(s.stop_lat),
           lng: parseFloat(s.stop_lon)
@@ -1495,12 +1495,12 @@ async function loadGTFSStatic(){
       parsedStops = ALL_ARRETS;
     }
 
-    // Numérotation officielle 1 -> N (TER 1->13, BRT 1->23, BUS 1->6)
-    const byNet = { TER:[], BRT:[], BUS:[] };
+    // Numérotation officielle 1 -> N ( 1->13,  1->23, BUS 1->6)
+    const byNet = { :[], :[], BUS:[] };
     parsedStops.forEach(s => { byNet[networkOf(s)].push(s); });
-    ['TER','BRT','BUS'].forEach(net => {
+    ['','','BUS'].forEach(net => {
       byNet[net].sort((a,b)=>{
-        const na=/^(?:TER|BRT)_(\d+)/.exec(String(a.id)), nb=/^(?:TER|BRT)_(\d+)/.exec(String(b.id));
+        const na=/^(?:|)_(\d+)/.exec(String(a.id)), nb=/^(?:|)_(\d+)/.exec(String(b.id));
         if(na && nb) return parseInt(na[1],10)-parseInt(nb[1],10);
         return String(a.name||'').localeCompare(String(b.name||''), 'fr');
       }).forEach((s,i)=>{ s.net=net; s.seq=i+1; });
@@ -1513,8 +1513,8 @@ async function loadGTFSStatic(){
 
     stopMarkers.forEach(s=>{ if(s.marker) s.marker.remove(); });
     stopMarkers = [];
-    if(terGroup) terGroup.clearLayers();
-    if(brtGroup) brtGroup.clearLayers();
+    if(Group) Group.clearLayers();
+    if(Group) Group.clearLayers();
     if(busGroup) busGroup.clearLayers();
 
     if(map){
@@ -1522,37 +1522,37 @@ async function loadGTFSStatic(){
         const lat=stop.lat, lng=stop.lng;
         if(isNaN(lat)||isNaN(lng)) return;
         const net = networkOf(stop);
-        const isTER = (net === 'TER');
-        const isBRT = (net === 'BRT');
+        const is = (net === '');
+        const is = (net === '');
         const netTotal = NETWORK_STATS[net] || 0;
         const seq = stop.seq || 0;
-        const size = isTER ? 26 : isBRT ? 22 : 16;
+        const size = is ? 26 : is ? 22 : 16;
 
         let markerHtml = '';
         let targetGroup = busGroup;
         let popupHtml = '';
 
-        // 1 marqueur = 1 arrêt, numéroté dans l'ordre officiel (data-seq permet de compter sur la carte)
-        markerHtml = `<div class="stop-pin ${isTER ? 'ter' : isBRT ? 'brt' : 'bus'}" data-kind="stop" data-net="${net}" data-seq="${seq}" title="${net} ${seq}/${netTotal} — ${stop.name}" style="width:${size}px;height:${size}px">${isTER || isBRT ? seq : '🚏'}</div>`;
+        // 1 marqueur = 1 arrêt, numéroté dans l'ordre officiel (data-seq permet de comp sur la carte)
+        markerHtml = `<div class="stop-pin ${is ? '' : is ? '' : 'bus'}" data-kind="stop" data-net="${net}" data-seq="${seq}" title="${net} ${seq}/${netTotal} — ${stop.name}" style="width:${size}px;height:${size}px">${is || is ? seq : '🚏'}</div>`;
         const markerIcon = L.divIcon({ className: '', html: markerHtml, iconSize: [size, size], iconAnchor: [size/2, size/2] });
 
-        if(isTER){
-          targetGroup = terGroup;
+        if(is){
+          targetGroup = Group;
           popupHtml = `
             <div style="font-family:sans-serif;min-width:200px">
-              <div style="display:inline-block;padding:2px 8px;border-radius:9999px;background:#ECFDF5;color:#065F46;font-weight:700;font-size:10px;margin-bottom:4px">🚆 TER Dakar • Gare officielle ${seq}/${netTotal}</div>
+              <div style="display:inline-block;padding:2px 8px;border-radius:9999px;background:#ECFDF5;color:#065F46;font-weight:700;font-size:10px;margin-bottom:4px">🚆  Dakar • Gare officielle ${seq}/${netTotal}</div>
               <div style="font-weight:bold;font-size:14px;color:#0f172a">${stop.name}</div>
               <div style="font-size:12px;color:#64748b;margin-top:2px">Ligne Dakar ↔ Diamniadio — ${netTotal} gares (marqueurs 1 → ${netTotal})</div>
               <div style="font-size:11px;color:#10B981;font-weight:600;margin-top:4px">${stop.time ? 'Passage de référence ' + stop.time + ' • ' : 'Prochain départ : ' + stop.next[0] + ' • '}Cadence 10 min</div>
             </div>`;
-        } else if(isBRT){
-          targetGroup = brtGroup;
-          markerHtml = `<div style="width:20px;height:20px;background:#00B140;border:2px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(0,177,64,0.45);display:flex;align-items:center;justify-content:center;color:white;font-size:10px;font-weight:bold">B</div>`;
+        } else if(is){
+          targetGroup = Group;
+          markerHtml = `<div style="width:20px;height:20px;background:#00B140;border:2px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(0,177,64,0.45);display:flex;align-items:cen;justify-content:cen;color:white;font-size:10px;font-weight:bold">B</div>`;
           popupHtml = `
             <div style="font-family:sans-serif;min-width:200px">
-              <div style="display:inline-block;padding:2px 8px;border-radius:9999px;background:#E6F7ED;color:#007A2F;font-weight:700;font-size:10px;margin-bottom:4px">🚌 SunuBRT • Station officielle ${seq}/${netTotal}</div>
+              <div style="display:inline-block;padding:2px 8px;border-radius:9999px;background:#E6F7ED;color:#007A2F;font-weight:700;font-size:10px;margin-bottom:4px">🚌 Sunu • Station officielle ${seq}/${netTotal}</div>
               <div style="font-weight:bold;font-size:14px;color:#0f172a">${stop.name}</div>
-              <div style="font-size:12px;color:#64748b;margin-top:2px">Corridor Petersen ↔ Guédiawaye — ${netTotal} stations (marqueurs 1 → ${netTotal})</div>
+              <div style="font-size:12px;color:#64748b;margin-top:2px">Corridor Pesen ↔ Guédiawaye — ${netTotal} stations (marqueurs 1 → ${netTotal})</div>
               <div style="font-size:11px;color:#00B140;font-weight:600;margin-top:4px">${stop.time ? 'Passage de référence ' + stop.time + ' • ' : 'Prochain bus : ' + stop.next[0] + ' • '}Voie dédiée</div>
             </div>`;
         } else {
@@ -1573,10 +1573,10 @@ async function loadGTFSStatic(){
       });
     }
 
-    applyMapFilter();
+    applyMapFil();
     updateNetworkCounts();
     renderArrets();
-    showToast(`📦 Réseau chargé : ${NETWORK_STATS.TER} gares TER • ${NETWORK_STATS.BRT} stations SunuBRT • ${NETWORK_STATS.BUS} pôles bus = ${NETWORK_STATS.total} arrêts`);
+    showToast(`📦 Réseau chargé : ${NETWORK_STATS.} gares  • ${NETWORK_STATS.} stations Sunu • ${NETWORK_STATS.BUS} pôles bus = ${NETWORK_STATS.total} arrêts`);
     return gtfsStaticData;
   }catch(e){
     console.error('loadGTFSStatic error', e);
@@ -1585,18 +1585,18 @@ async function loadGTFSStatic(){
 }
 
 function initMap(){
-  map=L.map('map',{zoomControl:false}).setView(DAKAR_CENTER,12);
+  map=L.map('map',{zoomControl:false}).setView(DAKAR_CEN,12);
   window.__dakarMap = map; // reference fiable (la variable globale "map" est ecrasee par l'id du div)
   L.control.zoom({position:'bottomright'}).addTo(map);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'© OSM | Dakar Bus', maxZoom:19}).addTo(map);
 
   // Groupes de couches
-  terGroup = L.layerGroup().addTo(map);
-  brtGroup = L.layerGroup().addTo(map);
+  Group = L.layerGroup().addTo(map);
+  Group = L.layerGroup().addTo(map);
   busGroup = L.layerGroup().addTo(map);
 
-  // 1. Polyline Tracé BRT
-  brtCasing = L.polyline(BRT_SHAPE, {
+  // 1. Polyline Tracé 
+  Casing = L.polyline(_SHAPE, {
     color: '#007A2F',
     weight: 8,
     opacity: 0.35,
@@ -1604,26 +1604,26 @@ function initMap(){
     lineJoin: 'round'
   }).addTo(map);
 
-  brtPolyline = L.polyline(BRT_SHAPE, {
+  Polyline = L.polyline(_SHAPE, {
     color: '#00B140',
     weight: 4.5,
     opacity: 0.95,
     lineCap: 'round',
     lineJoin: 'round'
   }).addTo(map);
-  window.brtPolyline = brtPolyline;
+  window.Polyline = Polyline;
 
-  brtPolyline.bindPopup(`
+  Polyline.bindPopup(`
     <div style="font-family:sans-serif;min-width:210px">
-      <div style="display:inline-block;padding:2px 8px;border-radius:9999px;background:#E6F7ED;color:#007A2F;font-weight:700;font-size:10px;margin-bottom:4px">🚌 SunuBRT • Corridor Ligne B1</div>
-      <div style="font-weight:bold;font-size:14px;color:#0f172a">PEM Petersen ↔ PEM Guédiawaye</div>
+      <div style="display:inline-block;padding:2px 8px;border-radius:9999px;background:#E6F7ED;color:#007A2F;font-weight:700;font-size:10px;margin-bottom:4px">🚌 Sunu • Corridor Ligne B1</div>
+      <div style="font-weight:bold;font-size:14px;color:#0f172a">PEM Pesen ↔ PEM Guédiawaye</div>
       <div style="font-size:12px;color:#64748b;margin-top:2px">18,3 km • 23 stations réelles • Voie dédiée</div>
       <div style="font-size:11px;color:#00B140;font-weight:600;margin-top:4px">Bus 100% électriques • Cadence 6 min</div>
     </div>
   `);
 
-  // 2. Polyline Tracé TER
-  terCasing = L.polyline(TER_SHAPE, {
+  // 2. Polyline Tracé 
+  Casing = L.polyline(_SHAPE, {
     color: '#047857',
     weight: 7,
     opacity: 0.35,
@@ -1631,7 +1631,7 @@ function initMap(){
     lineJoin: 'round'
   }).addTo(map);
 
-  terPolyline = L.polyline(TER_SHAPE, {
+  Polyline = L.polyline(_SHAPE, {
     color: '#10B981',
     weight: 4,
     opacity: 0.95,
@@ -1639,21 +1639,21 @@ function initMap(){
     lineCap: 'round',
     lineJoin: 'round'
   }).addTo(map);
-  window.terPolyline = terPolyline;
+  window.Polyline = Polyline;
 
-  terPolyline.bindPopup(`
+  Polyline.bindPopup(`
     <div style="font-family:sans-serif;min-width:210px">
-      <div style="display:inline-block;padding:2px 8px;border-radius:9999px;background:#ECFDF5;color:#065F46;font-weight:700;font-size:10px;margin-bottom:4px">🚆 Train Express Régional (TER)</div>
+      <div style="display:inline-block;padding:2px 8px;border-radius:9999px;background:#ECFDF5;color:#065F46;font-weight:700;font-size:10px;margin-bottom:4px">🚆 Train Express Régional ()</div>
       <div style="font-weight:bold;font-size:14px;color:#0f172a">Gare de Dakar ↔ Gare de Diamniadio</div>
-      <div style="font-size:12px;color:#64748b;margin-top:2px">36 km • 13 gares officielles SETER • Phase 1</div>
+      <div style="font-size:12px;color:#64748b;margin-top:2px">36 km • 13 gares officielles SE • Phase 1</div>
       <div style="font-size:11px;color:#10B981;font-weight:600;margin-top:4px">Vitesse max 160 km/h • Départs toutes les 10 min</div>
     </div>
   `);
 
   // 3. Flotte de véhicules en simulation le long des vraies trajectoires
   const fleetRoutes = [
-    { name: 'BRT 01', color: '#00B140', coords: BRT_SHAPE, count: 6, speed: 0.003, label: 'B' },
-    { name: 'TER', color: '#10B981', coords: TER_SHAPE, count: 4, speed: 0.005, label: 'T' },
+    { name: ' 01', color: '#00B140', coords: _SHAPE, count: 6, speed: 0.003, label: 'B' },
+    { name: '', color: '#10B981', coords: _SHAPE, count: 4, speed: 0.005, label: 'T' },
     { name: 'DDD 10', color: '#3B82F6', coords: DDD_SHAPE, count: 3, speed: 0.002, label: 'D' }
   ];
 
@@ -1676,26 +1676,26 @@ function initMap(){
   vehicles.forEach(v => {
     const idx = Math.floor(v.progress * (v.path.length - 1));
     const pos = v.path[idx] || v.path[0];
-    const kind = v.route === 'TER' ? 'ter' : v.route === 'BRT 01' ? 'brt' : 'ddd';
+    const kind = v.route === '' ? '' : v.route === ' 01' ? '' : 'ddd';
     const icon = L.divIcon({
       className: '',
-      html: `<div class="vehicle-pin ${kind}" data-kind="vehicle" data-route="${v.route}" title="Véhicule ${v.route} en circulation (simulation temps réel)">${v.route === 'TER' ? '🚆' : '🚌'}</div>`,
+      html: `<div class="vehicle-pin ${kind}" data-kind="vehicle" data-route="${v.route}" title="Véhicule ${v.route} en circulation (simulation temps réel)">${v.route === '' ? '🚆' : '🚌'}</div>`,
       iconSize: [30, 22],
       iconAnchor: [15, 11]
     });
     if(!vehicleGroups[v.route]) vehicleGroups[v.route] = L.layerGroup().addTo(map);
     const m = L.marker(pos, { icon }).addTo(vehicleGroups[v.route]);
-    m.bindPopup(`<b>${v.route === 'TER' ? '🚆 Train Express Régional' : v.route === 'BRT 01' ? '🚌 SunuBRT (Ligne B1)' : '🚌 Dakar Dem Dikk'}</b><br>Véhicule en circulation (simulation temps réel)<br>Vitesse : ${v.route === 'TER' ? '120 km/h' : '42 km/h'}${v.route === 'TER' ? '<br>Dessert les 13 gares 1 → 13' : v.route === 'BRT 01' ? '<br>Dessert les 23 stations 1 → 23' : ''}`);
+    m.bindPopup(`<b>${v.route === '' ? '🚆 Train Express Régional' : v.route === ' 01' ? '🚌 Sunu (Ligne B1)' : '🚌 Dakar Dem Dikk'}</b><br>Véhicule en circulation (simulation temps réel)<br>Vitesse : ${v.route === '' ? '120 km/h' : '42 km/h'}${v.route === '' ? '<br>Dessert les 13 gares 1 → 13' : v.route === ' 01' ? '<br>Dessert les 23 stations 1 → 23' : ''}`);
     vehicleMarkers.push({ marker: m, vehicle: v });
   });
 
   const miniEl = document.getElementById('mini-map');
   if(miniEl){
-    const mini = L.map('mini-map', { zoomControl: false, attributionControl: false }).setView(DAKAR_CENTER, 12);
+    const mini = L.map('mini-map', { zoomControl: false, attributionControl: false }).setView(DAKAR_CEN, 12);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(mini);
   }
 
-  setInterval(updateVehicles, 3000);
+  setInval(updateVehicles, 3000);
   updateVehicles();
   setTimeout(() => window.gtfsClient.startPolling(), 1000);
   setTimeout(() => loadGTFSStatic(), 500);
@@ -1718,7 +1718,7 @@ function showToast(msg, type='info'){
   const cont=document.getElementById('toast-container');
   if(!cont) return;
   const el=document.createElement('div');
-  el.className=`pointer-events-auto px-4 py-3 rounded-2xl shadow-xl text-[13px] font-medium max-w-[90vw] ${type==='error'?'bg-red-600 text-white':'bg-[#0f172a] text-white'}`;
+  el.className=`poin-events-auto px-4 py-3 rounded-2xl shadow-xl text-[13px] font-medium max-w-[90vw] ${type==='error'?'bg-red-600 text-white':'bg-[#0f172a] text-white'}`;
   el.textContent=msg;
   cont.appendChild(el);
   setTimeout(()=>{ el.style.opacity='0'; setTimeout(()=>el.remove(), 300); }, 3500);
@@ -1731,7 +1731,7 @@ function startGPS(){
     userPos={ lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy };
     document.getElementById('gps-status').textContent=`📍 ${userPos.lat.toFixed(4)} • ±${Math.round(userPos.acc)}m`;
     document.getElementById('gps-accuracy').textContent=`±${Math.round(userPos.acc)}m • Live`;
-    document.getElementById('user-location-card').innerHTML=`<div class="flex items-center gap-2 mb-2"><span class="w-2 h-2 rounded-full bg-[#00B140] animate-pulse"></span><b>Vous êtes ici</b><span class="text-[11px] px-2 py-0.5 rounded-full bg-[#E6F7ED] text-[#007A2F] font-bold">LIVE</span></div><div class="text-[12px] opacity-70">${userPos.lat.toFixed(5)}, ${userPos.lng.toFixed(5)}</div><div class="mt-3 text-[13px]">🚏 Petersen - 120m • 2 min</div><button onclick="stopGPS()" class="mt-4 w-full h-10 rounded-full bg-white border text-[13px]">Désactiver</button>`;
+    document.getElementById('user-location-card').innerHTML=`<div class="flex items-cen gap-2 mb-2"><span class="w-2 h-2 rounded-full bg-[#00B140] animate-pulse"></span><b>Vous êtes ici</b><span class="text-[11px] px-2 py-0.5 rounded-full bg-[#E6F7ED] text-[#007A2F] font-bold">LIVE</span></div><div class="text-[12px] opacity-70">${userPos.lat.toFixed(5)}, ${userPos.lng.toFixed(5)}</div><div class="mt-3 text-[13px]">🚏 Pesen - 120m • 2 min</div><button onclick="stopGPS()" class="mt-4 w-full h-10 rounded-full bg-white border text-[13px]">Désactiver</button>`;
     if(!userMarker){
       userMarker=L.marker([userPos.lat,userPos.lng],{icon:L.divIcon({html:`<div style="width:18px;height:18px;background:#00B140;border:3px solid white;border-radius:9999px;box-shadow:0 0 0 8px rgba(0,177,64,0.15)"></div>`, iconSize:[18,18]})}).addTo(map);
       userAccuracyCircle=L.circle([userPos.lat,userPos.lng],{radius:userPos.acc, color:'#00B140', fillOpacity:0.08}).addTo(map);
@@ -1742,7 +1742,7 @@ function startGPS(){
     renderArrets();
   }, (err)=>{ showToast('GPS erreur: '+err.message,'error'); }, {enableHighAccuracy:true});
   var btn=document.getElementById('gps-live-btn');
-  if(btn){ btn.innerHTML='<span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> GPS ON'; btn.className='hidden md:flex items-center gap-2 px-4 h-9 rounded-full bg-[#00B140] text-white text-[13px] font-bold'; }
+  if(btn){ btn.innerHTML='<span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> GPS ON'; btn.className='hidden md:flex items-cen gap-2 px-4 h-9 rounded-full bg-[#00B140] text-white text-[13px] font-bold'; }
   showToast('📡 GPS Dakar Bus activé');
 }
 
@@ -1754,7 +1754,7 @@ function stopGPS(){
   var b=document.getElementById('activate-gps');
   if(b) b.onclick=startGPS;
   var btn=document.getElementById('gps-live-btn');
-  if(btn){ btn.innerHTML='<span class="w-2 h-2 rounded-full bg-[#00B140] animate-pulse"></span> GPS Live'; btn.className='hidden md:flex items-center gap-2 px-4 h-9 rounded-full bg-white border border-[#C2EAD0] text-[#00B140] text-[13px] font-semibold'; }
+  if(btn){ btn.innerHTML='<span class="w-2 h-2 rounded-full bg-[#00B140] animate-pulse"></span> GPS Live'; btn.className='hidden md:flex items-cen gap-2 px-4 h-9 rounded-full bg-white border border-[#C2EAD0] text-[#00B140] text-[13px] font-semibold'; }
 }
 
 var ag=document.getElementById('activate-gps');
@@ -1763,56 +1763,56 @@ var glb=document.getElementById('gps-live-btn');
 if(glb) glb.onclick=()=>{ if(watchId) stopGPS(); else startGPS(); };
 var agm=document.getElementById('activate-gps-map');
 if(agm) agm.onclick=()=>{ if(watchId) stopGPS(); else startGPS(); };
-var cg=document.getElementById('center-gps');
+var cg=document.getElementById('cen-gps');
 if(cg) cg.onclick=()=>{ if(userPos) map.setView([userPos.lat,userPos.lng],15); else startGPS(); };
 var rm=document.getElementById('reduce-map');
-if(rm) rm.onclick=()=>{ if(map){ map.invalidateSize(); map.setView(DAKAR_CENTER,12); } };
+if(rm) rm.onclick=()=>{ if(map){ map.invalidateSize(); map.setView(DAKAR_CEN,12); } };
 
 function renderPopular(){
   var el=document.getElementById('popular-trips');
   if(!el) return;
   var trips=[
-    { from:'Petersen', to:'Guédiawaye', mode:'BRT', time:'18 min', status:'À l\'heure', color:'bg-[#00B140]' },
-    { from:'Gare de Dakar', to:'Diamniadio', mode:'TER', time:'35 min', status:'À l\'heure', color:'bg-emerald-600' },
+    { from:'Pesen', to:'Guédiawaye', mode:'', time:'18 min', status:'À l\'heure', color:'bg-[#00B140]' },
+    { from:'Gare de Dakar', to:'Diamniadio', mode:'', time:'35 min', status:'À l\'heure', color:'bg-emerald-600' },
     { from:'Plateau', to:'Almadies', mode:'DDD 10', time:'42 min', status:'+2 min', color:'bg-blue-500' }
   ];
-  el.innerHTML=trips.map(t=>`<div class="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 border"><div class="w-10 h-10 rounded-xl ${t.color} text-white flex items-center justify-center font-bold text-[11px]">${t.mode[0]}</div><div class="flex-1"><div class="text-[13px] font-medium">${t.from} → ${t.to}</div><div class="text-[11px] opacity-60">${t.mode} • ${t.time}</div></div></div>`).join('');
+  el.innerHTML=trips.map(t=>`<div class="flex items-cen gap-3 p-3 rounded-2xl bg-slate-50 border"><div class="w-10 h-10 rounded-xl ${t.color} text-white flex items-cen justify-cen font-bold text-[11px]">${t.mode[0]}</div><div class="flex-1"><div class="text-[13px] font-medium">${t.from} → ${t.to}</div><div class="text-[11px] opacity-60">${t.mode} • ${t.time}</div></div></div>`).join('');
 }
 
-function renderRouteResults(){
+function renderRouesults(){
   var el=document.getElementById('route-results');
   if(!el) return;
   var fromVal = (document.getElementById('from-input')?.value || '').toLowerCase();
   var toVal = (document.getElementById('to-input')?.value || '').toLowerCase();
 
-  const isTER = fromVal.includes('ter') || toVal.includes('ter') || fromVal.includes('diamniadio') || toVal.includes('diamniadio') || fromVal.includes('rufisque') || toVal.includes('rufisque') || fromVal.includes('bargny') || toVal.includes('bargny');
-  const isBRT = fromVal.includes('brt') || toVal.includes('brt') || fromVal.includes('guédiawaye') || toVal.includes('guédiawaye') || fromVal.includes('petersen') || toVal.includes('petersen') || fromVal.includes('parcelles') || toVal.includes('parcelles');
+  const is = fromVal.includes('') || toVal.includes('') || fromVal.includes('diamniadio') || toVal.includes('diamniadio') || fromVal.includes('rufisque') || toVal.includes('rufisque') || fromVal.includes('bargny') || toVal.includes('bargny');
+  const is = fromVal.includes('') || toVal.includes('') || fromVal.includes('guédiawaye') || toVal.includes('guédiawaye') || fromVal.includes('pesen') || toVal.includes('pesen') || fromVal.includes('parcelles') || toVal.includes('parcelles');
 
   let routes = [];
-  if(isTER){
+  if(is){
     routes = [
       {
         duration: '35 min',
         walk: '3 min marche',
-        modes: ['TER'],
+        modes: [''],
         price: '1 500 FCFA',
         steps: [
-          '🚶 Accès à la gare TER la plus proche (3 min)',
-          '🚆 Train Express Régional (TER) → Diamniadio (28 min direct)',
+          '🚶 Accès à la gare  la plus proche (3 min)',
+          '🚆 Train Express Régional () → Diamniadio (28 min direct)',
           '📍 Arrivée en gare • Cadence 10 min • 160 km/h'
         ]
       }
     ];
-  } else if(isBRT){
+  } else if(is){
     routes = [
       {
         duration: '26 min',
         walk: '2 min marche',
-        modes: ['BRT'],
+        modes: [''],
         price: '400 FCFA',
         steps: [
-          '🚶 Marche 120m vers la station SunuBRT',
-          '🚌 SunuBRT Ligne B1 Express (22 min • Voie dédiée)',
+          '🚶 Marche 120m vers la station Sunu',
+          '🚌 Sunu Ligne B1 Express (22 min • Voie dédiée)',
           '📍 Arrivée station destination (100% électrique)'
         ]
       }
@@ -1822,39 +1822,39 @@ function renderRouteResults(){
       {
         duration: '32 min',
         walk: '4 min marche',
-        modes: ['BRT', 'DDD'],
+        modes: ['', 'DDD'],
         price: '300 FCFA',
         steps: [
-          '🚶 Marche 320m → PEM Petersen BRT',
-          '🚌 BRT 01 → Liberté 6 (14 min)',
+          '🚶 Marche 320m → PEM Pesen ',
+          '🚌  01 → Liberté 6 (14 min)',
           '🚌 DDD 10 → UCAD (9 min)'
         ]
       }
     ];
   }
 
-  el.innerHTML=routes.map((r,i)=>`<div class="rounded-[18px] border ${i===0?'border-[#00B140] bg-[#E6F7ED]/50':'border-slate-200 bg-white'} p-4"><div class="flex justify-between items-center"><div class="flex items-center gap-2"><span class="text-[20px] font-bold text-slate-900 dark:text-white">${r.duration}</span><span class="text-[10px] px-2 py-0.5 rounded-full bg-[#00B140] text-white font-bold">LIVE</span></div><div class="font-bold text-[#007A2F] text-[15px]">${r.price}</div></div><div class="mt-2 text-[12px] opacity-75 space-y-1">${r.steps.map(s=>`<div>• ${s}</div>`).join('')}</div></div>`).join('');
+  el.innerHTML=routes.map((r,i)=>`<div class="rounded-[18px] border ${i===0?'border-[#00B140] bg-[#E6F7ED]/50':'border-slate-200 bg-white'} p-4"><div class="flex justify-between items-cen"><div class="flex items-cen gap-2"><span class="text-[20px] font-bold text-slate-900 dark:text-white">${r.duration}</span><span class="text-[10px] px-2 py-0.5 rounded-full bg-[#00B140] text-white font-bold">LIVE</span></div><div class="font-bold text-[#007A2F] text-[15px]">${r.price}</div></div><div class="mt-2 text-[12px] opacity-75 space-y-1">${r.steps.map(s=>`<div>• ${s}</div>`).join('')}</div></div>`).join('');
 }
 
-let activeFilter = 'tous';
+let activeFil = 'tous';
 function renderArrets(){
   var q=(document.getElementById('arret-search')?.value||document.getElementById('explorer-search')?.value||'').toLowerCase().trim();
   let list = window.gtfsStops && window.gtfsStops.length ? [...window.gtfsStops] : [...ALL_ARRETS];
 
   // Filtre strict par type
-  if(activeFilter === 'ter'){
-    list = list.filter(a => a.type === 'TER' || (a.lines && a.lines.includes('TER')) || (a.id && a.id.startsWith('TER_')));
-  } else if(activeFilter === 'brt'){
-    list = list.filter(a => a.type === 'BRT' || (a.lines && a.lines.some(l => l.includes('BRT'))) || (a.id && a.id.startsWith('BRT_')));
-  } else if(activeFilter === 'ddd'){
-    list = list.filter(a => a.type === 'DDD' || (a.lines && a.lines.some(l => l.includes('DDD'))));
-  } else if(activeFilter === 'aftu' || activeFilter === 'tata'){
-    list = list.filter(a => a.type === 'AFTU' || a.type === 'TATA' || (a.lines && a.lines.some(l => l.includes('AFTU') || l.includes('TATA'))));
-  } else if(activeFilter === 'favoris'){
-    list = list.filter(a => a.favori);
+  if(activeFil === ''){
+    list = list.fil(a => a.type === '' || (a.lines && a.lines.includes('')) || (a.id && a.id.startsWith('_')));
+  } else if(activeFil === ''){
+    list = list.fil(a => a.type === '' || (a.lines && a.lines.some(l => l.includes(''))) || (a.id && a.id.startsWith('_')));
+  } else if(activeFil === 'ddd'){
+    list = list.fil(a => a.type === 'DDD' || (a.lines && a.lines.some(l => l.includes('DDD'))));
+  } else if(activeFil === 'aftu' || activeFil === 'tata'){
+    list = list.fil(a => a.type === 'AFTU' || a.type === 'TATA' || (a.lines && a.lines.some(l => l.includes('AFTU') || l.includes('TATA'))));
+  } else if(activeFil === 'favoris'){
+    list = list.fil(a => a.favori);
   }
 
-  if(q) list=list.filter(a=>a.name.toLowerCase().includes(q) || (a.dir||'').toLowerCase().includes(q));
+  if(q) list=list.fil(a=>a.name.toLowerCase().includes(q) || (a.dir||'').toLowerCase().includes(q));
   if(userPos){ list=[...list].sort((a,b)=>Math.hypot((a.lat||0)-userPos.lat, (a.lng||0)-userPos.lng)-Math.hypot((b.lat||0)-userPos.lat, (b.lng||0)-userPos.lng)); }
 
   var el=document.getElementById('arrets-list');
@@ -1862,27 +1862,27 @@ function renderArrets(){
 
   const html = list.slice(0, 60).map(a=>{
     const net = networkOf(a);
-    const isTER = net === 'TER';
-    const isBRT = net === 'BRT';
+    const is = net === '';
+    const is = net === '';
     const netTotal = NETWORK_STATS[net] || list.length;
     const seqLabel = a.seq ? `${a.seq}/${netTotal}` : '';
-    const iconBg = isTER ? 'bg-[#10B981]' : isBRT ? 'bg-[#00B140]' : 'bg-[#3B82F6]';
-    const badge = isTER ? 'TER' : isBRT ? 'BRT' : 'INTERM.';
-    const badgeClass = isTER ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : isBRT ? 'bg-[#E6F7ED] text-[#007A2F] border-[#C2EAD0]' : 'bg-slate-100 text-slate-500 border-slate-200';
+    const iconBg = is ? 'bg-[#10B981]' : is ? 'bg-[#00B140]' : 'bg-[#3B82F6]';
+    const badge = is ? '' : is ? '' : 'INM.';
+    const badgeClass = is ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : is ? 'bg-[#E6F7ED] text-[#007A2F] border-[#C2EAD0]' : 'bg-slate-100 text-slate-500 border-slate-200';
     const safeName = a.name.replace(/'/g, "\'");
 
     return `
-    <div onclick="window.focusStop(${a.lat}, ${a.lng}, '${safeName}')" class="rounded-[20px] bg-white dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800 p-4 flex gap-4 shadow-sm hover:shadow-md hover:border-[#00B140]/40 transition cursor-pointer">
-      <div class="w-14 h-14 rounded-full ${iconBg} flex items-center justify-center text-white shrink-0 text-[16px] font-bold">
-        ${isTER ? '🚆' : isBRT ? '🚌' : '🚏'}${a.seq ? `<span class="text-[11px] font-bold ml-0.5">${a.seq}</span>` : ''}
+    <div onclick="window.focusStop(${a.lat}, ${a.lng}, '${safeName}')" class="rounded-[20px] bg-white dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800 p-4 flex gap-4 shadow-sm hover:shadow-md hover:border-[#00B140]/40 transition cursor-poin">
+      <div class="w-14 h-14 rounded-full ${iconBg} flex items-cen justify-cen text-white shrink-0 text-[16px] font-bold">
+        ${is ? '🚆' : is ? '🚌' : '🚏'}${a.seq ? `<span class="text-[11px] font-bold ml-0.5">${a.seq}</span>` : ''}
       </div>
       <div class="flex-1 min-w-0">
         <div class="flex items-start justify-between gap-2">
           <div class="min-w-0">
             <div class="font-bold text-[16px] leading-tight truncate text-slate-900 dark:text-white">${a.name}</div>
-            <div class="text-[13px] text-slate-600 dark:text-zinc-400 mt-0.5 truncate">${a.dir||(isTER?'Dakar ↔ Diamniadio':'Petersen ↔ Guédiawaye')}</div>
-            <div class="text-[12px] text-slate-400 mt-1 flex items-center gap-1.5 flex-wrap">
-              <span>${a.distance} km</span><span>•</span><span>${a.lines[0]}</span><span>•</span><span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full ${isTER?'bg-emerald-400':'bg-green-400'} inline-block"></span> ${a.status}</span>
+            <div class="text-[13px] text-slate-600 dark:text-zinc-400 mt-0.5 truncate">${a.dir||(is?'Dakar ↔ Diamniadio':'Pesen ↔ Guédiawaye')}</div>
+            <div class="text-[12px] text-slate-400 mt-1 flex items-cen gap-1.5 flex-wrap">
+              <span>${a.distance} km</span><span>•</span><span>${a.lines[0]}</span><span>•</span><span class="flex items-cen gap-1"><span class="w-2.5 h-2.5 rounded-full ${is?'bg-emerald-400':'bg-green-400'} inline-block"></span> ${a.status}</span>
             </div>
           </div>
           <div class="flex flex-col items-end gap-2 shrink-0">
@@ -1900,13 +1900,13 @@ function renderArrets(){
 
   const s = NETWORK_STATS;
   let countLabel = list.length + ' arrêts';
-  if(activeFilter === 'ter'){
-    countLabel = `${list.length} gares TER affichées (1 → ${s.TER})`;
-  } else if(activeFilter === 'brt'){
-    countLabel = `${list.length} stations BRT affichées (1 → ${s.BRT})`;
-  } else if(activeFilter === 'tous'){
-    countLabel = `${list.length} arrêts (${s.TER} TER + ${s.BRT} BRT + ${s.BUS} bus)`;
-  } else if(activeFilter === 'ddd' || activeFilter === 'aftu' || activeFilter === 'tata'){
+  if(activeFil === ''){
+    countLabel = `${list.length} gares  affichées (1 → ${s.})`;
+  } else if(activeFil === ''){
+    countLabel = `${list.length} stations  affichées (1 → ${s.})`;
+  } else if(activeFil === 'tous'){
+    countLabel = `${list.length} arrêts (${s.}  + ${s.}  + ${s.BUS} bus)`;
+  } else if(activeFil === 'ddd' || activeFil === 'aftu' || activeFil === 'tata'){
     countLabel = `${list.length} pôles bus affichés`;
   }
 
@@ -1921,21 +1921,21 @@ function renderTransports(){
   if(!el) return;
   const s = NETWORK_STATS;
   const cards=[
-    { name:'BRT SunuBRT', count:s.BRT, net:'BRT', status:`${s.BRT} stations officielles`, color:'bg-[#00B140]', desc:'PEM Petersen ↔ PEM Guédiawaye • corridor B1 (18,3 km)', icon:'🚌' },
-    { name:'TER Dakar', count:s.TER, net:'TER', status:`${s.TER} gares officielles`, color:'bg-emerald-600', desc:'Dakar ↔ Diamniadio • phase 1 (36 km)', icon:'🚆' },
+    { name:' Sunu', count:s., net:'', status:`${s.} stations officielles`, color:'bg-[#00B140]', desc:'PEM Pesen ↔ PEM Guédiawaye • corridor B1 (18,3 km)', icon:'🚌' },
+    { name:' Dakar', count:s., net:'', status:`${s.} gares officielles`, color:'bg-emerald-600', desc:'Dakar ↔ Diamniadio • phase 1 (36 km)', icon:'🚆' },
     { name:'Bus DDD / AFTU / Tata', count:s.BUS, net:'BUS', status:`${s.BUS} pôles • ${LINES_TOTAL} lignes GTFS`, color:'bg-[#3B82F6]', desc:`${LINES_TOTAL} lignes GTFS (DDD, AFTU, Tata) • pôles d'échange`, icon:'🚏' }
   ];
   el.innerHTML=cards.map(c=>`
     <div class="rounded-[20px] bg-white border p-5">
       <div class="flex gap-3">
-        <div class="w-12 h-12 rounded-xl ${c.color} text-white flex items-center justify-center text-[20px]">${c.icon}</div>
+        <div class="w-12 h-12 rounded-xl ${c.color} text-white flex items-cen justify-cen text-[20px]">${c.icon}</div>
         <div>
           <div class="font-bold text-[16px]">${c.name}</div>
           <div class="text-[11px] opacity-60">${c.desc}</div>
         </div>
       </div>
-      <button onclick="window.openLineDetail('${c.net}')" class="mt-4 w-full h-10 rounded-full bg-[#E6F7ED] text-[#007A2F] flex items-center justify-center font-bold text-[13px] border border-[#C2EAD0] hover:bg-[#d7f2e0]">
-        ${c.count} ${c.net === 'TER' ? 'gares' : c.net === 'BRT' ? 'stations' : 'pôles'} • voir la liste 1 → ${c.count}
+      <button onclick="window.openLineDetail('${c.net}')" class="mt-4 w-full h-10 rounded-full bg-[#E6F7ED] text-[#007A2F] flex items-cen justify-cen font-bold text-[13px] border border-[#C2EAD0] hover:bg-[#d7f2e0]">
+        ${c.count} ${c.net === '' ? 'gares' : c.net === '' ? 'stations' : 'pôles'} • voir la liste 1 → ${c.count}
       </button>
     </div>`).join('');
 }
@@ -1944,13 +1944,13 @@ function renderArrivals(){
   var el=document.getElementById('next-arrivals');
   if(!el) return;
   el.innerHTML=[
-    { line:'BRT 01', dest:'Petersen', time:'2 min' },
-    { line:'TER', dest:'Diamniadio', time:'4 min' },
+    { line:' 01', dest:'Pesen', time:'2 min' },
+    { line:'', dest:'Diamniadio', time:'4 min' },
     { line:'DDD 10', dest:'Yoff', time:'5 min' }
-  ].map(a=>`<div class="flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-[#E6F7ED] text-[#00B140] flex items-center justify-center font-bold text-[11px]">${a.line[0]}</div><div class="flex-1"><div class="font-medium text-[13px]">${a.line} → ${a.dest}</div></div><div class="font-bold text-[#00B140]">${a.time}</div></div>`).join('');
+  ].map(a=>`<div class="flex items-cen gap-3"><div class="w-10 h-10 rounded-full bg-[#E6F7ED] text-[#00B140] flex items-cen justify-cen font-bold text-[11px]">${a.line[0]}</div><div class="flex-1"><div class="font-medium text-[13px]">${a.line} → ${a.dest}</div></div><div class="font-bold text-[#00B140]">${a.time}</div></div>`).join('');
 }
 
-let alerts=[{id:1, title:'BRT & TER fluides', desc:'18 min Guédiawaye → Petersen • 35 min Dakar → Diamniadio', time:'2 min'}];
+let alerts=[{id:1, title:' &  fluides', desc:'18 min Guédiawaye → Pesen • 35 min Dakar → Diamniadio', time:'2 min'}];
 function renderAlerts(){
   var el=document.getElementById('alerts-feed');
   if(!el) return;
@@ -1961,38 +1961,38 @@ function renderAlerts(){
   if(acm) acm.textContent=alerts.length;
 }
 
-function setupFilters(){
-  document.querySelectorAll('.filter-btn').forEach(btn=>{
+function setupFils(){
+  document.querySelectorAll('.fil-btn').forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      document.querySelectorAll('.filter-btn').forEach(b=>{
-        b.classList.remove('filter-active');
+      document.querySelectorAll('.fil-btn').forEach(b=>{
+        b.classList.remove('fil-active');
         b.classList.add('bg-white', 'dark:bg-zinc-900', 'border-slate-200');
       });
-      btn.classList.add('filter-active');
+      btn.classList.add('fil-active');
       btn.classList.remove('bg-white', 'dark:bg-zinc-900', 'border-slate-200');
-      activeFilter = (btn.dataset.filter || btn.textContent.toLowerCase()).trim();
+      activeFil = (btn.dataset.fil || btn.textContent.toLowerCase()).trim();
       // Sélectionner un réseau ré-active son calque sur la carte
-      if(activeFilter === 'ter') LAYERS.ter = true;
-      else if(activeFilter === 'brt') LAYERS.brt = true;
-      else if(activeFilter === 'ddd' || activeFilter === 'aftu' || activeFilter === 'tata') LAYERS.bus = true;
+      if(activeFil === '') LAYERS. = true;
+      else if(activeFil === '') LAYERS. = true;
+      else if(activeFil === 'ddd' || activeFil === 'aftu' || activeFil === 'tata') LAYERS.bus = true;
       renderArrets();
       updateNetworkCounts();
 
       if(map){
         // La carte n'affiche QUE le réseau sélectionné (arrêts + tracé + véhicules)
-        applyMapFilter();
+        applyMapFil();
         const s = NETWORK_STATS;
-        if(activeFilter === 'ter'){
-          if(window.terPolyline) map.fitBounds(window.terPolyline.getBounds(), { padding: [50, 50] });
-          showToast(`🚆 TER Dakar : ${s.TER} gares affichées sur la carte (marqueurs 1 → ${s.TER})`);
-        } else if(activeFilter === 'brt'){
-          if(window.brtPolyline) map.fitBounds(window.brtPolyline.getBounds(), { padding: [50, 50] });
-          showToast(`🚌 SunuBRT : ${s.BRT} stations affichées sur la carte (marqueurs 1 → ${s.BRT})`);
-        } else if(activeFilter === 'tous'){
-          map.setView(DAKAR_CENTER, 12);
-          showToast(`🗺️ Réseau complet : ${s.TER} gares TER + ${s.BRT} stations BRT + ${s.BUS} pôles bus = ${s.total} arrêts`);
+        if(activeFil === ''){
+          if(window.Polyline) map.fitBounds(window.Polyline.getBounds(), { padding: [50, 50] });
+          showToast(`🚆  Dakar : ${s.} gares affichées sur la carte (marqueurs 1 → ${s.})`);
+        } else if(activeFil === ''){
+          if(window.Polyline) map.fitBounds(window.Polyline.getBounds(), { padding: [50, 50] });
+          showToast(`🚌 Sunu : ${s.} stations affichées sur la carte (marqueurs 1 → ${s.})`);
+        } else if(activeFil === 'tous'){
+          map.setView(DAKAR_CEN, 12);
+          showToast(`🗺️ Réseau complet : ${s.} gares  + ${s.} stations  + ${s.BUS} pôles bus = ${s.total} arrêts`);
         } else {
-          showToast(`🚏 Filtre bus : ${s.BUS} pôles affichés (TER et BRT masqués)`);
+          showToast(`🚏 Filtre bus : ${s.BUS} pôles affichés ( et  masqués)`);
         }
       }
     });
@@ -2003,15 +2003,15 @@ function setupAutocomplete(){
   var from = document.getElementById('from-input');
   var box = document.getElementById('from-suggest');
   const allPlaces = [
-    'Gare de Dakar (TER)', 'Colobane (TER)', 'Hann (TER)', 'Dalifort (TER)', 'Baux Maraîchers (TER)',
-    'Pikine (TER)', 'Thiaroye (TER)', 'Yeumbeul (TER)', 'Keur Mbaye Fall (TER)', 'PNR (TER)',
-    'Rufisque (TER)', 'Bargny (TER)', 'Diamniadio (TER)',
-    'Papa Gueye Fall - Petersen (BRT)', 'Grande Mosquée (BRT)', 'Place de la Nation (BRT)',
-    'Dial Diop (BRT)', 'Grand Dakar (BRT)', 'Liberté 1 (BRT)', 'Sacré-Cœur (BRT)', 'Liberté 5 (BRT)',
-    'Liberté 6 (BRT)', 'Khar Yallah (BRT)', 'Scat Urbam (BRT)', 'Cardinal H. Thiandoum (BRT)',
-    'Grand Médine (BRT)', 'Police des Parcelles (BRT)', 'Croisement 22 (BRT)',
-    'Parcelles Assainies (BRT)', 'Ndingala (BRT)', 'Golf Sud (BRT)', 'Dalal Jam (BRT)',
-    'Fith Mith (BRT)', 'Golf Nord (BRT)', 'Gadaye (BRT)', 'Préfecture Guédiawaye (BRT)',
+    'Gare de Dakar ()', 'Colobane ()', 'Hann ()', 'Dalifort ()', 'Baux Maraîchers ()',
+    'Pikine ()', 'Thiaroye ()', 'Yeumbeul ()', 'Keur Mbaye Fall ()', 'PNR ()',
+    'Rufisque ()', 'Bargny ()', 'Diamniadio ()',
+    'Papa Gueye Fall - Pesen ()', 'Grande Mosquée ()', 'Place de la Nation ()',
+    'Dial Diop ()', 'Grand Dakar ()', 'Liberté 1 ()', 'Sacré-Cœur ()', 'Liberté 5 ()',
+    'Liberté 6 ()', 'Khar Yallah ()', 'Scat Urbam ()', 'Cardinal H. Thiandoum ()',
+    'Grand Médine ()', 'Police des Parcelles ()', 'Croisement 22 ()',
+    'Parcelles Assainies ()', 'Ndingala ()', 'Golf Sud ()', 'Dalal Jam ()',
+    'Fith Mith ()', 'Golf Nord ()', 'Gadaye ()', 'Préfecture Guédiawaye ()',
     'UCAD', 'Plateau - Indépendance', 'Ouakam', 'Almadies', 'Yoff', 'Ngor'
   ];
 
@@ -2019,9 +2019,9 @@ function setupAutocomplete(){
     from.addEventListener('input', () => {
       var q = from.value.toLowerCase().trim();
       if (!q) { box.classList.add('hidden'); return; }
-      var matches = allPlaces.filter(p => p.toLowerCase().includes(q)).slice(0, 6);
+      var matches = allPlaces.fil(p => p.toLowerCase().includes(q)).slice(0, 6);
       if (!matches.length) { box.classList.add('hidden'); return; }
-      box.innerHTML = matches.map(m => `<div class="px-4 py-3 hover:bg-[#E6F7ED] cursor-pointer text-[13px] border-b last:border-0">${m}</div>`).join('');
+      box.innerHTML = matches.map(m => `<div class="px-4 py-3 hover:bg-[#E6F7ED] cursor-poin text-[13px] border-b last:border-0">${m}</div>`).join('');
       box.classList.remove('hidden');
       box.querySelectorAll('div').forEach(d => {
         d.onclick = () => {
@@ -2036,7 +2036,7 @@ function setupAutocomplete(){
   if (explorerSearch) {
     explorerSearch.addEventListener('input', renderArrets);
     explorerSearch.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
+      if (e.key === 'En') {
         var toInput = document.getElementById('to-input');
         if (toInput) { toInput.value = explorerSearch.value; switchTab('trajets'); }
       }
@@ -2051,7 +2051,7 @@ function setupAutocomplete(){
       var toInput = document.getElementById('to-input');
       if (fromInput) fromInput.value = fromVal;
       if (toInput) toInput.value = toVal;
-      renderRouteResults();
+      renderRouesults();
       showToast(`🗺️ ${fromVal} → ${toVal}`);
     });
   });
@@ -2059,7 +2059,7 @@ function setupAutocomplete(){
   var searchBtn = document.getElementById('search-itinerary');
   if (searchBtn) {
     searchBtn.addEventListener('click', () => {
-      renderRouteResults();
+      renderRouesults();
       showToast('🔍 Recherche itinéraire Dakar Bus...');
     });
   }
@@ -2068,12 +2068,12 @@ function setupAutocomplete(){
 window.addEventListener('load', ()=>{
   initMap();
   renderPopular();
-  renderRouteResults();
+  renderRouesults();
   renderArrets();
   renderTransports();
   renderArrivals();
   renderAlerts();
-  setupFilters();
+  setupFils();
   setupAutocomplete();
   var sr=document.getElementById('swap-route');
   if(sr) sr.onclick=()=>{
@@ -2095,9 +2095,9 @@ window.addEventListener('load', ()=>{
   document.querySelectorAll('#map-layers input[type=checkbox]').forEach(cb => {
     cb.addEventListener('change', () => {
       LAYERS[cb.dataset.layer] = cb.checked;
-      applyMapFilter();
+      applyMapFil();
       const s = NETWORK_STATS;
-      showToast(`🧭 Carte : ${visibleStopsOnMap(currentNetwork())} arrêts affichés (${s.TER} TER • ${s.BRT} BRT • ${s.BUS} bus)${LAYERS.vehicles ? ' • ' + vehicleMarkers.length + ' véhicules' : ''}`);
+      showToast(`🧭 Carte : ${visibleStopsOnMap(currentNetwork())} arrêts affichés (${s.}  • ${s.}  • ${s.BUS} bus)${LAYERS.vehicles ? ' • ' + vehicleMarkers.length + ' véhicules' : ''}`);
     });
   });
   // Sur mobile le panneau est replié par défaut pour laisser voir la carte
@@ -2117,10 +2117,10 @@ window.addEventListener('load', ()=>{
   };
 
   // --- Listes numerotees 1 -> 13 / 1 -> 23 (preuve visuelle du nombre d'arrets) ---
-  var dt=document.getElementById('btn-detail-ter'); if(dt) dt.onclick=()=>window.openLineDetail('TER');
-  var db=document.getElementById('btn-detail-brt'); if(db) db.onclick=()=>window.openLineDetail('BRT');
-  var mt=document.getElementById('map-detail-ter'); if(mt) mt.onclick=()=>window.openLineDetail('TER');
-  var mb=document.getElementById('map-detail-brt'); if(mb) mb.onclick=()=>window.openLineDetail('BRT');
+  var dt=document.getElementById('btn-detail-'); if(dt) dt.onclick=()=>window.openLineDetail('');
+  var db=document.getElementById('btn-detail-'); if(db) db.onclick=()=>window.openLineDetail('');
+  var mt=document.getElementById('map-detail-'); if(mt) mt.onclick=()=>window.openLineDetail('');
+  var mb=document.getElementById('map-detail-'); if(mb) mb.onclick=()=>window.openLineDetail('');
   var mc=document.getElementById('line-modal-close'); if(mc) mc.onclick=()=>window.closeLineDetail();
   var md=document.getElementById('line-modal');
   if(md) md.addEventListener('click', (e)=>{ if(e.target === md) window.closeLineDetail(); });
@@ -2128,8 +2128,8 @@ window.addEventListener('load', ()=>{
 
   updateNetworkCounts();
   updateNetworkSummary();
-  applyMapFilter();
-  showToast(`✅ Dakar Bus : ${NETWORK_STATS.TER} gares TER • ${NETWORK_STATS.BRT} stations SunuBRT • ${NETWORK_STATS.BUS} pôles bus = ${NETWORK_STATS.total} arrêts`);
+  applyMapFil();
+  showToast(`✅ Dakar Bus : ${NETWORK_STATS.} gares  • ${NETWORK_STATS.} stations Sunu • ${NETWORK_STATS.BUS} pôles bus = ${NETWORK_STATS.total} arrêts`);
 });
 </script>
 </body>
