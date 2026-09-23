@@ -1,6 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -44,11 +44,6 @@ const String _kPngBase64 =
     'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
 final Uint8List _pngBytes = base64Decode(_kPngBase64);
 
-class _PngHttpOverrides extends HttpOverrides {
-  @override
-  HttpClient createHttpClient(SecurityContext? context) => _PngHttpClient();
-}
-
 class _PngHttpClient implements HttpClient {
   @override
   Future<HttpClientRequest> openUrl(String method, Uri url) async =>
@@ -64,6 +59,7 @@ class _PngHttpClient implements HttpClient {
 class _PngRequest implements HttpClientRequest {
   _PngRequest(this.uri);
 
+  @override
   final Uri uri;
 
   @override
