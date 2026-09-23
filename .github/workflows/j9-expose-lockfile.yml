@@ -79,16 +79,31 @@ jobs:
           echo "sha256=${sha}" >> "$GITHUB_OUTPUT"
           echo "size=${size}" >> "$GITHUB_OUTPUT"
           echo "::notice title=${ARTIFACT_NAME}/${FILE_PATH} du run ${{ env.RUN_ID }}::sha256=${sha} taille=${size} octets"
-          {
-            echo "run_id: ${{ env.RUN_ID }}"
-            echo "artefact: ${ARTIFACT_NAME}"
-            echo "fichier: ${FILE_PATH}"
-            echo "sha256: ${sha}"
-            echo "size: ${size}"
-            echo "----- BEGIN RAW -----"
-            cat "$f"
-            echo "----- END RAW -----"
-          } > payload.txt
+          # La sortie d'un check-run est limitée à 65 536 caractères : au-delà,
+          # on conserve la FIN du fichier (où figurent les échecs de tests).
+          if [ "$size" -gt 60000 ]; then
+            {
+              echo "run_id: ${{ env.RUN_ID }}"
+              echo "artefact: ${ARTIFACT_NAME}"
+              echo "fichier: ${FILE_PATH}"
+              echo "sha256: ${sha}"
+              echo "size: ${size} (tronqué : 60000 derniers octets affichés)"
+              echo "----- BEGIN RAW (tail) -----"
+              tail -c 60000 "$f"
+              echo "----- END RAW (tail) -----"
+            } > payload.txt
+          else
+            {
+              echo "run_id: ${{ env.RUN_ID }}"
+              echo "artefact: ${ARTIFACT_NAME}"
+              echo "fichier: ${FILE_PATH}"
+              echo "sha256: ${sha}"
+              echo "size: ${size}"
+              echo "----- BEGIN RAW -----"
+              cat "$f"
+              echo "----- END RAW -----"
+            } > payload.txt
+          fi
           echo "payload : $(wc -c < payload.txt) octets"
           cat payload.txt
 
