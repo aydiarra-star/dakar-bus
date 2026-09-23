@@ -31,7 +31,7 @@ on:
         default: '35782638226'
         type: string
       artifact_name:
-        description: "Nom de l'artefact à exposer (défaut : pubspec.lock ; ex. j9-logs-<sha> pour les journaux)"
+        description: "Nom de l'artefact à exposer (défaut : pubspec.lock ; ex. j9-logs-71b5ac8338a5af430bf84d43cccd4a520a59ee9c<sha> pour les journaux)"
         required: false
         default: 'pubspec.lock'
         type: string
@@ -43,11 +43,11 @@ on:
 
 env:
   # Entrée manuelle si présente, sinon le run validé du 2026-09-22.
-  RUN_ID: ${{ inputs.run_id || '35871009790' }}  # TEMPORAIRE (diagnostic)
+  RUN_ID: ${{ inputs.run_id || '35871342890' }}  # TEMPORAIRE (diagnostic)
   # Généralisation lecture seule (diagnostic) : exposer n'importe quel fichier
   # d'artefact (ex. test.txt de l'artefact j9-logs) sans le modifier.
-  ARTIFACT_NAME: ${{ inputs.artifact_name || 'j9-logs-580de303c195f3002c18132a9553a13bdd9415e0' }}  # TEMPORAIRE (diagnostic)
-  FILE_PATH: ${{ inputs.file_path || 'analyze.txt' }}  # TEMPORAIRE (diagnostic)
+  ARTIFACT_NAME: ${{ inputs.artifact_name || 'j9-logs-71b5ac8338a5af430bf84d43cccd4a520a59ee9c580de303c195f3002c18132a9553a13bdd9415e0' }}  # TEMPORAIRE (diagnostic)
+  FILE_PATH: ${{ inputs.file_path || 'test.txt' }}  # TEMPORAIRE (diagnostic)
 
 permissions:
   contents: read
