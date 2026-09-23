@@ -95,7 +95,7 @@ jobs:
               echo "sha256: ${sha}"
               echo "size: ${size} (filtré par: ${GREP_PATTERN})"
               echo "----- BEGIN GREP -----"
-              grep -aE -n "$GREP_PATTERN" "$f" | head -c 55000
+              grep -aE -n -A 12 "$GREP_PATTERN" "$f" | head -c 55000
               echo "----- END GREP -----"
             } > payload.txt
           elif [ "$size" -gt 60000 ]; then
