@@ -1920,6 +1920,11 @@ class _ExplorerPageState extends State<ExplorerPage> {
       terDisplayed: filterColor == null || filterColor == AppColors.ter,
       brtDisplayed: filterColor == null || filterColor == AppColors.brt,
     );
+    // ✅ DIAGNOSTIC RUNTIME (correctif TER/BRT) — une ligne par reconstruction :
+    //    compte réel de ce qui est transmis au MarkerLayer de CETTE carte,
+    //    après le seul filtrage résiduel (DakarBounds) ci-dessous.
+    final markerStops = mapMarkerStops.where((s) => DakarBounds.isValid(s.location)).toList();
+    debugPrint('[EXPLORER][MARKERS] transmis au MarkerLayer: total=${markerStops.length} TER=${markerStops.where((s) => s.color == AppColors.ter).length} BRT=${markerStops.where((s) => s.color == AppColors.brt).length} | allStops=${allStops.length} proximité=${mapStops.length} | filtre=$_selectedFilter gps=${widget.gpsState} rayon=${GpsResolver.nearbyRadiusMeters}m limite=${GpsResolver.nearbyLimit}');
 
     return AnimatedBuilder(
       animation: globalState,
@@ -1991,7 +1996,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                             TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', userAgentPackageName: 'dakar_bus', maxZoom: 19),
                             PolylineLayer(polylines: activePolylines),
                             MarkerLayer(
-                              markers: mapMarkerStops.where((s) => DakarBounds.isValid(s.location)).map((s) => Marker(
+                              markers: markerStops.map((s) => Marker(
                                 point: s.location, width: 24, height: 24,
                                 child: GestureDetector(
                                   onTap: () { _centerOnStop(s); Navigator.push(context, MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: s))); },
