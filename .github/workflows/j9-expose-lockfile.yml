@@ -40,6 +40,11 @@ on:
         required: false
         default: 'pubspec.lock'
         type: string
+      grep_pattern:
+        description: "Filtre grep -E optionnel appliqué au fichier (journal de test volumineux)"
+        required: false
+        default: ''
+        type: string
 
 env:
   # Entrée manuelle si présente, sinon le run validé du 2026-09-22.
@@ -48,6 +53,7 @@ env:
   # d'artefact (ex. test.txt de l'artefact j9-logs) sans le modifier.
   ARTIFACT_NAME: ${{ inputs.artifact_name || 'j9-logs-c41ff49a404d7a728c0d60cc367efd9f5fafde8b' }}  # TEMPORAIRE (diagnostic)
   FILE_PATH: ${{ inputs.file_path || 'test.txt' }}  # TEMPORAIRE (diagnostic)
+  GREP_PATTERN: ${{ inputs.grep_pattern || 'EXCEPTION|was thrown|The following|Expected:|Actual:|Which:|RENDER-TEST|EXPLORER.\[MARKERS|Timer|pending|RenderFlex|Multiple exceptions|Some tests|All tests|⚠️|🔴|Test failed' }}  # TEMPORAIRE (diagnostic)
 
 permissions:
   contents: read
@@ -81,7 +87,18 @@ jobs:
           echo "::notice title=${ARTIFACT_NAME}/${FILE_PATH} du run ${{ env.RUN_ID }}::sha256=${sha} taille=${size} octets"
           # La sortie d'un check-run est limitée à 65 536 caractères : au-delà,
           # on conserve la FIN du fichier (où figurent les échecs de tests).
-          if [ "$size" -gt 60000 ]; then
+          if [ -n "$GREP_PATTERN" ]; then
+            {
+              echo "run_id: ${{ env.RUN_ID }}"
+              echo "artefact: ${ARTIFACT_NAME}"
+              echo "fichier: ${FILE_PATH}"
+              echo "sha256: ${sha}"
+              echo "size: ${size} (filtré par: ${GREP_PATTERN})"
+              echo "----- BEGIN GREP -----"
+              grep -aE -n "$GREP_PATTERN" "$f" | head -c 55000
+              echo "----- END GREP -----"
+            } > payload.txt
+          elif [ "$size" -gt 60000 ]; then
             {
               echo "run_id: ${{ env.RUN_ID }}"
               echo "artefact: ${ARTIFACT_NAME}"
