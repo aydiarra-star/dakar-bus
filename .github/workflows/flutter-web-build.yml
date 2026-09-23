@@ -1,38 +1,24 @@
 name: Flutter web build (J9)
 
 # ============================================================================
-# J9 — CHAÎNE DE BUILD REPRODUCTIBLE DE DAKAR BUS (projet officiel : Flutter,
-# dossier flutter-src/, version unique = flutter-src/pubspec.yaml)
-#
-# SOURCE FLUTTER COMMITÉ
-#   → Flutter 3.24.5
-#   → flutter pub get
-#   → flutter analyze
-#   → flutter test
-#   → flutter build web --release --base-href /dakar-bus/
-#   → ARTEFACTS
-#   → publication GitHub Pages uniquement sur workflow_dispatch
-#
-# RÈGLES ABSOLUES
-#   - aucun script Python
-#   - aucun sed/regex de post-traitement
-#   - aucune modification de main.dart.js après compilation
-#   - aucune modification de la PWA JavaScript historique
-#   - le contenu publié est strictement celui produit par flutter build web
+# J9 — CHAÎNE DE BUILD REPRODUCTIBLE DE DAKAR BUS
 # ============================================================================
 
 on:
   push:
     branches:
       - main
+      - principal
       - arena/01a0ca19-dakar-bus
     paths:
-      - 'flutter-src/**'
+      - 'pubspec.yaml'
+      - 'lib/**'
       - '.github/workflows/flutter-web-build.yml'
 
   pull_request:
     paths:
-      - 'flutter-src/**'
+      - 'pubspec.yaml'
+      - 'lib/**'
       - '.github/workflows/flutter-web-build.yml'
 
   workflow_dispatch:
@@ -41,7 +27,6 @@ on:
         description: >-
           Publier le build sur GitHub Pages. Exige (1) une validation explicite,
           (2) Pages configuré en mode « GitHub Actions » (build_type=workflow).
-          Sinon le job de publication s'arrête sans rien publier.
         type: boolean
         default: false
 
@@ -62,11 +47,6 @@ jobs:
     name: "pub get → analyze → test → build web (Flutter 3.24.5)"
     runs-on: ubuntu-latest
     timeout-minutes: 30
-
-    defaults:
-      run:
-        shell: bash
-        working-directory: flutter-src
 
     outputs:
       app_version: ${{ steps.version.outputs.app_version }}
@@ -98,7 +78,7 @@ jobs:
 
           echo "::notice title=Flutter::$(head -1 "${RUNNER_TEMP}/j9-logs/flutter-version.txt")"
 
-      - name: Version applicative — source unique flutter-src/pubspec.yaml
+      - name: Version applicative — source unique pubspec.yaml
         id: version
         run: |
           line="$(grep -E '^version:' pubspec.yaml)"
@@ -106,7 +86,7 @@ jobs:
           full="${full//[[:space:]]/}"
 
           if [ -z "$full" ]; then
-            echo "::error::Aucun champ version dans flutter-src/pubspec.yaml"
+            echo "::error::Aucun champ version dans pubspec.yaml"
             exit 1
           fi
 
@@ -121,7 +101,7 @@ jobs:
             echo "pubspec.lock commité : résolution des dépendances imposée."
           else
             echo "present=false" >> "$GITHUB_OUTPUT"
-            echo "::warning file=flutter-src/pubspec.yaml::pubspec.lock ABSENT — le build n'est pas encore reproductible."
+            echo "::warning file=pubspec.yaml::pubspec.lock ABSENT — le build n'est pas encore reproductible."
           fi
 
       - name: flutter pub get (lockfile imposé)
@@ -269,7 +249,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: dakar-bus-web-${{ github.sha }}
-          path: flutter-src/build/web
+          path: build/web
           if-no-files-found: error
           retention-days: 30
 
@@ -277,7 +257,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: dakar-bus-web-checksums-${{ github.sha }}
-          path: flutter-src/build/web-checksums.txt
+          path: build/web-checksums.txt
           if-no-files-found: error
           retention-days: 30
 
@@ -286,7 +266,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pubspec.lock
-          path: flutter-src/pubspec.lock
+          path: pubspec.lock
           if-no-files-found: error
           retention-days: 30
 
@@ -306,7 +286,7 @@ jobs:
       - name: Préparer l'artefact GitHub Pages
         uses: actions/upload-pages-artifact@v3
         with:
-          path: flutter-src/build/web
+          path: build/web
 
   deploy-pages:
     name: "Publication GitHub Pages (manuelle, après validation)"
