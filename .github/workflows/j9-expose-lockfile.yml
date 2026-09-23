@@ -20,6 +20,7 @@ on:
   push:
     branches:
       - arena/01a0ca19-dakar-bus
+      - arena/01a0ce5a-dakar-bus  # TEMPORAIRE (diagnostic) — exposé j9-logs/test.txt
     paths:
       - '.github/workflows/j9-expose-lockfile.yml'
   workflow_dispatch:
@@ -42,11 +43,11 @@ on:
 
 env:
   # Entrée manuelle si présente, sinon le run validé du 2026-09-22.
-  RUN_ID: ${{ inputs.run_id || '35782638226' }}
+  RUN_ID: ${{ inputs.run_id || '35870183712' }}  # TEMPORAIRE (diagnostic)
   # Généralisation lecture seule (diagnostic) : exposer n'importe quel fichier
   # d'artefact (ex. test.txt de l'artefact j9-logs) sans le modifier.
-  ARTIFACT_NAME: ${{ inputs.artifact_name || 'pubspec.lock' }}
-  FILE_PATH: ${{ inputs.file_path || 'pubspec.lock' }}
+  ARTIFACT_NAME: ${{ inputs.artifact_name || 'j9-logs-1a944aec1696c0c2e0b0990565928a65c25d9b03' }}  # TEMPORAIRE (diagnostic)
+  FILE_PATH: ${{ inputs.file_path || 'test.txt' }}  # TEMPORAIRE (diagnostic)
 
 permissions:
   contents: read
