@@ -818,6 +818,69 @@ final List<Stop> allStops = [...terStations, ...brtStations, ...dddStations, ...
 List<Stop> networkPoints(Color modeColor) =>
     allStops.where((Stop s) => s.color == modeColor).toList();
 
+/// Arrêts à dessiner sur la **couche marqueurs** de la carte Explorer.
+///
+/// CORRECTIF ARRÊTS TER/BRT (carte principale) — cause du défaut : la couche
+/// était alimentée uniquement par le flux « à proximité » (`_filteredStops` :
+/// 30 arrêts max, rayon 4 km si position GPS). Sur 141 arrêts intégrés, le
+/// plafond évinçait la quasi-totalité des gares TER et stations BRT
+/// (Diamniadio, Bargny, Rufisque, Keur Mbaye Fall, Guédiawaye… situés de 9 à
+/// 29 km du centre) alors que leurs tracés, eux, étaient dessinés en entier —
+/// d'où des lignes sans leurs arrêts sur la carte.
+///
+/// Correctif, **sans aucune donnée nouvelle** : les arrêts officiels issus de
+/// `assets/data/dakar_network.json` (déjà intégrés dans [allStops] par
+/// `_integrateNetworkData`, identifiés par `stopId` non nul — donc aux
+/// coordonnées exactes des sommets des polylignes TER/BRT) du réseau
+/// actuellement affiché sont **garantis** sur la carte. [terDisplayed] /
+/// [brtDisplayed] reproduisent le prédicat existant des `activePolylines`
+/// (« Tous » → TER + BRT ; filtre TER/BRT → ce réseau ; autres filtres →
+/// aucun : comportement antérieur inchangé).
+///
+/// Les arrêts de démonstration TER/BRT antérieurs au JSON (sans `stopId`) ne
+/// sont plus redessinés sur la carte lorsqu'une gare/station officielle du
+/// même réseau existe : leurs coordonnées héritées ne sont pas posées sur le
+/// tracé officiel et créaient des doublons inutiles. Ils restent inchangés
+/// dans les listes et cartes d'arrêts (aucune donnée retirée du projet). Sans
+/// arrêt officiel disponible (repli en dur), rien n'est exclu : comportement
+/// antérieur conservé. La déduplication avec [proximityStops] emploie la clé
+/// `nom_latitude_longitude`, même convention que `_integrateNetworkData`.
+///
+/// Couture **pure** (même schéma que `integrateNetworkDataForTest` et
+/// `GpsResolver.nearbyStops`) : testable sans carte ni plugin.
+@visibleForTesting
+List<Stop> explorerMapMarkerStops({
+  required List<Stop> proximityStops,
+  required bool terDisplayed,
+  required bool brtDisplayed,
+}) {
+  final List<Stop> official = (terDisplayed || brtDisplayed)
+      ? allStops
+          .where((Stop s) =>
+              s.stopId != null &&
+              DakarBounds.isValid(s.location) &&
+              ((terDisplayed && s.color == AppColors.ter) ||
+                  (brtDisplayed && s.color == AppColors.brt)))
+          .toList()
+      : const <Stop>[];
+  if (official.isEmpty) return List<Stop>.of(proximityStops);
+  String keyOf(Stop s) =>
+      '${s.name}_${s.location.latitude}_${s.location.longitude}';
+  final Set<String> officialKeys = official.map(keyOf).toSet();
+  final bool hasOfficialTer =
+      official.any((Stop s) => s.color == AppColors.ter);
+  final bool hasOfficialBrt =
+      official.any((Stop s) => s.color == AppColors.brt);
+  return <Stop>[
+    ...official,
+    ...proximityStops.where((Stop s) =>
+        !officialKeys.contains(keyOf(s)) &&
+        !(s.stopId == null &&
+            ((s.color == AppColors.ter && hasOfficialTer) ||
+                (s.color == AppColors.brt && hasOfficialBrt)))),
+  ];
+}
+
 /// `<MODE>_OFFICIAL_ROUTE_STOPS` — arrêts officiels d'une ligne, dans l'ordre
 /// canonique de `dakar_network.json` (source unique, §4-§5).
 ///
@@ -1848,6 +1911,20 @@ class _ExplorerPageState extends State<ExplorerPage> {
         ? basePolylines.where((p) => p.color == AppColors.ter || p.color == AppColors.brt).toList() // Tous : seulement TER/BRT (tracés dédiés, pas le spaghetti)
         : basePolylines.where((p) => p.color == filterColor).toList();
     final mapStops = _filteredStops; // ✅ Toujours filtré à proximité (30 max — Groupe 4), pas allStops
+    // ✅ CORRECTIF ARRÊTS TER/BRT — garantit sur la carte les gares/stations
+    //    officielles des réseaux affichés (même prédicat que `activePolylines`
+    //    ci-dessus), que le plafond de proximité évinçait. Cause, périmètre et
+    //    déduplication documentés sur [explorerMapMarkerStops].
+    final mapMarkerStops = explorerMapMarkerStops(
+      proximityStops: mapStops,
+      terDisplayed: filterColor == null || filterColor == AppColors.ter,
+      brtDisplayed: filterColor == null || filterColor == AppColors.brt,
+    );
+    // ✅ DIAGNOSTIC RUNTIME (correctif TER/BRT) — une ligne par reconstruction :
+    //    compte réel de ce qui est transmis au MarkerLayer de CETTE carte,
+    //    après le seul filtrage résiduel (DakarBounds) ci-dessous.
+    final markerStops = mapMarkerStops.where((s) => DakarBounds.isValid(s.location)).toList();
+    debugPrint('[EXPLORER][MARKERS] transmis au MarkerLayer: total=${markerStops.length} TER=${markerStops.where((s) => s.color == AppColors.ter).length} BRT=${markerStops.where((s) => s.color == AppColors.brt).length} | allStops=${allStops.length} proximité=${mapStops.length} | filtre=$_selectedFilter gps=${widget.gpsState} rayon=${GpsResolver.nearbyRadiusMeters}m limite=${GpsResolver.nearbyLimit}');
 
     return AnimatedBuilder(
       animation: globalState,
@@ -1919,7 +1996,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                             TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', userAgentPackageName: 'dakar_bus', maxZoom: 19),
                             PolylineLayer(polylines: activePolylines),
                             MarkerLayer(
-                              markers: mapStops.where((s) => DakarBounds.isValid(s.location)).map((s) => Marker(
+                              markers: markerStops.map((s) => Marker(
                                 point: s.location, width: 24, height: 24,
                                 child: GestureDetector(
                                   onTap: () { _centerOnStop(s); Navigator.push(context, MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: s))); },
