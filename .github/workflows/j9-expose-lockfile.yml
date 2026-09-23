@@ -29,10 +29,24 @@ on:
         required: true
         default: '35782638226'
         type: string
+      artifact_name:
+        description: "Nom de l'artefact à exposer (défaut : pubspec.lock ; ex. j9-logs-<sha> pour les journaux)"
+        required: false
+        default: 'pubspec.lock'
+        type: string
+      file_path:
+        description: "Chemin du fichier DANS l'artefact (défaut : pubspec.lock ; ex. test.txt pour j9-logs)"
+        required: false
+        default: 'pubspec.lock'
+        type: string
 
 env:
   # Entrée manuelle si présente, sinon le run validé du 2026-09-22.
   RUN_ID: ${{ inputs.run_id || '35782638226' }}
+  # Généralisation lecture seule (diagnostic) : exposer n'importe quel fichier
+  # d'artefact (ex. test.txt de l'artefact j9-logs) sans le modifier.
+  ARTIFACT_NAME: ${{ inputs.artifact_name || 'pubspec.lock' }}
+  FILE_PATH: ${{ inputs.file_path || 'pubspec.lock' }}
 
 permissions:
   contents: read
@@ -41,14 +55,14 @@ permissions:
 
 jobs:
   expose:
-    name: "exposer pubspec.lock du run"
+    name: "exposer un artefact de run (lecture seule)"
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Télécharger l'artefact pubspec.lock du run ${{ env.RUN_ID }}
+      - name: Télécharger l'artefact ${{ env.ARTIFACT_NAME }} du run ${{ env.RUN_ID }}
         uses: actions/download-artifact@v4
         with:
-          name: pubspec.lock
+          name: ${{ env.ARTIFACT_NAME }}
           run-id: ${{ env.RUN_ID }}
           github-token: ${{ github.token }}
           path: lock
@@ -57,21 +71,19 @@ jobs:
         id: enc
         shell: bash
         run: |
-          f=lock/pubspec.lock
+          f="lock/${FILE_PATH}"
           test -s "$f"
           sha="$(sha256sum "$f" | cut -d' ' -f1)"
           size="$(wc -c < "$f")"
           echo "sha256=${sha}" >> "$GITHUB_OUTPUT"
           echo "size=${size}" >> "$GITHUB_OUTPUT"
-          echo "::notice title=pubspec.lock du run ${{ env.RUN_ID }}::sha256=${sha} taille=${size} octets"
+          echo "::notice title=${ARTIFACT_NAME}/${FILE_PATH} du run ${{ env.RUN_ID }}::sha256=${sha} taille=${size} octets"
           {
             echo "run_id: ${{ env.RUN_ID }}"
-            echo "artefact: pubspec.lock"
+            echo "artefact: ${ARTIFACT_NAME}"
+            echo "fichier: ${FILE_PATH}"
             echo "sha256: ${sha}"
             echo "size: ${size}"
-            echo "----- BEGIN BASE64 -----"
-            base64 -w 76 "$f"
-            echo "----- END BASE64 -----"
             echo "----- BEGIN RAW -----"
             cat "$f"
             echo "----- END RAW -----"
@@ -93,8 +105,8 @@ jobs:
           fi
           echo "check-run/job id : ${jobid}"
           jq -n \
-            --arg title "pubspec.lock du run ${{ env.RUN_ID }}" \
-            --arg summary "sha256=${{ steps.enc.outputs.sha256 }} taille=${{ steps.enc.outputs.size }} octets — contenu exact (base64 + brut) dans le texte" \
+            --arg title "${ARTIFACT_NAME}/${FILE_PATH} du run ${{ env.RUN_ID }}" \
+            --arg summary "sha256=${{ steps.enc.outputs.sha256 }} taille=${{ steps.enc.outputs.size }} octets — contenu exact (brut) dans le texte" \
             --rawfile text payload.txt \
             '{output: {title: $title, summary: $summary, text: $text}}' > body.json
           gh api -X PATCH "repos/${GITHUB_REPOSITORY}/check-runs/${jobid}" --input body.json \
