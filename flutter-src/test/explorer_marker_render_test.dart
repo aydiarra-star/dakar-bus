@@ -270,7 +270,8 @@ void tapChip(WidgetTester tester, String label) {
 /// Le parcours descend jusqu'au `GestureDetector` sans en supposer la place.
 int transmittedByColor(MarkerLayer layer, Color color) =>
     layer.markers.where((Marker m) {
-      Widget w = m.child;
+      // `Transform.child` est nullable dans Flutter : parcours en Widget?.
+      Widget? w = m.child;
       while (w is Opacity || w is Transform) {
         w = w is Opacity ? w.child : (w as Transform).child;
       }
