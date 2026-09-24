@@ -913,6 +913,106 @@ List<Stop> explorerMapMarkerStops({
   ];
 }
 
+// ============================================================
+// EXPLORATION HORS ZONE — COUTURES PURES (testables sans carte ni plugin)
+// ============================================================
+
+/// Base de la liste Explorer pour un filtre donné (chips « Tous », « ⭐
+/// Favoris », TER, BRT, DDD, TATA, AFTU) — **indépendante de tout GPS**.
+///
+/// Même sélection que `_filteredStops` avant extraction : filtrage par couleur
+/// réseau ou par favoris sur la liste source ([allStops] en production). Aucune
+/// distance n'est calculée ici ; l'ordre/proximité est appliqué ensuite par
+/// [explorerVisibleStops].
+@visibleForTesting
+List<Stop> explorerBaseStopsForFilter({
+  required String selectedFilter,
+  required Iterable<String> favoriteStopNames,
+  required List<Stop> source,
+}) {
+  if (selectedFilter == '⭐ Favoris') {
+    return source
+        .where((Stop s) => favoriteStopNames.contains(s.name))
+        .toList();
+  }
+  switch (selectedFilter) {
+    case 'TER':
+      return source.where((Stop s) => s.color == AppColors.ter).toList();
+    case 'BRT':
+      return source.where((Stop s) => s.color == AppColors.brt).toList();
+    case 'DDD':
+      return source.where((Stop s) => s.color == AppColors.ddd).toList();
+    case 'TATA':
+      return source.where((Stop s) => s.color == AppColors.tata).toList();
+    case 'AFTU':
+      return source.where((Stop s) => s.color == AppColors.aftu).toList();
+    default:
+      return List<Stop>.of(source);
+  }
+}
+
+/// Liste visible dans l'Explorer (plafond + ordre) pour une position donnée —
+/// **exploration Dakar indépendante du GPS**.
+///
+/// CORRECTION HORS ZONE — comportements :
+///  * position **dans** la zone de service ([GpsResolver.isWithinServiceZone])
+///    → identique à l'AVANT : tri par distance depuis la position mesurée,
+///    rayon [GpsResolver.nearbyRadiusMeters] (4 km), plafond
+///    [GpsResolver.nearbyLimit] (30) ;
+///  * position **hors zone** (France, …) OU `null` (GPS refusé/indisponible)
+///    → identique au chemin « sans position » préexistant : tri depuis le
+///    centre géographique de Dakar (uniquement pour ORDONNER l'affichage,
+///    jamais exposé comme position utilisateur), plafond 30, puis filtre
+///    [DakarBounds]. Aucun « à proximité » n'est calculé depuis la France :
+///    aucune distance de plusieurs milliers de kilomètres n'est produite.
+///
+/// Couture pure : testable sans carte ni plugin. Aucune donnée de transport
+/// n'est modifiée ni fabriquée — seuls les objets d'entrée sont réordonnés.
+@visibleForTesting
+List<Stop> explorerVisibleStops({
+  required List<Stop> base,
+  required LatLng? userPosition,
+}) {
+  final List<Stop> working = List<Stop>.of(base);
+  if (GpsResolver.isWithinServiceZone(userPosition)) {
+    final LatLng position = userPosition!;
+    working.sort((a, b) =>
+        DistanceHelper.haversineMeters(position, a.location).compareTo(
+            DistanceHelper.haversineMeters(position, b.location)));
+    final nearby =
+        GpsResolver.nearbyStops(working, position) ?? const <Stop>[];
+    final List<Stop> limited = nearby.isNotEmpty
+        ? nearby
+        : working.take(GpsResolver.nearbyLimit).toList();
+    return limited.where((s) => DakarBounds.isValid(s.location)).toList();
+  }
+  // Sans position exploitable (null ou hors zone) : ordonnancement depuis le
+  // centre de Dakar — coordonnée d'ordre UNIQUEMENT, jamais une position
+  // utilisateur (décision D1-i, inchangée).
+  const LatLng dakarOrderCenter = LatLng(14.7167, -17.4677);
+  working.sort((a, b) =>
+      DistanceHelper.haversineMeters(dakarOrderCenter, a.location).compareTo(
+          DistanceHelper.haversineMeters(dakarOrderCenter, b.location)));
+  final List<Stop> limited = working.take(GpsResolver.nearbyLimit).toList();
+  return limited.where((s) => DakarBounds.isValid(s.location)).toList();
+}
+
+/// Distance affichée sur une carte d'arrêt Explorer.
+///
+///  * position **dans** la zone de service → distance réelle
+///    haversine(position mesurée, arrêt) — comportement inchangé ;
+///  * position **hors zone** ou absente → repli identique au chemin « sans
+///    position » préexistant (`Stop.distanceMeters`, constat F7 documenté) :
+///    AUCUNE distance de plusieurs milliers de kilomètres (France → Dakar)
+///    n'est présentée comme une distance de proximité utile.
+@visibleForTesting
+double explorerDistanceForDisplay(Stop s, LatLng? userPosition) {
+  if (GpsResolver.isWithinServiceZone(userPosition)) {
+    return DistanceHelper.haversineMeters(userPosition!, s.location);
+  }
+  return s.distanceMeters;
+}
+
 /// `<MODE>_OFFICIAL_ROUTE_STOPS` — arrêts officiels d'une ligne, dans l'ordre
 /// canonique de `dakar_network.json` (source unique, §4-§5).
 ///
@@ -1471,11 +1571,21 @@ class GpsResolution {
   /// REAL_TIME resterait interdit.
   final bool isSubstitutedPosition;
 
+  /// Détection HORS ZONE DE COUVERTURE — **distincte** de la validité
+  /// technique de la mesure ([PositionValidity]) : une position à Paris est
+  /// parfaitement plausible (`position != null`, état `granted`, aucune
+  /// substitution) tout en étant hors de la zone de service dakaroise.
+  ///
+  /// `true` uniquement quand une position **mesurée et plausible** est située
+  /// hors des limites [DakarBounds]. Jamais `true` sans `position` réelle.
+  final bool isOutOfCoverage;
+
   const GpsResolution({
     required this.state,
     this.position,
     this.message,
     this.isSubstitutedPosition = false,
+    this.isOutOfCoverage = false,
   });
 
   /// `true` uniquement pour une position réellement mesurée et exploitable.
@@ -1552,14 +1662,48 @@ class GpsResolver {
   /// AVANT : [DakarBounds] était appliqué ici et rejetait toute position
   /// réelle hors du rectangle Dakar (« Position hors zone, recentré sur
   /// Dakar. »). Ce rejet est supprimé : une position réelle n'est jamais
-  /// « hors zone ».
+  /// rejetée — elle est **conservée telle quelle**.
+  ///
+  /// CORRECTION HORS ZONE (distincte du rejet historique) : une position
+  /// mesurée plausible située hors de la zone de service reste `granted` avec
+  /// sa coordonnée réelle intacte, mais le message du bandeau devient
+  /// [outOfCoverageMessage] et [GpsResolution.isOutOfCoverage] vaut `true` :
+  /// « Position GPS obtenue. » n'est plus affiché comme si l'utilisateur
+  /// était dans la zone de service. Aucune substitution, aucun rejet.
   static GpsResolution fromMeasuredPosition(LatLng? measured) {
     if (measured == null) return error;
     if (!PositionValidity.isPlausible(measured)) return error;
+    return _granted(measured);
+  }
+
+  /// Message exigé pour une position réelle hors zone de service.
+  static const String outOfCoverageMessage =
+      'Vous êtes hors de la zone de couverture Dakar Bus';
+
+  /// Détection hors zone de couverture — **logique distincte** de
+  /// [PositionValidity] (validité technique de la mesure).
+  ///
+  /// Réutilise [DakarBounds], les limites géographiques déjà présentes dans
+  /// le projet (garde-fou du réseau de données). Aucune nouvelle zone n'est
+  /// inventée. RÉSERVE : [DakarBounds] est le rectangle des **données
+  /// réseau** du projet — il n'est pas documenté comme périmètre de
+  /// couverture officiel des opérateurs ; il sert ici uniquement d'indicateur
+  /// de « zone de service » existante la plus pertinente.
+  ///
+  /// Retourne `true` uniquement pour une position non nulle située dans ce
+  /// rectangle. Jamais de position fabriquée n'est produite par ce prédicat.
+  static bool isWithinServiceZone(LatLng? measured) =>
+      measured != null && DakarBounds.isValid(measured);
+
+  /// Décision `granted` d'une position mesurée plausible : coordonnée
+  /// conservée telle quelle, message selon la zone de service.
+  static GpsResolution _granted(LatLng measured) {
+    final bool inZone = DakarBounds.isValid(measured);
     return GpsResolution(
       state: GpsState.granted,
       position: measured,
-      message: 'Position GPS obtenue.',
+      message: inZone ? 'Position GPS obtenue.' : outOfCoverageMessage,
+      isOutOfCoverage: !inZone,
     );
   }
 
@@ -1579,11 +1723,10 @@ class GpsResolver {
   /// interruption). Aucun redémarrage automatique n'est ajouté.
   static GpsResolution fromStreamInterrupted(LatLng? lastMeasured) {
     if (lastMeasured != null && PositionValidity.isPlausible(lastMeasured)) {
-      return GpsResolution(
-        state: GpsState.granted,
-        position: lastMeasured,
-        message: 'Position GPS obtenue.',
-      );
+      // Même politique que [fromMeasuredPosition] : la position réelle est
+      // conservée ; seule l'étiquette de zone (« hors couverture ») diffère
+      // quand la mesure est hors de [DakarBounds].
+      return _granted(lastMeasured);
     }
     return error;
   }
@@ -1784,9 +1927,14 @@ class _ExplorerPageState extends State<ExplorerPage> {
   @override
   void didUpdateWidget(covariant ExplorerPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.userPosition != null &&
-        widget.userPosition != oldWidget.userPosition &&
-        PositionValidity.isPlausible(widget.userPosition!)) {
+    // ✅ CORRECTION HORS ZONE : recentrage automatique UNIQUEMENT depuis une
+    //    position dans la zone de service. Depuis la France, les mises à jour
+    //    GPS ne déplacent plus la carte hors de Dakar : l'exploration reste
+    //    indépendante de la position GPS réelle. La position réelle reste
+    //    conservée (marqueur utilisateur) et le bouton « Position GPS » reste
+    //    utilisable pour aller s'y rendre volontairement.
+    if (GpsResolver.isWithinServiceZone(widget.userPosition) &&
+        widget.userPosition != oldWidget.userPosition) {
       // ✅ Fix: guard move avec try + postFrame pour éviter LateInitializationError
       WidgetsBinding.instance.addPostFrameCallback((_) {
         try {
@@ -1845,66 +1993,44 @@ class _ExplorerPageState extends State<ExplorerPage> {
     }
   }
 
-  List<Stop> get _filteredStops {
-    List<Stop> base;
-    if (_selectedFilter == '⭐ Favoris') {
-      base = allStops.where((s) => globalState.isFavorite(s.name)).toList();
-    } else {
-      switch (_selectedFilter) {
-        case 'TER': base = allStops.where((s) => s.color == AppColors.ter).toList(); break;
-        case 'BRT': base = allStops.where((s) => s.color == AppColors.brt).toList(); break;
-        case 'DDD': base = allStops.where((s) => s.color == AppColors.ddd).toList(); break;
-        case 'TATA': base = allStops.where((s) => s.color == AppColors.tata).toList(); break;
-        case 'AFTU': base = allStops.where((s) => s.color == AppColors.aftu).toList(); break;
-        default: base = List.from(allStops); break;
-      }
-    }
     // ✅ GROUPE 4 (F2 + F3) — 4A Carte 04 : rayon **4000 m** (`A.ap3`) et
     //    plafond de **30 résultats** (`take(30)`).
     //    AVANT : `< 5000` et `.take(20)` (trois occurrences).
     //    Le calcul est délégué à `GpsResolver.nearbyStops`, couture pure
     //    testable sans plugin de géolocalisation (décision D3-i).
-    //    Le tri **dupliqué** (deux `base.sort` identiques et consécutifs,
-    //    lignes 1374-1376 puis 1378-1379 avant édition) est supprimé : le même
-    //    comparateur appliqué deux fois de suite donne le même résultat, donc
-    //    aucun changement de comportement.
-    // ✅ Fluidité : n'affiche que les arrêts proches (4 km, 30 max) pour éviter la surcharge carte/liste
-    if (widget.userPosition != null) {
-      base.sort((a, b) => DistanceHelper.haversineMeters(widget.userPosition!, a.location).compareTo(DistanceHelper.haversineMeters(widget.userPosition!, b.location)));
-      final nearby = GpsResolver.nearbyStops(base, widget.userPosition) ?? const <Stop>[];
-      base = nearby.isNotEmpty ? nearby : base.take(GpsResolver.nearbyLimit).toList();
-    } else {
-      // Sans position réelle, AUCUN « à proximité » n'est calculé depuis une
-      // coordonnée fabriquée : `dakarCenter` ne sert ici qu'à ORDONNER
-      // l'affichage (centre géographique de la zone couverte). Il n'est jamais
-      // exposé comme la position de l'utilisateur (décision D1-i).
-      const dakarCenter = LatLng(14.7167, -17.4677);
-      base.sort((a, b) => DistanceHelper.haversineMeters(dakarCenter, a.location).compareTo(DistanceHelper.haversineMeters(dakarCenter, b.location)));
-      base = base.take(GpsResolver.nearbyLimit).toList();
-    }
-    return base.where((s) => DakarBounds.isValid(s.location)).toList();
-  }
+    //
+    // ✅ CORRECTION HORS ZONE : la sélection du filtre
+    //    ([explorerBaseStopsForFilter]) puis l'ordre/le plafond
+    //    ([explorerVisibleStops]) sont des coutures pures. Depuis une
+    //    position hors zone (France) ou sans GPS, le tri « à proximité »
+    //    n'est PAS calculé depuis la position mesurée : la liste est ordonnée
+    //    depuis le centre de Dakar (chemin « sans position » préexistant), ce
+    //    qui supprime les distances de plusieurs milliers de kilomètres et
+    //    garantit l'exploration du réseau dakarois à distance.
+    List<Stop> get _filteredStops => explorerVisibleStops(
+          base: explorerBaseStopsForFilter(
+            selectedFilter: _selectedFilter,
+            favoriteStopNames: globalState.favoriteStopNames,
+            source: allStops,
+          ),
+          userPosition: widget.userPosition,
+        );
 
-  /// GROUPE 4 (décision D6-i) — **COMPORTEMENT INCHANGÉ**.
+  /// GROUPE 4 (décision D6-i) — **COMPORTEMENT INCHANGÉ EN ZONE DE SERVICE**.
   ///
   /// CONSTAT F7 PORTÉ AU RAPPORT, NON PROUVÉ / HORS PÉRIMÈTRE :
-  /// quand `_userPosition == null`, cette méthode retombe sur
+  /// quand aucune position réelle n'est disponible, cette méthode retombe sur
   /// `s.distanceMeters`, c'est-à-dire une valeur portée par le modèle `Stop`
   /// (500, 350, `35000`, valeurs dérivées d'un index pour les arrêts de
   /// démonstration), et `StopCard` l'affiche comme s'il s'agissait de la
-  /// distance de l'utilisateur à l'arrêt.
+  /// distance de utilisateur à l'arrêt — repli préexistant, non modifié ici.
   ///
-  /// Aucune preuve 4A ne couvre ce point (ni Carte 04, ni Carte 08, ni
-  /// Carte 15). Conformément à la règle 3 (« ne rien réimplémenter de NON
-  /// PROUVÉ ») et à la décision D6-i, la distance affichée n'est **pas**
-  /// modifiée et n'est **pas** transformée en « inconnue ». Le constat est
-  /// uniquement documenté ici et dans le rapport final du Groupe 4.
-  ///
-  /// Note : depuis la décision D1-i, `_userPosition` est `null` tant qu'aucune
-  /// position réelle n'a été mesurée — ce chemin de repli est donc désormais
-  /// atteint plus souvent qu'avant, sans jamais exposer de coordonnée
-  /// fabriquée comme position utilisateur.
-  double _distanceTo(Stop s) => widget.userPosition == null ? s.distanceMeters : DistanceHelper.haversineMeters(widget.userPosition!, s.location);
+  /// CORRECTION HORS ZONE : le même repli s'applique désormais à une position
+  /// réelle mais **hors zone de service** (France) : l'haversine
+  /// France → Dakar (~14 000 km) n'est plus présentée comme une distance de
+  /// proximité utile. En zone de service, la distance réelle mesurée reste
+  /// affichée à l'identique. Délégation pure à [explorerDistanceForDisplay].
+  double _distanceTo(Stop s) => explorerDistanceForDisplay(s, widget.userPosition);
 
   /// GROUPE 4 (D4-i) — icône du bandeau GPS.
   ///
@@ -1923,8 +2049,16 @@ class _ExplorerPageState extends State<ExplorerPage> {
   /// Palette existante uniquement : `AppColors.success` (vert officiel, déjà
   /// utilisé pour une position obtenue sur le bouton GPS), `AppColors.warning`
   /// (déjà utilisé pour « Bientôt » dans `StopCard`) et `AppColors.textSecondary`.
+  ///
+  /// CORRECTION HORS ZONE : une position réelle hors zone de service est un
+  /// avertissement (`AppColors.warning`), pas un succès vert — le message
+  /// « Vous êtes hors de la zone de couverture Dakar Bus » ne doit pas être
+  /// présenté comme une réussite de localisation en zone de service.
+  bool get _outOfCoverage => widget.gpsMessage == GpsResolver.outOfCoverageMessage;
+
   Color _gpsBannerColor(bool dark) => switch (widget.gpsState) {
-        GpsState.granted => AppColors.success,
+        GpsState.granted =>
+          _outOfCoverage ? AppColors.warning : AppColors.success,
         GpsState.denied ||
         GpsState.deniedForever ||
         GpsState.serviceDisabled =>
@@ -2031,7 +2165,16 @@ class _ExplorerPageState extends State<ExplorerPage> {
                         child: FlutterMap(
                           mapController: _mapController,
                           options: MapOptions(
-                            initialCenter: (widget.userPosition != null && PositionValidity.isPlausible(widget.userPosition!))
+                            // ✅ CORRECTION HORS ZONE : l'ouverture sur Dakar
+                            //    est indépendante de la position GPS réelle —
+                            //    centrage sur l'utilisateur UNIQUEMENT s'il se
+                            //    trouve dans la zone de service (sinon
+                            //    _dakarCenter). Depuis la France, la carte
+                            //    s'ouvre donc sur Dakar sans GPS simulé ; le
+                            //    centrage sur Dakar ne prétend pas que le
+                            //    téléphone est à Dakar (la position réelle
+                            //    reste affichée comme marqueur hors vue).
+                            initialCenter: GpsResolver.isWithinServiceZone(widget.userPosition)
                                 ? widget.userPosition!
                                 : _dakarCenter,
                             initialZoom: _zoomOverview,
@@ -3009,7 +3152,10 @@ class _AIChatPageState extends State<AIChatPage> {
     }
     buf.writeln('');
     buf.writeln('💡 Astuce : ouvre l\'onglet "Trajets" pour voir le détail sur la carte.');
-    if (widget.userPosition != null) {
+    // ✅ CORRECTION HORS ZONE : le tri « des arrêts proches » n'est réellement
+    //    pris en compte que depuis la zone de service — hors zone, cette
+    //    mention mensongère n'est pas affichée.
+    if (GpsResolver.isWithinServiceZone(widget.userPosition)) {
       buf.writeln('📍 Position GPS prise en compte pour le tri des arrêts proches.');
     }
     return buf.toString();
@@ -3031,8 +3177,12 @@ class _AIChatPageState extends State<AIChatPage> {
       final trip = _extractTrip(text);
       String? from = trip['from'];
       String? to = trip['to'];
-      // Si from manquant mais GPS dispo, utilise l'arrêt le plus proche
-      if ((from == null || from.isEmpty) && widget.userPosition != null) {
+      // Si from manquant mais GPS dispo DANS LA ZONE DE SERVICE, utilise l'arrêt le plus proche.
+      // ✅ CORRECTION HORS ZONE : depuis la France, l'arrêt « le plus proche »
+      //    serait un arrêt de Dakar à ~14 000 km présenté comme origine —
+      //    repli sur « Dakar » (ci-dessous) au lieu d'une origine trompeuse.
+      if ((from == null || from.isEmpty) &&
+          GpsResolver.isWithinServiceZone(widget.userPosition)) {
         // trouve l'arrêt le plus proche de la position
         Stop? nearest;
         double best = double.infinity;
@@ -3073,10 +3223,18 @@ class _AIChatPageState extends State<AIChatPage> {
       _dernierModeInterroge = 'AFTU';
       aiReply = '🚐 [Mémorisé : AFTU] 72 lignes AFTU couvrent tout Dakar (Parcelles, Grand Yoff, Petersen...). Donne-moi départ/arrivée pour un itinéraire AFTU.';
     } else if (lower.contains('où suis-je') || lower.contains('ou suis je') || lower.contains('autour de moi') || lower.contains('proche')) {
-      if (widget.userPosition != null) {
+      if (GpsResolver.isWithinServiceZone(widget.userPosition)) {
         final nearby = allStops.map((s) => MapEntry(s, DistanceHelper.haversineMeters(widget.userPosition!, s.location))).toList()..sort((a,b)=>a.value.compareTo(b.value));
         final top = nearby.take(3).map((e)=> '- ${e.key.name} (${DistanceHelper.format(e.value)} • ${e.key.modeLabel})').join('\n');
         aiReply = '📍 Tu es près de :\n$top\n\nJe peux te guider vers une destination. Où veux-tu aller ?';
+      } else if (widget.userPosition != null) {
+        // ✅ CORRECTION HORS ZONE : position réelle mais hors de la zone de
+        //    service — aucune distance de proximité n'est calculée (elle
+        //    serait de plusieurs milliers de kilomètres) ; le message de zone
+        //    existant est rappelé, l'exploration reste possible.
+        aiReply = '${GpsResolver.outOfCoverageMessage}.\n\n'
+            'Tu peux explorer la carte de Dakar et ses arrêts, ou me demander '
+            'un itinéraire entre deux arrêts.';
       } else {
         aiReply = '📍 Active ton GPS via "Activer GPS" sur la carte, puis je pourrai te montrer les arrêts autour de toi et planifier un trajet.';
       }

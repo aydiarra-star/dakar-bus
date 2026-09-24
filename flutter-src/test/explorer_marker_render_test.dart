@@ -159,12 +159,16 @@ Future<void> prepareNetwork() async {
   integrateNetworkDataForTest();
 }
 
-Widget bootExplorer({LatLng? userPosition, GpsState gpsState = GpsState.idle}) =>
+Widget bootExplorer({
+  LatLng? userPosition,
+  GpsState gpsState = GpsState.idle,
+  String? gpsMessage,
+}) =>
     MaterialApp(
       home: ExplorerPage(
         userPosition: userPosition,
         gpsState: gpsState,
-        gpsMessage: null,
+        gpsMessage: gpsMessage,
         onRequestLocation: () async {},
       ),
     );
@@ -179,6 +183,7 @@ Future<void> pumpExplorer(
   WidgetTester tester, {
   LatLng? userPosition,
   GpsState gpsState = GpsState.idle,
+  String? gpsMessage,
   void Function()? mutate,
 }) {
   return HttpOverrides.runZoned(() async {
@@ -205,6 +210,7 @@ Future<void> pumpExplorer(
       await tester.pumpWidget(bootExplorer(
         userPosition: userPosition,
         gpsState: gpsState,
+        gpsMessage: gpsMessage,
       ));
       for (int i = 0; i < 40; i++) {
         await tester.pump(const Duration(seconds: 5));
@@ -410,5 +416,110 @@ void main() {
     // Le marqueur de position utilisateur est présent en plus des arrêts.
     expect(renderedByColor(tester, AppColors.primary), 1,
         reason: 'le marqueur de position utilisateur reste affiché');
+  });
+
+  // ===========================================================================
+  // CORRECTION GPS HORS ZONE — exploration de Dakar depuis la France
+  // ===========================================================================
+
+  testWidgets(
+      'CAS E — position réelle en France : carte ouverte sur Dakar, bandeau '
+      'hors zone, réseaux consultables, aucune distance de milliers de km',
+      (WidgetTester tester) async {
+    const LatLng paris = LatLng(48.8566, 2.3522);
+    await pumpExplorer(
+      tester,
+      userPosition: paris,
+      gpsState: GpsState.granted,
+      gpsMessage: GpsResolver.outOfCoverageMessage,
+    );
+
+    // 1) L'ouverture est centrée sur Dakar, indépendamment du GPS français.
+    final (FlutterMap map, MarkerLayer stops) = renderedMapAndStopsLayer(tester);
+    expect(DakarBounds.isValid(map.options.initialCenter), isTrue,
+        reason: 'la carte doit s\'ouvrir sur la zone de données Dakar');
+    expect(map.options.initialCenter, isNot(paris),
+        reason: 'aucun centrage initial sur la position française');
+    expect(
+        PositionValidity.isPlausible(map.options.initialCenter) &&
+            DakarBounds.isValid(map.options.initialCenter),
+        isTrue);
+
+    // 2) Le bandeau existant affiche le message de couverture exigé (§3).
+    expect(find.text(GpsResolver.outOfCoverageMessage), findsOneWidget,
+        reason: 'bandeau « Vous êtes hors de la zone de couverture Dakar Bus »');
+
+    // 3) L'exploration des réseaux reste complète (TER + BRT garantis).
+    expect(transmittedByColor(stops, AppColors.ter), 13,
+        reason: '13 gares TER consultables depuis la France');
+    expect(transmittedByColor(stops, AppColors.brt), 23,
+        reason: '23 stations BRT consultables depuis la France');
+    expect(stops.markers.length, 58,
+        reason: 'mêmes 58 marqueurs que l\'ouverture sans GPS (CAS A)');
+
+    // 4) Les couches marqueurs existent : arrêts + position réelle (hors
+    //    viewport, le centre étant Dakar) — la position n'est pas écrasée.
+    expect(map.children.whereType<MarkerLayer>().length, 2,
+        reason: 'couche arrêts + couche position utilisateur (réelle, France)');
+
+    // 5) Aucune distance « plusieurs milliers de kilomètres » affichée comme
+    //    proximité utile dans les cartes d'arrêt VISIBLES (la couverture
+    //    exhaustive de TOUS les arrêts réels est vérifiée par le test pur
+    //    « toutes les distances réelles » de out_of_coverage_test.dart).
+    final RegExp anyKm = RegExp(r'(\d+(?:\.\d+)?) km');
+    final List<String> allTexts = tester
+        .widgetList<Text>(find.byType(Text))
+        .map((Text t) => (t.data ?? '').trim())
+        .toList();
+    for (final String t in allTexts) {
+      for (final Match m in anyKm.allMatches(t)) {
+        final double km = double.parse(m.group(1)!);
+        expect(km, lessThan(100),
+            reason: 'distance affichée depuis la France : "$t" — aucune '
+                'distance de milliers de km ne doit apparaître');
+      }
+    }
+  });
+
+  testWidgets(
+      'CAS F — GPS refusé : carte ouverte sur Dakar, réseaux consultables, '
+      'bandeau de permission affiché', (WidgetTester tester) async {
+    await pumpExplorer(
+      tester,
+      gpsState: GpsState.denied,
+      gpsMessage: 'Permission GPS refusée.',
+    );
+
+    final (FlutterMap map, MarkerLayer stops) = renderedMapAndStopsLayer(tester);
+    expect(DakarBounds.isValid(map.options.initialCenter), isTrue,
+        reason: 'sans position, l\'ouverture reste sur Dakar');
+    expect(find.text('Permission GPS refusée.'), findsOneWidget,
+        reason: 'bandeau d\'erreur GPS existant visible');
+
+    expect(transmittedByColor(stops, AppColors.ter), 13);
+    expect(transmittedByColor(stops, AppColors.brt), 23);
+    expect(stops.markers.length, 58,
+        reason: 'consultation complète sans GPS réel');
+    expect(renderedTotal(tester), greaterThanOrEqualTo(35),
+        reason: 'les arrêts sont réellement rendus dans le viewport de Dakar');
+  });
+
+  testWidgets(
+      'CAS G — filtres réseaux utilisables depuis la France (TER affiché, '
+      'aucun BRT)', (WidgetTester tester) async {
+    const LatLng paris = LatLng(48.8566, 2.3522);
+    await pumpExplorer(
+      tester,
+      userPosition: paris,
+      gpsState: GpsState.granted,
+      gpsMessage: GpsResolver.outOfCoverageMessage,
+      mutate: () => tapChip(tester, 'TER'),
+    );
+
+    final (FlutterMap _, MarkerLayer stops) = renderedMapAndStopsLayer(tester);
+    expect(transmittedByColor(stops, AppColors.ter), 13,
+        reason: 'filtre TER consultable hors zone comme en zone');
+    expect(transmittedByColor(stops, AppColors.brt), 0);
+    expect(renderedByColor(tester, AppColors.ter), 13);
   });
 }

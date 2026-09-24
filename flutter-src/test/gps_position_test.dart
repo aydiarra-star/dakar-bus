@@ -31,6 +31,15 @@ import 'package:dakar_bus/main.dart';
 //   |lon| > 180 — produisent « Erreur GPS. ». §11 / D1-i restent intacts :
 //   aucune position absente ou fabriquée n'est exposée.
 //
+// CORRECTION HORS ZONE DE COUVERTURE (distincte du rejet historique) :
+//   une position plausible HORS de la zone de service (France…) reste
+//   `granted` avec sa coordonnée réelle, mais le message du bandeau devient
+//   « Vous êtes hors de la zone de couverture Dakar Bus » et
+//   `isOutOfCoverage` vaut `true` — « Position GPS obtenue. » n'est plus
+//   affiché comme si l'utilisateur était dans la zone de service. Les attentes
+//   des tests hors zone (Paris, etc.) sont adaptées en conséquence ; les
+//   attentes EN zone (message « Position GPS obtenue. ») sont inchangées.
+//
 // ---------------------------------------------------------------------------
 // MÉTHODE — décision D3-i (couture pure, aucune dépendance ajoutée)
 // ---------------------------------------------------------------------------
@@ -178,13 +187,19 @@ void main() {
       expect(r.position!.longitude, measured.longitude);
       expect(r.hasRealPosition, isTrue);
       expect(r.isSubstitutedPosition, isFalse);
-      expect(r.message, 'Position GPS obtenue.');
+      expect(r.message, 'Position GPS obtenue.',
+          reason: 'fixture en zone de service → message standard inchangé');
+      expect(r.isOutOfCoverage, isFalse,
+          reason: 'Dakar est dans la zone de service');
     });
 
-    test('(e) position mesurée HORS du rectangle Dakar → conservée telle quelle (PositionValidity)', () {
+    test('(e) position mesurée HORS du rectangle Dakar → conservée telle quelle (PositionValidity) + message hors zone', () {
       // AVANT : rejetée (« Position hors zone, recentré sur Dakar. ») alors
       // qu'elle était réelle. APRÈS : DakarBounds ne s'applique qu'aux données
       // réseau ; une position mesurée plausible est réelle, où qu'elle soit.
+      // CORRECTION HORS ZONE : elle reste réelle ET affichable, mais le
+      // bandeau signal « Vous êtes hors de la zone de couverture Dakar Bus »
+      // au lieu de « Position GPS obtenue. ».
       const horsDakar = <String, LatLng>{
         'Mbour': LatLng(14.4167, -16.9667),
         'Saint-Louis': LatLng(16.0179, -16.4896),
@@ -204,7 +219,12 @@ void main() {
             reason: '${entry.key} : §11 — conservée telle quelle, aucune substitution');
         expect(r.hasRealPosition, isTrue);
         expect(r.isSubstitutedPosition, isFalse);
-        expect(r.message, 'Position GPS obtenue.');
+        expect(r.isOutOfCoverage, isTrue,
+            reason: '${entry.key} : détection hors zone distincte de PositionValidity');
+        expect(r.message, GpsResolver.outOfCoverageMessage,
+            reason: '${entry.key} : le bandeau ne doit pas afficher « Position '
+                'GPS obtenue » comme si l\'utilisateur était en zone de service');
+        expect(r.message, isNot('Position GPS obtenue.'));
       }
     });
 
@@ -350,7 +370,7 @@ void main() {
 
     test('D4 : les cas exigés sont distinguables deux à deux (état ET message)', () {
       final cas = <GpsResolution>[
-        GpsResolver.fromMeasuredPosition(_northOf(_user, 10)), // position obtenue
+        GpsResolver.fromMeasuredPosition(_northOf(_user, 10)), // position obtenue (en zone)
         GpsResolver.permissionDenied(forever: false), // refusée
         GpsResolver.permissionDenied(forever: true), // refusée définitivement
         GpsResolver.error, // erreur GPS
@@ -398,6 +418,7 @@ void main() {
       expect(r.position, measured);
       expect(r.isSubstitutedPosition, isFalse);
       expect(r.message, 'Position GPS obtenue.');
+      expect(r.isOutOfCoverage, isFalse, reason: 'mesure en zone de service');
     });
 
     test('aucune position mesurée → échec GPS explicite', () {
@@ -408,13 +429,16 @@ void main() {
       expect(r.message, 'Erreur GPS.');
     });
 
-    test('position hors du rectangle Dakar au moment de l\'interruption → conservée', () {
+    test('position hors du rectangle Dakar au moment de l\'interruption → conservée + message hors zone', () {
       const horsDakar = LatLng(15.5, -17.0);
       final r = GpsResolver.fromStreamInterrupted(horsDakar);
 
       expect(r.state, GpsState.granted);
       expect(r.position, horsDakar);
       expect(r.isSubstitutedPosition, isFalse);
+      expect(r.isOutOfCoverage, isTrue);
+      expect(r.message, GpsResolver.outOfCoverageMessage,
+          reason: 'hors zone : message de couverture, pas « Position GPS obtenue. »');
     });
 
     test('position implausible au moment de l\'interruption → échec, jamais substituée', () {
