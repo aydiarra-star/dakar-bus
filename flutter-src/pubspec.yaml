@@ -16,7 +16,13 @@ publish_to: 'none'
 # « v9.4 » n'est PAS une version : c'était une chaîne d'interface codée en dur
 # (main.dart ligne 1978), incohérente avec le pubspec 9.3.0+4 de l'époque, et
 # remplacée le 2026-09-18 par le commit gh-pages a0ae515c4d. Ne pas la créer.
-version: 9.3.2+12
+#
+# 9.3.3+13 (2026-09-24) : position utilisateur soumise à PositionValidity
+# (plausibilité géodésique) et non plus à DakarBounds ; message de refus GPS
+# définitif orienté action ; tests réalignés sur la source unique TER/BRT
+# (PR #20). La vérification J9 reste une auto-cohérence version.json ←
+# pubspec.yaml : ce champ est la seule source de la version.
+version: 9.3.3+13
 
 environment:
   sdk: '>=3.3.0 <4.0.0'

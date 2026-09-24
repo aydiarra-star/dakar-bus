@@ -67,6 +67,52 @@ void main() {
     });
   });
 
+  group('PositionValidity — plausibilité géodésique de la position utilisateur',
+      () {
+    test('toute position mesurée plausible est acceptée, où qu\'elle soit', () {
+      expect(PositionValidity.isPlausible(const LatLng(14.6738, -17.4381)), true,
+          reason: 'Dakar');
+      expect(PositionValidity.isPlausible(const LatLng(14.7910, -16.9256)), true,
+          reason: 'Thiès — hors DakarBounds, position réelle');
+      expect(PositionValidity.isPlausible(const LatLng(14.7167, -17.2733)), true,
+          reason: 'Rufisque');
+      expect(PositionValidity.isPlausible(const LatLng(16.0179, -16.4896)), true,
+          reason: 'Saint-Louis — hors DakarBounds, position réelle');
+      expect(PositionValidity.isPlausible(const LatLng(48.8566, 2.3522)), true,
+          reason: 'Paris — hors DakarBounds, position réelle');
+      expect(PositionValidity.isPlausible(const LatLng(-90.0, 180.0)), true,
+          reason: 'bornes incluses');
+    });
+    test('île nulle (0,0) rejetée : valeur par défaut, jamais une mesure', () {
+      expect(PositionValidity.isPlausible(const LatLng(0.0, 0.0)), false);
+      // Un seul zéro n'est pas l'île nulle.
+      expect(PositionValidity.isPlausible(const LatLng(0.0, -17.4)), true);
+      expect(PositionValidity.isPlausible(const LatLng(14.7, 0.0)), true);
+    });
+    test('|lat| > 90 ou |lon| > 180 rejetées (doubles bruts : LatLng les refuse déjà par assert)', () {
+      expect(PositionValidity.isPlausibleCoordinates(90.1, -17.4), false);
+      expect(PositionValidity.isPlausibleCoordinates(-90.1, -17.4), false);
+      expect(PositionValidity.isPlausibleCoordinates(14.7, 180.1), false);
+      expect(PositionValidity.isPlausibleCoordinates(14.7, -180.1), false);
+      // Bornes incluses.
+      expect(PositionValidity.isPlausibleCoordinates(90.0, 180.0), true);
+      expect(PositionValidity.isPlausibleCoordinates(-90.0, -180.0), true);
+    });
+    test('NaN / infini rejetés', () {
+      expect(PositionValidity.isPlausibleCoordinates(double.nan, -17.4), false);
+      expect(PositionValidity.isPlausibleCoordinates(14.7, double.nan), false);
+      expect(PositionValidity.isPlausibleCoordinates(double.infinity, -17.4), false);
+      expect(PositionValidity.isPlausibleCoordinates(14.7, double.negativeInfinity), false);
+    });
+    test('DakarBounds reste strictement un garde-fou des données réseau', () {
+      // Les deux prédicats divergent volontairement hors du rectangle Dakar :
+      // une gare ne peut pas y être, un utilisateur si.
+      const thies = LatLng(14.7910, -16.9256);
+      expect(DakarBounds.isValid(thies), false);
+      expect(PositionValidity.isPlausible(thies), true);
+    });
+  });
+
   group('DistanceHelper', () {
     test('haversineMeters ~1km', () {
       // Petersen -> Sandaga ~2.0km (2019.84 m avec R = 6371008.8)
