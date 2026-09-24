@@ -293,3 +293,37 @@ Aucune API, aucun flux GTFS-RT et aucun endpoint n'a été ajouté ni supposé.
 6. **Données communautaires** : `data/gtfs/shapes.txt` et les polylignes ne sont pas des preuves d'exploitation (voir `dataset_meta.geometry_note`).
 7. **Audit des pages publiées** : `scripts/lib/pages-audit.js` signalera toujours `STOP_PROVENANCE_MISSING` (82 arrêts ont `source: null`, ce qui est honnête) et `EXPLICIT_NETWORK_MISSING`.
 8. **B1 incomplète** : 3 noms de stations restent à trancher (Liberté 1/4, Gadaye/Gueule Tapée, Fith Mith). Il faudrait une liste officielle datée de SunuBRT ou du CETUD.
+
+## 9. Check rouge « TER BRT data validation / Real data release gate »
+
+**Classement : A, préexistant sur `main`.** Ce n'est ni une régression de la PR #25 (B), ni un désalignement avec `dakar_network.json` (C).
+
+- **Ce qui est contrôlé.** `npm run validate:data` (`scripts/check-arrets.js`) audite la PWA : `data/gtfs/stops.txt`, `trips.txt`, `stop_times.txt`, et `ALL_ARRETS` / `TER_SHAPE` / `BRT_SHAPE` dans `index.html`. Il ne lit **ni** `flutter-src/assets/data/dakar_network.json`, **ni** les modèles Dart.
+- **Comparaison avec `main`.** `git diff b2a80ab HEAD -- data/ index.html scripts/ tests/ package.json .github/` est vide. La sortie du validateur est identique à l'octet près sur `b2a80ab` (base), sur `origin/main` et sur cette branche.
+- **Historique.** Le workflow a échoué à chacune de ses 45 exécutions depuis son ajout (PR #24). L'étape s'appelle « expected to block until source data is verified ». `docs/CORRECTION_TER_BRT_2026-09-21.md` prévoit un « ÉCHEC attendu » : le check « doit rester rouge tant que les données réelles ne satisfont pas les critères ».
+
+| Erreur (×occurrences) | Cause exacte | Corrigeable sans inventer ? |
+|---|---|---|
+| `STOP_NETWORK_INVALID`, `NETWORK_ISOLATION_VIOLATION`, `STOP_NETWORK_MISMATCH` (×36 chacune) | `stops.txt` n'a que 4 colonnes, donc `network` vaut `undefined`. | Seulement depuis le référentiel. Le validateur interdit de déduire le réseau d'un nom ou d'un préfixe (§7.3 du document du 21/09). |
+| `STOP_SOURCE_MISSING` ×36 | Pas de colonne `source`. | Oui pour les 33 arrêts sourcés dans le JSON audité ; non pour les 3 autres. |
+| `STOP_DATA_UNVERIFIED` ×36 | Le statut vaut `UNKNOWN`, alors que `VERIFIED` est exigé. | TER : 13 arrêts pourraient être vérifiés (existence et coordonnées CONFIRMED). BRT : **non**, les 23 coordonnées sont UNVERIFIED ou CONFLICTING. |
+| `STOP_STATUS_INVALID` ×36 | `status` vaut `undefined`. | Oui, avec `UNKNOWN` (aucun horaire vérifié). |
+| `STOP_DIRECTIONS_INVALID` ×36 | L'adaptateur code en dur `directions: undefined`. | Non : aucune source de directions par arrêt. |
+| `STOP_ORDER_INVALID` ×2 | Pas de colonne `ordre_sur_ligne`. | Oui, depuis l'ordre des routes du référentiel. |
+| `ROUTE_GEOMETRY_UNVERIFIED` ×2 | `geometryStatus: 'UNKNOWN'` codé en dur. Aucun tracé vérifié n'existe. | Non. |
+| `UNKNOWN_TRIP_REFERENCE` ×36 | `stop_times.txt` contient `TER_01_003` (13 lignes) et `BRT_01_003` (23 lignes), absents de `trips.txt`. Horaires synthétiques (06:00, 07:00, 12:00). | Non : créer ces trajets serait inventer. Le document du 21/09 choisit de les signaler, non de les supprimer. |
+
+**Simulation en mémoire (aucun fichier modifié).** Les 36 arrêts GTFS ont des coordonnées identiques aux arrêts audités du JSON. On les enrichit au maximum honnête : réseau, ordre et source repris du référentiel ; `VERIFIED` seulement si l'existence et les coordonnées sont CONFIRMED ; `status = UNKNOWN`. Le gate reste bloquant (`blocksRelease = true`) avec ces erreurs :
+
+- `STOP_DIRECTIONS_INVALID` ×36 ;
+- `UNKNOWN_TRIP_REFERENCE` ×36 ;
+- `STOP_DATA_UNVERIFIED` ×23 (BRT) ;
+- `STOP_SOURCE_MISSING` ×3 ;
+- `ROUTE_GEOMETRY_UNVERIFIED` ×2.
+
+**Décision : aucune modification du validateur, des seuils, du workflow ni des données GTFS.** Le rouge reflète un manque réel de données vérifiées. Pour le lever honnêtement, il faudrait :
+
+1. une liste officielle datée des coordonnées BRT ;
+2. des directions par arrêt, sourcées ;
+3. des tracés TER / BRT sourcés ;
+4. une décision documentée sur les trajets `_003` orphelins.
