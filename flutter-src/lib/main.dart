@@ -8,6 +8,7 @@ import 'package:geolocator/geolocator.dart';
 import 'dart:ui';
 import 'package:http/http.dart' as http;
 import 'models/transport_network.dart';
+import 'models/reliability.dart';
 import 'services/data_service.dart';
 
 // ============================================================
@@ -292,18 +293,15 @@ class OppositeStopService {
 }
 
 // ============================================================
-// GENERATEUR D HORAIRES DYNAMIQUES & ROTATIONS CONTINUES
+// HORAIRES — AUCUN GÉNÉRATEUR (audit données 2026-09-24)
 // ============================================================
-List<int> _generateSchedule({required int from, required int to, required int step}) {
-  final list = <int>[];
-  for (int m = from; m <= to; m += step) { list.add(m); }
-  return list;
-}
-List<int> _shift(List<int> base, int offset) => base.map((m) => m + offset).toList();
-bool _isSunday() => DateTime.now().weekday == DateTime.sunday;
-List<int> _buildTerBase() => _generateSchedule(from: 330, to: 1320, step: _isSunday() ? 20 : 10);
-final List<int> _brtBase = _generateSchedule(from: 360, to: 1260, step: 6);
-final List<int> _terBase = _buildTerBase();
+// AVANT : `_generateSchedule` / `_shift` fabriquaient des départs TER toutes
+//         les 10 min (20 le dimanche) de 5 h 30 à 22 h, BRT toutes les 6 min
+//         de 6 h à 21 h, décalés de 2 min par arrêt, et AFTU/DDD/Tata
+//         affichaient « En rotation (~5 min) ».
+// APRÈS : supprimé. `dakar_network.json` ne contient AUCUN horaire
+//         (`schedule_status: UNKNOWN` sur les 105 routes) : l'interface
+//         affiche « Horaire indisponible » (voir [ReliabilityLabel]).
 
 // ============================================================
 // PALETTE OFFICIELLE DES TRANSPORTS & THEME MANAGER
@@ -336,9 +334,15 @@ class DataSourceInfo {
   const DataSourceInfo({required this.origin, required this.label, required this.badgeEmoji});
   static const seter = DataSourceInfo(origin: DataOrigin.official, label: 'SETER (Officiel)', badgeEmoji: '🟢');
   static const sunubrt = DataSourceInfo(origin: DataOrigin.official, label: 'SunuBRT (Officiel)', badgeEmoji: '🟢');
-  static const demdikk = DataSourceInfo(origin: DataOrigin.official, label: 'Dakar Dem Dikk (Officiel)', badgeEmoji: '🟢');
-  static const tataOfficial = DataSourceInfo(origin: DataOrigin.verified, label: 'Bus TATA (Officiel)', badgeEmoji: '🔵');
-  static const aftuOfficial = DataSourceInfo(origin: DataOrigin.verified, label: 'AFTU (72 Lignes Officielles)', badgeEmoji: '🔵');
+  // Audit données 2026-09-24 : aucune route DDD, AFTU ou Tata n'est CONFIRMED
+  // (DDD : contredites par demdikk.sn ou absentes ; AFTU/Tata : observations
+  // terrain). Ces sources ne portent donc plus « (Officiel) » ni la pastille
+  // 🟢/🔵 : elles sont indicatives (🟡). Identifiants conservés (API interne).
+  static const demdikk = DataSourceInfo(origin: DataOrigin.indicative, label: 'Dakar Dem Dikk (non vérifié)', badgeEmoji: '🟡');
+  static const tataOfficial = DataSourceInfo(origin: DataOrigin.indicative, label: 'Bus TATA (observation terrain, non vérifiée)', badgeEmoji: '🟡');
+  static const aftuOfficial = DataSourceInfo(origin: DataOrigin.indicative, label: 'AFTU (itinéraires non vérifiés)', badgeEmoji: '🟡');
+  /// Donnée dont la provenance n'est pas CONFIRMED (UNVERIFIED / CONFLICTING).
+  static const unverified = DataSourceInfo(origin: DataOrigin.indicative, label: 'Donnée non vérifiée', badgeEmoji: '🟡');
   static const demo = DataSourceInfo(origin: DataOrigin.indicative, label: 'Donnée Indicative (~)', badgeEmoji: '🟡');
 }
 
@@ -403,6 +407,15 @@ class DetailedRoute {
   final String totalDistance;
   final List<DetailedStop> stops;
 
+  /// Provenance de la ligne dans le JSON (audit 2026-09-24). Absente →
+  /// UNVERIFIED. Détermine, avec celle de chaque arrêt, le badge affiché.
+  final ProvenanceStatus dataStatus;
+
+  /// Provenance de chaque arrêt, par `stopId` (audit 2026-09-24). Gardée ici
+  /// pour laisser `DetailedStop` à ses 5 champs de production. Arrêt absent
+  /// → UNVERIFIED : un arrêt n'est jamais présumé confirmé.
+  final Map<String, ProvenanceStatus> stopStatuses;
+
   DetailedRoute({
     required this.routeId,
     required this.lineNumber,
@@ -412,7 +425,17 @@ class DetailedRoute {
     required this.destination,
     required this.totalDistance,
     required this.stops,
+    this.dataStatus = ProvenanceStatus.unverified,
+    this.stopStatuses = const <String, ProvenanceStatus>{},
   });
+
+  /// Badge de fiabilité d'un arrêt DANS cette ligne : le moins sûr des deux
+  /// statuts (ligne, arrêt). « OFFICIEL » seulement si les deux sont CONFIRMED.
+  ProvenanceStatus statusOf(DetailedStop stop) =>
+      ReliabilityLabel.combine(<ProvenanceStatus>[
+        dataStatus,
+        stopStatuses[stop.stopId] ?? ProvenanceStatus.unverified,
+      ]);
 
   /// Seuil de résolution géographique d'un arrêt, en mètres.
   ///
@@ -515,6 +538,7 @@ class DetailedRoute {
         reverse ? route.stopIds.reversed.toList() : route.stopIds;
 
     final List<DetailedStop> out = <DetailedStop>[];
+    final Map<String, ProvenanceStatus> stopStatuses = <String, ProvenanceStatus>{};
     double cumulatedMeters = 0.0;
     LatLng? previous;
 
@@ -538,6 +562,7 @@ class DetailedRoute {
         distanceFromStart: '${(cumulatedMeters / 1000).toStringAsFixed(1)} km',
         estimatedTime: '~$elapsedMinutes min',
       ));
+      stopStatuses[s.id] = s.provenance.status;
       previous = location;
     }
 
@@ -559,6 +584,8 @@ class DetailedRoute {
       destination: out.last.name,
       totalDistance: '${(cumulatedMeters / 1000).toStringAsFixed(1)} km',
       stops: out,
+      dataStatus: route.provenance.status,
+      stopStatuses: stopStatuses,
     );
   }
 
@@ -713,20 +740,22 @@ class Stop {
     stopId: stopId ?? this.stopId,
   );
 
-  bool get isContinuousFlow => modeLabel == 'AFTU' || modeLabel == 'Tata' || modeLabel == 'DDD';
+  // AUDIT DONNÉES 2026-09-24 — horaires.
+  // AVANT : `isContinuousFlow` inventait une « rotation ~5 min » pour AFTU,
+  //         DDD et Tata ; des heures d'ouverture (5 h–22 h 30) étaient
+  //         supposées ; les départs TER/BRT venaient d'un générateur.
+  // APRÈS : seul un horaire FOURNI est affiché, et au mieux comme programmé.
+  //         Sans horaire : `null` / « Horaire indisponible ». Jamais de temps
+  //         réel (aucun flux n'existe).
 
-  bool _isServiceOpen() {
-    final now = DateTime.now();
-    final hour = now.hour;
-    int startHour = isContinuousFlow ? 6 : 5;
-    if (hour >= startHour && hour < 22) return true;
-    if (!isContinuousFlow && hour == 22 && now.minute <= 30) return true;
-    return false;
-  }
+  /// UNKNOWN si aucun départ n'est fourni ; au mieux SCHEDULED, jamais REAL_TIME.
+  ScheduleStatus get scheduleStatus =>
+      ReliabilityLabel.scheduleStatusOf(departureMinutesFromMidnight);
+
+  bool get _hasSchedule => scheduleStatus == ScheduleStatus.scheduled;
 
   int? nextDepartureMinutes() {
-    if (!_isServiceOpen()) return null;
-    if (isContinuousFlow) return 5;
+    if (!_hasSchedule) return null;
     final now = DateTime.now();
     final currentMin = now.hour * 60 + now.minute;
     for (final d in departureMinutesFromMidnight) {
@@ -736,25 +765,20 @@ class Stop {
   }
 
   int? remainingMinutes() {
-    if (!_isServiceOpen()) return null;
-    if (isContinuousFlow) return 5;
     final d = nextDepartureMinutes();
     if (d == null) return null;
     return d - (DateTime.now().hour * 60 + DateTime.now().minute);
   }
 
   String? nextDepartureLabel() {
-    if (!_isServiceOpen()) return 'Service fermé';
-    if (isContinuousFlow) return 'En rotation (~5 min)';
     final d = nextDepartureMinutes();
-    if (d == null) return 'Prochainement';
+    if (d == null) return ReliabilityLabel.scheduleUnavailable;
     final normalized = d % (24 * 60);
     return '${(normalized ~/ 60).toString().padLeft(2, '0')} h ${(normalized % 60).toString().padLeft(2, '0')}';
   }
 
   int? departureAfter(int minFromMidnight) {
-    if (!_isServiceOpen()) return null;
-    if (isContinuousFlow) return minFromMidnight + 5;
+    if (!_hasSchedule) return null;
     for (final d in departureMinutesFromMidnight) { if (d > minFromMidnight) return d; }
     return null;
   }
@@ -1271,19 +1295,18 @@ void _integrateNetworkData() {
       final color = colorForOperator(route.operatorId);
       final icon = iconForOperator(route.operatorId, route.type);
       final label = labelForOperator(route.operatorId, route.type);
-      final source = sourceForOperator(route.operatorId);
+      // Audit données 2026-09-24 : la source officielle (pastille 🟢) n'est
+      // attribuée que si la route ET l'arrêt sont CONFIRMED. Sinon, source
+      // non vérifiée — un statut inconnu n'est jamais promu.
+      final bool confirmed = ReliabilityLabel.canShowOfficial(ReliabilityLabel
+          .combine(<ProvenanceStatus>[route.provenance.status, busStop.provenance.status]));
+      final source = confirmed ? sourceForOperator(route.operatorId) : DataSourceInfo.unverified;
       final key = '${busStop.name}_${busStop.latitude}_${busStop.longitude}';
       if (existingKeys.contains(key)) continue;
 
-      // Horaires : TER/BRT avec base, AFTU/DDD en rotation continue (liste vide)
-      List<int> schedule = [];
-      if (label == 'TER') {
-        schedule = _shift(_terBase, i * 2);
-      } else if (label == 'BRT') {
-        schedule = _shift(_brtBase, i * 2);
-      } else {
-        schedule = []; // AFTU/DDD/Tata → isContinuousFlow = true
-      }
+      // Horaires : AUCUN. Le JSON n'en fournit pas (schedule_status UNKNOWN) ;
+      // l'ancien générateur TER/BRT a été supprimé (audit 2026-09-24).
+      const List<int> schedule = <int>[];
 
       final stop = Stop(
         name: busStop.name,
@@ -1420,10 +1443,11 @@ final List<TransitRoute> demoRoutes = <TransitRoute>[];
 class RoutePlanner {
   static RouteSearchResult plan({required String fromQuery, required String toQuery}) {
     final now = DateTime.now();
-    final bool isOpen = (now.hour >= 5 && now.hour < 22) || (now.hour == 22 && now.minute <= 30);
-    if (!isOpen) {
-      return const RouteSearchResult(errorMessage: '🌙 Les réseaux TER, BRT, DDD et TATA sont actuellement fermés (Service de 5h00 à 22h30).');
-    }
+    // Audit données 2026-09-24 — AVANT : hors 5 h 00–22 h 30, réponse « Les
+    // réseaux … sont actuellement fermés (Service de 5h00 à 22h30) ». Ces
+    // heures de service ne figurent dans AUCUNE donnée (schedule_status
+    // UNKNOWN partout) : affirmation supprimée. L'itinéraire reste calculé ;
+    // ses heures sont « Horaire indisponible » faute d'horaire fourni.
 
     final fromStop = _findNearestStop(fromQuery);
     final toStop = _findNearestStop(toQuery);
@@ -1467,14 +1491,23 @@ class RoutePlanner {
     int dur = ((dist / 1000.0) / speed * 60).ceil();
     if (dur < 5) dur = 5;
 
+    // AUDIT DONNÉES 2026-09-24.
+    // AVANT : `dep = departureAfter(now) ?? now` — sans horaire, l'heure
+    //         courante devenait une « heure de départ » et `dep + dur` une
+    //         heure d'arrivée, toutes deux affichées avec `DataStatus.scheduled`.
+    // APRÈS : heures de départ/arrivée seulement si un horaire est fourni ;
+    //         sinon `null` → « Horaire indisponible » et `DataStatus.unknown`.
+    //         `dur` reste une ESTIMATION (distance à vol d'oiseau / vitesse
+    //         moyenne supposée), affichée comme telle.
     final safeCurrentMin = math.max(0, currentMin);
-    final dep = from.departureAfter(safeCurrentMin) ?? safeCurrentMin;
-    final arr = dep + dur;
+    final int? dep = from.departureAfter(safeCurrentMin);
+    final int? arr = dep == null ? null : dep + dur;
+    final DataStatus status = dep == null ? DataStatus.unknown : DataStatus.scheduled;
 
     return PlannedRoute(
       fromName: from.name, toName: to.name, totalMinutes: dur,
-      transferCount: 0, status: DataStatus.scheduled,
-      segments: [RouteSegment(modeLabel: from.modeLabel, color: from.color, icon: from.icon, from: from.name, to: to.name, durationMinutes: dur, departureTime: _formatMin(dep), arrivalTime: _formatMin(arr), status: DataStatus.scheduled)],
+      transferCount: 0, status: status,
+      segments: [RouteSegment(modeLabel: from.modeLabel, color: from.color, icon: from.icon, from: from.name, to: to.name, durationMinutes: dur, departureTime: dep == null ? null : _formatMin(dep), arrivalTime: arr == null ? null : _formatMin(arr), status: status)],
     );
   }
 
@@ -1490,7 +1523,11 @@ class RoutePlanner {
     return PlannedRoute(
       fromName: from.name, toName: to.name,
       totalMinutes: leg1.totalMinutes + leg2.totalMinutes + 5,
-      transferCount: 1, status: DataStatus.scheduled,
+      transferCount: 1,
+      // Programmé seulement si les deux tronçons le sont (jamais promu).
+      status: leg1.status == DataStatus.scheduled && leg2.status == DataStatus.scheduled
+          ? DataStatus.scheduled
+          : DataStatus.unknown,
       segments: [...leg1.segments, ...leg2.segments],
     );
   }
@@ -2578,21 +2615,22 @@ class StopCard extends StatelessWidget {
       builder: (context, _) {
         final dark = globalState.darkMode;
         final isFav = globalState.isFavorite(stop.name);
-        final remaining = stop.remainingMinutes();
         final crowd = TimeHelper.getCrowdLevel(stop);
         Widget timeWidget;
 
-        final now = DateTime.now();
-        final bool isOpen = (now.hour >= 5 && now.hour < 22) || (now.hour == 22 && now.minute <= 30);
-
-        if (!isOpen) {
-          timeWidget = Text('Fermé', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary(dark)));
-        } else if (remaining == null) {
-          timeWidget = Text('Bientôt', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary(dark)));
-        } else if (remaining <= 0) {
-          timeWidget = Text('Imminent', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: stop.color));
+        // AUDIT DONNÉES 2026-09-24.
+        // AVANT : « Fermé » déduit de l'heure (5 h–22 h 30 supposés),
+        //         « Bientôt », « Imminent » et un compte à rebours vert calculé
+        //         sur des départs générés — lu comme du temps réel.
+        // APRÈS : sans horaire fourni → « Horaire indisponible » ; avec un
+        //         horaire fourni → « Prévu HH h MM » (programmé, pas de
+        //         compte à rebours). Aucun flux temps réel n'existe.
+        if (stop.scheduleStatus == ScheduleStatus.unknown) {
+          timeWidget = Text(ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary(dark)));
+        } else if (stop.nextDepartureMinutes() == null) {
+          timeWidget = Text('Aucun départ programmé', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary(dark)));
         } else {
-          timeWidget = Text(TimeHelper.formatRemaining(remaining), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.success));
+          timeWidget = Text('Prévu ${stop.nextDepartureLabel()}', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: stop.color));
         }
 
         return GestureDetector(
@@ -2697,7 +2735,7 @@ class _TripsPageState extends State<TripsPage> {
               children: [
                 Text('Planifier un trajet', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
                 const SizedBox(height: 4),
-                Text('Itinéraires multimodaux officiels (TER, BRT, DDD, TATA, AFTU).', style: TextStyle(fontSize: 13, color: AppColors.textSecondary(dark))),
+                Text('Itinéraires multimodaux indicatifs (TER, BRT, DDD, TATA, AFTU).', style: TextStyle(fontSize: 13, color: AppColors.textSecondary(dark))),
                 const SizedBox(height: 20),
 
                 Container(
@@ -2811,8 +2849,8 @@ class _TripsPageState extends State<TripsPage> {
                   Text('${r.transferCount} correspondance(s) • ${r.segments.length} étape(s)', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark)))
                 ])),
                 Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                  Text('${r.totalMinutes} min', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 18)),
-                  Text('Durée totale', style: TextStyle(fontSize: 10, color: AppColors.textSecondary(dark)))
+                  Text('~${r.totalMinutes} min', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 18)),
+                  Text('Durée estimée', style: TextStyle(fontSize: 10, color: AppColors.textSecondary(dark)))
                 ]),
               ],
             ),
@@ -2832,11 +2870,11 @@ class _TripsPageState extends State<TripsPage> {
                       child: Padding(
                         padding: EdgeInsets.only(bottom: isLast ? 0 : 16),
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Row(children: [Icon(s.icon, size: 14, color: s.color), const SizedBox(width: 6), Text(s.modeLabel, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: s.color)), const Spacer(), Text(s.departureTime ?? '', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))]),
+                          Row(children: [Icon(s.icon, size: 14, color: s.color), const SizedBox(width: 6), Text(s.modeLabel, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: s.color)), const Spacer(), Text(s.departureTime ?? ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))]),
                           const SizedBox(height: 4),
                           Text('${s.from} - ${s.to}', style: TextStyle(fontSize: 12, color: AppColors.textPrimary(dark))),
                           const SizedBox(height: 2),
-                          Text('Durée: ${s.durationMinutes} min', style: TextStyle(fontSize: 10, color: AppColors.textSecondary(dark))),
+                          Text('Durée estimée : ~${s.durationMinutes} min', style: TextStyle(fontSize: 10, color: AppColors.textSecondary(dark))),
                         ]),
                       ),
                     ),
@@ -2933,12 +2971,23 @@ class AlertsPage extends StatelessWidget {
         'color': AppColors.brt,
       },
       {
+        // AUDIT DONNÉES 2026-09-24 — carte conservée (3 cartes, cf. groupe 6),
+        // textes corrigés.
+        // AVANT : « Source officielle : Direction DDD », « lignes régulières 1,
+        //         3, 10, 14 et 20 aux horaires habituels », badge « Réseau
+        //         actif », sévérité `success`.
+        // PREUVE : aucune route DDD n'est CONFIRMED dans dakar_network.json ;
+        //         demdikk.sn/reseau-urbain-dakar/ ne publie ni ligne 3 ni
+        //         ligne 14 ; aucun horaire DDD n'existe dans les données.
+        // APRÈS : seul le total officiel sourcé (38 lignes, CETUD) est
+        //         affirmé ; les lignes de l'application sont déclarées non
+        //         vérifiées ; aucun horaire ni état d'exploitation.
         'type': 'DDD',
         'title': 'Dakar Dem Dikk - Lignes Urbaines',
-        'source': 'Source officielle : Direction DDD',
-        'message': 'Les flottes DDD assurent les liaisons interurbaines et les lignes régulières 1, 3, 10, 14 et 20 aux horaires habituels.',
-        'severity': 'success',
-        'badge': 'Réseau actif',
+        'source': 'Total officiel : CETUD • itinéraires non vérifiés',
+        'message': 'Le CETUD recense 38 lignes Dakar Dem Dikk. Les lignes DDD affichées dans l’application ne sont pas vérifiées : leurs itinéraires sont indicatifs et aucun horaire vérifié n’est disponible.',
+        'severity': 'warning',
+        'badge': 'Données non vérifiées',
         'icon': Icons.directions_bus_filled_rounded,
         'color': AppColors.ddd,
       },
@@ -2957,7 +3006,7 @@ class AlertsPage extends StatelessWidget {
               children: [
                 Text('Alertes trafic & Réseau', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
                 const SizedBox(height: 4),
-                Text('Informations certifiées CETUD, SETER, SunuBRT & Dakar Dem Dikk.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary(dark))),
+                Text('Niveau de vérification indiqué sur chaque carte (sources : SETER, SunuBRT, CETUD).', style: TextStyle(fontSize: 13, color: AppColors.textSecondary(dark))),
                 const SizedBox(height: 20),
                 ...officialAlerts.map((alert) => _buildAlertCard(context, alert, dark)),
               ],
@@ -2975,6 +3024,8 @@ class AlertsPage extends StatelessWidget {
     final String alertBadge = alert['badge'] as String;
     final String alertSource = alert['source'] as String;
     final String alertMessage = alert['message'] as String;
+    // Audit 2026-09-24 : le badge n'est vert que pour une donnée vérifiée.
+    final Color badgeColor = alert['severity'] == 'success' ? AppColors.success : AppColors.warning;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
@@ -2992,7 +3043,7 @@ class AlertsPage extends StatelessWidget {
                 Row(children: [
                   Text(alertType, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: alertColor)),
                   const Spacer(),
-                  Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: AppColors.success.withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Text(alertBadge, style: const TextStyle(fontSize: 10, color: AppColors.success, fontWeight: FontWeight.bold)))
+                  Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: badgeColor.withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Text(alertBadge, style: TextStyle(fontSize: 10, color: badgeColor, fontWeight: FontWeight.bold)))
                 ]),
                 const SizedBox(height: 4),
                 Text(alertSource, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primary)),
@@ -3246,14 +3297,14 @@ class SettingsPage extends StatelessWidget {
                         leading: const Icon(Icons.help_outline, color: AppColors.primary),
                         title: Text('Comment utiliser l’application', style: TextStyle(color: AppColors.textPrimary(dark))),
                         trailing: const Icon(Icons.chevron_right),
-                        onTap: () => _showInfoModal(context, 'Comment utiliser l’application', '1. Utilisez l’onglet Explorer pour visualiser votre position GPS en temps réel et les arrêts à proximité.\n2. Maintenez un arrêt enfoncé pour l’ajouter à vos favoris ⭐.\n3. Utilisez l’onglet Trajets pour planifier vos déplacements multimodaux officiels (TER, BRT, DDD, TATA).\n4. Interrogez l’Assistant IA pour toute question sur les horaires et les lignes.'),
+                        onTap: () => _showInfoModal(context, 'Comment utiliser l’application', '1. Utilisez l’onglet Explorer pour visualiser votre position GPS en temps réel et les arrêts à proximité.\n2. Maintenez un arrêt enfoncé pour l’ajouter à vos favoris ⭐.\n3. Utilisez l’onglet Trajets pour planifier vos déplacements multimodaux (TER, BRT, DDD, TATA) ; les itinéraires non vérifiés sont signalés comme tels.\n4. Interrogez l’Assistant IA pour toute question sur les lignes. Aucun horaire vérifié n’est disponible pour l’instant.'),
                       ),
                       Divider(height: 1, color: AppColors.divider(dark)),
                       ListTile(
                         leading: const Icon(Icons.description_outlined, color: AppColors.primary),
                         title: Text('Conditions d’utilisation', style: TextStyle(color: AppColors.textPrimary(dark))),
                         trailing: const Icon(Icons.chevron_right),
-                        onTap: () => _showInfoModal(context, 'Conditions d’utilisation', 'Dakar Bus fournit des informations de transport indicatives et officielles basées sur les données des opérateurs de la région de Dakar (CETUD, SETER, SunuBRT, DDD, AFTU). L’application s’engage à assurer un affichage fidèle et mis à jour en continu.'),
+                        onTap: () => _showInfoModal(context, 'Conditions d’utilisation', 'Dakar Bus fournit des informations de transport indicatives. Seules les données dont la source officielle a été vérifiée (SETER, SunuBRT) sont présentées comme officielles ; les autres itinéraires (DDD, AFTU, TATA) sont signalés comme non vérifiés. Aucun horaire ni aucune position de véhicule en temps réel ne sont fournis.'),
                       ),
                       Divider(height: 1, color: AppColors.divider(dark)),
                       ListTile(
@@ -3273,6 +3324,87 @@ class SettingsPage extends StatelessWidget {
         );
       },
     );
+  }
+}
+
+// ============================================================
+// RÉPONSES DE L'ASSISTANT — CONSTRUITES À PARTIR DES DONNÉES (audit 2026-09-24)
+// ============================================================
+// AVANT : textes figés affirmant « 14 gares officielles », « un départ toutes
+//         les 10 à 20 min », « L1 Colobane-Yoff, L3 Sandaga-Ouakam », « 72
+//         lignes AFTU couvrent tout Dakar », « Les réseaux … fonctionnent
+//         normalement », et pour un trajet « 🕒 hh:mm → hh:mm … Direct /
+//         Rotation ~5 min » calculés sans horaire.
+// APRÈS : chaque réponse est dérivée des opérateurs et routes chargés, avec
+//         leur statut de provenance. Aucun horaire, aucune fréquence, aucun
+//         état de trafic n'est affirmé sans donnée vérifiée.
+class AssistantReplies {
+
+  /// Texte d'un itinéraire calculé. Sans horaire programmé fourni, la phrase
+  /// imposée [ReliabilityLabel.noVerifiedSchedule] remplace toute heure.
+  static String itinerary(PlannedRoute r, String from, String to) {
+    final buf = StringBuffer();
+    buf.writeln('🧭 Itinéraire trouvé : $from → $to');
+    buf.writeln('⏱️ Durée estimée : ~${r.totalMinutes} min (estimation non vérifiée) • ${r.transferCount} correspondance(s)');
+    buf.writeln('');
+    for (int i = 0; i < r.segments.length; i++) {
+      final s = r.segments[i];
+      buf.writeln('${i + 1}. ${s.modeLabel} : ${s.from} → ${s.to}');
+      if (s.status == DataStatus.scheduled && s.departureTime != null && s.arrivalTime != null) {
+        buf.writeln('   🕒 Horaire programmé : ${s.departureTime} → ${s.arrivalTime}');
+      } else {
+        buf.writeln('   🕒 ${ReliabilityLabel.noVerifiedSchedule}');
+      }
+      buf.writeln('   Durée estimée : ~${s.durationMinutes} min (estimation non vérifiée)');
+    }
+    return buf.toString();
+  }
+
+  static const Map<String, String> _prefix = <String, String>{
+    'ter': '🚆 [Mémorisé : TER]',
+    'brt': '🚌 [Mémorisé : SunuBRT]',
+    'ddd': '🚍 [Mémorisé : Dakar Dem Dikk]',
+    'tata': '🚐 [Mémorisé : Bus TATA]',
+    'aftu': '🚐 [Mémorisé : AFTU]',
+  };
+
+  /// Présentation d'un réseau, dérivée des données : lignes CONFIRMED listées
+  /// avec leur nombre d'arrêts et leur source ; lignes non vérifiées,
+  /// contestées ou futures seulement comptées, et qualifiées comme telles.
+  static String modeInfo(String operatorId, List<Operator> operators, List<TransportRoute> routes) {
+    Operator? op;
+    for (final o in operators) {
+      if (o.id == operatorId) op = o;
+    }
+    final mine = routes.where((r) => r.operatorId == operatorId).toList();
+    final confirmed = mine.where((r) => r.provenance.status == ProvenanceStatus.confirmed).toList();
+    final int unverified = mine.where((r) => r.provenance.status == ProvenanceStatus.unverified).length;
+    final int conflicting = mine.where((r) => r.provenance.status == ProvenanceStatus.conflicting).length;
+    final int future = mine.where((r) => r.provenance.status == ProvenanceStatus.future).length;
+
+    final buf = StringBuffer(_prefix[operatorId] ?? '🚍');
+    final Operator? found = op;
+    if (found != null && found.officialLineCount != null && found.officialLineCountSource != null) {
+      buf.write(' Selon ${found.officialLineCountSource}, le réseau ${found.name} compte ${found.officialLineCount} ligne(s).');
+    }
+    if (mine.isEmpty) {
+      buf.write(" L'application ne contient aucune ligne de ce réseau.");
+    } else {
+      for (final r in confirmed) {
+        final src = r.provenance.source;
+        buf.write(' ${r.shortName} (${r.longName}) : ${r.stopIds.length} arrêts${src == null ? '' : ' (source : $src)'}.');
+      }
+      final int notConfirmed = unverified + conflicting;
+      if (notConfirmed > 0) {
+        buf.write(' $notConfirmed ligne(s) de l’application ne sont pas vérifiées');
+        if (conflicting > 0) buf.write(', dont $conflicting signalée(s) comme contradictoire(s) par l’audit');
+        buf.write(' : leurs itinéraires sont indicatifs.');
+      }
+      if (future > 0) buf.write(' $future ligne(s) annoncée(s), pas encore en service.');
+    }
+    buf.write(" Je ne dispose d'aucun horaire ni d'aucune fréquence vérifiés pour ce réseau.");
+    buf.write(' Dis-moi ton départ et ton arrivée pour un itinéraire.');
+    return buf.toString();
   }
 }
 
@@ -3344,15 +3476,7 @@ class _AIChatPageState extends State<AIChatPage> {
     if (res.errorMessage != null) return '⚠️ ${res.errorMessage}';
     if (!res.hasRoutes) return 'Aucun itinéraire trouvé entre $from et $to.';
     final r = res.routes.first;
-    final buf = StringBuffer();
-    buf.writeln('🧭 Itinéraire trouvé : $from → $to');
-    buf.writeln('⏱️ Durée totale : ${r.totalMinutes} min • ${r.transferCount} correspondance(s)');
-    buf.writeln('');
-    for (int i = 0; i < r.segments.length; i++) {
-      final s = r.segments[i];
-      buf.writeln('${i+1}. ${s.modeLabel} : ${s.from} → ${s.to}');
-      buf.writeln('   🕒 ${s.departureTime} → ${s.arrivalTime} • ${s.durationMinutes} min • ${s.modeLabel == 'TER' || s.modeLabel == 'BRT' ? 'Direct' : 'Rotation ~5 min'}');
-    }
+    final buf = StringBuffer(AssistantReplies.itinerary(r, from, to));
     buf.writeln('');
     buf.writeln('💡 Astuce : ouvre l\'onglet "Trajets" pour voir le détail sur la carte.');
     // ✅ CORRECTION HORS ZONE : le tri « des arrêts proches » n'est réellement
@@ -3412,19 +3536,19 @@ class _AIChatPageState extends State<AIChatPage> {
       }
     } else if (lower.contains('ter') || lower.contains('train') || lower.contains('diamniadio')) {
       _dernierModeInterroge = 'TER';
-      aiReply = '🚆 [Mémorisé : TER] Le Train Express Régional relie Dakar à Diamniadio en traversant 14 gares officielles (Colobane, Pikine, Rufisque...) avec un départ toutes les 10 à 20 min. Dis-moi ton départ et arrivée pour un itinéraire TER.';
+      aiReply = AssistantReplies.modeInfo('ter', appDataService.operators, appDataService.routes);
     } else if (lower.contains('brt') || lower.contains('guédiawaye') || lower.contains('petersen') || lower.contains('sunu')) {
       _dernierModeInterroge = 'BRT';
-      aiReply = '🚌 [Mémorisé : SunuBRT] Le couloir BRT relie le PEM Guédiawaye au PEM Petersen en passant par Dalal Jamm, Parcelles Assainies et l’Obélisque. Donne-moi un trajet pour te guider.';
+      aiReply = AssistantReplies.modeInfo('brt', appDataService.operators, appDataService.routes);
     } else if (lower.contains('ddd') || lower.contains('dakar dem dikk') || lower.contains('ligne 1') || lower.contains('ligne 3')) {
       _dernierModeInterroge = 'DDD';
-      aiReply = '🚍 [Mémorisé : Dakar Dem Dikk] Les bus DDD couvrent les lignes urbaines et interurbaines (L1 Colobane-Yoff, L3 Sandaga-Ouakam, etc.). Précise ton trajet DDD et je te le planifie.';
+      aiReply = AssistantReplies.modeInfo('ddd', appDataService.operators, appDataService.routes);
     } else if (lower.contains('tata') || lower.contains('minibus') || lower.contains('ligne 50')) {
       _dernierModeInterroge = 'TATA';
-      aiReply = '🚐 [Mémorisé : Bus TATA] Les bus TATA desservent Guédiawaye, Pikine, Yoff, Mermoz, Keur Massar... Dis-moi où tu veux aller.';
+      aiReply = AssistantReplies.modeInfo('tata', appDataService.operators, appDataService.routes);
     } else if (lower.contains('aftu') || lower.contains('parcelles') || lower.contains('grand yoff')) {
       _dernierModeInterroge = 'AFTU';
-      aiReply = '🚐 [Mémorisé : AFTU] 72 lignes AFTU couvrent tout Dakar (Parcelles, Grand Yoff, Petersen...). Donne-moi départ/arrivée pour un itinéraire AFTU.';
+      aiReply = AssistantReplies.modeInfo('aftu', appDataService.operators, appDataService.routes);
     } else if (lower.contains('où suis-je') || lower.contains('ou suis je') || lower.contains('autour de moi') || lower.contains('proche')) {
       if (GpsResolver.isWithinServiceZone(widget.userPosition)) {
         final nearby = allStops.map((s) => MapEntry(s, DistanceHelper.haversineMeters(widget.userPosition!, s.location))).toList()..sort((a,b)=>a.value.compareTo(b.value));
@@ -3442,9 +3566,11 @@ class _AIChatPageState extends State<AIChatPage> {
         aiReply = '📍 Active ton GPS via "Activer GPS" sur la carte, puis je pourrai te montrer les arrêts autour de toi et planifier un trajet.';
       }
     } else if (lower.contains('alerte') || lower.contains('bouchon') || lower.contains('trafic') || lower.contains('direct rue')) {
-      aiReply = '🚨 Alertes en temps réel : consulte l\'onglet "Alertes" (CETUD/SETER) et "Direct rue" (signalements usagers). Tu peux aussi publier un signalement. Veux-tu que je vérifie le trafic autour de toi ? Active ton GPS et dis-moi ta position.';
+      // Audit 2026-09-24 : aucun flux temps réel ni état du trafic n'existe ;
+      // l'assistant ne propose plus de « vérifier le trafic ».
+      aiReply = '🚨 Je ne dispose d\'aucune information vérifiée sur l\'état du trafic. Consulte l\'onglet "Alertes" (informations réseau, avec leur niveau de vérification) et "Direct rue" (signalements d\'usagers, non vérifiés). Tu peux aussi publier un signalement.';
     } else {
-      aiReply = '🚍 Les réseaux TER, BRT, DDD, TATA, AFTU fonctionnent normalement. Pour un itinéraire précis, dis-moi : "Je suis à X, je veux aller à Y" ou "De X à Y". Exemple testé : "Je suis à Dakar, je veux aller à Keur Mbaye Fall" → je te donne le trajet TER direct.';
+      aiReply = '🚍 Je ne dispose d\'aucune information vérifiée sur l\'état du trafic des réseaux TER, BRT, DDD, TATA et AFTU. Pour un itinéraire, dis-moi : "Je suis à X, je veux aller à Y" ou "De X à Y". Exemple : "Je suis à Dakar, je veux aller à Keur Mbaye Fall" → je te propose un itinéraire en TER.';
       if (_dernierModeInterroge != null) {
         aiReply += '\n💡 (Mémorisé : $_dernierModeInterroge)';
       }
@@ -3583,13 +3709,23 @@ class DetailedRoutePage extends StatelessWidget {
                               children: [
                                 Row(children: [
                                   Expanded(child: Text(stop.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary(dark)))),
-                                  Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: AppColors.success.withOpacity(0.1), borderRadius: BorderRadius.circular(4)), child: const Text('[OFFICIEL]', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppColors.success))),
+                                  // Audit 2026-09-24 — AVANT : « [OFFICIEL] » sur TOUS les arrêts,
+                                  // quel que soit le statut. APRÈS : badge dérivé du statut le moins
+                                  // sûr (ligne, arrêt) ; vert seulement si CONFIRMED.
+                                  Builder(builder: (context) {
+                                    final ProvenanceStatus st = route.statusOf(stop);
+                                    final Color c = ReliabilityLabel.canShowOfficial(st) ? AppColors.success : AppColors.warning;
+                                    return Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: c.withOpacity(0.1), borderRadius: BorderRadius.circular(4)), child: Text('[${ReliabilityLabel.badge(st)}]', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: c)));
+                                  }),
                                 ]),
                                 const SizedBox(height: 4),
                                 Row(children: [
                                   Icon(Icons.access_time, size: 12, color: route.color),
                                   const SizedBox(width: 4),
-                                  Text('Heure : ${stop.estimatedTime}', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textPrimary(dark))),
+                                  // Audit 2026-09-24 — AVANT : « Heure : ~N min » (N = rang × 3,
+                                  // hypothèse non sourcée) lu comme une heure. Aucun horaire n'existe
+                                  // dans les données : `estimatedTime` reste dans le modèle, non affiché.
+                                  Text(ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textPrimary(dark))),
                                   const Spacer(),
                                   Text('📍 ${stop.distanceFromStart}', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
                                 ]),
@@ -3752,9 +3888,9 @@ class SingleStopView extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Prochain départ', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
+                          Text('Prochain départ programmé', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
                           const SizedBox(height: 2),
-                          Text(stop.nextDepartureLabel() ?? 'Fermé', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: stop.color)),
+                          Text(stop.nextDepartureLabel() ?? ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: stop.color)),
                         ],
                       ),
                       Column(
