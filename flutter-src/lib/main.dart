@@ -1013,6 +1013,131 @@ double explorerDistanceForDisplay(Stop s, LatLng? userPosition) {
   return s.distanceMeters;
 }
 
+// ============================================================
+// RENDU CARTOGRAPHIQUE — COUTURES PURES (lisibilité, sans donnée nouvelle)
+// ============================================================
+
+/// Géométrie **de rendu** d'un tracé pour la couche `PolylineLayer`
+/// d'Explorer — correctif CAS A (doublonnage de rendu de la double ligne
+/// BRT), appliqué au rendu uniquement, jamais aux données.
+///
+/// DIAGNOSTIC (démontré sur `assets/data/dakar_network.json`, inchangé) :
+/// le JSON porte deux lignes BRT officielles — `BRT B1` (23 stations) et
+/// `BRT B2 Express` (7 stations) — dont les 7 stations sont une
+/// **sous-séquence exacte et ordonnée** des stations de B1 (indices 0, 4, 7,
+/// 10, 14, 20, 22). `_loadDynamicRoutes` rend chaque ligne en vert
+/// (`AppColors.brt`) :
+///
+///  * B1 relie ses 23 stations par segments successifs (son parcours) ;
+///  * B2 relie ses 7 stations par des cordes directes qui **enjambent** les
+///    16 stations intermédiaires de B1 — déviation latérale mesurée jusqu'à
+///    ~910 m (segments intermédiaires à ~190-440 m) ;
+///  * les deux polylignes coïncident exactement aux 7 stations partagées et
+///    divergent entre elles → l'apparence « double ligne verte » /
+///    « deux lignes parallèles » observée.
+///
+/// Ce n'est NI des points dupliqués dans une ligne (CAS B réfuté : aucun
+/// point répété dans B1 ni dans B2, ni consécutif ni global), NI une
+/// géométrie incohérente (CAS C réfuté : aucun retour arrière ni boucle dans
+/// la séquence officielle de B1) : c'est un **doublonnage de rendu** de deux
+/// lignes officielles distinctes partageant un coridoir.
+///
+/// Correctif de rendu : quand les points de [route] forment une sous-séquence
+/// ordonnée exacte des points d'un autre tracé de **même couleur** (le
+/// coridoir contenant, ex. B1 pour B2), le rendu suit le sous-tracé du
+/// conteneur (y compris ses stations intermédiaires) au lieu de dessiner des
+/// cordes parallèles. Les deux polylignes officielles sont toujours rendues
+/// (aucune supprimée) et coïncident alors sommet pour sommet : une seule
+/// ligne verte visible.
+///
+/// Aucune coordonnée n'est créée : chaque sommet du résultat est déjà un
+/// sommet du tracé conteneur, lui-même construit uniquement depuis les arrêts
+/// de `dakar_network.json`. Sans conteneur, [TransitRoute.points] est
+/// retourné **inchangé** (même référence). `shapes.txt` (dépôt, hors
+/// `flutter-src`) n'est pas chargé par l'application et n'intervient pas.
+///
+/// Couture **pure** : ni carte, ni plugin, ni I/O, aucune donnée mutée.
+@visibleForTesting
+List<LatLng> explorerRenderedRoutePoints(
+    TransitRoute route, List<TransitRoute> universe) {
+  TransitRoute? best;
+  List<int>? bestIndices;
+  for (final TransitRoute other in universe) {
+    if (other.code == route.code) continue;
+    if (other.color != route.color) continue;
+    if (other.points.length <= route.points.length) continue;
+    final List<int>? indices =
+        _explorerSubsequenceIndices(route.points, other.points);
+    if (indices != null &&
+        (best == null || other.points.length > best.points.length)) {
+      best = other;
+      bestIndices = indices;
+    }
+  }
+  if (best == null || bestIndices == null) return route.points;
+  return best.points.sublist(bestIndices.first, bestIndices.last + 1);
+}
+
+/// Indices de la sous-séquence ordonnée **exacte** (égalité coordinate au
+/// double près, sans approximation) de [needle] dans [haystack], ou `null`
+/// si [needle] n'est pas contenu dans [haystack].
+List<int>? _explorerSubsequenceIndices(
+    List<LatLng> needle, List<LatLng> haystack) {
+  final List<int> indices = <int>[];
+  int h = 0;
+  for (final LatLng n in needle) {
+    while (h < haystack.length && !_explorerSamePoint(n, haystack[h])) {
+      h++;
+    }
+    if (h >= haystack.length) return null;
+    indices.add(h);
+    h++;
+  }
+  return indices;
+}
+
+bool _explorerSamePoint(LatLng a, LatLng b) =>
+    a.latitude == b.latitude && a.longitude == b.longitude;
+
+/// Arrêt **structurant** pour la densité visuelle de la carte Explorer :
+/// réseau TER ou BRT (tracés dédiés de la vue « Tous ») ou point
+/// d'articulation (terminus / correspondance) quel que soit le réseau.
+///
+/// Dérivé uniquement des champs existants ([Stop.color], [Stop.stopType]) :
+/// aucun champ ajouté, aucun inventaire de « principaux » codé en dur, aucun
+/// arrêt retiré de la donnée.
+@visibleForTesting
+bool explorerStopIsStructuring(Stop s) =>
+    s.color == AppColors.ter ||
+    s.color == AppColors.brt ||
+    s.stopType == StopType.terminus ||
+    s.stopType == StopType.correspondence;
+
+/// Empan visuel d'un marqueur arrêt pour un niveau de zoom donné — densité
+/// **non destructive** (aucun arrêt supprimé, aucun réseau supprimé, aucun
+/// filtre métier modifié ; le marqueur reste toujours transmis au
+/// `MarkerLayer`) : il est seulement rendu plus ou moins visible.
+///
+/// Paliers cadrés sur les zooms déjà existants de l'Explorer (aperçu 11.2,
+/// utilisateur 12.5, arrêt 13.5 ; bornes carte 9–17) :
+///
+///  * structurant (TER/BRT/terminus/correspondence) → plein écran à tout
+///    zoom (priorité « vue éloignée ») ;
+///  * secondaire, zoom < 12.0        → opacité 0.25, échelle 0.75 ;
+///  * secondaire, 12.0 ≤ zoom < 13.5 → opacité 0.55, échelle 0.85 ;
+///  * secondaire, zoom ≥ 13.5        → pleine visibilité.
+///
+/// Progression monotone : apparition progressive, jamais de disparition.
+@visibleForTesting
+({double opacity, double scale}) explorerMarkerVisual(double zoom, Stop stop) {
+  if (explorerStopIsStructuring(stop)) {
+    return (opacity: 1.0, scale: 1.0);
+  }
+  if (zoom < 12.0) return (opacity: 0.25, scale: 0.75);
+  if (zoom < 13.5) return (opacity: 0.55, scale: 0.85);
+  return (opacity: 1.0, scale: 1.0);
+}
+
 /// `<MODE>_OFFICIAL_ROUTE_STOPS` — arrêts officiels d'une ligne, dans l'ordre
 /// canonique de `dakar_network.json` (source unique, §4-§5).
 ///
@@ -1911,6 +2036,12 @@ class _ExplorerPageState extends State<ExplorerPage> {
   List<Polyline> _dynamicPolylines = [];
   bool _isLoadingRoutes = true;
 
+  /// Zoom courant de la carte, suivi via `MapOptions.onPositionChanged`
+  /// (gestes ET déplacements programmatiques). Pilote la densité visuelle des
+  /// marqueurs ([explorerMarkerVisual]) — aucun arrêt n'est jamais retiré de
+  /// la couche ni des données, seul le rendu change avec le zoom.
+  double _mapZoom = _zoomOverview;
+
   // ✅ ZOOMS ADAPTÉS
   static const double _zoomOverview = 11.2;
   static const double _zoomOnStop = 13.5;
@@ -1951,8 +2082,26 @@ class _ExplorerPageState extends State<ExplorerPage> {
     final List<Polyline> loaded = [];
     final initialRoutes = demoRoutes.where((r) => r.isDedicated).toList();
     for (final route in initialRoutes) {
-      final points = route.points.where((pt) => DakarBounds.isValid(pt)).toList();
-      if (points.length >= 2) loaded.add(Polyline(points: points, color: route.color, strokeWidth: 5.5));
+      // ✅ RENDU ANTI-DOUBLE-LIGNE (CAS A) — géométrie éventuellement calée
+      //    sur le coridoir conteneur de même couleur (ex. : les cordes de
+      //    BRT B2 Express suivent alors le sous-tracé de BRT B1 au lieu de
+      //    dessiner une seconde ligne verte parallèle). Couture pure, voir
+      //    [explorerRenderedRoutePoints] : aucune donnée mutée.
+      // ✅ Lisibilité des superpositions — liserre blanche (dessous du trait,
+      //    largeur additive `borderStrokeWidth`) sépare visuellement les
+      //    réseaux qui se croisent, sans changer leurs couleurs ni épaisseurs.
+      final points = explorerRenderedRoutePoints(route, demoRoutes)
+          .where((pt) => DakarBounds.isValid(pt))
+          .toList();
+      if (points.length >= 2) {
+        loaded.add(Polyline(
+          points: points,
+          color: route.color,
+          strokeWidth: 5.5,
+          borderColor: Colors.white,
+          borderStrokeWidth: 2,
+        ));
+      }
     }
     if (mounted) setState(() { _dynamicPolylines = loaded; _isLoadingRoutes = false; });
     // Charge le reste en arrière-plan, paresseusement et par petits lots (cache OSRM)
@@ -1984,7 +2133,17 @@ class _ExplorerPageState extends State<ExplorerPage> {
         }
       } catch (_) {}
       if (fullRoutePoints.isEmpty) fullRoutePoints = route.points.where((pt) => DakarBounds.isValid(pt)).toList();
-      if (fullRoutePoints.length >= 2) extra.add(Polyline(points: fullRoutePoints, color: route.color, strokeWidth: 4.5));
+      if (fullRoutePoints.length >= 2) {
+        extra.add(Polyline(
+          points: fullRoutePoints,
+          color: route.color,
+          strokeWidth: 4.5,
+          // ✅ Même liserre blanche que les tracés dédiés — séparation
+          //    visuelle des réseaux superposés (rendu seul).
+          borderColor: Colors.white,
+          borderStrokeWidth: 2,
+        ));
+      }
       // Petite pause pour ne pas saturer
       await Future.delayed(const Duration(milliseconds: 50));
     }
@@ -2087,7 +2246,21 @@ class _ExplorerPageState extends State<ExplorerPage> {
     final stops = _filteredStops;
     // ✅ Filtre les tracés par mobilité pour éviter le spaghetti orange : n'affiche que la couleur sélectionnée
     final Color? filterColor = _selectedFilter == 'Tous' ? null : _colorFor(_selectedFilter);
-    final basePolylines = _dynamicPolylines.isNotEmpty ? _dynamicPolylines : demoRoutes.map((r) => Polyline(points: r.points, color: r.color, strokeWidth: 5.0)).toList();
+    final basePolylines = _dynamicPolylines.isNotEmpty
+        ? _dynamicPolylines
+        : demoRoutes
+            .map((r) => Polyline(
+                  // Même géométrie de rendu que `_loadDynamicRoutes` (CAS A)
+                  // pour un état de chargement cohérent.
+                  points: explorerRenderedRoutePoints(r, demoRoutes)
+                      .where((pt) => DakarBounds.isValid(pt))
+                      .toList(),
+                  color: r.color,
+                  strokeWidth: 5.0,
+                  borderColor: Colors.white,
+                  borderStrokeWidth: 2,
+                ))
+            .toList();
     final activePolylines = filterColor == null
         ? basePolylines.where((p) => p.color == AppColors.ter || p.color == AppColors.brt).toList() // Tous : seulement TER/BRT (tracés dédiés, pas le spaghetti)
         : basePolylines.where((p) => p.color == filterColor).toList();
@@ -2181,25 +2354,55 @@ class _ExplorerPageState extends State<ExplorerPage> {
                             minZoom: 9,
                             maxZoom: 17,
                             // ✅ PAS de cameraConstraint → carte fluide sur web
+                            // ✅ DENSITÉ AU ZOOM (rendu seul) : suit le zoom
+                            //    réel de la caméra (gestes et déplacements
+                            //    programmatiques) pour appliquer
+                            //    [explorerMarkerVisual]. Seuil 0.1 : pas de
+                            //    reconstruction à chaque micro-mouvement.
+                            onPositionChanged: (position, _) {
+                              final double? z = position.zoom;
+                              if (z == null || (z - _mapZoom).abs() < 0.1) {
+                                return;
+                              }
+                              if (mounted) setState(() => _mapZoom = z);
+                            },
                           ),
                           children: [
                             TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', userAgentPackageName: 'dakar_bus', maxZoom: 19),
                             PolylineLayer(polylines: activePolylines),
                             MarkerLayer(
-                              markers: markerStops.map((s) => Marker(
-                                point: s.location, width: 24, height: 24,
-                                child: GestureDetector(
-                                  onTap: () { _centerOnStop(s); Navigator.push(context, MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: s))); },
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: s.color, shape: BoxShape.circle,
-                                      border: Border.all(color: Colors.white, width: 2),
-                                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.25), blurRadius: 3)],
+                              // ✅ DENSITÉ AU ZOOM (Phases 3-4) : empan
+                              //    20 px (cible 18-20), opacité/échelle
+                              //    pilotées par [_mapZoom] via
+                              //    [explorerMarkerVisual]. NON destructif :
+                              //    la liste `markerStops` est inchangée (aucun
+                              //    arrêt retiré — même transmission qu'avant) ;
+                              //    couleurs, icônes, interactions et page de
+                              //    détail au clic identiques.
+                              markers: markerStops.map((s) {
+                                final ({double opacity, double scale}) visual =
+                                    explorerMarkerVisual(_mapZoom, s);
+                                return Marker(
+                                  point: s.location, width: 20, height: 20,
+                                  child: Opacity(
+                                    opacity: visual.opacity,
+                                    child: Transform.scale(
+                                      scale: visual.scale,
+                                      child: GestureDetector(
+                                        onTap: () { _centerOnStop(s); Navigator.push(context, MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: s))); },
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color: s.color, shape: BoxShape.circle,
+                                            border: Border.all(color: Colors.white, width: 2),
+                                            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.25), blurRadius: 3)],
+                                          ),
+                                          child: Icon(s.icon, color: Colors.white, size: 10),
+                                        ),
+                                      ),
                                     ),
-                                    child: Icon(s.icon, color: Colors.white, size: 12),
                                   ),
-                                ),
-                              )).toList(),
+                                );
+                              }).toList(),
                             ),
                             if (widget.userPosition != null && PositionValidity.isPlausible(widget.userPosition!))
                               MarkerLayer(markers: [Marker(point: widget.userPosition!, width: 22, height: 22, child: Container(decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 3), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 4)])))]),
