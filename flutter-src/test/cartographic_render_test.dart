@@ -143,10 +143,6 @@ class _PngHeaders implements HttpHeaders {
   void clear() => _values.clear();
 
   @override
-  bool containsKey(String name, {bool preserveHeaderCase = false}) =>
-      _values.containsKey(name);
-
-  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -297,7 +293,7 @@ bool _samePolylinePoints(List<LatLng> a, List<LatLng> b) {
 
 /// Empan (opacité) réellement posé sur un marqueur rendu.
 double? _markerOpacity(Marker m) {
-  final Widget? child = m.child;
+  final Widget child = m.child;
   return child is Opacity ? child.opacity : null;
 }
 
