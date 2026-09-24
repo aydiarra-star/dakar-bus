@@ -28,8 +28,8 @@ import 'package:dakar_bus/main.dart';
 ///     ni CAS C (géométrie incohérente — refutée) : les données restent
 ///     intactes.
 ///  2. **Densité non destructive au zoom** — la transmission au `MarkerLayer`
-///     est identique quel que soit le zoom (58 marqueurs à l'aperçu, toujours
-///     58 après déplacement) ; seul l'empan visuel (opacité/échelle) varie,
+///     est identique quel que soit le zoom (56 marqueurs à l'aperçu, toujours
+///     56 après déplacement) ; seul l'empan visuel (opacité/échelle) varie,
 ///     monotone et sans bascule binaire.
 ///  3. **Taille** — empan 20 px (cible 18-20), couleurs/icônes/clics inchangés.
 ///
@@ -636,15 +636,18 @@ void main() {
     });
 
     testWidgets(
-        'caméra aperçu (zoom 11.2) : 58 marqueurs TOUJOURS transmis, empan '
+        'caméra aperçu (zoom 11.2) : 56 marqueurs TOUJOURS transmis, empan '
         '20 px, opacité exacte = couture — aucun arrêt retiré',
         (WidgetTester tester) async {
       await pumpExplorer(tester);
 
       final MarkerLayer stops = _stopsLayer(tester);
-      expect(stops.markers.length, 58,
+      // Mission 3 : 58 → 56 — les 3 points de démonstration qui occupaient
+      // des places « à proximité » sont retirés de `allStops` (détail et
+      // calcul : explorer_marker_render_test, CAS A).
+      expect(stops.markers.length, 56,
           reason: 'transmission identique à avant la phase (36 officiels '
-              'TER+BRT + 22 proximité) — non destructif');
+              'TER+BRT + 20 proximité) — non destructif');
 
       for (final Marker m in stops.markers) {
         expect(m.width, 20, reason: 'empan cible 18-20 px');
@@ -654,9 +657,9 @@ void main() {
 
         // Arrêt(s) correspondant(s) — la couche ne transmet que des
         // `allStops`. Plusieurs arrêts peuvent partager des coordonnées
-        // EXACTES (démo + JSON : TATA Ligne 218 ≡ stop_mermoz, DDD L14 ≡
-        // stop_ucad, AFTU Grand Yoff ≡ stop_grand_yoff) : le candidat est
-        // donc départacé par la couleur réseau portée par le marqueur.
+        // EXACTES : le candidat est départagé par la couleur réseau portée
+        // par le marqueur. (Mission 3 : les points de démo qui dupliquaient
+        // stop_mermoz, stop_ucad et stop_grand_yoff ne sont plus affichés.)
         final Color markerColor = _markerColor(m)!;
         final List<Stop> candidates = allStops
             .where((Stop s) =>
@@ -693,7 +696,7 @@ void main() {
 
     testWidgets(
         'zoom rapproché (move programmatique → 14.0) : secondaires à pleine '
-        'visibilité, transmission toujours 58', (WidgetTester tester) async {
+        'visibilité, transmission toujours 56', (WidgetTester tester) async {
       await pumpExplorer(tester);
 
       final FlutterMap map =
@@ -705,7 +708,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
 
       final MarkerLayer stops = _stopsLayer(tester);
-      expect(stops.markers.length, 58,
+      expect(stops.markers.length, 56,
           reason: 'aucun arrêt retiré de la couche quel que soit le zoom');
 
       for (final Marker m in stops.markers) {

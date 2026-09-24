@@ -377,19 +377,24 @@ void main() {
 
       final List<String> textes = textesRendus(tester);
 
-      // Les deux signalements existants sont toujours là : rien n'a été
-      // supprimé, aucun nouveau signalement n'a été créé.
-      for (final String attendu in <String>[
-        'Mamadou S.',
-        'Aïssatou N.',
-        '📍 Parcelles Assainies (BRT) — Trafic fluide',
-        '📍 Gare de Dakar (TER) — Embarquement régulier',
-      ]) {
-        expect(textes, contains(attendu),
-            reason: 'le signalement « $attendu » doit rester affiché');
+      // MISSION 3 (audit données 2026-09-24) — hypothèse devenue fausse.
+      // AVANT : ce test exigeait que les deux signalements codés en dur
+      //         (« Mamadou S. », « Aïssatou N. ») restent affichés, au motif
+      //         que « rien ne doit être supprimé ». Or ces signalements n'ont
+      //         aucune source (ni JSON, ni backend, ni persistance) : ce sont
+      //         des fictions présentées comme l'activité d'usagers réels. Leur
+      //         retrait est explicitement demandé (mission 3, point 2).
+      // APRÈS : l'écran est conservé et affiche un état vide explicite ;
+      //         aucun signalement n'est inventé à la place. Le reste du test
+      //         (bouton actif, aucun horodatage inventé) est inchangé.
+      for (final String retire in <String>['Mamadou S.', 'Aïssatou N.']) {
+        expect(textes, isNot(contains(retire)),
+            reason: 'signalement fictif « $retire » : ne doit plus être affiché');
       }
-      expect(textes.where((String t) => t.startsWith('📍')), hasLength(2),
-          reason: 'ni plus ni moins que les deux signalements existants');
+      expect(textes.where((String t) => t.startsWith('📍')), isEmpty,
+          reason: 'aucun signalement n\'existe au démarrage : aucun n\'est simulé');
+      expect(textes, contains('Aucun signalement vérifié disponible pour le moment.'),
+          reason: 'état vide explicite (mission 3)');
 
       // Le bouton de signalement reste actif : la fonctionnalité de
       // publication n'est pas retirée par la correction.
@@ -414,17 +419,14 @@ void main() {
           reason: 'E.4 — le bouton « Signaler » ne doit pas être désactivé : '
               'la correction porte sur les libellés, pas sur la fonctionnalité');
 
-      // Chaque signalement porte un horodatage explicitement non temporel, et
-      // aucune date ni heure n'a été générée à la place.
-      final List<String> horodatages = textes
-          .where((String t) => normalise(t).contains('horodatage'))
+      // Aucune date ni heure n'est générée. (Mission 3 : les deux horodatages
+      // « Sans horodatage » appartenaient aux signalements fictifs retirés ;
+      // la page initiale ne rend donc plus aucun horodatage.)
+      final List<String> horaires = textes
+          .where((String t) => RegExp(r'\b\d{1,2}\s?(:|h)\s?\d{2}\b').hasMatch(t))
           .toList();
-      expect(horodatages, hasLength(2),
-          reason: 'les deux signalements affichent un horodatage non temporel');
-      for (final String h in horodatages) {
-        expect(RegExp(r'\d').hasMatch(h), isFalse,
-            reason: 'E.4 — aucune date ni heure ne doit être inventée : « $h »');
-      }
+      expect(horaires, isEmpty,
+          reason: 'E.4 — aucune date ni heure ne doit être inventée : $horaires');
     });
 
     test('SOURCE : plus aucune ancienneté figée ni « usagistes » dans main.dart', () {

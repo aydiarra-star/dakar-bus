@@ -328,22 +328,35 @@ void main() {
         reason: '13 gares TER officielles transmises au MarkerLayer');
     expect(transmittedByColor(stops, AppColors.brt), 23,
         reason: '23 stations BRT officielles transmises au MarkerLayer');
-    // 58 = 36 officiels TER+BRT + 22 arrêts de proximité des autres réseaux.
+    // 56 = 36 officiels TER+BRT + 20 arrêts de proximité des autres réseaux.
+    //
+    // MISSION 3 (audit données 2026-09-24) — 58 → 56. Hypothèse devenue
+    // fausse : le « 22 » comptait 3 points de DÉMONSTRATION codés en dur
+    // (« TATA Ligne 218 », « DDD Ligne 10 », « DDD Ligne 14 ») parmi les 30
+    // arrêts les plus proches du centre. Ce ne sont pas des arrêts physiques
+    // (libellés de ligne, coordonnées saisies à la main) : ils sont retirés de
+    // `allStops`. Leurs 3 places reviennent aux 3 arrêts réels suivants :
+    // 2 stations BRT (Place de la Nation - Obélisque, Cardinal Hyacinthe
+    // Thiandoum — déjà parmi les 36 officiels, donc dédoublonnées) et 1 arrêt
+    // DDD (Amitié 2 - Dakar) : 22 − 3 + 1 = 20.
+    // Aucun arrêt du JSON n'est retiré ; le flux « à proximité » (rayon,
+    // plafond 30, tri) est inchangé.
+    //
     // AVANT PR #20 : 57 (36 + 21) — 12 arrêts de démonstration TER/BRT
     // occupaient encore des places parmi les 30 « à proximité » du centre de
     // Dakar et étaient ensuite écartés de la couche (sans `stopId`). Sans les
     // listes de démo (source unique dakar_network.json), une place de plus
     // revient à un arrêt réel d'un autre réseau. Le flux « à proximité »
     // (rayon, plafond 30, tri) est inchangé.
-    expect(stops.markers.length, 58,
-        reason: '36 officiels TER+BRT + 22 arrêts de proximité des autres '
-            'réseaux (flux « à proximité » inchangé)');
+    expect(stops.markers.length, 56,
+        reason: '36 officiels TER+BRT + 20 arrêts de proximité des autres '
+            'réseaux (flux « à proximité » inchangé, sans point de démo)');
 
     expect(renderedByColor(tester, AppColors.ter), 13,
         reason: '13 marqueurs TER instanciés dans la carte (viewport initial)');
     expect(renderedByColor(tester, AppColors.brt), 23,
         reason: '23 marqueurs BRT instanciés dans la carte (viewport initial)');
-    expect(renderedTotal(tester), inInclusiveRange(36, 58),
+    expect(renderedTotal(tester), inInclusiveRange(36, 56),
         reason: 'au moins les 36 officiels ; le reste selon le culling du '
             'viewport initial');
   });
@@ -417,8 +430,8 @@ void main() {
         reason: 'le GPS ne retire aucune gare de la couche — garantie '
             'explorerMapMarkerStops, hors plafond de proximité');
     expect(transmittedByColor(stops, AppColors.brt), 23);
-    expect(stops.markers.length, 58,
-        reason: '36 officiels + 22 arrêts de proximité (voir CAS A)');
+    expect(stops.markers.length, 56,
+        reason: '36 officiels + 20 arrêts de proximité (voir CAS A)');
 
     expect(renderedByColor(tester, AppColors.brt), 23,
         reason: '23 stations BRT rendues avec GPS actif');
@@ -469,8 +482,8 @@ void main() {
         reason: '13 gares TER consultables depuis la France');
     expect(transmittedByColor(stops, AppColors.brt), 23,
         reason: '23 stations BRT consultables depuis la France');
-    expect(stops.markers.length, 58,
-        reason: 'mêmes 58 marqueurs que l\'ouverture sans GPS (CAS A)');
+    expect(stops.markers.length, 56,
+        reason: 'mêmes 56 marqueurs que l\'ouverture sans GPS (CAS A)');
 
     // 4) Les couches marqueurs existent : arrêts + position réelle (hors
     //    viewport, le centre étant Dakar) — la position n'est pas écrasée.
@@ -513,8 +526,8 @@ void main() {
 
     expect(transmittedByColor(stops, AppColors.ter), 13);
     expect(transmittedByColor(stops, AppColors.brt), 23);
-    expect(stops.markers.length, 58,
-        reason: 'consultation complète sans GPS réel');
+    expect(stops.markers.length, 56,
+        reason: 'consultation complète sans GPS réel (voir CAS A)');
     expect(renderedTotal(tester), greaterThanOrEqualTo(35),
         reason: 'les arrêts sont réellement rendus dans le viewport de Dakar');
   });

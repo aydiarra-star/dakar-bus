@@ -821,7 +821,21 @@ class RouteSearchResult {
 final List<Stop> terStations = <Stop>[];
 final List<Stop> brtStations = <Stop>[];
 
-// Lignes DDD Intégrées Officiellement
+// ============================================================
+// POINTS DE DÉMONSTRATION — NON AFFICHÉS (audit données 2026-09-24, mission 3)
+// ============================================================
+// Ces 12 entrées (5 DDD, 4 TATA, 3 AFTU) ne sont PAS des arrêts physiques :
+//  * leur nom est un libellé de ligne (« DDD Ligne 3 (Sandaga - Ouakam) »,
+//    « Parcelles Assainies (L1 à L10) »…), pas un nom d'arrêt ;
+//  * leurs coordonnées sont saisies à la main : 3 dupliquent exactement un
+//    arrêt du JSON (DDD L14 ≡ stop_ucad, TATA 218 ≡ stop_mermoz, Grand Yoff ≡
+//    stop_grand_yoff), les 9 autres sont à 222–1 320 m de tout arrêt réel ;
+//  * les lignes DDD 3 et 14 ne figurent pas sur demdikk.sn/reseau-urbain-dakar/
+//    et les itinéraires de L1, L10 et L20 y sont différents.
+// Elles sont CONSERVÉES dans le code (structure du projet) mais RETIRÉES de
+// `allStops` : ni carte, ni liste, ni planificateur, ni assistant. Les arrêts
+// réels correspondants restent affichés via `dakar_network.json`, et les
+// routes DDD/TATA/AFTU du JSON (dont ddd_3 et ddd_14) sont inchangées.
 final List<Stop> dddStations = [
   Stop(name: 'DDD Ligne 1 (Colobane - Yoff)', direction: 'Dir. Yoff Pêcheurs', distanceMeters: 1200, departureMinutesFromMidnight: [], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: const LatLng(14.6950, -17.4440), modeLabel: 'DDD', source: DataSourceInfo.demdikk, stopType: StopType.boarding),
   Stop(name: 'DDD Ligne 3 (Sandaga - Ouakam)', direction: 'Dir. Cité Mamelles', distanceMeters: 900, departureMinutesFromMidnight: [], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: const LatLng(14.6730, -17.4420), modeLabel: 'DDD', source: DataSourceInfo.demdikk, stopType: StopType.boarding),
@@ -830,7 +844,7 @@ final List<Stop> dddStations = [
   Stop(name: 'DDD Ligne 20 (Petersen - Rufisque)', direction: 'Dir. Gare Rufisque', distanceMeters: 500, departureMinutesFromMidnight: [], icon: Icons.directions_bus_filled_rounded, color: AppColors.ddd, location: const LatLng(14.6720, -17.4390), modeLabel: 'DDD', source: DataSourceInfo.demdikk, stopType: StopType.terminus),
 ];
 
-// Bus TATA Intégrés Officiellement
+// Démonstration TATA — non affichée (voir ci-dessus).
 final List<Stop> tataStations = [
   Stop(name: 'TATA Ligne 50 (Guédiawaye - Sandaga)', direction: 'Dir. Sandaga Centre', distanceMeters: 800, departureMinutesFromMidnight: [], icon: Icons.directions_bus_filled, color: AppColors.tata, location: const LatLng(14.7700, -17.3950), modeLabel: 'Tata', source: DataSourceInfo.tataOfficial, stopType: StopType.boarding),
   Stop(name: 'TATA Ligne 64 (Pikine - Liberté 6)', direction: 'Dir. Liberté 6 Extension', distanceMeters: 1300, departureMinutesFromMidnight: [], icon: Icons.directions_bus_filled, color: AppColors.tata, location: const LatLng(14.7500, -17.3880), modeLabel: 'Tata', source: DataSourceInfo.tataOfficial, stopType: StopType.boarding),
@@ -844,7 +858,10 @@ final List<Stop> aftuAndBusStations = [
   Stop(name: 'Terminus Petersen (AFTU L25)', direction: 'Terminus central AFTU', distanceMeters: 450, departureMinutesFromMidnight: [], icon: Icons.directions_bus_outlined, color: AppColors.aftu, location: const LatLng(14.6720, -17.4400), modeLabel: 'AFTU', source: DataSourceInfo.aftuOfficial, stopType: StopType.terminus),
 ];
 
-final List<Stop> allStops = [...terStations, ...brtStations, ...dddStations, ...tataStations, ...aftuAndBusStations]
+// Mission 3 : `dddStations`, `tataStations` et `aftuAndBusStations`
+// (démonstration) ne sont plus concaténées. Les arrêts affichés proviennent
+// uniquement de `dakar_network.json`, ajoutés par `_integrateNetworkData`.
+final List<Stop> allStops = [...terStations, ...brtStations]
     .where((s) => DakarBounds.isValid(s.location))
     .toList();
 
@@ -1478,7 +1495,7 @@ class RoutePlanner {
 
   static Stop? _findNearestStop(String query) {
     final q = query.trim().toLowerCase();
-    if (q.isEmpty) return null;
+    if (q.isEmpty || allStops.isEmpty) return null;
     for (final s in allStops) {
       if (s.name.toLowerCase().contains(q)) return s;
     }
@@ -1512,6 +1529,7 @@ class RoutePlanner {
   }
 
   static PlannedRoute? _findTransfer(Stop from, Stop to, int currentMin) {
+    if (allStops.isEmpty) return null;
     final hub = allStops.firstWhere((s) => s.name.contains('Colobane') || s.name.contains('Petersen'), orElse: () => allStops.first);
     if (hub.name == from.name || hub.name == to.name) return null;
 
@@ -1548,16 +1566,11 @@ class TimeHelper {
     return '$minutes min';
   }
 
-  static String getCrowdLevel(Stop stop) {
-    final now = DateTime.now();
-    final h = now.hour;
-    if ((h >= 7 && h <= 9) || (h >= 17 && h <= 19)) {
-      return '🔴 Bondé (Heure de pointe)';
-    } else if ((h >= 10 && h <= 16)) {
-      return '🟠 Dense';
-    }
-    return '🟢 Fluide';
-  }
+  // Audit données 2026-09-24 (mission 3) — AVANT : `getCrowdLevel` déduisait
+  // « 🔴 Bondé (Heure de pointe) », « 🟠 Dense » ou « 🟢 Fluide » de la seule
+  // heure du téléphone, pour tous les arrêts, et l'affichait comme un état
+  // observé. APRÈS : supprimé. Aucune donnée de fréquentation n'existe :
+  // l'interface affiche [ReliabilityLabel.crowdUnavailable].
 }
 
 class DistanceHelper {
@@ -2615,7 +2628,7 @@ class StopCard extends StatelessWidget {
       builder: (context, _) {
         final dark = globalState.darkMode;
         final isFav = globalState.isFavorite(stop.name);
-        final crowd = TimeHelper.getCrowdLevel(stop);
+        const String crowd = ReliabilityLabel.crowdUnavailable;
         Widget timeWidget;
 
         // AUDIT DONNÉES 2026-09-24.
@@ -2758,7 +2771,9 @@ class _TripsPageState extends State<TripsPage> {
 
                 if (_result == null && !_loading) ...[
                   const SizedBox(height: 24),
-                  Text('Suggestions populaires (TER, BRT, DDD, TATA)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
+                  // Mission 3 : « populaires » supposait une donnée de fréquentation
+                  // inexistante — remplacé par un libellé neutre.
+                  Text('Exemples de lignes (TER, BRT, DDD)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 10, runSpacing: 10,
@@ -2775,7 +2790,10 @@ class _TripsPageState extends State<TripsPage> {
                       _suggestionChip('Guédiawaye - Petersen (BRT)', () {
                         openLineDetail(context, DetailedRoute.fromOperator('brt'));
                       }, dark),
-                      _suggestionChip('Colobane - Yoff (DDD Ligne 1)', () {
+                      // Mission 3 : `ddd_1` est CONFLICTING (itinéraire contredit
+                      // par demdikk.sn) — la puce le signale au lieu de le
+                      // présenter comme une ligne établie.
+                      _suggestionChip('Colobane - Yoff (DDD 1, itinéraire contesté)', () {
                         openLineDetail(context, DetailedRoute.fromOperator('ddd'));
                       }, dark),
                     ],
@@ -2850,7 +2868,7 @@ class _TripsPageState extends State<TripsPage> {
                 ])),
                 Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
                   Text('~${r.totalMinutes} min', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 18)),
-                  Text('Durée estimée', style: TextStyle(fontSize: 10, color: AppColors.textSecondary(dark)))
+                  Text(ReliabilityLabel.estimatedDuration, style: TextStyle(fontSize: 10, color: AppColors.textSecondary(dark)))
                 ]),
               ],
             ),
@@ -2924,7 +2942,10 @@ class AlertsPage extends StatelessWidget {
         //         n'est ajouté à aucune donnée TER.
         'type': 'TER',
         'title': 'Réseau CETUD & SETER (13 Gares)',
-        'source': 'Source officielle : CETUD / SETER',
+        // Mission 3 : source alignée sur la provenance CONFIRMED de
+        // `ter_dakar_diamniadio` (SETER — plan publié sur terdakar.sn). Le
+        // CETUD n'est pas la source de la liste des 13 gares : retiré.
+        'source': 'Source officielle : SETER (terdakar.sn)',
         'message': 'Le TER dessert officiellement 13 gares de Dakar à Diamniadio en passant par Colobane, Hann, Pikine, Keur Mbaye Fall et Rufisque.',
         'severity': 'success',
         'badge': '13 Gares Officielles',
@@ -2963,7 +2984,10 @@ class AlertsPage extends StatelessWidget {
         //   REAL_TIME n'est introduit, aucune donnée nouvelle n'est inventée.
         'type': 'BRT',
         'title': 'Corridor officiel SunuBRT',
-        'source': 'Source officielle : Dakar Mobilité / CETUD',
+        // Mission 3 — AVANT : « Dakar Mobilité / CETUD », attribution sans
+        // justification. APRÈS : source de la provenance CONFIRMED de
+        // `brt_b1_guediawaye_petersen` (SunuBRT — sunubrt.sn).
+        'source': 'Source officielle : SunuBRT (sunubrt.sn)',
         'message': 'Le corridor relie Guédiawaye à Petersen en passant par Dalal Jamm, Parcelles Assainies et la Place de l’Obélisque.',
         'severity': 'success',
         'badge': 'Données officielles',
@@ -3091,10 +3115,19 @@ class CommunityAlertsPageState extends State<CommunityAlertsPage> {
   //         structure de carte, même widget de rendu. Seule la chaîne `time`
   //         change. La clé `status` n'est lue par AUCUN widget (vérifié) :
   //         elle est laissée inchangée, hors périmètre.
-  final List<Map<String, String>> _communityReports = [
-    {'user': 'Mamadou S.', 'location': 'Parcelles Assainies (BRT)', 'type': 'Trafic fluide', 'time': 'Sans horodatage', 'status': '🟢 Fluide'},
-    {'user': 'Aïssatou N.', 'location': 'Gare de Dakar (TER)', 'type': 'Embarquement régulier', 'time': 'Sans horodatage', 'status': '🟢 Fluide'},
-  ];
+  //
+  // AUDIT DONNÉES 2026-09-24 (mission 3) — faux signalements RETIRÉS.
+  // AVANT : deux signalements codés en dur, attribués à « Mamadou S. » et
+  //         « Aïssatou N. » (« Trafic fluide » à Parcelles Assainies,
+  //         « Embarquement régulier » à la gare de Dakar), rendus comme ceux
+  //         d'usagers réels.
+  // PREUVE : aucune source (ni JSON, ni backend, ni persistance) ; ces noms et
+  //         ces états n'ont jamais été observés.
+  // APRÈS : liste initiale VIDE → état vide explicite
+  //         [ReliabilityLabel.noVerifiedReport]. La saisie par l'utilisateur
+  //         (`_showAddReportModal`) est conservée ; son signalement reste local
+  //         à la session et marqué non vérifié.
+  final List<Map<String, String>> _communityReports = <Map<String, String>>[];
 
   void _showAddReportModal() {
     final locCtrl = TextEditingController();
@@ -3149,12 +3182,16 @@ class CommunityAlertsPageState extends State<CommunityAlertsPage> {
                         'user': 'Moi (Usager)',
                         'location': locCtrl.text.trim(),
                         'type': selectedType,
-                        'time': 'À l’instant',
+                        // Mission 3 : plus d'« À l'instant » figé (resté
+                        // affiché indéfiniment) — statut explicite à la place.
+                        'time': 'Non vérifié',
                         'status': selectedType.substring(0, 2),
                       });
                     });
                     Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Signalement publié avec succès !')));
+                    // Mission 3 : aucun backend — le signalement n'est ni publié ni
+                    // partagé ; il reste affiché sur cet appareil, pour la session.
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Signalement ajouté sur cet appareil (non partagé, non vérifié).')));
                   }
                 },
                 style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 48), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
@@ -3205,6 +3242,13 @@ class CommunityAlertsPageState extends State<CommunityAlertsPage> {
                   ],
                 ),
                 const SizedBox(height: 20),
+                // Mission 3 : état vide explicite — aucune activité simulée.
+                if (_communityReports.isEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider(dark))),
+                    child: Text(ReliabilityLabel.noVerifiedReport, style: TextStyle(fontSize: 13, color: AppColors.textSecondary(dark))),
+                  ),
                 ..._communityReports.map((report) => Container(
                   margin: const EdgeInsets.only(bottom: 12),
                   padding: const EdgeInsets.all(16),
@@ -3836,7 +3880,7 @@ class SingleStopView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final crowd = TimeHelper.getCrowdLevel(stop);
+    const String crowd = ReliabilityLabel.crowdUnavailable;
     // GROUPE 2 (§8) : `null` quand la ligne est indérivable des données
     // courantes — un « inconnu » honnête (§12), jamais une fiche inventée.
     final DetailedRoute? routeDetails = DetailedRoute.fromStop(stop);

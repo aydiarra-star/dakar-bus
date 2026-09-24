@@ -17,6 +17,16 @@ class ReliabilityLabel {
   static const String noVerifiedSchedule =
       "Je ne dispose pas d'un horaire vérifié pour ce trajet.";
 
+  /// Aucune donnée de fréquentation n'existe (ni comptage, ni opérateur).
+  static const String crowdUnavailable = 'Affluence indisponible';
+
+  /// État vide de l'onglet « Direct rue » : aucun signalement vérifié.
+  static const String noVerifiedReport =
+      'Aucun signalement vérifié disponible pour le moment.';
+
+  /// Libellé d'une durée calculée (distance ÷ vitesse moyenne supposée).
+  static const String estimatedDuration = 'Durée estimée, non garantie';
+
   static const String badgeConfirmed = 'OFFICIEL';
   static const String badgeUnverified = 'NON VÉRIFIÉ';
   static const String badgeConflicting = 'CONTESTÉ';
