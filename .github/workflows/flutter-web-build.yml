@@ -139,15 +139,7 @@ jobs:
         run: flutter analyze 2>&1 | tee "${RUNNER_TEMP}/j9-logs/analyze.txt"
 
       - name: flutter test
-        run: |
-          # [DEBUG TEMPORAIRE] publie les détails d'échec en UNE annotation
-          # multi-lignes (%0A) — journal brut inaccessible depuis le client.
-          set +e
-          flutter test --reporter expanded 2>&1 | tee "${RUNNER_TEMP}/j9-logs/test.txt"
-          st=${PIPESTATUS[0]}
-          msg=$(grep -A12 -E 'EXCEPTION CAUGHT|\[E\]|Expected:|Actual:|NoSuchMethod|Timer is still|The following' "${RUNNER_TEMP}/j9-logs/test.txt" | head -n 400 | sed 's/$/%0A/' | tr -d '\n')
-          echo "::warning title=TEST FAILURES DETAIL::${msg}"
-          exit "$st"
+        run: flutter test --reporter expanded 2>&1 | tee "${RUNNER_TEMP}/j9-logs/test.txt"
 
       - name: flutter build web
         run: flutter build web --release --base-href "${BASE_HREF}" 2>&1 | tee "${RUNNER_TEMP}/j9-logs/build-web.txt"
