@@ -913,6 +913,231 @@ List<Stop> explorerMapMarkerStops({
   ];
 }
 
+// ============================================================
+// EXPLORATION HORS ZONE — COUTURES PURES (testables sans carte ni plugin)
+// ============================================================
+
+/// Base de la liste Explorer pour un filtre donné (chips « Tous », « ⭐
+/// Favoris », TER, BRT, DDD, TATA, AFTU) — **indépendante de tout GPS**.
+///
+/// Même sélection que `_filteredStops` avant extraction : filtrage par couleur
+/// réseau ou par favoris sur la liste source ([allStops] en production). Aucune
+/// distance n'est calculée ici ; l'ordre/proximité est appliqué ensuite par
+/// [explorerVisibleStops].
+@visibleForTesting
+List<Stop> explorerBaseStopsForFilter({
+  required String selectedFilter,
+  required Iterable<String> favoriteStopNames,
+  required List<Stop> source,
+}) {
+  if (selectedFilter == '⭐ Favoris') {
+    return source
+        .where((Stop s) => favoriteStopNames.contains(s.name))
+        .toList();
+  }
+  switch (selectedFilter) {
+    case 'TER':
+      return source.where((Stop s) => s.color == AppColors.ter).toList();
+    case 'BRT':
+      return source.where((Stop s) => s.color == AppColors.brt).toList();
+    case 'DDD':
+      return source.where((Stop s) => s.color == AppColors.ddd).toList();
+    case 'TATA':
+      return source.where((Stop s) => s.color == AppColors.tata).toList();
+    case 'AFTU':
+      return source.where((Stop s) => s.color == AppColors.aftu).toList();
+    default:
+      return List<Stop>.of(source);
+  }
+}
+
+/// Liste visible dans l'Explorer (plafond + ordre) pour une position donnée —
+/// **exploration Dakar indépendante du GPS**.
+///
+/// CORRECTION HORS ZONE — comportements :
+///  * position **dans** la zone de service ([GpsResolver.isWithinServiceZone])
+///    → identique à l'AVANT : tri par distance depuis la position mesurée,
+///    rayon [GpsResolver.nearbyRadiusMeters] (4 km), plafond
+///    [GpsResolver.nearbyLimit] (30) ;
+///  * position **hors zone** (France, …) OU `null` (GPS refusé/indisponible)
+///    → identique au chemin « sans position » préexistant : tri depuis le
+///    centre géographique de Dakar (uniquement pour ORDONNER l'affichage,
+///    jamais exposé comme position utilisateur), plafond 30, puis filtre
+///    [DakarBounds]. Aucun « à proximité » n'est calculé depuis la France :
+///    aucune distance de plusieurs milliers de kilomètres n'est produite.
+///
+/// Couture pure : testable sans carte ni plugin. Aucune donnée de transport
+/// n'est modifiée ni fabriquée — seuls les objets d'entrée sont réordonnés.
+@visibleForTesting
+List<Stop> explorerVisibleStops({
+  required List<Stop> base,
+  required LatLng? userPosition,
+}) {
+  final List<Stop> working = List<Stop>.of(base);
+  if (GpsResolver.isWithinServiceZone(userPosition)) {
+    final LatLng position = userPosition!;
+    working.sort((a, b) =>
+        DistanceHelper.haversineMeters(position, a.location).compareTo(
+            DistanceHelper.haversineMeters(position, b.location)));
+    final nearby =
+        GpsResolver.nearbyStops(working, position) ?? const <Stop>[];
+    final List<Stop> limited = nearby.isNotEmpty
+        ? nearby
+        : working.take(GpsResolver.nearbyLimit).toList();
+    return limited.where((s) => DakarBounds.isValid(s.location)).toList();
+  }
+  // Sans position exploitable (null ou hors zone) : ordonnancement depuis le
+  // centre de Dakar — coordonnée d'ordre UNIQUEMENT, jamais une position
+  // utilisateur (décision D1-i, inchangée).
+  const LatLng dakarOrderCenter = LatLng(14.7167, -17.4677);
+  working.sort((a, b) =>
+      DistanceHelper.haversineMeters(dakarOrderCenter, a.location).compareTo(
+          DistanceHelper.haversineMeters(dakarOrderCenter, b.location)));
+  final List<Stop> limited = working.take(GpsResolver.nearbyLimit).toList();
+  return limited.where((s) => DakarBounds.isValid(s.location)).toList();
+}
+
+/// Distance affichée sur une carte d'arrêt Explorer.
+///
+///  * position **dans** la zone de service → distance réelle
+///    haversine(position mesurée, arrêt) — comportement inchangé ;
+///  * position **hors zone** ou absente → repli identique au chemin « sans
+///    position » préexistant (`Stop.distanceMeters`, constat F7 documenté) :
+///    AUCUNE distance de plusieurs milliers de kilomètres (France → Dakar)
+///    n'est présentée comme une distance de proximité utile.
+@visibleForTesting
+double explorerDistanceForDisplay(Stop s, LatLng? userPosition) {
+  if (GpsResolver.isWithinServiceZone(userPosition)) {
+    return DistanceHelper.haversineMeters(userPosition!, s.location);
+  }
+  return s.distanceMeters;
+}
+
+// ============================================================
+// RENDU CARTOGRAPHIQUE — COUTURES PURES (lisibilité, sans donnée nouvelle)
+// ============================================================
+
+/// Géométrie **de rendu** d'un tracé pour la couche `PolylineLayer`
+/// d'Explorer — correctif CAS A (doublonnage de rendu de la double ligne
+/// BRT), appliqué au rendu uniquement, jamais aux données.
+///
+/// DIAGNOSTIC (démontré sur `assets/data/dakar_network.json`, inchangé) :
+/// le JSON porte deux lignes BRT officielles — `BRT B1` (23 stations) et
+/// `BRT B2 Express` (7 stations) — dont les 7 stations sont une
+/// **sous-séquence exacte et ordonnée** des stations de B1 (indices 0, 4, 7,
+/// 10, 14, 20, 22). `_loadDynamicRoutes` rend chaque ligne en vert
+/// (`AppColors.brt`) :
+///
+///  * B1 relie ses 23 stations par segments successifs (son parcours) ;
+///  * B2 relie ses 7 stations par des cordes directes qui **enjambent** les
+///    16 stations intermédiaires de B1 — déviation latérale mesurée jusqu'à
+///    ~910 m (segments intermédiaires à ~190-440 m) ;
+///  * les deux polylignes coïncident exactement aux 7 stations partagées et
+///    divergent entre elles → l'apparence « double ligne verte » /
+///    « deux lignes parallèles » observée.
+///
+/// Ce n'est NI des points dupliqués dans une ligne (CAS B réfuté : aucun
+/// point répété dans B1 ni dans B2, ni consécutif ni global), NI une
+/// géométrie incohérente (CAS C réfuté : aucun retour arrière ni boucle dans
+/// la séquence officielle de B1) : c'est un **doublonnage de rendu** de deux
+/// lignes officielles distinctes partageant un coridoir.
+///
+/// Correctif de rendu : quand les points de [route] forment une sous-séquence
+/// ordonnée exacte des points d'un autre tracé de **même couleur** (le
+/// coridoir contenant, ex. B1 pour B2), le rendu suit le sous-tracé du
+/// conteneur (y compris ses stations intermédiaires) au lieu de dessiner des
+/// cordes parallèles. Les deux polylignes officielles sont toujours rendues
+/// (aucune supprimée) et coïncident alors sommet pour sommet : une seule
+/// ligne verte visible.
+///
+/// Aucune coordonnée n'est créée : chaque sommet du résultat est déjà un
+/// sommet du tracé conteneur, lui-même construit uniquement depuis les arrêts
+/// de `dakar_network.json`. Sans conteneur, [TransitRoute.points] est
+/// retourné **inchangé** (même référence). `shapes.txt` (dépôt, hors
+/// `flutter-src`) n'est pas chargé par l'application et n'intervient pas.
+///
+/// Couture **pure** : ni carte, ni plugin, ni I/O, aucune donnée mutée.
+@visibleForTesting
+List<LatLng> explorerRenderedRoutePoints(
+    TransitRoute route, List<TransitRoute> universe) {
+  TransitRoute? best;
+  List<int>? bestIndices;
+  for (final TransitRoute other in universe) {
+    if (other.code == route.code) continue;
+    if (other.color != route.color) continue;
+    if (other.points.length <= route.points.length) continue;
+    final List<int>? indices =
+        _explorerSubsequenceIndices(route.points, other.points);
+    if (indices != null &&
+        (best == null || other.points.length > best.points.length)) {
+      best = other;
+      bestIndices = indices;
+    }
+  }
+  if (best == null || bestIndices == null) return route.points;
+  return best.points.sublist(bestIndices.first, bestIndices.last + 1);
+}
+
+/// Indices de la sous-séquence ordonnée **exacte** (égalité coordinate au
+/// double près, sans approximation) de [needle] dans [haystack], ou `null`
+/// si [needle] n'est pas contenu dans [haystack].
+List<int>? _explorerSubsequenceIndices(
+    List<LatLng> needle, List<LatLng> haystack) {
+  final List<int> indices = <int>[];
+  int h = 0;
+  for (final LatLng n in needle) {
+    while (h < haystack.length && !_explorerSamePoint(n, haystack[h])) {
+      h++;
+    }
+    if (h >= haystack.length) return null;
+    indices.add(h);
+    h++;
+  }
+  return indices;
+}
+
+bool _explorerSamePoint(LatLng a, LatLng b) =>
+    a.latitude == b.latitude && a.longitude == b.longitude;
+
+/// Arrêt **structurant** pour la densité visuelle de la carte Explorer :
+/// réseau TER ou BRT (tracés dédiés de la vue « Tous ») ou point
+/// d'articulation (terminus / correspondance) quel que soit le réseau.
+///
+/// Dérivé uniquement des champs existants ([Stop.color], [Stop.stopType]) :
+/// aucun champ ajouté, aucun inventaire de « principaux » codé en dur, aucun
+/// arrêt retiré de la donnée.
+@visibleForTesting
+bool explorerStopIsStructuring(Stop s) =>
+    s.color == AppColors.ter ||
+    s.color == AppColors.brt ||
+    s.stopType == StopType.terminus ||
+    s.stopType == StopType.correspondence;
+
+/// Empan visuel d'un marqueur arrêt pour un niveau de zoom donné — densité
+/// **non destructive** (aucun arrêt supprimé, aucun réseau supprimé, aucun
+/// filtre métier modifié ; le marqueur reste toujours transmis au
+/// `MarkerLayer`) : il est seulement rendu plus ou moins visible.
+///
+/// Paliers cadrés sur les zooms déjà existants de l'Explorer (aperçu 11.2,
+/// utilisateur 12.5, arrêt 13.5 ; bornes carte 9–17) :
+///
+///  * structurant (TER/BRT/terminus/correspondence) → plein écran à tout
+///    zoom (priorité « vue éloignée ») ;
+///  * secondaire, zoom < 12.0        → opacité 0.25, échelle 0.75 ;
+///  * secondaire, 12.0 ≤ zoom < 13.5 → opacité 0.55, échelle 0.85 ;
+///  * secondaire, zoom ≥ 13.5        → pleine visibilité.
+///
+/// Progression monotone : apparition progressive, jamais de disparition.
+@visibleForTesting
+({double opacity, double scale}) explorerMarkerVisual(double zoom, Stop stop) {
+  if (explorerStopIsStructuring(stop)) {
+    return (opacity: 1.0, scale: 1.0);
+  }
+  if (zoom < 12.0) return (opacity: 0.25, scale: 0.75);
+  if (zoom < 13.5) return (opacity: 0.55, scale: 0.85);
+  return (opacity: 1.0, scale: 1.0);
+}
+
 /// `<MODE>_OFFICIAL_ROUTE_STOPS` — arrêts officiels d'une ligne, dans l'ordre
 /// canonique de `dakar_network.json` (source unique, §4-§5).
 ///
@@ -1471,11 +1696,21 @@ class GpsResolution {
   /// REAL_TIME resterait interdit.
   final bool isSubstitutedPosition;
 
+  /// Détection HORS ZONE DE COUVERTURE — **distincte** de la validité
+  /// technique de la mesure ([PositionValidity]) : une position à Paris est
+  /// parfaitement plausible (`position != null`, état `granted`, aucune
+  /// substitution) tout en étant hors de la zone de service dakaroise.
+  ///
+  /// `true` uniquement quand une position **mesurée et plausible** est située
+  /// hors des limites [DakarBounds]. Jamais `true` sans `position` réelle.
+  final bool isOutOfCoverage;
+
   const GpsResolution({
     required this.state,
     this.position,
     this.message,
     this.isSubstitutedPosition = false,
+    this.isOutOfCoverage = false,
   });
 
   /// `true` uniquement pour une position réellement mesurée et exploitable.
@@ -1552,14 +1787,48 @@ class GpsResolver {
   /// AVANT : [DakarBounds] était appliqué ici et rejetait toute position
   /// réelle hors du rectangle Dakar (« Position hors zone, recentré sur
   /// Dakar. »). Ce rejet est supprimé : une position réelle n'est jamais
-  /// « hors zone ».
+  /// rejetée — elle est **conservée telle quelle**.
+  ///
+  /// CORRECTION HORS ZONE (distincte du rejet historique) : une position
+  /// mesurée plausible située hors de la zone de service reste `granted` avec
+  /// sa coordonnée réelle intacte, mais le message du bandeau devient
+  /// [outOfCoverageMessage] et [GpsResolution.isOutOfCoverage] vaut `true` :
+  /// « Position GPS obtenue. » n'est plus affiché comme si l'utilisateur
+  /// était dans la zone de service. Aucune substitution, aucun rejet.
   static GpsResolution fromMeasuredPosition(LatLng? measured) {
     if (measured == null) return error;
     if (!PositionValidity.isPlausible(measured)) return error;
+    return _granted(measured);
+  }
+
+  /// Message exigé pour une position réelle hors zone de service.
+  static const String outOfCoverageMessage =
+      'Vous êtes hors de la zone de couverture Dakar Bus';
+
+  /// Détection hors zone de couverture — **logique distincte** de
+  /// [PositionValidity] (validité technique de la mesure).
+  ///
+  /// Réutilise [DakarBounds], les limites géographiques déjà présentes dans
+  /// le projet (garde-fou du réseau de données). Aucune nouvelle zone n'est
+  /// inventée. RÉSERVE : [DakarBounds] est le rectangle des **données
+  /// réseau** du projet — il n'est pas documenté comme périmètre de
+  /// couverture officiel des opérateurs ; il sert ici uniquement d'indicateur
+  /// de « zone de service » existante la plus pertinente.
+  ///
+  /// Retourne `true` uniquement pour une position non nulle située dans ce
+  /// rectangle. Jamais de position fabriquée n'est produite par ce prédicat.
+  static bool isWithinServiceZone(LatLng? measured) =>
+      measured != null && DakarBounds.isValid(measured);
+
+  /// Décision `granted` d'une position mesurée plausible : coordonnée
+  /// conservée telle quelle, message selon la zone de service.
+  static GpsResolution _granted(LatLng measured) {
+    final bool inZone = DakarBounds.isValid(measured);
     return GpsResolution(
       state: GpsState.granted,
       position: measured,
-      message: 'Position GPS obtenue.',
+      message: inZone ? 'Position GPS obtenue.' : outOfCoverageMessage,
+      isOutOfCoverage: !inZone,
     );
   }
 
@@ -1579,11 +1848,10 @@ class GpsResolver {
   /// interruption). Aucun redémarrage automatique n'est ajouté.
   static GpsResolution fromStreamInterrupted(LatLng? lastMeasured) {
     if (lastMeasured != null && PositionValidity.isPlausible(lastMeasured)) {
-      return GpsResolution(
-        state: GpsState.granted,
-        position: lastMeasured,
-        message: 'Position GPS obtenue.',
-      );
+      // Même politique que [fromMeasuredPosition] : la position réelle est
+      // conservée ; seule l'étiquette de zone (« hors couverture ») diffère
+      // quand la mesure est hors de [DakarBounds].
+      return _granted(lastMeasured);
     }
     return error;
   }
@@ -1768,6 +2036,12 @@ class _ExplorerPageState extends State<ExplorerPage> {
   List<Polyline> _dynamicPolylines = [];
   bool _isLoadingRoutes = true;
 
+  /// Zoom courant de la carte, suivi via `MapOptions.onPositionChanged`
+  /// (gestes ET déplacements programmatiques). Pilote la densité visuelle des
+  /// marqueurs ([explorerMarkerVisual]) — aucun arrêt n'est jamais retiré de
+  /// la couche ni des données, seul le rendu change avec le zoom.
+  double _mapZoom = _zoomOverview;
+
   // ✅ ZOOMS ADAPTÉS
   static const double _zoomOverview = 11.2;
   static const double _zoomOnStop = 13.5;
@@ -1784,9 +2058,14 @@ class _ExplorerPageState extends State<ExplorerPage> {
   @override
   void didUpdateWidget(covariant ExplorerPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.userPosition != null &&
-        widget.userPosition != oldWidget.userPosition &&
-        PositionValidity.isPlausible(widget.userPosition!)) {
+    // ✅ CORRECTION HORS ZONE : recentrage automatique UNIQUEMENT depuis une
+    //    position dans la zone de service. Depuis la France, les mises à jour
+    //    GPS ne déplacent plus la carte hors de Dakar : l'exploration reste
+    //    indépendante de la position GPS réelle. La position réelle reste
+    //    conservée (marqueur utilisateur) et le bouton « Position GPS » reste
+    //    utilisable pour aller s'y rendre volontairement.
+    if (GpsResolver.isWithinServiceZone(widget.userPosition) &&
+        widget.userPosition != oldWidget.userPosition) {
       // ✅ Fix: guard move avec try + postFrame pour éviter LateInitializationError
       WidgetsBinding.instance.addPostFrameCallback((_) {
         try {
@@ -1803,8 +2082,26 @@ class _ExplorerPageState extends State<ExplorerPage> {
     final List<Polyline> loaded = [];
     final initialRoutes = demoRoutes.where((r) => r.isDedicated).toList();
     for (final route in initialRoutes) {
-      final points = route.points.where((pt) => DakarBounds.isValid(pt)).toList();
-      if (points.length >= 2) loaded.add(Polyline(points: points, color: route.color, strokeWidth: 5.5));
+      // ✅ RENDU ANTI-DOUBLE-LIGNE (CAS A) — géométrie éventuellement calée
+      //    sur le coridoir conteneur de même couleur (ex. : les cordes de
+      //    BRT B2 Express suivent alors le sous-tracé de BRT B1 au lieu de
+      //    dessiner une seconde ligne verte parallèle). Couture pure, voir
+      //    [explorerRenderedRoutePoints] : aucune donnée mutée.
+      // ✅ Lisibilité des superpositions — liserre blanche (dessous du trait,
+      //    largeur additive `borderStrokeWidth`) sépare visuellement les
+      //    réseaux qui se croisent, sans changer leurs couleurs ni épaisseurs.
+      final points = explorerRenderedRoutePoints(route, demoRoutes)
+          .where((pt) => DakarBounds.isValid(pt))
+          .toList();
+      if (points.length >= 2) {
+        loaded.add(Polyline(
+          points: points,
+          color: route.color,
+          strokeWidth: 5.5,
+          borderColor: Colors.white,
+          borderStrokeWidth: 2,
+        ));
+      }
     }
     if (mounted) setState(() { _dynamicPolylines = loaded; _isLoadingRoutes = false; });
     // Charge le reste en arrière-plan, paresseusement et par petits lots (cache OSRM)
@@ -1836,7 +2133,17 @@ class _ExplorerPageState extends State<ExplorerPage> {
         }
       } catch (_) {}
       if (fullRoutePoints.isEmpty) fullRoutePoints = route.points.where((pt) => DakarBounds.isValid(pt)).toList();
-      if (fullRoutePoints.length >= 2) extra.add(Polyline(points: fullRoutePoints, color: route.color, strokeWidth: 4.5));
+      if (fullRoutePoints.length >= 2) {
+        extra.add(Polyline(
+          points: fullRoutePoints,
+          color: route.color,
+          strokeWidth: 4.5,
+          // ✅ Même liserre blanche que les tracés dédiés — séparation
+          //    visuelle des réseaux superposés (rendu seul).
+          borderColor: Colors.white,
+          borderStrokeWidth: 2,
+        ));
+      }
       // Petite pause pour ne pas saturer
       await Future.delayed(const Duration(milliseconds: 50));
     }
@@ -1845,66 +2152,44 @@ class _ExplorerPageState extends State<ExplorerPage> {
     }
   }
 
-  List<Stop> get _filteredStops {
-    List<Stop> base;
-    if (_selectedFilter == '⭐ Favoris') {
-      base = allStops.where((s) => globalState.isFavorite(s.name)).toList();
-    } else {
-      switch (_selectedFilter) {
-        case 'TER': base = allStops.where((s) => s.color == AppColors.ter).toList(); break;
-        case 'BRT': base = allStops.where((s) => s.color == AppColors.brt).toList(); break;
-        case 'DDD': base = allStops.where((s) => s.color == AppColors.ddd).toList(); break;
-        case 'TATA': base = allStops.where((s) => s.color == AppColors.tata).toList(); break;
-        case 'AFTU': base = allStops.where((s) => s.color == AppColors.aftu).toList(); break;
-        default: base = List.from(allStops); break;
-      }
-    }
     // ✅ GROUPE 4 (F2 + F3) — 4A Carte 04 : rayon **4000 m** (`A.ap3`) et
     //    plafond de **30 résultats** (`take(30)`).
     //    AVANT : `< 5000` et `.take(20)` (trois occurrences).
     //    Le calcul est délégué à `GpsResolver.nearbyStops`, couture pure
     //    testable sans plugin de géolocalisation (décision D3-i).
-    //    Le tri **dupliqué** (deux `base.sort` identiques et consécutifs,
-    //    lignes 1374-1376 puis 1378-1379 avant édition) est supprimé : le même
-    //    comparateur appliqué deux fois de suite donne le même résultat, donc
-    //    aucun changement de comportement.
-    // ✅ Fluidité : n'affiche que les arrêts proches (4 km, 30 max) pour éviter la surcharge carte/liste
-    if (widget.userPosition != null) {
-      base.sort((a, b) => DistanceHelper.haversineMeters(widget.userPosition!, a.location).compareTo(DistanceHelper.haversineMeters(widget.userPosition!, b.location)));
-      final nearby = GpsResolver.nearbyStops(base, widget.userPosition) ?? const <Stop>[];
-      base = nearby.isNotEmpty ? nearby : base.take(GpsResolver.nearbyLimit).toList();
-    } else {
-      // Sans position réelle, AUCUN « à proximité » n'est calculé depuis une
-      // coordonnée fabriquée : `dakarCenter` ne sert ici qu'à ORDONNER
-      // l'affichage (centre géographique de la zone couverte). Il n'est jamais
-      // exposé comme la position de l'utilisateur (décision D1-i).
-      const dakarCenter = LatLng(14.7167, -17.4677);
-      base.sort((a, b) => DistanceHelper.haversineMeters(dakarCenter, a.location).compareTo(DistanceHelper.haversineMeters(dakarCenter, b.location)));
-      base = base.take(GpsResolver.nearbyLimit).toList();
-    }
-    return base.where((s) => DakarBounds.isValid(s.location)).toList();
-  }
+    //
+    // ✅ CORRECTION HORS ZONE : la sélection du filtre
+    //    ([explorerBaseStopsForFilter]) puis l'ordre/le plafond
+    //    ([explorerVisibleStops]) sont des coutures pures. Depuis une
+    //    position hors zone (France) ou sans GPS, le tri « à proximité »
+    //    n'est PAS calculé depuis la position mesurée : la liste est ordonnée
+    //    depuis le centre de Dakar (chemin « sans position » préexistant), ce
+    //    qui supprime les distances de plusieurs milliers de kilomètres et
+    //    garantit l'exploration du réseau dakarois à distance.
+    List<Stop> get _filteredStops => explorerVisibleStops(
+          base: explorerBaseStopsForFilter(
+            selectedFilter: _selectedFilter,
+            favoriteStopNames: globalState.favoriteStopNames,
+            source: allStops,
+          ),
+          userPosition: widget.userPosition,
+        );
 
-  /// GROUPE 4 (décision D6-i) — **COMPORTEMENT INCHANGÉ**.
+  /// GROUPE 4 (décision D6-i) — **COMPORTEMENT INCHANGÉ EN ZONE DE SERVICE**.
   ///
   /// CONSTAT F7 PORTÉ AU RAPPORT, NON PROUVÉ / HORS PÉRIMÈTRE :
-  /// quand `_userPosition == null`, cette méthode retombe sur
+  /// quand aucune position réelle n'est disponible, cette méthode retombe sur
   /// `s.distanceMeters`, c'est-à-dire une valeur portée par le modèle `Stop`
   /// (500, 350, `35000`, valeurs dérivées d'un index pour les arrêts de
   /// démonstration), et `StopCard` l'affiche comme s'il s'agissait de la
-  /// distance de l'utilisateur à l'arrêt.
+  /// distance de utilisateur à l'arrêt — repli préexistant, non modifié ici.
   ///
-  /// Aucune preuve 4A ne couvre ce point (ni Carte 04, ni Carte 08, ni
-  /// Carte 15). Conformément à la règle 3 (« ne rien réimplémenter de NON
-  /// PROUVÉ ») et à la décision D6-i, la distance affichée n'est **pas**
-  /// modifiée et n'est **pas** transformée en « inconnue ». Le constat est
-  /// uniquement documenté ici et dans le rapport final du Groupe 4.
-  ///
-  /// Note : depuis la décision D1-i, `_userPosition` est `null` tant qu'aucune
-  /// position réelle n'a été mesurée — ce chemin de repli est donc désormais
-  /// atteint plus souvent qu'avant, sans jamais exposer de coordonnée
-  /// fabriquée comme position utilisateur.
-  double _distanceTo(Stop s) => widget.userPosition == null ? s.distanceMeters : DistanceHelper.haversineMeters(widget.userPosition!, s.location);
+  /// CORRECTION HORS ZONE : le même repli s'applique désormais à une position
+  /// réelle mais **hors zone de service** (France) : l'haversine
+  /// France → Dakar (~14 000 km) n'est plus présentée comme une distance de
+  /// proximité utile. En zone de service, la distance réelle mesurée reste
+  /// affichée à l'identique. Délégation pure à [explorerDistanceForDisplay].
+  double _distanceTo(Stop s) => explorerDistanceForDisplay(s, widget.userPosition);
 
   /// GROUPE 4 (D4-i) — icône du bandeau GPS.
   ///
@@ -1923,8 +2208,16 @@ class _ExplorerPageState extends State<ExplorerPage> {
   /// Palette existante uniquement : `AppColors.success` (vert officiel, déjà
   /// utilisé pour une position obtenue sur le bouton GPS), `AppColors.warning`
   /// (déjà utilisé pour « Bientôt » dans `StopCard`) et `AppColors.textSecondary`.
+  ///
+  /// CORRECTION HORS ZONE : une position réelle hors zone de service est un
+  /// avertissement (`AppColors.warning`), pas un succès vert — le message
+  /// « Vous êtes hors de la zone de couverture Dakar Bus » ne doit pas être
+  /// présenté comme une réussite de localisation en zone de service.
+  bool get _outOfCoverage => widget.gpsMessage == GpsResolver.outOfCoverageMessage;
+
   Color _gpsBannerColor(bool dark) => switch (widget.gpsState) {
-        GpsState.granted => AppColors.success,
+        GpsState.granted =>
+          _outOfCoverage ? AppColors.warning : AppColors.success,
         GpsState.denied ||
         GpsState.deniedForever ||
         GpsState.serviceDisabled =>
@@ -1953,7 +2246,21 @@ class _ExplorerPageState extends State<ExplorerPage> {
     final stops = _filteredStops;
     // ✅ Filtre les tracés par mobilité pour éviter le spaghetti orange : n'affiche que la couleur sélectionnée
     final Color? filterColor = _selectedFilter == 'Tous' ? null : _colorFor(_selectedFilter);
-    final basePolylines = _dynamicPolylines.isNotEmpty ? _dynamicPolylines : demoRoutes.map((r) => Polyline(points: r.points, color: r.color, strokeWidth: 5.0)).toList();
+    final basePolylines = _dynamicPolylines.isNotEmpty
+        ? _dynamicPolylines
+        : demoRoutes
+            .map((r) => Polyline(
+                  // Même géométrie de rendu que `_loadDynamicRoutes` (CAS A)
+                  // pour un état de chargement cohérent.
+                  points: explorerRenderedRoutePoints(r, demoRoutes)
+                      .where((pt) => DakarBounds.isValid(pt))
+                      .toList(),
+                  color: r.color,
+                  strokeWidth: 5.0,
+                  borderColor: Colors.white,
+                  borderStrokeWidth: 2,
+                ))
+            .toList();
     final activePolylines = filterColor == null
         ? basePolylines.where((p) => p.color == AppColors.ter || p.color == AppColors.brt).toList() // Tous : seulement TER/BRT (tracés dédiés, pas le spaghetti)
         : basePolylines.where((p) => p.color == filterColor).toList();
@@ -2031,32 +2338,71 @@ class _ExplorerPageState extends State<ExplorerPage> {
                         child: FlutterMap(
                           mapController: _mapController,
                           options: MapOptions(
-                            initialCenter: (widget.userPosition != null && PositionValidity.isPlausible(widget.userPosition!))
+                            // ✅ CORRECTION HORS ZONE : l'ouverture sur Dakar
+                            //    est indépendante de la position GPS réelle —
+                            //    centrage sur l'utilisateur UNIQUEMENT s'il se
+                            //    trouve dans la zone de service (sinon
+                            //    _dakarCenter). Depuis la France, la carte
+                            //    s'ouvre donc sur Dakar sans GPS simulé ; le
+                            //    centrage sur Dakar ne prétend pas que le
+                            //    téléphone est à Dakar (la position réelle
+                            //    reste affichée comme marqueur hors vue).
+                            initialCenter: GpsResolver.isWithinServiceZone(widget.userPosition)
                                 ? widget.userPosition!
                                 : _dakarCenter,
                             initialZoom: _zoomOverview,
                             minZoom: 9,
                             maxZoom: 17,
                             // ✅ PAS de cameraConstraint → carte fluide sur web
+                            // ✅ DENSITÉ AU ZOOM (rendu seul) : suit le zoom
+                            //    réel de la caméra (gestes et déplacements
+                            //    programmatiques) pour appliquer
+                            //    [explorerMarkerVisual]. Seuil 0.1 : pas de
+                            //    reconstruction à chaque micro-mouvement.
+                            onPositionChanged: (position, _) {
+                              final double? z = position.zoom;
+                              if (z == null || (z - _mapZoom).abs() < 0.1) {
+                                return;
+                              }
+                              if (mounted) setState(() => _mapZoom = z);
+                            },
                           ),
                           children: [
                             TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', userAgentPackageName: 'dakar_bus', maxZoom: 19),
                             PolylineLayer(polylines: activePolylines),
                             MarkerLayer(
-                              markers: markerStops.map((s) => Marker(
-                                point: s.location, width: 24, height: 24,
-                                child: GestureDetector(
-                                  onTap: () { _centerOnStop(s); Navigator.push(context, MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: s))); },
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: s.color, shape: BoxShape.circle,
-                                      border: Border.all(color: Colors.white, width: 2),
-                                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.25), blurRadius: 3)],
+                              // ✅ DENSITÉ AU ZOOM (Phases 3-4) : empan
+                              //    20 px (cible 18-20), opacité/échelle
+                              //    pilotées par [_mapZoom] via
+                              //    [explorerMarkerVisual]. NON destructif :
+                              //    la liste `markerStops` est inchangée (aucun
+                              //    arrêt retiré — même transmission qu'avant) ;
+                              //    couleurs, icônes, interactions et page de
+                              //    détail au clic identiques.
+                              markers: markerStops.map((s) {
+                                final ({double opacity, double scale}) visual =
+                                    explorerMarkerVisual(_mapZoom, s);
+                                return Marker(
+                                  point: s.location, width: 20, height: 20,
+                                  child: Opacity(
+                                    opacity: visual.opacity,
+                                    child: Transform.scale(
+                                      scale: visual.scale,
+                                      child: GestureDetector(
+                                        onTap: () { _centerOnStop(s); Navigator.push(context, MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: s))); },
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color: s.color, shape: BoxShape.circle,
+                                            border: Border.all(color: Colors.white, width: 2),
+                                            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.25), blurRadius: 3)],
+                                          ),
+                                          child: Icon(s.icon, color: Colors.white, size: 10),
+                                        ),
+                                      ),
                                     ),
-                                    child: Icon(s.icon, color: Colors.white, size: 12),
                                   ),
-                                ),
-                              )).toList(),
+                                );
+                              }).toList(),
                             ),
                             if (widget.userPosition != null && PositionValidity.isPlausible(widget.userPosition!))
                               MarkerLayer(markers: [Marker(point: widget.userPosition!, width: 22, height: 22, child: Container(decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 3), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 4)])))]),
@@ -3009,7 +3355,10 @@ class _AIChatPageState extends State<AIChatPage> {
     }
     buf.writeln('');
     buf.writeln('💡 Astuce : ouvre l\'onglet "Trajets" pour voir le détail sur la carte.');
-    if (widget.userPosition != null) {
+    // ✅ CORRECTION HORS ZONE : le tri « des arrêts proches » n'est réellement
+    //    pris en compte que depuis la zone de service — hors zone, cette
+    //    mention mensongère n'est pas affichée.
+    if (GpsResolver.isWithinServiceZone(widget.userPosition)) {
       buf.writeln('📍 Position GPS prise en compte pour le tri des arrêts proches.');
     }
     return buf.toString();
@@ -3031,8 +3380,12 @@ class _AIChatPageState extends State<AIChatPage> {
       final trip = _extractTrip(text);
       String? from = trip['from'];
       String? to = trip['to'];
-      // Si from manquant mais GPS dispo, utilise l'arrêt le plus proche
-      if ((from == null || from.isEmpty) && widget.userPosition != null) {
+      // Si from manquant mais GPS dispo DANS LA ZONE DE SERVICE, utilise l'arrêt le plus proche.
+      // ✅ CORRECTION HORS ZONE : depuis la France, l'arrêt « le plus proche »
+      //    serait un arrêt de Dakar à ~14 000 km présenté comme origine —
+      //    repli sur « Dakar » (ci-dessous) au lieu d'une origine trompeuse.
+      if ((from == null || from.isEmpty) &&
+          GpsResolver.isWithinServiceZone(widget.userPosition)) {
         // trouve l'arrêt le plus proche de la position
         Stop? nearest;
         double best = double.infinity;
@@ -3073,10 +3426,18 @@ class _AIChatPageState extends State<AIChatPage> {
       _dernierModeInterroge = 'AFTU';
       aiReply = '🚐 [Mémorisé : AFTU] 72 lignes AFTU couvrent tout Dakar (Parcelles, Grand Yoff, Petersen...). Donne-moi départ/arrivée pour un itinéraire AFTU.';
     } else if (lower.contains('où suis-je') || lower.contains('ou suis je') || lower.contains('autour de moi') || lower.contains('proche')) {
-      if (widget.userPosition != null) {
+      if (GpsResolver.isWithinServiceZone(widget.userPosition)) {
         final nearby = allStops.map((s) => MapEntry(s, DistanceHelper.haversineMeters(widget.userPosition!, s.location))).toList()..sort((a,b)=>a.value.compareTo(b.value));
         final top = nearby.take(3).map((e)=> '- ${e.key.name} (${DistanceHelper.format(e.value)} • ${e.key.modeLabel})').join('\n');
         aiReply = '📍 Tu es près de :\n$top\n\nJe peux te guider vers une destination. Où veux-tu aller ?';
+      } else if (widget.userPosition != null) {
+        // ✅ CORRECTION HORS ZONE : position réelle mais hors de la zone de
+        //    service — aucune distance de proximité n'est calculée (elle
+        //    serait de plusieurs milliers de kilomètres) ; le message de zone
+        //    existant est rappelé, l'exploration reste possible.
+        aiReply = '${GpsResolver.outOfCoverageMessage}.\n\n'
+            'Tu peux explorer la carte de Dakar et ses arrêts, ou me demander '
+            'un itinéraire entre deux arrêts.';
       } else {
         aiReply = '📍 Active ton GPS via "Activer GPS" sur la carte, puis je pourrai te montrer les arrêts autour de toi et planifier un trajet.';
       }
