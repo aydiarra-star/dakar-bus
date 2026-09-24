@@ -61,12 +61,22 @@ const List<String> kBrtB123 = <String>[
 ];
 
 /// Les 7 stations directes de B2 Express.
+///
+/// AUDIT DONNÉES 2026-09-24 — séquence corrigée.
+/// AVANT : 23, 19, 16 (Parcelles), 13, 09 (Liberté 6), 03, 01.
+/// APRÈS : 23, 19, 13, 07 (Sacré-Cœur), 05 (Grand Dakar), 03, 01.
+/// RAISON : l'ancienne liste figeait une hypothèse fausse. Le communiqué
+///   SunuBRT du 30/09/2024 (lancement de B2 semi-express) nomme les 7 stations :
+///   Papa Guèye Fall, Place de la Nation, Grand Dakar, Sacré-Cœur, Grand Médine,
+///   Dalal Jam, Préfecture de Guédiawaye. Parcelles et Liberté 6 n'en font pas
+///   partie. Les 7 stations restent une sous-séquence ordonnée de B1.
+/// SOURCE : https://www.rts.sn/actualite/detail/a-la-une/sunubrt-lance-la-phase-2-avec-sept-nouvelles-stations-et-la-ligne-semi-express-b2
 const List<String> kBrtB27 = <String>[
   'stop_brt_23_guediawaye',
   'stop_brt_19_dalal_jamm',
-  'stop_brt_16_parcelles_assainies',
   'stop_brt_13_grand_medine',
-  'stop_brt_09_liberte_6',
+  'stop_brt_07_sacre_coeur',
+  'stop_brt_05_grand_dakar',
   'stop_brt_03_obelisque',
   'stop_brt_01_petersen',
 ];
@@ -294,13 +304,22 @@ void main() {
     });
 
     test('data_trust des arrêts actifs connu du modèle', () async {
-      // Le modèle ne connaît que OFFICIAL, FIELD_OBSERVATION et ESTIMATED.
+      // AUDIT DONNÉES 2026-09-24.
+      // AVANT : le modèle ne connaissait que OFFICIAL, FIELD_OBSERVATION et
+      //         ESTIMATED.
+      // APRÈS : UNVERIFIED est ajouté à l'enum DataTrust.
+      // RAISON : 20 arrêts étaient marqués OFFICIAL sans aucune source. Les
+      //         laisser OFFICIAL serait faux ; les passer en ESTIMATED aussi
+      //         (ce ne sont pas des estimations). L'intention du test —
+      //         aucune valeur de data_trust ignorée par le modèle — est
+      //         conservée ; seule la liste des valeurs connues s'allonge.
       final ds = await loadActive();
       for (final s in ds.stops) {
         expect(
           s.dataTrust == DataTrust.official ||
               s.dataTrust == DataTrust.fieldObservation ||
-              s.dataTrust == DataTrust.estimated,
+              s.dataTrust == DataTrust.estimated ||
+              s.dataTrust == DataTrust.unverified,
           true,
           reason: 'data_trust non pris en charge pour ${s.id}',
         );

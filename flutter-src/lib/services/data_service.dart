@@ -37,6 +37,12 @@ class DataService {
     }
   }
 
+  /// Jeu de SECOURS minimal, utilisé seulement si l'asset JSON est illisible.
+  ///
+  /// Audit 2026-09-24 : ces entrées étaient marquées `DataTrust.official` sans
+  /// aucune source (ex. « BRT Ligne 1 » à deux arrêts, qui n'existe pas sous
+  /// cette forme). Elles sont désormais `DataTrust.unverified` et leur
+  /// provenance vaut UNVERIFIED / UNKNOWN (valeur par défaut du modèle).
   Future<void> _loadFallbackData() async {
     await Future.delayed(const Duration(milliseconds: 300));
 
@@ -53,7 +59,7 @@ class DataService {
           name: 'Gare Petersen',
           latitude: 14.6738,
           longitude: -17.4381,
-          dataTrust: DataTrust.official),
+          dataTrust: DataTrust.unverified),
       BusStop(
           id: 'stop_parcelles_u26',
           name: 'Parcelles Assainies U26',
@@ -65,7 +71,7 @@ class DataService {
           name: 'Guédiawaye',
           latitude: 14.7735,
           longitude: -17.3977,
-          dataTrust: DataTrust.official),
+          dataTrust: DataTrust.unverified),
       BusStop(
           id: 'stop_palais',
           name: 'Palais de Justice',
@@ -77,13 +83,13 @@ class DataService {
           name: 'Aéroport Yoff',
           latitude: 14.7645,
           longitude: -17.3660,
-          dataTrust: DataTrust.official),
+          dataTrust: DataTrust.unverified),
       BusStop(
           id: 'stop_sandaga',
           name: 'Sandaga',
           latitude: 14.6870,
           longitude: -17.4510,
-          dataTrust: DataTrust.official),
+          dataTrust: DataTrust.unverified),
     ];
 
     _routes = [
@@ -93,7 +99,7 @@ class DataService {
         shortName: 'BRT Ligne 1',
         longName: 'Gare Petersen <-> Parcelles Assainies',
         type: 'BRT',
-        dataTrust: DataTrust.official,
+        dataTrust: DataTrust.unverified,
         stopIds: ['stop_petersen', 'stop_parcelles_u26'],
       ),
       TransportRoute(
@@ -111,7 +117,7 @@ class DataService {
         shortName: 'DDD Ligne 8',
         longName: 'Aéroport Yoff <-> Sandaga',
         type: 'BUS',
-        dataTrust: DataTrust.official,
+        dataTrust: DataTrust.unverified,
         stopIds: ['stop_yoff', 'stop_sandaga'],
       ),
       TransportRoute(
@@ -129,7 +135,7 @@ class DataService {
         shortName: 'BRT B1',
         longName: 'Gare des Guéréos (Petersen) ⇄ Guédiawaye',
         type: 'BRT',
-        dataTrust: DataTrust.official,
+        dataTrust: DataTrust.unverified,
         stopIds: ['stop_petersen', 'stop_guediawaye'],
       ),
     ];

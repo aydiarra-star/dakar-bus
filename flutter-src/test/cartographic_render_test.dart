@@ -715,9 +715,16 @@ void main() {
     test('dakar_network.json : structure verrouillée (117 arrêts, 105 lignes)', () {
       final File file = File('assets/data/dakar_network.json');
       expect(file.existsSync(), isTrue);
-      expect(file.readAsBytesSync().length, 59189,
-          reason: 'SHA-256 inchangé côté git (e59f05b0…) ; taille verrouillée '
-              'comme dans les tests GPS existants');
+// AUDIT DONNÉES 2026-09-24 — AVANT : 59189 octets (sha256 e59f05b0…).
+      // APRÈS : 159627 octets (sha256 9ba63618…). RAISON : ce verrou garantit
+      // qu'un correctif d'INTERFACE ne touche pas aux données. Le commit
+      // « fix(data): audit and provenance » modifie volontairement le JSON
+      // (champs de provenance ajoutés, séquence B2 corrigée ; 117 arrêts,
+      // 105 lignes, 5 opérateurs et coordonnées inchangés). Le verrou est
+      // conservé à la nouvelle valeur. Voir docs/AUDIT_DONNEES_2026-09-24.md.
+      expect(file.readAsBytesSync().length, 159627,
+          reason: 'taille verrouillée depuis l’audit données du 2026-09-24 '
+              '(sha256 9ba63618…)');
 
       final Map<String, dynamic> json = _networkJson();
       expect((json['stops'] as List).length, 117);

@@ -16,7 +16,8 @@ import 'package:dakar_bus/models/transport_network.dart';
 ///        littéral. Formule : somme des haversine entre arrêts consécutifs,
 ///        R = 6371008.8 m. Valeurs de référence relevées sur la donnée ACTIVE
 ///        et confirmées par simulation du binaire de production (rapport 4A §9) :
-///        TER = 34.6 km, BRT B1 = 17.5 km, BRT B2 = 16.0 km ;
+///        TER = 34.6 km, BRT B1 = 17.5 km, BRT B2 = 16.5 km (16.0 km avant
+///        la correction de séquence B2 du 2026-09-24) ;
 ///  * §6  TER = 13 gares, ordre Dakar -> Diamniadio, sens inverse = inversion ;
 ///  * §7  BRT = 23 stations, sens inverse = inversion de l'ordre courant ;
 ///  * §12 aucune donnée inventée : ce qui n'est pas dérivable vaut `null`.
@@ -301,7 +302,14 @@ void main() {
           b2.stopIds.map((String id) => b1.indexOf(id)).toList();
       expect(positions.every((int p) => p >= 0), true);
       expect(positions, orderedEquals(positions.toList()..sort()));
-      expect(km(cumulDepuisIds(b2.stopIds)), '16.0 km');
+      // AUDIT DONNÉES 2026-09-24.
+      // AVANT : '16.0 km' (séquence B2 23,19,16,13,09,03,01).
+      // APRÈS : '16.5 km' (séquence officielle 23,19,13,07,05,03,01).
+      // RAISON : la séquence B2 a été corrigée d'après le communiqué SunuBRT
+      //   du 30/09/2024 ; la formule (somme des haversine, R = 6371008.8 m)
+      //   est inchangée, seule la donnée d'entrée l'est. Valeur recalculée :
+      //   16 454.6 m. Coordonnées des stations : inchangées.
+      expect(km(cumulDepuisIds(b2.stopIds)), '16.5 km');
     });
 
     test('totalDistance == distanceFromStart du DERNIER arrêt (cumul cohérent)',
