@@ -186,7 +186,7 @@ void main() {
       // qu'elle était réelle. APRÈS : DakarBounds ne s'applique qu'aux données
       // réseau ; une position mesurée plausible est réelle, où qu'elle soit.
       const horsDakar = <String, LatLng>{
-        'Thiès': LatLng(14.7910, -16.9256),
+        'Mbour': LatLng(14.4167, -16.9667),
         'Saint-Louis': LatLng(16.0179, -16.4896),
         'nord du rectangle': LatLng(15.5, -17.0),
         'Paris': LatLng(48.8566, 2.3522),

@@ -73,7 +73,9 @@ void main() {
       expect(PositionValidity.isPlausible(const LatLng(14.6738, -17.4381)), true,
           reason: 'Dakar');
       expect(PositionValidity.isPlausible(const LatLng(14.7910, -16.9256)), true,
-          reason: 'Thiès — hors DakarBounds, position réelle');
+          reason: 'Thiès');
+      expect(PositionValidity.isPlausible(const LatLng(14.4167, -16.9667)), true,
+          reason: 'Mbour — hors DakarBounds (sud), position réelle');
       expect(PositionValidity.isPlausible(const LatLng(14.7167, -17.2733)), true,
           reason: 'Rufisque');
       expect(PositionValidity.isPlausible(const LatLng(16.0179, -16.4896)), true,
@@ -107,9 +109,12 @@ void main() {
     test('DakarBounds reste strictement un garde-fou des données réseau', () {
       // Les deux prédicats divergent volontairement hors du rectangle Dakar :
       // une gare ne peut pas y être, un utilisateur si.
-      const thies = LatLng(14.7910, -16.9256);
-      expect(DakarBounds.isValid(thies), false);
-      expect(PositionValidity.isPlausible(thies), true);
+      const mbour = LatLng(14.4167, -16.9667); // sud de DakarBounds.south
+      expect(DakarBounds.isValid(mbour), false);
+      expect(PositionValidity.isPlausible(mbour), true);
+      const saintLouis = LatLng(16.0179, -16.4896);
+      expect(DakarBounds.isValid(saintLouis), false);
+      expect(PositionValidity.isPlausible(saintLouis), true);
     });
   });
 
