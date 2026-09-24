@@ -203,7 +203,7 @@ void main() {
     });
 
     test('service de localisation désactivé → serviceDisabled, position nulle', () {
-      final r = GpsResolver.serviceDisabled;
+      const r = GpsResolver.serviceDisabled;
       expect(r.state, GpsState.serviceDisabled);
       expect(r.message, 'GPS désactivé.');
       expect(r.position, isNull);
