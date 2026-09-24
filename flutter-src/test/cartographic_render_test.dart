@@ -421,6 +421,7 @@ void main() {
       const LatLng d = LatLng(14.73, -17.42);
       const LatLng e = LatLng(14.74, -17.41);
       const LatLng x = LatLng(14.75, -17.40);
+      const LatLng y = LatLng(14.76, -17.39);
 
       final TransitRoute container = TransitRoute(
           name: 'A',
@@ -446,6 +447,14 @@ void main() {
           type: 'BUS',
           color: AppColors.tata,
           points: const <LatLng>[a, c]);
+      // Plus riche que `container` entre a et c (5 sommets vs 3) : c'est le
+      // conteneur qui doit gagner quand il est plus long.
+      final TransitRoute medium = TransitRoute(
+          name: 'MED',
+          code: 'MED',
+          type: 'BRT',
+          color: AppColors.brt,
+          points: const <LatLng>[a, x, b, y, c]);
       final TransitRoute longer = TransitRoute(
           name: 'LONG',
           code: 'LONG',
@@ -479,10 +488,17 @@ void main() {
               subset.points),
           isTrue,
           reason: 'couleur différente : aucun couloir d’un autre réseau');
+      // Expanssion bornée entre le 1er et le dernier sommet partagé : jamais
+      // au-delà du terminus du tracé rendu (le tracé long sert de corridor).
+      final List<LatLng> inLonger =
+          explorerRenderedRoutePoints(subset, <TransitRoute>[longer, subset]);
+      expect(_samePolylinePoints(inLonger, const <LatLng>[a, b, c]), isTrue,
+          reason: 'sous-tracé premier→dernier sommet partagé');
       final List<LatLng> longestWins = explorerRenderedRoutePoints(
-          subset, <TransitRoute>[container, longer, subset]);
-      expect(_samePolylinePoints(longestWins, longer.points), isTrue,
-          reason: 'plusieurs conteneurs → le plus long (tracé le plus riche)');
+          subset, <TransitRoute>[container, medium, subset]);
+      expect(_samePolylinePoints(longestWins, medium.points), isTrue,
+          reason: 'conteneur le plus long gagne (géométrie intermédiaire '
+              'la plus riche)');
     });
   });
 
@@ -629,19 +645,33 @@ void main() {
         expect(m.child, isA<Opacity>(),
             reason: 'chaque marqueur porte son empan de densité au zoom');
 
-        // L'arrêt correspondant (la couche ne transmet que des `allStops`).
-        final Stop stop = allStops.firstWhere(
-            (Stop s) =>
+        // Arrêt(s) correspondant(s) — la couche ne transmet que des
+        // `allStops`. Plusieurs arrêts peuvent partager des coordonnées
+        // EXACTES (démo + JSON : TATA Ligne 218 ≡ stop_mermoz, DDD L14 ≡
+        // stop_ucad, AFTU Grand Yoff ≡ stop_grand_yoff) : le candidat est
+        // donc départacé par la couleur réseau portée par le marqueur.
+        final Color markerColor = _markerColor(m)!;
+        final List<Stop> candidates = allStops
+            .where((Stop s) =>
                 s.location.latitude == m.point.latitude &&
-                s.location.longitude == m.point.longitude,
-            orElse: () => throw StateError(
-                'marqueur hors allStops : ${m.point}'));
-        final ({double opacity, double scale}) expected =
-            explorerMarkerVisual(11.2, stop);
-        expect(_markerOpacity(m), expected.opacity,
-            reason: '${stop.name} : opacité rendue = couture zoom');
+                s.location.longitude == m.point.longitude &&
+                s.color == markerColor)
+            .toList();
+        expect(candidates, isNotEmpty,
+            reason: 'marqueur hors allStops : ${m.point}');
+        final double actualOpacity = _markerOpacity(m)!;
+        expect(
+            candidates.any((Stop s) =>
+                (explorerMarkerVisual(11.2, s).opacity - actualOpacity)
+                    .abs() <
+                1e-9),
+            isTrue,
+            reason: '${candidates.map((Stop s) => s.name).join(' / ')} : '
+                'opacité rendue = couture zoom (un des arrêts superposés '
+                'au point $markerColor)');
         // Couleur réseau intacte (identité visuelle préservée).
-        expect(_markerColor(m), stop.color, reason: stop.name);
+        expect(markerColor, candidates.first.color,
+            reason: candidates.first.name);
       }
 
       // Les gares/stations officielles structurantes restent pleinement
