@@ -136,7 +136,16 @@ jobs:
           cp pubspec.lock "${RUNNER_TEMP}/j9-logs/pubspec.lock"
 
       - name: flutter analyze
-        run: flutter analyze 2>&1 | tee "${RUNNER_TEMP}/j9-logs/analyze.txt"
+        run: |
+          # [DEBUG TEMPORAIRE] publie chaque ligne d'issue en annotation GitHub
+          # pour lecture via l'API (journal brut inaccessible depuis le client).
+          set +e
+          flutter analyze 2>&1 | tee "${RUNNER_TEMP}/j9-logs/analyze.txt"
+          st=${PIPESTATUS[0]}
+          grep ' • ' "${RUNNER_TEMP}/j9-logs/analyze.txt" | while IFS= read -r line; do
+            echo "::warning::${line}"
+          done
+          exit "$st"
 
       - name: flutter test
         run: flutter test --reporter expanded 2>&1 | tee "${RUNNER_TEMP}/j9-logs/test.txt"
