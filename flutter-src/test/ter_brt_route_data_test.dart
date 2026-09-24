@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:dakar_bus/main.dart';
@@ -102,15 +103,20 @@ const String kTerRouteId = 'ter_dakar_diamniadio';
 const String kBrtB1Id = 'brt_b1_guediawaye_petersen';
 const String kBrtB2Id = 'brt_b2_express';
 
-/// Nombre de points TER affichés par Explorer. Base figée : 8 points issus de
-/// la liste de démonstration `terStations` + les 13 gares officielles du JSON,
-/// sans collision de clé `nom_latitude_longitude`. Ce nombre est SUPÉRIEUR aux
-/// 13 gares de l'itinéraire, ce qui est attendu (§6) : il ne doit jamais être
-/// réduit artificiellement pour correspondre à l'itinéraire.
-const int kTerExplorerPoints = 21;
+/// Nombre de points TER affichés par Explorer.
+///
+/// AVANT PR #20 : 21 = 8 points de la liste de démonstration `terStations`
+/// + les 13 gares officielles du JSON. Les 8 points de démo (coordonnées
+/// héritées, hors tracé officiel) étaient le défaut combattu : 21 TER / 27 BRT
+/// visibles sur le site live. Depuis PR #20, TER et BRT proviennent UNIQUEMENT
+/// de `dakar_network.json` : Explorer affiche exactement les 13 gares
+/// officielles. Ce nombre ne doit jamais être gonflé par une liste de
+/// démonstration, ni réduit artificiellement (§6).
+const int kTerExplorerPoints = 13;
 
-/// Nombre de points BRT affichés par Explorer : 4 + 23, même raisonnement.
-const int kBrtExplorerPoints = 27;
+/// Nombre de points BRT affichés par Explorer : les 23 stations officielles
+/// (AVANT PR #20 : 4 de démo + 23).
+const int kBrtExplorerPoints = 23;
 
 /// Charge la DONNÉE ACTIVE sur la globale [appDataService] puis exécute
 /// l'intégration, dans les mêmes conditions que `main()`.
@@ -151,16 +157,37 @@ void main() {
           reason: 'aucun point d\'Explorer ne doit disparaître (§6, Test BRT 1)');
     });
 
-    test('Explorer affiche PLUS de points TER que l\'itinéraire ne compte de gares',
+    test('Explorer affiche EXACTEMENT les gares TER officielles : mêmes points que l\'itinéraire',
         () {
-      expect(networkPoints(AppColors.ter).length,
-          greaterThan(officialRouteStops(kTerRouteId)!.length),
-          reason: 'le compteur Explorer ne doit pas être aligné sur l\'itinéraire');
+      // Post-PR #20 : sans liste de démonstration, l'ensemble des points TER
+      // d'Explorer et l'ensemble des gares de l'itinéraire officiel sont
+      // égaux (mêmes identifiants), tout en restant deux notions distinctes
+      // (§1 / §6) : Explorer n'est pas construit à partir de l'itinéraire.
+      final Set<String> explorer = networkPoints(AppColors.ter)
+          .map((Stop s) => s.stopId)
+          .whereType<String>()
+          .toSet();
+      final Set<String> itineraire =
+          officialRouteStops(kTerRouteId)!.map((BusStop s) => s.id).toSet();
+      expect(explorer, itineraire,
+          reason: 'aucun point TER de démonstration, aucune gare manquante');
+      expect(networkPoints(AppColors.ter).every((Stop s) => s.stopId != null),
+          true,
+          reason: 'chaque point TER d\'Explorer est un arrêt de la source unique');
     });
 
-    test('Explorer affiche PLUS de points BRT que B1 ne compte de stations', () {
-      expect(networkPoints(AppColors.brt).length,
-          greaterThan(officialRouteStops(kBrtB1Id)!.length));
+    test('Explorer affiche EXACTEMENT les stations BRT officielles : mêmes points que B1',
+        () {
+      final Set<String> explorer = networkPoints(AppColors.brt)
+          .map((Stop s) => s.stopId)
+          .whereType<String>()
+          .toSet();
+      final Set<String> itineraire =
+          officialRouteStops(kBrtB1Id)!.map((BusStop s) => s.id).toSet();
+      expect(explorer, itineraire,
+          reason: 'aucune station BRT de démonstration, aucune station manquante');
+      expect(networkPoints(AppColors.brt).every((Stop s) => s.stopId != null),
+          true);
     });
 
     test('les 13 gares officielles TER sont bien présentes dans Explorer', () {
@@ -186,8 +213,8 @@ void main() {
     });
 
     test('aucun point d\'Explorer n\'est promu dans l\'itinéraire TER', () {
-      // L'itinéraire reste à 13 alors qu'Explorer affiche 21 points : la
-      // promotion d'un point d'Explorer ferait croître la liste officielle.
+      // L'itinéraire reste à 13 : la promotion d'un point quelconque du réseau
+      // (ex. Keur Massar, présent dans allStops) ferait croître la liste.
       expect(officialRouteStops(kTerRouteId)!.length, 13);
     });
 
@@ -466,25 +493,73 @@ void main() {
     });
 
     test('un point du réseau non résoluble ne fabrique AUCUNE fiche (§9)', () {
-      // « Gare TER Keur Mbaye Fall » est un point de la liste de démonstration
-      // situé à 3,46 km de la gare officielle `stop_keur_mbaye_fall`, au-delà
-      // du seuil de résolution de 250 m. Aucune correspondance fiable ne peut
-      // être établie : la fiche est `null`, jamais inventée, et le bouton
-      // « Voir la ligne complète » reste désactivé.
-      final List<Stop> legacy = networkPoints(AppColors.ter)
-          .where((Stop s) => s.name == 'Gare TER Keur Mbaye Fall')
-          .toList();
-      expect(legacy.length, 1);
-      expect(DetailedRoute.fromStop(legacy.first), isNull,
+      // « Gare TER Keur Mbaye Fall » (14.7750, -17.3100) est le point
+      // historique de l'ancienne liste de démonstration `terStations`,
+      // supprimée par PR #20 : il n'existe plus dans Explorer et n'y est PAS
+      // restauré (c'était le défaut combattu). La fixture reproduit ce même
+      // point — mêmes nom et coordonnées — pour garder la garantie §9 : il est
+      // à 3,46 km de la gare officielle `stop_keur_mbaye_fall`, au-delà du
+      // seuil de résolution de 250 m, et sans homonyme TER. Aucune
+      // correspondance fiable : la fiche est `null`, jamais inventée.
+      expect(
+          networkPoints(AppColors.ter)
+              .any((Stop s) => s.name == 'Gare TER Keur Mbaye Fall'),
+          false,
+          reason: 'la liste de démonstration TER ne doit pas être restaurée');
+      const Stop legacy = Stop(
+        name: 'Gare TER Keur Mbaye Fall',
+        direction: 'Dir. Dakar / Diamniadio',
+        distanceMeters: 14200,
+        departureMinutesFromMidnight: <int>[],
+        icon: Icons.train_rounded,
+        color: AppColors.ter,
+        location: LatLng(14.7750, -17.3100),
+        modeLabel: 'TER',
+        source: DataSourceInfo.seter,
+        stopType: StopType.correspondence,
+      );
+      final Iterable<BusStop> garesTer = officialRouteStops(kTerRouteId)!;
+      final double plusProche = garesTer
+          .map((BusStop s) => DistanceHelper.haversineMeters(
+              legacy.location, LatLng(s.latitude, s.longitude)))
+          .reduce((double a, double b) => a < b ? a : b);
+      expect(plusProche, greaterThan(250),
+          reason: 'fixture hors du seuil de résolution de 250 m');
+      expect(garesTer.any((BusStop s) => s.name == legacy.name), false,
+          reason: 'aucun homonyme parmi les gares officielles');
+      expect(DetailedRoute.fromStop(legacy), isNull,
           reason: 'aucune donnée inventée : un inconnu reste un inconnu');
     });
 
     test('un point BRT non résoluble ne fabrique AUCUNE fiche (§9)', () {
-      final List<Stop> legacy = networkPoints(AppColors.brt)
-          .where((Stop s) => s.name == 'PEM Guediawaye')
-          .toList();
-      expect(legacy.length, 1);
-      expect(DetailedRoute.fromStop(legacy.first), isNull);
+      // Même principe : « PEM Guediawaye » (14.7735, -17.3977), point
+      // historique de `brtStations` (supprimée par PR #20), à 322 m de la
+      // station B1 la plus proche (`stop_brt_21_golf_nord`) et sans homonyme
+      // parmi les stations BRT.
+      expect(
+          networkPoints(AppColors.brt).any((Stop s) => s.name == 'PEM Guediawaye'),
+          false,
+          reason: 'la liste de démonstration BRT ne doit pas être restaurée');
+      const Stop legacy = Stop(
+        name: 'PEM Guediawaye',
+        direction: 'Terminus nord BRT',
+        distanceMeters: 10500,
+        departureMinutesFromMidnight: <int>[],
+        icon: Icons.directions_bus_rounded,
+        color: AppColors.brt,
+        location: LatLng(14.7735, -17.3977),
+        modeLabel: 'BRT',
+        source: DataSourceInfo.sunubrt,
+        stopType: StopType.terminus,
+      );
+      final Iterable<BusStop> stationsB1 = officialRouteStops(kBrtB1Id)!;
+      final double plusProche = stationsB1
+          .map((BusStop s) => DistanceHelper.haversineMeters(
+              legacy.location, LatLng(s.latitude, s.longitude)))
+          .reduce((double a, double b) => a < b ? a : b);
+      expect(plusProche, greaterThan(250));
+      expect(stationsB1.any((BusStop s) => s.name == legacy.name), false);
+      expect(DetailedRoute.fromStop(legacy), isNull);
     });
 
     test('une gare officielle résout bien vers sa ligne TER', () {
@@ -778,10 +853,10 @@ void main() {
 
     test('« Tous » : plus aucun doublon démo héritée / officielle sur la carte',
         () {
-      // Les listes Explorer conservent leurs 21 + 27 points (§6, inchangés),
-      // mais la carte ne dessine plus les 8 + 4 arrêts de démonstration
-      // hérités (sans `stopId`, coordonnées hors tracé) en plus des
-      // officiels.
+      // Depuis PR #20, Explorer ne contient plus que les 13 + 23 officiels ;
+      // la couche marqueurs, elle, garantit de surcroît qu'aucun arrêt de
+      // démonstration hérité (sans `stopId`, coordonnées hors tracé) ne
+      // serait redessiné même s'il réapparaissait dans `proximityStops`.
       final List<Stop> tous = markersFor('Tous');
       expect(
           tous.where((Stop s) =>

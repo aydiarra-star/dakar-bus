@@ -23,6 +23,14 @@ import 'package:dakar_bus/main.dart';
 //   position fabriquée : décision D1-i → `position == null` + état d'erreur
 //   explicite, le recadrage Dakar restant assuré par `_dakarCenter`.
 //
+// CORRECTIF POSITION UTILISATEUR (PositionValidity) :
+//   la position mesurée n'est plus soumise à `DakarBounds` (garde-fou des
+//   données réseau uniquement). Toute position mesurée géodésiquement
+//   plausible est conservée telle quelle, où qu'elle soit (Thiès, Rufisque,
+//   Saint-Louis…). Seuls les échecs de mesure — île nulle (0,0), |lat| > 90,
+//   |lon| > 180 — produisent « Erreur GPS. ». §11 / D1-i restent intacts :
+//   aucune position absente ou fabriquée n'est exposée.
+//
 // ---------------------------------------------------------------------------
 // MÉTHODE — décision D3-i (couture pure, aucune dépendance ajoutée)
 // ---------------------------------------------------------------------------
@@ -49,9 +57,9 @@ import 'package:dakar_bus/main.dart';
 /// distance orthodromique vaut exactement R × Δlat(en radians).
 const double _metersPerDegreeLat = 6371008.8 * math.pi / 180.0;
 
-/// Position de référence des fixtures : gare TER de Dakar, réelle et valide
-/// au sens de [DakarBounds]. Volontairement différente de la coordonnée de
-/// recadrage historique `LatLng(14.7167, -17.4677)`.
+/// Position de référence des fixtures : gare TER de Dakar, réelle et plausible
+/// au sens de [PositionValidity]. Volontairement différente de la coordonnée
+/// de recadrage historique `LatLng(14.7167, -17.4677)`.
 const LatLng _user = LatLng(14.67599, -17.43352);
 
 LatLng _northOf(LatLng from, double meters) =>
@@ -160,7 +168,7 @@ void main() {
   group('Groupe 4 — §11 position réelle ou erreur, jamais fabriquée', () {
     test('(a) position mesurée et valide → granted, coordonnée conservée telle quelle', () {
       final measured = _northOf(_user, 250);
-      expect(DakarBounds.isValid(measured), isTrue, reason: 'fixture doit être dans DakarBounds');
+      expect(PositionValidity.isPlausible(measured), isTrue, reason: 'fixture doit être plausible');
 
       final r = GpsResolver.fromMeasuredPosition(measured);
 
@@ -173,41 +181,81 @@ void main() {
       expect(r.message, 'Position GPS obtenue.');
     });
 
-    test('(e) position mesurée HORS zone → position null + état d\'erreur explicite (D1-i)', () {
-      // Au nord de DakarBounds.north = 14.9
-      const horsZone = LatLng(15.5, -17.0);
-      expect(DakarBounds.isValid(horsZone), isFalse, reason: 'fixture doit être hors zone');
+    test('(e) position mesurée HORS du rectangle Dakar → conservée telle quelle (PositionValidity)', () {
+      // AVANT : rejetée (« Position hors zone, recentré sur Dakar. ») alors
+      // qu'elle était réelle. APRÈS : DakarBounds ne s'applique qu'aux données
+      // réseau ; une position mesurée plausible est réelle, où qu'elle soit.
+      const horsDakar = <String, LatLng>{
+        'Mbour': LatLng(14.4167, -16.9667),
+        'Saint-Louis': LatLng(16.0179, -16.4896),
+        'nord du rectangle': LatLng(15.5, -17.0),
+        'Paris': LatLng(48.8566, 2.3522),
+      };
+      for (final entry in horsDakar.entries) {
+        expect(DakarBounds.isValid(entry.value), isFalse,
+            reason: '${entry.key} : fixture hors du rectangle réseau');
+        expect(PositionValidity.isPlausible(entry.value), isTrue,
+            reason: '${entry.key} : position plausible');
 
-      final r = GpsResolver.fromMeasuredPosition(horsZone);
+        final r = GpsResolver.fromMeasuredPosition(entry.value);
 
-      expect(r.position, isNull, reason: 'D1-i : aucune position exposée si elle n\'est pas exploitable');
+        expect(r.state, GpsState.granted, reason: '${entry.key} : position réelle');
+        expect(r.position, entry.value,
+            reason: '${entry.key} : §11 — conservée telle quelle, aucune substitution');
+        expect(r.hasRealPosition, isTrue);
+        expect(r.isSubstitutedPosition, isFalse);
+        expect(r.message, 'Position GPS obtenue.');
+      }
+    });
+
+    test('(e bis) position géodésiquement implausible → position null + « Erreur GPS. » (D1-i)', () {
+      // Île nulle (0,0) — valeur par défaut d'un géolocaliseur muet : un
+      // échec de mesure, jamais une position réelle. (Les coordonnées hors du
+      // globe, |lat| > 90 / |lon| > 180, sont couvertes sur doubles bruts dans
+      // dakar_bounds_test.dart : `LatLng` les refuse déjà par assert.)
+      const implausible = LatLng(0.0, 0.0);
+      expect(PositionValidity.isPlausible(implausible), isFalse);
+      expect(PositionValidity.isPlausibleCoordinates(91.0, -17.0), isFalse);
+      expect(PositionValidity.isPlausibleCoordinates(14.7, -181.0), isFalse);
+
+      final r = GpsResolver.fromMeasuredPosition(implausible);
+
+      expect(r.position, isNull,
+          reason: 'D1-i : aucune position exposée si elle n\'est pas exploitable');
       expect(r.state, GpsState.error);
-      expect(r.state, isNot(GpsState.granted),
-          reason: 'AVANT le Groupe 4 : état `granted` sur une coordonnée inventée');
       expect(r.hasRealPosition, isFalse);
       expect(r.isSubstitutedPosition, isFalse);
-      expect(r.message, 'Position hors zone, recentré sur Dakar.');
+      expect(r.message, 'Erreur GPS.');
     });
 
     test('D1-i : la coordonnée de repli historique n\'est JAMAIS produite comme position utilisateur', () {
       // 4A §16 : `B.hA = LatLng(14.7167, -17.4677)` était injectée comme
-      // position de l'utilisateur. Elle ne doit plus l'être.
+      // position de l'utilisateur. Elle ne doit plus l'être : ni pour une
+      // mesure implausible (→ null), ni pour une mesure hors Dakar (→ la
+      // mesure elle-même).
       const fabrication = LatLng(14.7167, -17.4677);
 
-      for (final horsZone in <LatLng>[
-        const LatLng(15.5, -17.0), // nord
-        const LatLng(14.0, -17.0), // sud
-        const LatLng(14.7, -16.0), // est
-        const LatLng(14.7, -18.0), // ouest
-        const LatLng(0.0, 0.0), // origine nulle
-        const LatLng(48.8566, 2.3522), // Paris
+      for (final implausible in <LatLng>[
+        const LatLng(0.0, 0.0),
       ]) {
-        final r = GpsResolver.fromMeasuredPosition(horsZone);
-        expect(r.position, isNull, reason: 'hors zone $horsZone');
+        final r = GpsResolver.fromMeasuredPosition(implausible);
+        expect(r.position, isNull, reason: 'implausible $implausible');
         expect(r.position, isNot(fabrication));
         expect(r.isSubstitutedPosition, isFalse,
             reason: '§16 : aucune substitution — la valeur est absente, pas remplacée');
         expect(r.state, GpsState.error);
+      }
+      for (final horsDakar in <LatLng>[
+        const LatLng(15.5, -17.0), // nord
+        const LatLng(14.0, -17.0), // sud
+        const LatLng(14.7, -16.0), // est
+        const LatLng(14.7, -18.0), // ouest
+        const LatLng(48.8566, 2.3522), // Paris
+      ]) {
+        final r = GpsResolver.fromMeasuredPosition(horsDakar);
+        expect(r.position, horsDakar, reason: 'hors Dakar $horsDakar : mesure conservée');
+        expect(r.position, isNot(fabrication));
+        expect(r.isSubstitutedPosition, isFalse);
       }
     });
 
@@ -233,12 +281,14 @@ void main() {
         GpsResolver.fromMeasuredPosition(valid),
         GpsResolver.fromMeasuredPosition(null),
         GpsResolver.fromMeasuredPosition(const LatLng(15.5, -17.0)),
+        GpsResolver.fromMeasuredPosition(const LatLng(0.0, 0.0)),
         GpsResolver.fromStreamInterrupted(valid),
         GpsResolver.fromStreamInterrupted(null),
         GpsResolver.fromStreamInterrupted(const LatLng(15.5, -17.0)),
+        GpsResolver.fromStreamInterrupted(const LatLng(0.0, 0.0)),
       ];
 
-      expect(resolutions, hasLength(12));
+      expect(resolutions, hasLength(14));
       for (final r in resolutions) {
         expect(r.isSubstitutedPosition, isFalse,
             reason: 'état ${r.state} : aucune position substituée n\'est produite');
@@ -248,7 +298,9 @@ void main() {
     test('hasRealPosition n\'est vrai que pour une position mesurée exploitable', () {
       expect(GpsResolver.fromMeasuredPosition(_northOf(_user, 10)).hasRealPosition, isTrue);
       expect(GpsResolver.fromMeasuredPosition(null).hasRealPosition, isFalse);
-      expect(GpsResolver.fromMeasuredPosition(const LatLng(15.5, -17.0)).hasRealPosition, isFalse);
+      expect(GpsResolver.fromMeasuredPosition(const LatLng(15.5, -17.0)).hasRealPosition, isTrue,
+          reason: 'hors du rectangle Dakar mais réelle et plausible');
+      expect(GpsResolver.fromMeasuredPosition(const LatLng(0.0, 0.0)).hasRealPosition, isFalse);
       expect(GpsResolver.serviceDisabled.hasRealPosition, isFalse);
       expect(GpsResolver.permissionDenied(forever: false).hasRealPosition, isFalse);
       expect(GpsResolver.permissionDenied(forever: true).hasRealPosition, isFalse);
@@ -280,7 +332,11 @@ void main() {
 
       expect(r.state, GpsState.deniedForever,
           reason: 'AVANT le Groupe 4 : `deniedForever` était déclaré sans jamais être assigné');
-      expect(r.message, 'Permission GPS refusée définitivement.');
+      expect(r.message, GpsResolver.deniedForeverMessage);
+      // Le message indique l'action à mener : sur un navigateur, le bouton
+      // « Activer GPS » ne peut pas lever un refus définitif.
+      expect(r.message, startsWith('Permission GPS refusée définitivement'));
+      expect(r.message, contains('réglages de votre navigateur'));
       expect(r.position, isNull);
     });
 
@@ -305,7 +361,7 @@ void main() {
       expect(messages, containsAll(<String>[
         'Position GPS obtenue.',
         'Permission GPS refusée.',
-        'Permission GPS refusée définitivement.',
+        GpsResolver.deniedForeverMessage,
         'Erreur GPS.',
       ]));
       // `denied` et `deniedForever` ne doivent plus être confondus.
@@ -352,8 +408,17 @@ void main() {
       expect(r.message, 'Erreur GPS.');
     });
 
-    test('position hors zone au moment de l\'interruption → échec, jamais substituée', () {
-      final r = GpsResolver.fromStreamInterrupted(const LatLng(15.5, -17.0));
+    test('position hors du rectangle Dakar au moment de l\'interruption → conservée', () {
+      const horsDakar = LatLng(15.5, -17.0);
+      final r = GpsResolver.fromStreamInterrupted(horsDakar);
+
+      expect(r.state, GpsState.granted);
+      expect(r.position, horsDakar);
+      expect(r.isSubstitutedPosition, isFalse);
+    });
+
+    test('position implausible au moment de l\'interruption → échec, jamais substituée', () {
+      final r = GpsResolver.fromStreamInterrupted(const LatLng(0.0, 0.0));
 
       expect(r.state, GpsState.error);
       expect(r.position, isNull);

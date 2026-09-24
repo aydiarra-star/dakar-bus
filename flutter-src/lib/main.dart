@@ -102,6 +102,12 @@ final AppStateNotifier globalState = AppStateNotifier();
 ///         (latitude minimale réelle 14.6738), et le §11 interdit de traiter
 ///         une position absente comme une position valable. Le conserver est
 ///         strictement plus sûr et ne contredit aucune donnée active.
+///
+/// PÉRIMÈTRE (correctif position utilisateur) : [DakarBounds] est le garde-fou
+///         des **données réseau** (arrêts, tracés) uniquement. Il n'est plus
+///         appliqué à la position mesurée de l'utilisateur, qui relève de
+///         [PositionValidity] : un utilisateur à Thiès, Rufisque ou
+///         Saint-Louis a une position réelle, elle est conservée telle quelle.
 class DakarBounds {
   static const double north = 14.9;
   static const double south = 14.55;
@@ -116,6 +122,44 @@ class DakarBounds {
         location.latitude != 0.0 &&
         location.longitude != 0.0;
   }
+}
+
+/// Plausibilité géodésique d'une **position utilisateur mesurée**.
+///
+/// AVANT : la position GPS était soumise à [DakarBounds] ; toute mesure hors
+///         du rectangle Dakar (Thiès, Rufisque-est, Saint-Louis, …) était
+///         rejetée avec « Position hors zone, recentré sur Dakar. » alors
+///         qu'elle était **réelle**. Un utilisateur réel hors de Dakar n'avait
+///         donc jamais de position.
+///
+/// APRÈS : seule la plausibilité géodésique est vérifiée. Toute position
+///         mesurée plausible est conservée **telle quelle, où qu'elle soit**.
+///         Le principe §11 / D1-i est intact : aucune position absente ou
+///         fabriquée n'est exposée — sont rejetées uniquement :
+///           - l'« île nulle » (0, 0), valeur par défaut d'un géolocaliseur
+///             muet, jamais une mesure réelle ;
+///           - les latitudes hors [-90, 90] et longitudes hors [-180, 180] ;
+///           - NaN / infini.
+///         Ces cas sont des **échecs de mesure** et produisent « Erreur GPS. »
+///
+/// [DakarBounds] reste le garde-fou des données réseau (arrêts, tracés).
+///
+/// Note : `LatLng` (latlong2 0.9) vérifie déjà les bornes par `assert` en mode
+/// debug ; les asserts étant absents en release, le contrôle est refait ici
+/// sur les doubles bruts ([isPlausibleCoordinates]) — c'est aussi ce qui le
+/// rend testable sans construire un `LatLng` invalide.
+class PositionValidity {
+  static bool isPlausibleCoordinates(double lat, double lon) {
+    if (lat.isNaN || lon.isNaN || lat.isInfinite || lon.isInfinite) {
+      return false;
+    }
+    if (lat.abs() > 90.0 || lon.abs() > 180.0) return false;
+    if (lat == 0.0 && lon == 0.0) return false;
+    return true;
+  }
+
+  static bool isPlausible(LatLng location) =>
+      isPlausibleCoordinates(location.latitude, location.longitude);
 }
 
 // ============================================================
@@ -1402,13 +1446,18 @@ enum GpsState { idle, loading, granted, denied, deniedForever, serviceDisabled, 
 // `_dakarCenter` dans `MapOptions.initialCenter`, donc la carte n'est jamais
 // vide et aucune coordonnée fabriquée n'est présentée comme la position de
 // l'utilisateur.
+// CORRECTIF POSITION UTILISATEUR : « exploitable » signifie désormais
+// **géodésiquement plausible** (`PositionValidity`), et non plus « dans le
+// rectangle Dakar » (`DakarBounds`, réservé aux données réseau). Une position
+// réelle mesurée à Thiès, Rufisque ou Saint-Louis est conservée telle quelle.
 // ============================================================
 
 /// Décision GPS pure : état + position + message.
 ///
 /// [position] est `null` sauf si une position a été **mesurée** ET jugée
-/// valide par [DakarBounds]. Aucun chemin de [GpsResolver] ne produit une
-/// coordonnée non mesurée.
+/// plausible par [PositionValidity]. Aucun chemin de [GpsResolver] ne produit
+/// une coordonnée non mesurée, et aucune position mesurée plausible n'est
+/// rejetée pour cause d'éloignement de Dakar.
 class GpsResolution {
   final GpsState state;
   final LatLng? position;
@@ -1471,10 +1520,19 @@ class GpsResolver {
   /// déclaré dans l'enum sans jamais être assigné (les deux cas étaient
   /// collapse en `denied`) : il est désormais utilisé. Aucun état nouveau n'est
   /// créé — seule une valeur déjà déclarée reçoit son affectation.
+  ///
+  /// Refus définitif : sur un navigateur, le bouton « Activer GPS » ne peut
+  /// pas lever ce blocage (l'invite n'est plus jamais présentée). Le message
+  /// indique donc le **seul levier** réellement disponible : les réglages du
+  /// navigateur. Aucune information inventée, uniquement l'action à mener.
+  static const String deniedForeverMessage =
+      'Permission GPS refusée définitivement : réactivez la localisation dans '
+      'les réglages de votre navigateur.';
+
   static GpsResolution permissionDenied({required bool forever}) => forever
       ? const GpsResolution(
           state: GpsState.deniedForever,
-          message: 'Permission GPS refusée définitivement.',
+          message: deniedForeverMessage,
         )
       : const GpsResolution(
           state: GpsState.denied,
@@ -1483,20 +1541,21 @@ class GpsResolver {
 
   /// Position **mesurée** → décision (§11).
   ///
-  /// - mesurée et dans [DakarBounds] → `granted`, coordonnée conservée telle
-  ///   quelle, aucune substitution ;
-  /// - mesurée mais hors zone → état d'erreur explicite et `position == null`
-  ///   (décision D1-i). Le message existant est conservé : il décrit un
-  ///   recadrage réellement effectué par `MapOptions.initialCenter` ;
+  /// - mesurée et plausible ([PositionValidity]) → `granted`, coordonnée
+  ///   conservée telle quelle **où qu'elle soit** (Dakar, Thiès, Rufisque,
+  ///   Saint-Louis…), aucune substitution ;
+  /// - mesurée mais géodésiquement implausible ((0,0), |lat| > 90,
+  ///   |lon| > 180, NaN) → c'est un échec de mesure : état d'erreur explicite
+  ///   et `position == null` (décision D1-i) ;
   /// - aucune mesure (`null`) → état d'erreur explicite et `position == null`.
+  ///
+  /// AVANT : [DakarBounds] était appliqué ici et rejetait toute position
+  /// réelle hors du rectangle Dakar (« Position hors zone, recentré sur
+  /// Dakar. »). Ce rejet est supprimé : une position réelle n'est jamais
+  /// « hors zone ».
   static GpsResolution fromMeasuredPosition(LatLng? measured) {
     if (measured == null) return error;
-    if (!DakarBounds.isValid(measured)) {
-      return const GpsResolution(
-        state: GpsState.error,
-        message: 'Position hors zone, recentré sur Dakar.',
-      );
-    }
+    if (!PositionValidity.isPlausible(measured)) return error;
     return GpsResolution(
       state: GpsState.granted,
       position: measured,
@@ -1519,7 +1578,7 @@ class GpsResolver {
   /// continu (le binaire prouve les réglages `B.Lf`, pas la gestion de son
   /// interruption). Aucun redémarrage automatique n'est ajouté.
   static GpsResolution fromStreamInterrupted(LatLng? lastMeasured) {
-    if (lastMeasured != null && DakarBounds.isValid(lastMeasured)) {
+    if (lastMeasured != null && PositionValidity.isPlausible(lastMeasured)) {
       return GpsResolution(
         state: GpsState.granted,
         position: lastMeasured,
@@ -1727,7 +1786,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
     super.didUpdateWidget(oldWidget);
     if (widget.userPosition != null &&
         widget.userPosition != oldWidget.userPosition &&
-        DakarBounds.isValid(widget.userPosition!)) {
+        PositionValidity.isPlausible(widget.userPosition!)) {
       // ✅ Fix: guard move avec try + postFrame pour éviter LateInitializationError
       WidgetsBinding.instance.addPostFrameCallback((_) {
         try {
@@ -1972,7 +2031,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                         child: FlutterMap(
                           mapController: _mapController,
                           options: MapOptions(
-                            initialCenter: (widget.userPosition != null && DakarBounds.isValid(widget.userPosition!))
+                            initialCenter: (widget.userPosition != null && PositionValidity.isPlausible(widget.userPosition!))
                                 ? widget.userPosition!
                                 : _dakarCenter,
                             initialZoom: _zoomOverview,
@@ -1999,7 +2058,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                                 ),
                               )).toList(),
                             ),
-                            if (widget.userPosition != null && DakarBounds.isValid(widget.userPosition!))
+                            if (widget.userPosition != null && PositionValidity.isPlausible(widget.userPosition!))
                               MarkerLayer(markers: [Marker(point: widget.userPosition!, width: 22, height: 22, child: Container(decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 3), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 4)])))]),
                           ],
                         ),

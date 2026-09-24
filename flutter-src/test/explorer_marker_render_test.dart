@@ -307,15 +307,22 @@ void main() {
         reason: '13 gares TER officielles transmises au MarkerLayer');
     expect(transmittedByColor(stops, AppColors.brt), 23,
         reason: '23 stations BRT officielles transmises au MarkerLayer');
-    expect(stops.markers.length, 57,
-        reason: '36 officiels TER+BRT + 21 arrêts de proximité des autres '
+    // 58 = 36 officiels TER+BRT + 22 arrêts de proximité des autres réseaux.
+    // AVANT PR #20 : 57 (36 + 21) — 12 arrêts de démonstration TER/BRT
+    // occupaient encore des places parmi les 30 « à proximité » du centre de
+    // Dakar et étaient ensuite écartés de la couche (sans `stopId`). Sans les
+    // listes de démo (source unique dakar_network.json), une place de plus
+    // revient à un arrêt réel d'un autre réseau. Le flux « à proximité »
+    // (rayon, plafond 30, tri) est inchangé.
+    expect(stops.markers.length, 58,
+        reason: '36 officiels TER+BRT + 22 arrêts de proximité des autres '
             'réseaux (flux « à proximité » inchangé)');
 
     expect(renderedByColor(tester, AppColors.ter), 13,
         reason: '13 marqueurs TER instanciés dans la carte (viewport initial)');
     expect(renderedByColor(tester, AppColors.brt), 23,
         reason: '23 marqueurs BRT instanciés dans la carte (viewport initial)');
-    expect(renderedTotal(tester), inInclusiveRange(36, 57),
+    expect(renderedTotal(tester), inInclusiveRange(36, 58),
         reason: 'au moins les 36 officiels ; le reste selon le culling du '
             'viewport initial');
   });
@@ -389,7 +396,8 @@ void main() {
         reason: 'le GPS ne retire aucune gare de la couche — garantie '
             'explorerMapMarkerStops, hors plafond de proximité');
     expect(transmittedByColor(stops, AppColors.brt), 23);
-    expect(stops.markers.length, 57);
+    expect(stops.markers.length, 58,
+        reason: '36 officiels + 22 arrêts de proximité (voir CAS A)');
 
     expect(renderedByColor(tester, AppColors.brt), 23,
         reason: '23 stations BRT rendues avec GPS actif');
