@@ -263,9 +263,18 @@ void tapChip(WidgetTester tester, String label) {
 }
 
 /// Marqueurs TRANSMIS à la couche, par couleur (contrat du correctif).
+///
+/// Structure du marqueur (optimisation cartographique, Phases 3-4) :
+/// `Opacity` (densité au zoom) → `Transform` (échelle) → `GestureDetector`
+/// (interaction, inchangée) → `Container` (couleur réseau, inchangée).
+/// Le parcours descend jusqu'au `GestureDetector` sans en supposer la place.
 int transmittedByColor(MarkerLayer layer, Color color) =>
     layer.markers.where((Marker m) {
-      final Container c = (m.child as GestureDetector).child as Container;
+      Widget w = m.child;
+      while (w is Opacity || w is Transform) {
+        w = w is Opacity ? w.child : (w as Transform).child;
+      }
+      final Container c = (w as GestureDetector).child as Container;
       return (c.decoration as BoxDecoration).color == color;
     }).length;
 
