@@ -162,6 +162,11 @@ class _PngResponse implements HttpClientResponse {
   @override
   bool get persistentConnection => true;
 
+  // package:http lit `response.redirects` sur chaque réponse : le mock doit
+  // l'exposer (aucune redirection → liste vide), sinon NoSuchMethodError.
+  @override
+  List<RedirectInfo> get redirects => const <RedirectInfo>[];
+
   @override
   HttpClientResponseCompressionState get compressionState =>
       HttpClientResponseCompressionState.notCompressed;
