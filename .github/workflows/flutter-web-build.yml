@@ -140,14 +140,13 @@ jobs:
 
       - name: flutter test
         run: |
-          # [DEBUG TEMPORAIRE] publie les blocs d'échec en annotations GitHub
-          # (journal brut inaccessible depuis le client).
+          # [DEBUG TEMPORAIRE] publie les détails d'échec en UNE annotation
+          # multi-lignes (%0A) — journal brut inaccessible depuis le client.
           set +e
           flutter test --reporter expanded 2>&1 | tee "${RUNNER_TEMP}/j9-logs/test.txt"
           st=${PIPESTATUS[0]}
-          grep -A12 '\[E\]' "${RUNNER_TEMP}/j9-logs/test.txt" | while IFS= read -r l; do
-            echo "::warning::${l}"
-          done
+          msg=$(grep -E '\[E\]|Expected:|Actual:|Which:|NoSuchMethod|Tried calling|Timer is still|EXCEPTION|Test failed|Failed to load|The test description|reason:|dart: [0-9]+' "${RUNNER_TEMP}/j9-logs/test.txt" | head -n 150 | sed 's/$/%0A/' | tr -d '\n')
+          echo "::warning title=TEST FAILURES DETAIL::${msg}"
           exit "$st"
 
       - name: flutter build web
