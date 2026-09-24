@@ -145,7 +145,7 @@ jobs:
           set +e
           flutter test --reporter expanded 2>&1 | tee "${RUNNER_TEMP}/j9-logs/test.txt"
           st=${PIPESTATUS[0]}
-          msg=$(grep -E '\[E\]|Expected:|Actual:|Which:|NoSuchMethod|Tried calling|Timer is still|EXCEPTION|Test failed|Failed to load|The test description|reason:|dart: [0-9]+' "${RUNNER_TEMP}/j9-logs/test.txt" | head -n 150 | sed 's/$/%0A/' | tr -d '\n')
+          msg=$(grep -A12 -E 'EXCEPTION CAUGHT|\[E\]|Expected:|Actual:|NoSuchMethod|Timer is still|The following' "${RUNNER_TEMP}/j9-logs/test.txt" | head -n 400 | sed 's/$/%0A/' | tr -d '\n')
           echo "::warning title=TEST FAILURES DETAIL::${msg}"
           exit "$st"
 
