@@ -341,7 +341,7 @@ void main() {
   group('CAS A — double ligne BRT : diagnostic sur données réelles', () {
     test(
         'les 7 stations de B2 Express sont une sous-séquence exacte et '
-        'ordonnée des 23 stations de B1 (indices 0,4,7,10,14,20,22)', () {
+        'ordonnée des 23 stations de B1 (indices 0,4,10,16,18,20,22)', () {
       final Map<String, dynamic> json = _networkJson();
       final TransitRoute b1 = _brtRouteFromJson(json, 'brt_b1_guediawaye_petersen');
       final TransitRoute b2 = _brtRouteFromJson(json, 'brt_b2_express');
@@ -362,7 +362,14 @@ void main() {
         indices.add(h);
         h++;
       }
-      expect(indices, <int>[0, 4, 7, 10, 14, 20, 22],
+      // AUDIT DONNÉES 2026-09-24.
+      // AVANT : indices 0, 4, 7, 10, 14, 20, 22 (B2 = 23,19,16,13,09,03,01).
+      // APRÈS : indices 0, 4, 10, 16, 18, 20, 22 (B2 = 23,19,13,07,05,03,01).
+      // RAISON : séquence B2 corrigée d'après le communiqué SunuBRT du
+      //   30/09/2024 (Parcelles et Liberté 6 remplacées par Sacré-Cœur et
+      //   Grand Dakar). Le diagnostic testé est inchangé : B2 reste une
+      //   sous-séquence exacte et ordonnée de B1, sans point dupliqué.
+      expect(indices, <int>[0, 4, 10, 16, 18, 20, 22],
           reason: 'sous-séquence exacte démontrée sur la source unique');
 
       // Aucun point dupliqué dans chaque ligne (CAS B refuté).

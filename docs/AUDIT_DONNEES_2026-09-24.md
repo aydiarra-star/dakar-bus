@@ -249,6 +249,7 @@ Aucun test n'a été supprimé ni contourné. Les tests modifiés figeaient une 
 |---|---|---|---|
 | `network_data_test.dart` `kBrtB27` | ancienne séquence B2 | séquence officielle | la liste figeait une séquence contredite par SunuBRT |
 | `ter_brt_route_data_test.dart` `kBrtB27` | idem | idem | idem |
+| `cartographic_render_test.dart` « CAS A » indices de B2 dans B1 | `0,4,7,10,14,20,22` | `0,4,10,16,18,20,22` | positions dérivées de l'ancienne séquence ; le diagnostic (sous-séquence ordonnée, sans doublon) est inchangé |
 | `detailed_route_test.dart` distance B2 | `16.0 km` | `16.5 km` | même formule (haversine, R = 6 371 008,8 m), nouvelle séquence (16 454,6 m) |
 | `network_data_test.dart` « data_trust connu du modèle » | 3 valeurs | 4 valeurs (+ `UNVERIFIED`) | l'enum a été étendue ; l'intention du test (aucune valeur ignorée) est conservée |
 | `cartographic_render_test`, `gps_position_test`, `out_of_coverage_test` | taille 59 189 | taille 159 627 | verrou « un correctif UI ne touche pas aux données » ; ce commit modifie volontairement les données. Le verrou est conservé |
