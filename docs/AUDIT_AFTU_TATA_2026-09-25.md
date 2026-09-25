@@ -99,6 +99,11 @@ Autres contradictions : `data/gtfs` attribue `TATA_01`/`TATA_02` à l'agence **A
 
 Aucune autre formulation de temps réel n'a été introduite ; `real_time.public_feeds` reste vide ; le moteur `REAL_TIME` n'est pas touché.
 
+## 10 bis. Verrous de tests mis à jour (non-régression)
+
+Trois garde-fous épinglaient la **taille en octets** de `dakar_network.json` pour empêcher qu'un correctif d'interface touche aux données ; ils ont été **portés au nouveau verrou** `213 248` octets / `sha256 3c2574e3…` (même procédure que lors de l'audit données du 2026-09-24 : verrou conservé à la nouvelle valeur, raison documentée en commentaire) :
+`flutter-src/test/gps_position_test.dart` (règle 6), `flutter-src/test/cartographic_render_test.dart` (données intactes Phase 6/8), `flutter-src/test/out_of_coverage_test.dart` (garde-fous source). Ces tests vérifient **aussi** que les 117 arrêts, les 105 routes, les 5 opérateurs et les 13 gares TER dans l'ordre sont inchangés — c'est précisément ce que la normalisation respecte.
+
 ## 11. Limites actuelles
 
 1. Les itinéraires AFTU/Tata restent des **observations terrain** non recoupées : aucune liste d'arrêts officielle n'existe.

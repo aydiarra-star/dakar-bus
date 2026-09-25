@@ -707,13 +707,17 @@ void main() {
 
       final bytes = file.readAsBytesSync();
       // AUDIT DONNÉES 2026-09-24 — AVANT : 59189 octets (sha256 e59f05b0…).
-      // APRÈS : 159627 octets (sha256 9ba63618…). RAISON : ce verrou garantit
-      // qu'un correctif d'INTERFACE ne touche pas aux données. Le commit
-      // « fix(data): audit and provenance » modifie volontairement le JSON
-      // (champs de provenance ajoutés, séquence B2 corrigée ; 117 arrêts,
-      // 105 lignes, 5 opérateurs et coordonnées inchangés). Le verrou est
-      // conservé à la nouvelle valeur. Voir docs/AUDIT_DONNEES_2026-09-24.md.
-      expect(bytes.length, 159627,
+      // APRÈS : 213248 octets (sha256 3c2574e3…). RAISON : ce verrou garantit
+      // qu'un correctif d'INTERFACE ne touche pas aux données.
+      //
+      // NORMALISATION AFTU/TATA 2026-09-25 — VERROU PORTÉ À : 213248 octets
+      // (sha256 3c2574e3…). RAISON : phase documentaire explicitement autorisée
+      // (identités et nomenclature AFTU/Tata). AUCUN arrêt touché (117), AUCUNE
+      // liste d'arrêts modifiée, AUCUNE fréquence, AUCUN horaire : les 105 routes
+      // gardent leurs identifiants et leurs séquences ; seuls des champs de
+      // provenance et de nomenclature sont AJOUTÉS. Verrou conservé à la nouvelle
+      // valeur. Voir docs/AUDIT_AFTU_TATA_2026-09-25.md.
+      expect(bytes.length, 213248,
           reason: 'taille du JSON actif verrouillée après l’audit données 2026-09-24');
 
       final data = jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;

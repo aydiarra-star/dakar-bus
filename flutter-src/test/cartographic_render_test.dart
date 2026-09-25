@@ -15,8 +15,9 @@ import 'package:dakar_bus/main.dart';
 /// Périmètre : **rendu uniquement**. La correction GPS de PR #24
 /// (`GpsResolver`, `PositionValidity`, `DakarBounds`, `isWithinServiceZone`,
 /// `initialCenter`, `didUpdateWidget`, message hors zone) n'est pas touchée ;
-/// `assets/data/dakar_network.json` n'est pas modifié (verrouillé ailleurs à
-/// 59 189 octets, SHA-256 `e59f05b0…`, et re-verrouillé ici par structure).
+/// `assets/data/dakar_network.json` n'est pas modifié par ce fichier
+/// (verrouillé ailleurs à 213 248 octets, SHA-256 `3c2574e3…` depuis la
+/// normalisation AFTU/Tata du 2026-09-25, et re-verrouillé ici par structure).
 ///
 /// Ce fichier prouve :
 ///
@@ -726,15 +727,19 @@ void main() {
       final File file = File('assets/data/dakar_network.json');
       expect(file.existsSync(), isTrue);
 // AUDIT DONNÉES 2026-09-24 — AVANT : 59189 octets (sha256 e59f05b0…).
-      // APRÈS : 159627 octets (sha256 9ba63618…). RAISON : ce verrou garantit
-      // qu'un correctif d'INTERFACE ne touche pas aux données. Le commit
-      // « fix(data): audit and provenance » modifie volontairement le JSON
-      // (champs de provenance ajoutés, séquence B2 corrigée ; 117 arrêts,
-      // 105 lignes, 5 opérateurs et coordonnées inchangés). Le verrou est
-      // conservé à la nouvelle valeur. Voir docs/AUDIT_DONNEES_2026-09-24.md.
-      expect(file.readAsBytesSync().length, 159627,
+// APRÈS : 213248 octets (sha256 3c2574e3…). RAISON : ce verrou garantit
+// qu'un correctif d'INTERFACE ne touche pas aux données.
+//
+// NORMALISATION AFTU/TATA 2026-09-25 — VERROU PORTÉ À : 213248 octets
+// (sha256 3c2574e3…). RAISON : phase documentaire explicitement autorisée
+// (identités et nomenclature AFTU/Tata). AUCUN arrêt touché (117), AUCUNE
+// liste d'arrêts modifiée, AUCUNE fréquence, AUCUN horaire : les 105 routes
+// gardent leurs identifiants et leurs séquences ; seuls des champs de
+// provenance et de nomenclature sont AJOUTÉS. Verrou conservé à la nouvelle
+// valeur. Voir docs/AUDIT_AFTU_TATA_2026-09-25.md.
+      expect(file.readAsBytesSync().length, 213248,
           reason: 'taille verrouillée depuis l’audit données du 2026-09-24 '
-              '(sha256 9ba63618…)');
+              '(sha256 3c2574e3…)');
 
       final Map<String, dynamic> json = _networkJson();
       expect((json['stops'] as List).length, 117);
