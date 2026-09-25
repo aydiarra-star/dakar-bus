@@ -1896,6 +1896,10 @@
       "checked_against_url": "https://demdikk.sn/reseau-urbain-dakar/",
       "checked_at": "2026-09-24",
       "audit_note": "Marqué OFFICIAL à l’origine sans source. Itinéraire du JSON contredit par l’itinéraire publié par Dakar Dem Dikk (demdikk.sn) : Ligne 1 : Parcelles Assainies ↔ Place Leclerc (via Grand Médine, VDN, UCAD, Sandaga). Itinéraire du JSON conservé tel quel, non réécrit.",
+      "official_identifier_status": "CONFLICTING",
+      "official_identifier_note": "N° 1 publié par DDD pour PARCELLES ASSAINIES ↔ PLACE LECLERC ; l'itinéraire interne de cette identité contredit l'itinéraire officiel.",
+      "official_number_observed": true,
+      "official_number_belongs_to": "DDD",
       "stops": [
         "stop_colobane",
         "stop_hlm",
@@ -1919,6 +1923,10 @@
       "checked_against_url": "https://demdikk.sn/reseau-urbain-dakar/",
       "checked_at": "2026-09-24",
       "audit_note": "Marqué OFFICIAL à l’origine sans source. Itinéraire du JSON contredit par l’itinéraire publié par Dakar Dem Dikk (demdikk.sn) : Ligne 10 : Liberté 5 ↔ Palais 2. Itinéraire du JSON conservé tel quel, non réécrit.",
+      "official_identifier_status": "CONFLICTING",
+      "official_identifier_note": "N° 10 publié par DDD pour LIBERTÉ 5 ↔ PALAIS 2 ; l'itinéraire interne contredit l'itinéraire officiel.",
+      "official_number_observed": true,
+      "official_number_belongs_to": "DDD",
       "stops": [
         "stop_liberte6",
         "stop_patte_doie",
@@ -1943,6 +1951,10 @@
       "checked_against_url": "https://demdikk.sn/reseau-urbain-dakar/",
       "checked_at": "2026-09-24",
       "audit_note": "Itinéraire du JSON contredit par l’itinéraire publié par Dakar Dem Dikk (demdikk.sn) : Ligne 11 : Keur Massar ↔ Lat Dior (via Fass Mbao, Thiaroye, Colobane, Sandaga). Itinéraire du JSON conservé tel quel, non réécrit.",
+      "official_identifier_status": "CONFLICTING",
+      "official_identifier_note": "N° 11 publié par DDD pour KEUR MASSAR ↔ LAT DIOR ; l'itinéraire interne contredit l'itinéraire officiel ; distinct de new_commune_11.",
+      "official_number_observed": true,
+      "official_number_belongs_to": "DDD",
       "stops": [
         "stop_ucad",
         "stop_point_e",
@@ -1967,6 +1979,10 @@
       "checked_against_url": "https://demdikk.sn/reseau-urbain-dakar/",
       "checked_at": "2026-09-24",
       "audit_note": "Itinéraire du JSON contredit par l’itinéraire publié par Dakar Dem Dikk (demdikk.sn) : Ligne 12 : Guédiawaye ↔ Palais 1 (via Tally Boubess, Pikine, Castors, UCAD). Itinéraire du JSON conservé tel quel, non réécrit.",
+      "official_identifier_status": "CONFLICTING",
+      "official_identifier_note": "N° 12 publié par DDD pour GUÉDIAWAYE ↔ PALAIS 1 ; l'itinéraire interne diffère de l'itinéraire officiel ; distinct de new_commune_12.",
+      "official_number_observed": true,
+      "official_number_belongs_to": "DDD",
       "stops": [
         "stop_guediawaye",
         "stop_scatt_urbam",
@@ -1992,6 +2008,10 @@
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
       "audit_note": "Marqué OFFICIAL à l’origine sans source. Aucune ligne 14 dans la liste publiée par Dakar Dem Dikk (demdikk.sn). Itinéraire de 6.9 km pour 3.3 km entre terminus (×2.1) : succession d’arrêts géographiquement incohérente.",
+      "official_identifier_status": "MISSING",
+      "official_identifier_note": "Aucune ligne 14 n'est publiée par DDD dans la nomenclature vérifiée ; l'identifiant technique 14 ne constitue pas un identifiant officiel.",
+      "official_number_observed": false,
+      "official_number_belongs_to": null,
       "stops": [
         "stop_gare_maritime",
         "stop_petersen",
@@ -2016,6 +2036,10 @@
       "checked_against_url": "https://demdikk.sn/reseau-urbain-dakar/",
       "checked_at": "2026-09-24",
       "audit_note": "Itinéraire du JSON contredit par l’itinéraire publié par Dakar Dem Dikk (demdikk.sn) : Ligne 15 : Rufisque ↔ Palais 1 (via Keur Massar, Thiaroye, Colobane). Itinéraire du JSON conservé tel quel, non réécrit.",
+      "official_identifier_status": "CONFLICTING",
+      "official_identifier_note": "N° 15 publié par DDD pour RUFISQUE ↔ PALAIS 1 ; l'itinéraire interne contredit l'itinéraire officiel.",
+      "official_number_observed": true,
+      "official_number_belongs_to": "DDD",
       "stops": [
         "stop_ouakam",
         "stop_mermoz",
@@ -2040,6 +2064,10 @@
       "checked_against_url": "https://demdikk.sn/reseau-urbain-dakar/",
       "checked_at": "2026-09-24",
       "audit_note": "Marqué OFFICIAL à l’origine sans source. Itinéraire du JSON contredit par l’itinéraire publié par Dakar Dem Dikk (demdikk.sn) : Ligne 20 : Dieuppeul ↔ Centre-ville. Itinéraire du JSON conservé tel quel, non réécrit.",
+      "official_identifier_status": "CONFLICTING",
+      "official_identifier_note": "N° 20 publié par DDD pour la boucle DIEUPPEUL ↔ CENTRE-VILLE ↔ DIEUPPEUL ; l'itinéraire interne contredit l'itinéraire officiel.",
+      "official_number_observed": true,
+      "official_number_belongs_to": "DDD",
       "stops": [
         "stop_petersen",
         "stop_colobane",
@@ -2063,6 +2091,10 @@
       "checked_against_url": "https://demdikk.sn/reseau-urbain-dakar/",
       "checked_at": "2026-09-24",
       "audit_note": "Marqué OFFICIAL à l’origine sans source. Itinéraire du JSON contredit par l’itinéraire publié par Dakar Dem Dikk (demdikk.sn) : Ligne 23 : Parcelles Assainies ↔ Palais (via Croisement 22, Police Parcelles, Liberté 6, Khar Yalla, UCAD). Itinéraire du JSON conservé tel quel, non réécrit.",
+      "official_identifier_status": "CONFLICTING",
+      "official_identifier_note": "N° 23 publié par DDD mais identité officielle elle-même contradictoire (PALAIS 1 dans l'en-tête vs Palais 2 dans le dernier arrêt publié) ; l'itinéraire interne est différent ; conflit conservé sans arbitrage.",
+      "official_number_observed": true,
+      "official_number_belongs_to": "DDD",
       "stops": [
         "stop_sandaga",
         "stop_colobane",
@@ -2087,6 +2119,10 @@
       "checked_against_url": "https://demdikk.sn/reseau-urbain-dakar/",
       "checked_at": "2026-09-24",
       "audit_note": "Marqué OFFICIAL à l’origine sans source. Aucune ligne 3 dans la liste publiée par Dakar Dem Dikk (demdikk.sn).",
+      "official_identifier_status": "MISSING",
+      "official_identifier_note": "Aucune ligne 3 n'est publiée par DDD dans la nomenclature vérifiée ; l'identifiant technique 3 ne constitue pas un identifiant officiel.",
+      "official_number_observed": false,
+      "official_number_belongs_to": null,
       "stops": [
         "stop_sandaga",
         "stop_point_e",
@@ -2110,6 +2146,10 @@
       "checked_against_url": "https://demdikk.sn/reseau-urbain-dakar/",
       "checked_at": "2026-09-24",
       "audit_note": "Marqué OFFICIAL à l’origine sans source. Itinéraire du JSON contredit par l’itinéraire publié par Dakar Dem Dikk (demdikk.sn) : Ligne 7 : Ouakam ↔ Palais 2. Itinéraire du JSON conservé tel quel, non réécrit.",
+      "official_identifier_status": "CONFLICTING",
+      "official_identifier_note": "N° 7 publié par DDD pour OUAKAM ↔ PALAIS 2 ; l'itinéraire interne contredit l'itinéraire officiel.",
+      "official_number_observed": true,
+      "official_number_belongs_to": "DDD",
       "stops": [
         "stop_hlm",
         "stop_grand_yoff",
@@ -2134,6 +2174,10 @@
       "checked_against_url": "https://demdikk.sn/reseau-urbain-dakar/",
       "checked_at": "2026-09-24",
       "audit_note": "Marqué OFFICIAL à l’origine sans source. Itinéraire du JSON contredit par l’itinéraire publié par Dakar Dem Dikk (demdikk.sn) : Ligne 8 : Aéroport LSS ↔ Palais 2 (via Yoff, Patte d’Oie, Grand Yoff, Castors, Dial Diop, Point E, UCAD). Itinéraire du JSON conservé tel quel, non réécrit.",
+      "official_identifier_status": "CONFLICTING",
+      "official_identifier_note": "N° 8 publié par DDD pour AÉROPORT LSS ↔ PALAIS 2 ; l'itinéraire interne contredit l'itinéraire officiel.",
+      "official_number_observed": true,
+      "official_number_belongs_to": "DDD",
       "stops": [
         "stop_yoff",
         "stop_parcelles_u26",
@@ -2158,6 +2202,10 @@
       "checked_against_url": "https://demdikk.sn/reseau-urbain-dakar/",
       "checked_at": "2026-09-24",
       "audit_note": "Itinéraire du JSON contredit par l’itinéraire publié par Dakar Dem Dikk (demdikk.sn) : Ligne 9 : Liberté 6 ↔ Palais 2. Itinéraire du JSON conservé tel quel, non réécrit.",
+      "official_identifier_status": "CONFLICTING",
+      "official_identifier_note": "N° 9 publié par DDD pour LIBERTÉ 6 ↔ PALAIS 2 ; l'itinéraire interne contredit l'itinéraire officiel.",
+      "official_number_observed": true,
+      "official_number_belongs_to": "DDD",
       "stops": [
         "stop_parcelles_u26",
         "stop_camberene",
@@ -3821,6 +3869,10 @@
         "DUPLICATE_STOP_SEQUENCE"
       ],
       "audit_note": "Observation terrain non vérifiée. « Tata » désigne les minibus des GIE AFTU ; CETUD ne publie pas de réseau Tata distinct. Le numéro 218 est aussi celui d’une ligne Dakar Dem Dikk officielle (Thiaroye ↔ Aéroport LSS) : risque de confusion. Séquence d’arrêts strictement identique à aftu_38.",
+      "official_identifier_status": "CONFLICTING",
+      "official_identifier_note": "N° 218 publié par DDD pour THIAROYE ↔ AÉROPORT LSS ; aucune correspondance publiée avec l'itinéraire observé du Tata.",
+      "official_number_observed": true,
+      "official_number_belongs_to": "DDD",
       "stops": [
         "stop_mermoz",
         "stop_sacre_coeur",
@@ -3842,6 +3894,10 @@
       "verified_at": null,
       "schedule_status": "UNKNOWN",
       "audit_note": "Observation terrain non vérifiée. « Tata » désigne les minibus des GIE AFTU ; CETUD ne publie pas de réseau Tata distinct. Le numéro 219 est aussi celui d’une ligne Dakar Dem Dikk officielle (Daroukhane ↔ Ouakam) : risque de confusion.",
+      "official_identifier_status": "CONFLICTING",
+      "official_identifier_note": "N° 219 publié par DDD pour DAROUKHANE ↔ OUAKAM ; aucune fusion avec l'identité Tata ; corridor AFTU possible mais identité non établie.",
+      "official_number_observed": true,
+      "official_number_belongs_to": "DDD",
       "stops": [
         "stop_parcelles_u26",
         "stop_petersen"
@@ -3863,6 +3919,10 @@
         "DUPLICATE_STOP_SEQUENCE"
       ],
       "audit_note": "Observation terrain non vérifiée. « Tata » désigne les minibus des GIE AFTU ; CETUD ne publie pas de réseau Tata distinct. Séquence d’arrêts strictement identique à aftu_2.",
+      "official_identifier_status": "CONFLICTING",
+      "official_identifier_note": "N° 50 publié par AFTU pour un autre service (PETERSEN - MALIKA CIMETIERE) ; itinéraire observé différent ; numéro non attribué au Tata.",
+      "official_number_observed": true,
+      "official_number_belongs_to": "AFTU",
       "stops": [
         "stop_guediawaye",
         "stop_pikine",
@@ -3884,6 +3944,10 @@
       "verified_at": null,
       "schedule_status": "UNKNOWN",
       "audit_note": "Observation terrain non vérifiée. « Tata » désigne les minibus des GIE AFTU ; CETUD ne publie pas de réseau Tata distinct.",
+      "official_identifier_status": "CONFLICTING",
+      "official_identifier_note": "N° 64 publié par AFTU pour un autre service (GUEDIAWAYE - RUFISQUE) ; itinéraire observé différent ; numéro non attribué au Tata.",
+      "official_number_observed": true,
+      "official_number_belongs_to": "AFTU",
       "stops": [
         "stop_pikine",
         "stop_scatt_urbam",
@@ -3904,6 +3968,10 @@
       "verified_at": null,
       "schedule_status": "UNKNOWN",
       "audit_note": "Observation terrain non vérifiée. « Tata » désigne les minibus des GIE AFTU ; CETUD ne publie pas de réseau Tata distinct.",
+      "official_identifier_status": "CONFLICTING",
+      "official_identifier_note": "N° 78 publié par AFTU pour un autre service (DIAMAGUENE - LIBERTE 5) ; corridor AFTU 3/4 plausible mais identité non établie ; numéro non attribué au Tata.",
+      "official_number_observed": true,
+      "official_number_belongs_to": "AFTU",
       "stops": [
         "stop_yoff",
         "stop_camberene",
@@ -3928,6 +3996,10 @@
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
       "audit_note": "Ligne candidate sans source : ne fait pas partie du total officiel DDD (38 lignes, CETUD). Aucune ligne correspondante dans la liste publiée par demdikk.sn. Itinéraire de 7.1 km pour 1.0 km entre terminus (×7.1) : succession d’arrêts géographiquement incohérente.",
+      "official_identifier_status": "MISSING",
+      "official_identifier_note": "Identifiant technique interne ; le suffixe 01 n'est pas un numéro officiel ; aucune correspondance avec DDD 1 n'est établie.",
+      "official_number_observed": false,
+      "official_number_belongs_to": null,
       "stops": [
         "stop_fass",
         "stop_sicap_liberte",
@@ -3950,6 +4022,10 @@
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": false,
       "audit_note": "Ligne candidate sans source : ne fait pas partie du total officiel DDD (38 lignes, CETUD). Aucune ligne correspondante dans la liste publiée par demdikk.sn.",
+      "official_identifier_status": "MISSING",
+      "official_identifier_note": "Identifiant technique interne ; le suffixe 02 n'est pas un numéro officiel ; aucune correspondance avec DDD 2 n'est établie.",
+      "official_number_observed": false,
+      "official_number_belongs_to": null,
       "stops": [
         "stop_rebeuss",
         "stop_plateau",
@@ -4149,6 +4225,10 @@
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": false,
       "audit_note": "Ligne candidate sans source : ne fait pas partie du total officiel publié.",
+      "official_identifier_status": "MISSING",
+      "official_identifier_note": "Identifiant technique interne ; le suffixe 11 n'est pas un numéro officiel ; aucune publication ne numérote ce service ; ne pas confondre avec DDD 11.",
+      "official_number_observed": false,
+      "official_number_belongs_to": null,
       "stops": [
         "stop_ouakam_cite_avion2",
         "stop_ngor_village",
@@ -4170,6 +4250,10 @@
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": false,
       "audit_note": "Ligne candidate sans source : ne fait pas partie du total officiel publié.",
+      "official_identifier_status": "MISSING",
+      "official_identifier_note": "Identifiant technique interne ; le suffixe 12 n'est pas un numéro officiel ; aucune publication ne numérote ce service ; ne pas confondre avec DDD 12.",
+      "official_number_observed": false,
+      "official_number_belongs_to": null,
       "stops": [
         "stop_jaxaay_nimzatt",
         "stop_rufisque_ouest",
@@ -4191,6 +4275,10 @@
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": false,
       "audit_note": "Ligne candidate sans source : ne fait pas partie du total officiel DDD (38 lignes, CETUD). Aucune ligne correspondante dans la liste publiée par demdikk.sn.",
+      "official_identifier_status": "MISSING",
+      "official_identifier_note": "Identifiant technique interne ; le suffixe 13 n'est pas un numéro officiel ; aucune correspondance avec DDD 13 n'est établie.",
+      "official_number_observed": false,
+      "official_number_belongs_to": null,
       "stops": [
         "stop_sebikotane_gare2",
         "stop_bargny_guedj",

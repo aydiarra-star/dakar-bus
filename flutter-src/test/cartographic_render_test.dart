@@ -726,15 +726,22 @@ void main() {
       final File file = File('assets/data/dakar_network.json');
       expect(file.existsSync(), isTrue);
 // AUDIT DONNÉES 2026-09-24 — AVANT : 59189 octets (sha256 e59f05b0…).
-      // APRÈS : 159627 octets (sha256 9ba63618…). RAISON : ce verrou garantit
+      // APRÈS (audit données) : 159627 octets (sha256 9ba63618…). RAISON : ce verrou garantit
       // qu'un correctif d'INTERFACE ne touche pas aux données. Le commit
       // « fix(data): audit and provenance » modifie volontairement le JSON
       // (champs de provenance ajoutés, séquence B2 corrigée ; 117 arrêts,
       // 105 lignes, 5 opérateurs et coordonnées inchangés). Le verrou est
       // conservé à la nouvelle valeur. Voir docs/AUDIT_DONNEES_2026-09-24.md.
-      expect(file.readAsBytesSync().length, 159627,
-          reason: 'taille verrouillée depuis l’audit données du 2026-09-24 '
-              '(sha256 9ba63618…)');
+      //
+      // §9-1 — APRÈS : 166370 octets (sha256 c08389ac…). RAISON : le lot §9-1
+      // ajoute quatre champs d'identifiant officiel, en AJOUT SEUL, sur
+      // exactement 22 routes Tata/DDD (7 Tata + 15 DDD) : +88 lignes, aucune
+      // ligne supprimée. Aucune donnée préexistante n'est modifiée (105 lignes,
+      // 117 arrêts, 5 opérateurs, coordonnées, géométrie et arrêts inchangés).
+      // Voir docs/ETAPE_3A_AUDIT_IDENTIFIANTS_TATA_DDD_2026-09-25.md §9-1/§12.
+      expect(file.readAsBytesSync().length, 166370,
+          reason: 'taille verrouillée depuis l’audit données du 2026-09-24, '
+              'révisée par le lot §9-1 (sha256 c08389ac…)');
 
       final Map<String, dynamic> json = _networkJson();
       expect((json['stops'] as List).length, 117);
