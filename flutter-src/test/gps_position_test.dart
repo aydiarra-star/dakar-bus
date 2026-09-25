@@ -707,14 +707,22 @@ void main() {
 
       final bytes = file.readAsBytesSync();
       // AUDIT DONNÉES 2026-09-24 — AVANT : 59189 octets (sha256 e59f05b0…).
-      // APRÈS : 159627 octets (sha256 9ba63618…). RAISON : ce verrou garantit
+      // APRÈS (audit données) : 159627 octets (sha256 9ba63618…). RAISON : ce verrou garantit
       // qu'un correctif d'INTERFACE ne touche pas aux données. Le commit
       // « fix(data): audit and provenance » modifie volontairement le JSON
       // (champs de provenance ajoutés, séquence B2 corrigée ; 117 arrêts,
       // 105 lignes, 5 opérateurs et coordonnées inchangés). Le verrou est
       // conservé à la nouvelle valeur. Voir docs/AUDIT_DONNEES_2026-09-24.md.
-      expect(bytes.length, 159627,
-          reason: 'taille du JSON actif verrouillée après l’audit données 2026-09-24');
+      //
+      // §9-1 — APRÈS : 166370 octets (sha256 c08389ac…). RAISON : le lot §9-1
+      // ajoute quatre champs d'identifiant officiel, en AJOUT SEUL, sur
+      // exactement 22 routes Tata/DDD (7 Tata + 15 DDD) : +88 lignes, aucune
+      // ligne supprimée. Aucune donnée préexistante n'est modifiée (105 lignes,
+      // 117 arrêts, 5 opérateurs, coordonnées, géométrie et arrêts inchangés).
+      // Voir docs/ETAPE_3A_AUDIT_IDENTIFIANTS_TATA_DDD_2026-09-25.md §9-1/§12.
+      expect(bytes.length, 166370,
+          reason: 'taille du JSON actif verrouillée après l’audit données 2026-09-24, '
+              'révisée par le lot §9-1 (sha256 c08389ac…)');
 
       final data = jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
       final stops = (data['stops'] as List).cast<Map<String, dynamic>>();
