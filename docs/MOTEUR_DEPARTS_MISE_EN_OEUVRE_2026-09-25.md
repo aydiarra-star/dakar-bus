@@ -61,6 +61,7 @@ restent `null` (aucune date de publication inventée).
 | `npm run audit:pages` | `releaseReady: false` — mêmes constats préexistants (géométrie publiée non certifiée, routage segment droit) |
 | Serveur réel (`PORT=3000 node server/server.js`) | `/api/health` → `mode: NO_PUBLIC_FEED`, `simulatedDataServed: false` ; `/api/gtfs-rt/vehiclePositions` → `entity: []`, `status: UNKNOWN`, `simulated: false` ; `/api/vehicles` → `count: 0` ; `/api/alerts` → `count: 0` |
 | Page servie | `engine/departure-engine.js` et `data/transit/departure-frequencies.json` servis (200) |
+| Workflow J9 (GitHub Actions, run 36092184693) | **succès** : `flutter pub get` → `flutter analyze` → `flutter test` → `flutter build web` + vérifications de cohérence (dont le miroir byte-identique du référentiel de fréquences) |
 
 ## 5. Les 13 confirmations demandées
 
@@ -106,9 +107,10 @@ restent `null` (aucune date de publication inventée).
 
 ## 6. Limites explicites
 
-* `flutter analyze` / `flutter test` **n'ont pas pu être exécutés** dans cet environnement
-  (SDK Flutter non installable, accès réseau bloqué). Les fichiers Dart sont écrits pour la CI
-  J9 (`analyze` → `test` → `build web`) ; c'est elle qui les validera.
+* Le SDK Flutter n'est pas installable dans l'environnement de travail (accès réseau bloqué) :
+  `flutter analyze` / `flutter test` ont donc été exécutés **par la CI J9** sur ce commit
+  (run 36092184693, succès des trois étapes + cohérence des assets). Le miroir Dart est vérifié
+  par la CI, pas localement.
 * Le moteur ne contient **aucune donnée** : sans référentiel chargé, tout est `UNKNOWN`
   (échec fermé). C'est volontaire — un moteur « qui marche quand même » inventerait.
 * B3/B4, TER AIBD, KMF, Yeumbeul A/B restent hors service, exactement comme dans l'audit des
