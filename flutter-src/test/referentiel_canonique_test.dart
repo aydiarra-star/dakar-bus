@@ -291,7 +291,7 @@ void main() {
         if (!<String>['aftu', 'tata', 'ddd'].contains(r.operatorId)) continue;
         expect(r.provenance.status, isNot(ProvenanceStatus.confirmed),
             reason: '${r.id} : le référentiel canonique ne confirme aucune de ces lignes');
-        expect(r.scheduleStatus, ScheduleStatus.unknown, reason: '${r.id}');
+        expect(r.scheduleStatus, ScheduleStatus.unknown, reason: r.id);
       }
     });
   });
