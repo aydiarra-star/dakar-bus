@@ -62,7 +62,7 @@ recalculée côté application.
 
 ## 3. Fichiers exacts du lot
 
-`git diff --stat c0ef96a..HEAD` (8 fichiers) :
+`git diff --stat c0ef96a..HEAD` — **9 fichiers, 1629 insertions, 41 suppressions** :
 
 | Fichier | Nature | Rôle |
 |---|---|---|
