@@ -61,7 +61,7 @@ Headers gérés :
 | `GET /api/vehicles` | Format simple `{lat,lng,speed}` pour Leaflet | 30s |
 | `GET /api/alerts` | Format simple alertes | 30s |
 | `GET /api/stream/vehicles` | SSE live push (alternative polling) | live 3s |
-| `GET /api/health` | Status + mode MOCK/LIVE | - |
+| `GET /api/health` | Status + politique de données simulées + statuts du moteur | - |
 
 Exemple :
 ```bash
@@ -69,35 +69,36 @@ curl http://localhost:8000/api/vehicles | jq
 curl http://localhost:8000/api/gtfs-rt/vehiclePositions?nocache=1 | jq '.entity[0]'
 ```
 
-## 🔄 Frontend déjà branché
+## 🔄 Frontend
 
-Dans `index.html`, le client GTFS-RT fait :
+Depuis le 2026-09-25, **le frontend ne consomme plus ces endpoints pour afficher
+des départs**. Il utilise le moteur commun :
 
-```js
-// Essaie d'abord vrai endpoint via proxy
-fetch('/api/gtfs-rt/vehiclePositions')
-  -> si 200 + protobuf -> décodé par proxy -> JSON
-  -> si échec -> mock Dakar local
-
-// Polling 3s
-setInterval(fetchNow, 3000)
-
-// SSE optionnel
-new EventSource('/api/stream/vehicles')
+```
+engine/departure-engine.js  +  data/transit/departure-frequencies.json
+        → SCHEDULED (horaire précis sourcé)
+        → ESTIMATED (fenêtre issue d'une fréquence documentée)
+        → REAL_TIME (uniquement une observation réelle horodatée)
+        → UNKNOWN  (aucune donnée fiable)
 ```
 
-Tu n'as rien à changer côté frontend.
+Aucun flux GTFS-RT public (TER, BRT, DDD, AFTU, TATA) n'est disponible :
+`/api/gtfs-rt/*` renvoie donc un refus explicite (`status: UNKNOWN`, 0 entité)
+plutôt que des données inventées.
 
-## 🧪 Tester sans clé CETUD (mode MOCK)
+## 🧪 Mode simulé (développement local uniquement)
 
-Le mode mock génère :
-- 127 véhicules (BRT 23, DDD 45, Car Rapide 34, TER 3, AFTU 22)
-- Positions aléatoires autour de Dakar (14.69, -17.44)
-- Vitesses 5-40 km/h, occupancy, congestion
-- TripUpdates avec delays -3 à +7 min
-- Alerts réalistes (panne Colobane, VDN, travaux Grand Yoff)
+```bash
+USE_MOCK=true ALLOW_SIMULATED_DATA=true NODE_ENV=development npm start
+```
 
-C'est ce qui tourne actuellement.
+- Refusé **par défaut**, refusé **en production**, jamais présenté comme du
+  temps réel (`_meta.simulated: true`, `_meta.status: 'SIMULATED'`).
+- AVANT : l'absence de clé API suffisait à activer un flux « réaliste »
+  (127 véhicules aléatoires, retards de -3 à +7 min, alertes inventées) servi
+  comme un flux temps réel, y compris en production.
+- Une fréquence, elle, n'est jamais transformée en temps réel : voir
+  `engine/departure-engine.js` et `docs/AUDIT_MOTEUR_DEPARTS_2026-09-25.md`.
 
 ## 🐳 Docker (optionnel)
 
@@ -130,13 +131,16 @@ Ou déploie sur Railway/Render avec `npm start`.
 
 ## ❓ Pas de clé CETUD ?
 
-Pas grave, le mock est réaliste et le code est prêt pour le live. Dès que tu as la clé :
+L'application reste utilisable : les départs TER et BRT sont **estimés** à partir
+de fréquences documentées (fenêtre, jamais une heure précise), et les réseaux
+sans fréquence publiée (DDD, AFTU, TATA) affichent « Information indisponible ».
 
-1. Mets `USE_MOCK=false`
-2. Mets l'URL et la clé
-3. Redéploie
+Dès qu'un flux réel authentifié existe :
 
-Le frontend basculera automatiquement en LIVE (badge vert "GTFS-RT LIVE CETUD").
+1. Renseigne l'URL et la clé ;
+2. Vérifie que les observations portent `source`, `observedAt`, `lineId` et
+   `vehicleId` (sinon elles sont refusées : `REAL_TIME` ne s'improvise pas) ;
+3. Redéploie. Aucune donnée simulée ne sera servie à la place.
 
 ## 📄 Licence
 

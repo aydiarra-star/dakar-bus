@@ -7,6 +7,10 @@ import NodeCache from 'node-cache';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+// MOTEUR D'ESTIMATION — politique des données temps réel simulées (2026-09-25).
+// Une position ou un retard inventés ne doivent JAMAIS être servis comme du
+// temps réel : voir engine/gtfs-rt-policy.js et docs/AUDIT_MOTEUR_DEPARTS_2026-09-25.md.
+import gtfsRtPolicy from '../engine/gtfs-rt-policy.js';
 
 dotenv.config();
 
@@ -175,6 +179,28 @@ function generateMockDakarGTFS(type = 'vehiclePositions') {
   }
 }
 
+// ---------- POLITIQUE DES DONNÉES SIMULÉES ----------
+// AVANT (jusqu'au 2026-09-24) : `useMock = USE_MOCK === 'true' || !CETUD_API_KEY`
+//   → l'absence de clé API suffisait à servir des positions, des retards
+//     (Math.random ±600 s) et des alertes inventées, en production comprise.
+// APRÈS : la simulation est refusée par défaut, refusée en production, et
+//   n'est servie que si ALLOW_SIMULATED_DATA=true est explicitement posée hors
+//   production. Le refus est un corps explicite (status UNKNOWN, 0 entité),
+//   jamais un flux crédible.
+function simulatedDataVerdict() {
+  return gtfsRtPolicy.mayServeSimulatedData(process.env);
+}
+
+function simulatedOrRefusal(type, endpoint) {
+  const verdict = simulatedDataVerdict();
+  if (verdict.serve) {
+    const payload = gtfsRtPolicy.tagSimulated(generateMockDakarGTFS(type));
+    payload._meta.policyReason = verdict.reason;
+    return payload;
+  }
+  return gtfsRtPolicy.refusalPayload(endpoint, verdict);
+}
+
 // ---------- FETCH REAL GTFS-RT WITH PROTOBUF SUPPORT ----------
 async function fetchRealGTFSRT(url, apiKey = '', keyHeader = 'X-API-Key') {
   if (!url) return null;
@@ -238,8 +264,8 @@ async function fetchRealGTFSRT(url, apiKey = '', keyHeader = 'X-API-Key') {
         _raw: true,
         size: buffer.byteLength,
         contentType,
-        note: 'Install gtfs-realtime-bindings: npm install gtfs-realtime-bindings',
-        mockFallback: generateMockDakarGTFS('vehiclePositions')
+        simulated: false,
+        note: 'Install gtfs-realtime-bindings: npm install gtfs-realtime-bindings. Aucune donnée simulée n’est injectée ici.'
       };
     }
   } catch (e) {
@@ -252,10 +278,17 @@ async function fetchRealGTFSRT(url, apiKey = '', keyHeader = 'X-API-Key') {
 
 // Health
 app.get('/api/health', (req, res) => {
+  const verdict = simulatedDataVerdict();
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    mode: process.env.USE_MOCK === 'true' ? 'MOCK_DAKAR' : 'LIVE_CETUD',
+    mode: verdict.serve ? 'SIMULATED_DEV' : (process.env.CETUD_API_KEY ? 'CETUD_CONFIGURED' : 'NO_PUBLIC_FEED'),
+    departureEnginePolicy: {
+      simulatedDataServed: verdict.serve,
+      reason: verdict.reason,
+      note: verdict.note,
+      noteStatuses: 'SCHEDULED | ESTIMATED | REAL_TIME | UNKNOWN — REAL_TIME exige une observation réelle',
+    },
     cache: gtfsCache.getStats(),
     endpoints: {
       vehiclePositions: '/api/gtfs-rt/vehiclePositions',
@@ -282,17 +315,19 @@ app.get('/api/gtfs-rt/vehiclePositions', async (req, res) => {
   }
 
   let data = null;
-  const useMock = process.env.USE_MOCK === 'true' || !process.env.CETUD_API_KEY;
-
-  if (!useMock) {
-    const url = process.env.CETUD_VEHICLE_POSITIONS_URL;
-    data = await fetchRealGTFSRT(url, process.env.CETUD_API_KEY, process.env.CETUD_API_KEY_HEADER || 'X-API-Key');
+  if (process.env.CETUD_VEHICLE_POSITIONS_URL) {
+    data = await fetchRealGTFSRT(
+      process.env.CETUD_VEHICLE_POSITIONS_URL,
+      process.env.CETUD_API_KEY,
+      process.env.CETUD_API_KEY_HEADER || 'X-API-Key'
+    );
   }
 
   if (!data) {
-    console.log('[GTFS] Using MOCK Dakar data (no key or fetch failed)');
-    data = generateMockDakarGTFS('vehiclePositions');
-    data._meta.mockReason = useMock ? 'USE_MOCK=true or no API key' : 'Real fetch failed, fallback mock';
+    const endpoint = '/api/gtfs-rt/vehiclePositions';
+    const verdict = simulatedDataVerdict();
+    console.log(`[GTFS] ${verdict.serve ? 'Données SIMULÉES (dev explicite)' : 'Aucune donnée temps réel'} — ${verdict.reason}`);
+    data = simulatedOrRefusal('vehiclePositions', endpoint);
   }
 
   data._cachedAt = Date.now();
@@ -307,10 +342,10 @@ app.get('/api/gtfs-rt/tripUpdates', async (req, res) => {
   if (cached && !req.query.nocache) return res.json({ ...cached, _cached: true });
 
   let data = null;
-  if (process.env.USE_MOCK !== 'true' && process.env.CETUD_TRIP_UPDATES_URL) {
+  if (process.env.CETUD_TRIP_UPDATES_URL) {
     data = await fetchRealGTFSRT(process.env.CETUD_TRIP_UPDATES_URL, process.env.CETUD_API_KEY, process.env.CETUD_API_KEY_HEADER);
   }
-  if (!data) data = generateMockDakarGTFS('tripUpdates');
+  if (!data) data = simulatedOrRefusal('tripUpdates', '/api/gtfs-rt/tripUpdates');
   data._cachedAt = Date.now();
   gtfsCache.set(cacheKey, data);
   res.json(data);
@@ -323,10 +358,10 @@ app.get('/api/gtfs-rt/alerts', async (req, res) => {
   if (cached && !req.query.nocache) return res.json({ ...cached, _cached: true });
 
   let data = null;
-  if (process.env.USE_MOCK !== 'true' && process.env.CETUD_ALERTS_URL) {
+  if (process.env.CETUD_ALERTS_URL) {
     data = await fetchRealGTFSRT(process.env.CETUD_ALERTS_URL, process.env.CETUD_API_KEY, process.env.CETUD_API_KEY_HEADER);
   }
-  if (!data) data = generateMockDakarGTFS('alerts');
+  if (!data) data = simulatedOrRefusal('alerts', '/api/gtfs-rt/alerts');
   data._cachedAt = Date.now();
   gtfsCache.set(cacheKey, data);
   res.json(data);
@@ -334,10 +369,11 @@ app.get('/api/gtfs-rt/alerts', async (req, res) => {
 
 // Combined GTFS-RT (all)
 app.get('/api/gtfs-rt', async (req, res) => {
+  const verdict = simulatedDataVerdict();
   const [vehicles, trips, alerts] = await Promise.all([
-    fetch(`${req.protocol}://${req.get('host')}/api/gtfs-rt/vehiclePositions?nocache=${req.query.nocache ? '1' : '0'}`).then(r => r.json()).catch(() => generateMockDakarGTFS('vehiclePositions')),
-    fetch(`${req.protocol}://${req.get('host')}/api/gtfs-rt/tripUpdates?nocache=${req.query.nocache ? '1' : '0'}`).then(r => r.json()).catch(() => generateMockDakarGTFS('tripUpdates')),
-    fetch(`${req.protocol}://${req.get('host')}/api/gtfs-rt/alerts?nocache=${req.query.nocache ? '1' : '0'}`).then(r => r.json()).catch(() => generateMockDakarGTFS('alerts'))
+    fetch(`${req.protocol}://${req.get('host')}/api/gtfs-rt/vehiclePositions?nocache=${req.query.nocache ? '1' : '0'}`).then(r => r.json()).catch(() => simulatedOrRefusal('vehiclePositions', '/api/gtfs-rt')),
+    fetch(`${req.protocol}://${req.get('host')}/api/gtfs-rt/tripUpdates?nocache=${req.query.nocache ? '1' : '0'}`).then(r => r.json()).catch(() => simulatedOrRefusal('tripUpdates', '/api/gtfs-rt')),
+    fetch(`${req.protocol}://${req.get('host')}/api/gtfs-rt/alerts?nocache=${req.query.nocache ? '1' : '0'}`).then(r => r.json()).catch(() => simulatedOrRefusal('alerts', '/api/gtfs-rt'))
   ]);
 
   res.json({
@@ -347,8 +383,12 @@ app.get('/api/gtfs-rt', async (req, res) => {
     alerts: alerts,
     _meta: {
       generatedAt: new Date().toISOString(),
-      mode: process.env.USE_MOCK === 'true' ? 'MOCK' : 'LIVE',
-      sources: ['CETUD', 'DDD', 'BRT', 'TER']
+      mode: verdict.serve ? 'SIMULATED_DEV' : 'NO_PUBLIC_FEED',
+      status: verdict.serve ? 'SIMULATED' : 'UNKNOWN',
+      simulated: verdict.serve,
+      reason: verdict.reason,
+      note: 'Aucun flux temps réel public (TER/BRT/DDD/AFTU/TATA) n’est disponible ; aucune donnée simulée n’est servie comme du temps réel.',
+      sources: []
     }
   });
 });
@@ -409,7 +449,7 @@ app.get('/data/gtfs/:file', (req, res) => {
 
 // Simple vehicles for frontend (compatible with old frontend)
 app.get('/api/vehicles', async (req, res) => {
-  const gtfs = await fetch(`${req.protocol}://${req.get('host')}/api/gtfs-rt/vehiclePositions`).then(r => r.json()).catch(() => generateMockDakarGTFS('vehiclePositions'));
+  const gtfs = await fetch(`${req.protocol}://${req.get('host')}/api/gtfs-rt/vehiclePositions`).then(r => r.json()).catch(() => simulatedOrRefusal('vehiclePositions', '/api/vehicles'));
   const simple = (gtfs.entity || []).map(e => {
     const v = e.vehicle || {};
     const pos = v.position || {};
@@ -433,7 +473,7 @@ app.get('/api/vehicles', async (req, res) => {
 });
 
 app.get('/api/alerts', async (req, res) => {
-  const gtfs = await fetch(`${req.protocol}://${req.get('host')}/api/gtfs-rt/alerts`).then(r => r.json()).catch(() => generateMockDakarGTFS('alerts'));
+  const gtfs = await fetch(`${req.protocol}://${req.get('host')}/api/gtfs-rt/alerts`).then(r => r.json()).catch(() => simulatedOrRefusal('alerts', '/api/alerts'));
   const simple = (gtfs.entity || []).map(e => {
     const a = e.alert || {};
     return {
@@ -459,7 +499,7 @@ app.get('/api/stream/vehicles', (req, res) => {
 
   const send = async () => {
     try {
-      const data = await fetch(`${req.protocol}://${req.get('host')}/api/gtfs-rt/vehiclePositions?nocache=1`).then(r => r.json()).catch(() => generateMockDakarGTFS('vehiclePositions'));
+      const data = await fetch(`${req.protocol}://${req.get('host')}/api/gtfs-rt/vehiclePositions?nocache=1`).then(r => r.json()).catch(() => simulatedOrRefusal('vehiclePositions', '/api/stream/vehicles'));
       res.write(`data: ${JSON.stringify(data)}\n\n`);
     } catch (e) {
       res.write(`data: ${JSON.stringify({ error: e.message })}\n\n`);
@@ -509,9 +549,11 @@ export default app;
 // Only listen if not in Vercel (Vercel sets VERCEL env)
 if (!process.env.VERCEL) {
   app.listen(PORT, '0.0.0.0', () => {
+    const verdict = simulatedDataVerdict();
     console.log(`\n🚀 Dakar Mobilité GTFS-RT Proxy running on http://0.0.0.0:${PORT}`);
-    console.log(`📦 Mode: ${process.env.USE_MOCK === 'true' ? 'MOCK DAKAR (127 véhicules réalistes)' : 'LIVE CETUD'}`);
-    console.log(`🔑 CETUD Key: ${process.env.CETUD_API_KEY ? 'SET (' + process.env.CETUD_API_KEY.substring(0, 8) + '...)' : 'NOT SET - using mock'}`);
+    console.log(`📦 Mode: ${verdict.serve ? 'DONNÉES SIMULÉES (dev explicite — jamais du temps réel)' : 'AUCUN FLUX TEMPS RÉEL PUBLIC'}`);
+    console.log(`🛡️ Politique: ${verdict.reason} — ${verdict.note}`);
+    console.log(`🔑 CETUD Key: ${process.env.CETUD_API_KEY ? 'SET (' + process.env.CETUD_API_KEY.substring(0, 8) + '...)' : 'NOT SET'}`);
     console.log(`📡 Endpoints:`);
     console.log(`   - http://localhost:${PORT}/api/gtfs-rt/vehiclePositions`);
     console.log(`   - http://localhost:${PORT}/api/gtfs-rt/tripUpdates`);

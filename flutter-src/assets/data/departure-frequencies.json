@@ -1,0 +1,220 @@
+{
+  "schema": "dakar-bus/departure-frequencies-v1",
+  "audited_at": "2026-09-25",
+  "engine": "engine/departure-engine.js",
+  "timezone": {
+    "id": "Africa/Dakar",
+    "utc_offset": "+00:00",
+    "daylight_saving": false,
+    "note": "Dakar est à UTC+00:00 toute l'année, sans heure d'été : une heure locale est une heure UTC. Les fenêtres d'estimation ne sont jamais décalées."
+  },
+  "principle": "Aucune fréquence inventée. Une fréquence n'est écrite ici QUE si une source identifiable la publie, et elle reste attachée à sa ligne, son sens, sa période et son type de jour. Une fréquence n'est jamais un horaire : elle produit une fenêtre (ESTIMATED), jamais une heure de départ précise.",
+  "unit": "minutes",
+  "status": ["SCHEDULED", "ESTIMATED", "REAL_TIME", "UNKNOWN"],
+  "source_type_values": ["OFFICIAL", "INSTITUTIONAL", "OPEN_DATA", "COMMUNITY", "HISTORICAL", "UNKNOWN"],
+  "day_types": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY", "HOLIDAY"],
+  "sources": [
+    {
+      "id": "seter_frequences_ter",
+      "label": "SETER (terdakar.sn) — « Choisissez le TER pour vos déplacements entre Dakar et AIBD » : fréquences Dakar ↔ Diamniadio",
+      "publisher": "SETER / SENTER",
+      "source_type": "OFFICIAL",
+      "url": "https://www.terdakar.sn/news/choisissez-le-ter-pour-vos-deplacements-entre-dakar-et-aibd",
+      "published_at": null,
+      "retrieved_at": "2026-09-25",
+      "valid_from": "2026-09-25",
+      "valid_to": null,
+      "valid_from_note": "valid_from reste null : la page de l'exploitant n'affiche aucune date de publication. La valeur est celle publiée en ligne, consultée le 2026-09-25 ; valid_to reste null (aucune date de fin annoncée).",
+      "note": "Texte de l'exploitant : « Toutes les 10 minutes du lundi au samedi de 5H30 à 21H, et toutes les 20 min de 21h à 22h dernier départ. Toutes les 20 minutes, le dimanche et les jours fériés de 6h30 à 22h dernier départ. » Aucune date de publication n'est affichée sur la page : published_at reste null. Le même document présente l'extension vers AIBD comme non ouverte (« en attendant l'extension ») — aucune gare AIBD n'est donc ajoutée au référentiel."
+    },
+    {
+      "id": "sunubrt_frequence_reseau",
+      "label": "SunuBRT (sunubrt.sn) — « Comment fonctionne SunuBRT ? » : 7 jours sur 7 de 6h à 21h, fréquence toutes les 6 minutes",
+      "publisher": "SunuBRT",
+      "source_type": "OFFICIAL",
+      "url": "https://www.sunubrt.sn/",
+      "published_at": null,
+      "retrieved_at": "2026-09-25",
+      "valid_from": null,
+      "valid_to": null,
+      "note": "Amplitude de service et fréquence annoncées par l'exploitant, jours fériés et vacances scolaires inclus. Ce chiffre est rattaché explicitement aux lignes B1 et B2 ci-dessous : il n'est PAS étendu aux autres lignes BRT, et aucune autre ligne BRT ne reçoit de fréquence."
+    },
+    {
+      "id": "sunubrt_guide_voyageur",
+      "label": "SunuBRT — Guide du voyageur : « une ligne B1 qui circule tous les jours […] avec une fréquence de 6 minutes » ; « une ligne B2 qui circule du lundi au samedi […] avec une fréquence de 6mn »",
+      "publisher": "SunuBRT",
+      "source_type": "OFFICIAL",
+      "url": "https://www.sunubrt.sn/mon-trajet-en-brt/guide-du-voyageur/",
+      "published_at": null,
+      "retrieved_at": "2026-09-25",
+      "valid_from": null,
+      "valid_to": null,
+      "note": "Le guide décrit aussi un renfort Petersen ↔ Grand Médine aux heures de pointe (matin sens Petersen 6h-10h, soir sens Grand Médine 16h-20h). Ce renfort n'est pas modélisé comme ligne dans le référentiel : aucune fréquence ne lui est attribuée, pour ne pas inventer une ligne."
+    }
+  ],
+  "holidays": {
+    "dates": [],
+    "source_id": null,
+    "note": "Aucun calendrier de jours fériés sourcé n'est disponible dans le dépôt. Le moteur n'applique la règle « jours fériés » que si la date lui est explicitement fournie ; il ne devine jamais un jour férié. Pour le TER, la règle documentée est de toute façon identique dimanche et jours fériés (20 min, 6h30-22h)."
+  },
+  "frequencies": [
+    {
+      "id": "ter_dakar_diamniadio_lun_sam_journee",
+      "network": "TER",
+      "line_id": "ter_dakar_diamniadio",
+      "line_label": "TER Dakar ↔ Diamniadio",
+      "stop_id": null,
+      "direction": null,
+      "direction_note": "Fréquence documentée au niveau de la ligne (elle ne dépend pas du sens dans la publication SETER). Une fréquence de ligne n'est pas une donnée d'arrêt.",
+      "day_types": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"],
+      "service_start": "05:30",
+      "service_end": "21:00",
+      "frequency_minutes": 10,
+      "status": "ACTIVE",
+      "source_id": "seter_frequences_ter",
+      "valid_from": null,
+      "valid_to": null,
+      "confidence": "high",
+      "note": "Cadence d'exploitation. Ce n'est pas un horaire : aucun stop_times n'est créé à partir de cette valeur."
+    },
+    {
+      "id": "ter_dakar_diamniadio_lun_sam_soir",
+      "network": "TER",
+      "line_id": "ter_dakar_diamniadio",
+      "line_label": "TER Dakar ↔ Diamniadio",
+      "stop_id": null,
+      "direction": null,
+      "day_types": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"],
+      "service_start": "21:00",
+      "service_end": "22:00",
+      "frequency_minutes": 20,
+      "status": "ACTIVE",
+      "source_id": "seter_frequences_ter",
+      "valid_from": null,
+      "valid_to": null,
+      "confidence": "high",
+      "note": "Changement de fréquence en cours de journée : 10 min jusqu'à 21h00, 20 min ensuite (dernier départ 22h00)."
+    },
+    {
+      "id": "ter_dakar_diamniadio_dim_feries",
+      "network": "TER",
+      "line_id": "ter_dakar_diamniadio",
+      "line_label": "TER Dakar ↔ Diamniadio",
+      "stop_id": null,
+      "direction": null,
+      "day_types": ["SUNDAY", "HOLIDAY"],
+      "service_start": "06:30",
+      "service_end": "22:00",
+      "frequency_minutes": 20,
+      "status": "ACTIVE",
+      "source_id": "seter_frequences_ter",
+      "valid_from": null,
+      "valid_to": null,
+      "confidence": "high",
+      "note": "Dimanche et jours fériés : 20 min de 6h30 à 22h (dernier départ)."
+    },
+    {
+      "id": "brt_b1_tous_les_jours",
+      "network": "BRT",
+      "line_id": "brt_b1_guediawaye_petersen",
+      "line_label": "BRT B1 omnibus",
+      "stop_id": null,
+      "direction": null,
+      "direction_note": "Fréquence documentée au niveau de la ligne, tous les jours, dans les deux sens.",
+      "day_types": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY", "HOLIDAY"],
+      "service_start": "06:00",
+      "service_end": "21:00",
+      "frequency_minutes": 6,
+      "status": "ACTIVE",
+      "source_id": "sunubrt_guide_voyageur",
+      "secondary_source_ids": ["sunubrt_frequence_reseau"],
+      "valid_from": null,
+      "valid_to": null,
+      "confidence": "high",
+      "note": "« Une ligne B1 qui circule tous les jours entre Guédiawaye et Petersen avec une fréquence de 6 minutes » (Guide du voyageur). Amplitude 6h-21h issue de la page d'accueil SunuBRT. Ne s'applique qu'à B1."
+    },
+    {
+      "id": "brt_b2_lun_sam",
+      "network": "BRT",
+      "line_id": "brt_b2_express",
+      "line_label": "BRT B2 semi-express",
+      "stop_id": null,
+      "direction": null,
+      "day_types": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"],
+      "service_start": "06:00",
+      "service_end": "21:00",
+      "frequency_minutes": 6,
+      "status": "ACTIVE",
+      "source_id": "sunubrt_guide_voyageur",
+      "secondary_source_ids": ["sunubrt_frequence_reseau"],
+      "valid_from": null,
+      "valid_to": null,
+      "confidence": "high",
+      "note": "« Une ligne B2 qui circule du lundi au samedi entre Guédiawaye et Petersen en desservant 7 stations avec une fréquence de 6mn » (Guide du voyageur). Aucune fréquence B2 n'est définie le dimanche : le moteur ne l'extrapole pas depuis B1."
+    }
+  ],
+  "network_coverage": [
+    {
+      "network": "TER",
+      "coverage": "FREQUENCY_DOCUMENTED",
+      "line_ids": ["ter_dakar_diamniadio"],
+      "what_is_known": "Cadences et amplitudes par jour de la semaine (source SETER).",
+      "what_is_missing": "Aucun horaire précis par gare, aucun GTFS TER 2026 authentifié, aucune donnée véhicule.",
+      "gate": "SCHEDULED impossible ; REAL_TIME impossible."
+    },
+    {
+      "network": "BRT",
+      "coverage": "FREQUENCY_DOCUMENTED_FOR_B1_B2_ONLY",
+      "line_ids": ["brt_b1_guediawaye_petersen", "brt_b2_express"],
+      "what_is_known": "Fréquence 6 min et amplitude 6h-21h pour B1 (tous les jours) et B2 (lundi-samedi).",
+      "what_is_missing": "B3 n'est pas exposée comme ligne dans le référentiel (correspondance de stations non confirmée) : aucune fréquence. B4 est FUTURE. Aucun horaire, aucun flux véhicule public.",
+      "gate": "La fréquence de B1 n'est PAS appliquée aux autres lignes BRT."
+    },
+    {
+      "network": "DDD",
+      "coverage": "NO_FREQUENCY",
+      "line_ids": [],
+      "what_is_known": "10 itinéraires sur 15 sont CONFLICTING (contredits par l'opérateur) ; DDD ne publie pas de cadence par ligne.",
+      "what_is_missing": "Fréquence par ligne et par période, horaires de première/dernière course par ligne.",
+      "gate": "DDD n'a pas de « 10 min » universel : status UNKNOWN pour toutes les lignes DDD.",
+      "searched": "https://demdikk.sn/reseau-urbain-dakar/, https://cetud.sn/reseaux-de-transport/ddd/ (aucune cadence publiée au 2026-09-25)"
+    },
+    {
+      "network": "AFTU",
+      "coverage": "NO_FREQUENCY",
+      "line_ids": [],
+      "what_is_known": "CETUD annonce 72 lignes ; les itinéraires du jeu de données sont FIELD_OBSERVATION.",
+      "what_is_missing": "Cadence par ligne/service, amplitude horaire.",
+      "gate": "AFTU ≠ fréquence universelle : status UNKNOWN."
+    },
+    {
+      "network": "TATA",
+      "coverage": "NO_FREQUENCY",
+      "line_ids": [],
+      "what_is_known": "7 routes FIELD_OBSERVATION ; « Tata » désigne les minibus des GIE AFTU, sans total officiel.",
+      "what_is_missing": "Toute publication opérateur (cadence, amplitude, exploitation).",
+      "gate": "Aucune fréquence TATA globale n'est créée : status UNKNOWN."
+    }
+  ],
+  "real_time": {
+    "public_feeds": [],
+    "note": "L'audit public TER V4.4 n'a identifié aucun flux TER temps réel public exploitable, et aucun flux BRT/DDD/AFTU/TATA public n'est disponible. REAL_TIME ne peut donc être produit par aucune donnée actuelle : le moteur exige une observation (source, horodatage, ligne, véhicule ou événement) et refuse par défaut tout ce qui ressemble à une simulation.",
+    "forbidden_inputs": [
+      "position GPS de l'utilisateur (jamais un véhicule)",
+      "fréquence (jamais du temps réel)",
+      "donnée historique (jamais le service actuel)",
+      "donnée communautaire présentée comme officielle",
+      "générateur aléatoire (positions ou retards simulés)"
+    ]
+  },
+  "not_imported": [
+    { "item": "PassBI GTFS 08/2025", "reason": "HISTORICAL — interdit en production." },
+    { "item": "Horaires TER 2022", "reason": "HISTORICAL — ne représentent pas le service 2026." },
+    { "item": "GTFS stop_times fabriqués depuis les fréquences", "reason": "Une fréquence n'est pas une desserte ; aucun trajet n'est créé." },
+    { "item": "Gare AIBD", "reason": "FUTURE, service commercial non ouvert : hors référentiel TER." },
+    { "item": "Tracés GeoJSON tiers / OSM", "reason": "COMMUNITY — jamais OFFICIAL, jamais une preuve d'exploitation." },
+    { "item": "KMF", "reason": "UNKNOWN : jamais fusionné avec Keur Massar / Mbao." },
+    { "item": "Mbao", "reason": "UNVERIFIED, distinct de KMF." },
+    { "item": "Yeumbeul A / Yeumbeul B", "reason": "Non départagé : jamais tranché institutionnellement." }
+  ]
+}

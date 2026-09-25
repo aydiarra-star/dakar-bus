@@ -1,5 +1,8 @@
 // Dakar Mobilité - Service Worker PWA + Offline + GTFS-RT cache
-const CACHE_VERSION = 'dakar-mobilite-v2.3-arrets';
+// v2.4 (2026-09-25) : moteur de départs + référentiel de fréquences en
+// network-first. La version change pour purger les caches qui servaient
+// d'anciens statuts de départ.
+const CACHE_VERSION = 'dakar-mobilite-v2.4-moteur-departs';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const GTFS_CACHE = `${CACHE_VERSION}-gtfs`;
@@ -9,6 +12,8 @@ const STATIC_ASSETS = [
   '/index.html',
   '/manifest.json',
   '/offline.html',
+  '/engine/departure-engine.js',
+  '/data/transit/departure-frequencies.json',
   '/data/gtfs/stops.txt',
   '/data/gtfs/stop_times.txt',
   '/data/gtfs/shapes.txt',
@@ -140,8 +145,13 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Données GTFS statiques (arrêts, tracés, horaires) : network-first + MAJ du cache
-  const isGTFSStatic = url.pathname.includes('/data/gtfs/');
+  // Données GTFS statiques (arrêts, tracés, horaires) : network-first + MAJ du cache.
+  // Le MOTEUR DE DÉPARTS et son référentiel de fréquences suivent la même règle :
+  // un statut périmé (SCHEDULED / ESTIMATED / UNKNOWN) ne doit jamais être servi
+  // depuis un cache après un déploiement.
+  const isGTFSStatic = url.pathname.includes('/data/gtfs/')
+    || url.pathname.includes('/data/transit/')
+    || url.pathname.includes('/engine/');
   if (isGTFSStatic) {
     event.respondWith(
       fetch(request)

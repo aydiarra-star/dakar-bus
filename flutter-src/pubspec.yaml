@@ -46,3 +46,6 @@ flutter:
   uses-material-design: true
   assets:
     - assets/data/dakar_network.json
+    # Référentiel de fréquences du moteur de départs (2026-09-25) — miroir
+    # strict de data/transit/departure-frequencies.json.
+    - assets/data/departure-frequencies.json

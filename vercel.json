@@ -73,7 +73,8 @@
     }
   ],
   "env": {
-    "USE_MOCK": "true",
+    "USE_MOCK": "false",
+    "ALLOW_SIMULATED_DATA": "false",
     "NODE_ENV": "production"
   }
 }

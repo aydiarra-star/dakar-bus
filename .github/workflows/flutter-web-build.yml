@@ -33,12 +33,17 @@ on:
       - arena/01a0d0ad-dakar-bus
       - arena/01a0d193-dakar-bus
       - arena/01a0d21a-dakar-bus
+      - arena/01a0d6a5-dakar-bus
     paths:
       - 'flutter-src/**'
+      - 'data/transit/**'
+      - 'engine/**'
       - '.github/workflows/flutter-web-build.yml'
   pull_request:
     paths:
       - 'flutter-src/**'
+      - 'data/transit/**'
+      - 'engine/**'
       - '.github/workflows/flutter-web-build.yml'
   workflow_dispatch:
     inputs:
@@ -225,6 +230,17 @@ jobs:
           fi
           if ! cmp -s assets/data/dakar_network.json build/web/assets/assets/data/dakar_network.json; then
             echo "::error::l'asset réseau embarqué diffère de flutter-src/assets/data/dakar_network.json"
+            exit 1
+          fi
+          # Référentiel de fréquences du moteur de départs (2026-09-25) : l'asset
+          # embarqué doit être identique au fichier source ET au référentiel
+          # partagé avec la PWA (source unique de vérité).
+          if ! cmp -s assets/data/departure-frequencies.json build/web/assets/assets/data/departure-frequencies.json; then
+            echo "::error::le référentiel de fréquences embarqué diffère de flutter-src/assets/data/departure-frequencies.json"
+            exit 1
+          fi
+          if ! cmp -s assets/data/departure-frequencies.json ../data/transit/departure-frequencies.json; then
+            echo "::error::le référentiel de fréquences Flutter a divergé de data/transit/departure-frequencies.json"
             exit 1
           fi
           test -s build/web/main.dart.js
