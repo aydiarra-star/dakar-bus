@@ -526,27 +526,47 @@ void main() {
               DepartureEngineService.estimateForLine(modeLabel: modeLabel),
               mode: modeLabel);
 
+      // La bulle de réponse est cherchée dans la conversation : le dernier
+      // `Text` de l'écran est l'indication du champ de saisie, et la liste
+      // paresseuse peut ne pas construire les bulles hors du viewport.
+      List<String> bulles(String phrase) => _textes(tester)
+          .where((String t) => t.contains(phrase))
+          .toList();
+
+      final String descriptionTer = AssistantReplies.modeInfo(
+          'ter', appDataService.operators, appDataService.routes);
       final String avantTer = phraseMoteur('TER');
       await question('Je veux partir maintenant en TER');
       final String apresTer = phraseMoteur('TER');
-      final String reponseTer = _textes(tester).last;
-      expect(
-          reponseTer.startsWith(AssistantReplies.modeInfo(
-              'ter', appDataService.operators, appDataService.routes)),
-          isTrue,
-          reason: 'la description réseau précède la phrase du moteur');
-      expect(reponseTer.endsWith(avantTer) || reponseTer.endsWith(apresTer), isTrue,
-          reason: 'réponse = phrase du moteur — obtenu : $reponseTer');
-      expect(kHeurePrecise.hasMatch(reponseTer), isFalse, reason: reponseTer);
-      expect(kTempsReel.hasMatch(reponseTer), isFalse, reason: reponseTer);
+      final List<String> bullesTer =
+          bulles('Le TER est disponible dans cette direction');
+      expect(bullesTer, isNotEmpty,
+          reason: 'le moteur doit avoir répondu sur le TER : ${_textes(tester)}');
+      for (final String reponseTer in bullesTer) {
+        expect(reponseTer.startsWith(descriptionTer), isTrue,
+            reason: 'la description réseau précède la phrase du moteur : '
+                '$reponseTer');
+        expect(reponseTer.endsWith(avantTer) || reponseTer.endsWith(apresTer),
+            isTrue,
+            reason: 'réponse = phrase du moteur — obtenu : $reponseTer');
+        expect(kHeurePrecise.hasMatch(reponseTer), isFalse, reason: reponseTer);
+        expect(kTempsReel.hasMatch(reponseTer), isFalse, reason: reponseTer);
+      }
 
       final String avantDdd = phraseMoteur('DDD');
       await question('Et en DDD ?');
       final String apresDdd = phraseMoteur('DDD');
-      final String reponseDdd = _textes(tester).last;
-      expect(reponseDdd.endsWith(avantDdd) || reponseDdd.endsWith(apresDdd), isTrue,
-          reason: reponseDdd);
-      expect(RegExp(r'\d+\s*min').hasMatch(reponseDdd), isFalse, reason: reponseDdd);
+      final List<String> reponsesDdd = bulles('pas actuellement de donnée');
+      expect(reponsesDdd, isNotEmpty,
+          reason: 'le moteur doit avoir refusé d\'inventer un horaire DDD : '
+              '${_textes(tester)}');
+      for (final String reponseDdd in reponsesDdd) {
+        expect(reponseDdd.endsWith(avantDdd) || reponseDdd.endsWith(apresDdd),
+            isTrue,
+            reason: reponseDdd);
+        expect(RegExp(r'\d+\s*min').hasMatch(reponseDdd), isFalse,
+            reason: reponseDdd);
+      }
     });
   });
 
@@ -573,7 +593,9 @@ void main() {
       } else {
         expect(textes, contains(ReliabilityLabel.scheduleUnavailable));
       }
-      expect(textes, contains('Affluence indisponible'));
+      expect(textes.any((String t) => t.contains('Affluence indisponible')),
+          isTrue,
+          reason: 'la colonne Affluence reste inchangée : $textes');
       expect(textes.where(kHeurePrecise.hasMatch), isEmpty,
           reason: 'aucune heure précise ne doit apparaître : $textes');
     });
@@ -584,7 +606,9 @@ void main() {
       await _monte(tester, Scaffold(body: StopCard(stop: ddd, distanceMeters: 500)));
       final List<String> textes = _textes(tester);
       expect(textes, contains(ReliabilityLabel.scheduleUnavailable));
-      expect(textes, contains('Affluence indisponible'));
+      expect(textes.any((String t) => t.contains('Affluence indisponible')),
+          isTrue,
+          reason: 'la colonne Affluence reste inchangée : $textes');
       expect(textes.where((String t) => t.contains('Estimation')), isEmpty);
       expect(textes.where(kHeurePrecise.hasMatch), isEmpty);
     });
@@ -597,8 +621,9 @@ void main() {
       final DepartureDisplay d = ter.departureDisplay();
 
       expect(textes, contains('Prochain passage'));
-      expect(textes, contains('Affluence indisponible'),
-          reason: 'la colonne Affluence reste inchangée');
+      expect(textes.any((String t) => t.contains('Affluence indisponible')),
+          isTrue,
+          reason: 'la colonne Affluence reste inchangée : $textes');
       if (d.available) {
         expect(textes, contains(d.badge));
         expect(textes.any((String t) => t.startsWith('Prochain passage estimé') || t.startsWith('Départ')),
