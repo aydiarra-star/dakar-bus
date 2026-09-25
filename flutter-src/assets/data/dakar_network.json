@@ -2122,7 +2122,16 @@
         "stop_hlm",
         "stop_grand_yoff",
         "stop_yoff"
-      ]
+      ],
+      "canonical_status": "CONFLICTING",
+      "conflict_reason": "Identité interne ≠ identité publiée par Dakar Dem Dikk pour ce numéro : le conflit est conservé, aucun arbitrage.",
+      "conflict_sources": [
+        "https://demdikk.sn/info-voyageurs/",
+        "https://demdikk.sn/reseau-urbain-dakar/"
+      ],
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null
     },
     {
       "id": "ddd_10",
@@ -2146,7 +2155,16 @@
         "stop_hlm",
         "stop_grand_yoff",
         "stop_parcelles_u26"
-      ]
+      ],
+      "canonical_status": "CONFLICTING",
+      "conflict_reason": "Identité interne ≠ identité publiée par Dakar Dem Dikk pour ce numéro : le conflit est conservé, aucun arbitrage.",
+      "conflict_sources": [
+        "https://demdikk.sn/info-voyageurs/",
+        "https://demdikk.sn/reseau-urbain-dakar/"
+      ],
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null
     },
     {
       "id": "ddd_11",
@@ -2170,7 +2188,16 @@
         "stop_castor",
         "stop_hlm",
         "stop_parcelles_u26"
-      ]
+      ],
+      "canonical_status": "CONFLICTING",
+      "conflict_reason": "Identité interne ≠ identité publiée par Dakar Dem Dikk pour ce numéro : le conflit est conservé, aucun arbitrage.",
+      "conflict_sources": [
+        "https://demdikk.sn/info-voyageurs/",
+        "https://demdikk.sn/reseau-urbain-dakar/"
+      ],
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null
     },
     {
       "id": "ddd_12",
@@ -2192,7 +2219,16 @@
         "stop_guediawaye",
         "stop_scatt_urbam",
         "stop_parcelles_u26"
-      ]
+      ],
+      "canonical_status": "CONFLICTING",
+      "conflict_reason": "Identité interne ≠ identité publiée par Dakar Dem Dikk pour ce numéro : le conflit est conservé, aucun arbitrage.",
+      "conflict_sources": [
+        "https://demdikk.sn/info-voyageurs/",
+        "https://demdikk.sn/reseau-urbain-dakar/"
+      ],
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null
     },
     {
       "id": "ddd_14",
@@ -2219,7 +2255,13 @@
         "stop_colobane",
         "stop_castor",
         "stop_ucad"
-      ]
+      ],
+      "canonical_status": "UNVERIFIED",
+      "conflict_reason": null,
+      "conflict_sources": [],
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null
     },
     {
       "id": "ddd_15",
@@ -2243,7 +2285,16 @@
         "stop_sacre_coeur",
         "stop_castor",
         "stop_colobane"
-      ]
+      ],
+      "canonical_status": "CONFLICTING",
+      "conflict_reason": "Identité interne ≠ identité publiée par Dakar Dem Dikk pour ce numéro : le conflit est conservé, aucun arbitrage.",
+      "conflict_sources": [
+        "https://demdikk.sn/info-voyageurs/",
+        "https://demdikk.sn/reseau-urbain-dakar/"
+      ],
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null
     },
     {
       "id": "ddd_20",
@@ -2266,7 +2317,16 @@
         "stop_colobane",
         "stop_pikine",
         "stop_rufisque"
-      ]
+      ],
+      "canonical_status": "CONFLICTING",
+      "conflict_reason": "Identité interne ≠ identité publiée par Dakar Dem Dikk pour ce numéro : le conflit est conservé, aucun arbitrage.",
+      "conflict_sources": [
+        "https://demdikk.sn/info-voyageurs/",
+        "https://demdikk.sn/reseau-urbain-dakar/"
+      ],
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null
     },
     {
       "id": "ddd_23",
@@ -2290,7 +2350,16 @@
         "stop_pikine",
         "stop_yeumbeul",
         "stop_keur_massar"
-      ]
+      ],
+      "canonical_status": "CONFLICTING",
+      "conflict_reason": "Identité interne ≠ identité publiée par Dakar Dem Dikk pour ce numéro : le conflit est conservé, aucun arbitrage.",
+      "conflict_sources": [
+        "https://demdikk.sn/info-voyageurs/",
+        "https://demdikk.sn/reseau-urbain-dakar/"
+      ],
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null
     },
     {
       "id": "ddd_3",
@@ -2313,7 +2382,13 @@
         "stop_point_e",
         "stop_ouakam",
         "stop_ngor"
-      ]
+      ],
+      "canonical_status": "UNVERIFIED",
+      "conflict_reason": null,
+      "conflict_sources": [],
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null
     },
     {
       "id": "ddd_7",
@@ -2337,7 +2412,16 @@
         "stop_scatt_urbam",
         "stop_yoff",
         "stop_almadies"
-      ]
+      ],
+      "canonical_status": "CONFLICTING",
+      "conflict_reason": "Identité interne ≠ identité publiée par Dakar Dem Dikk pour ce numéro : le conflit est conservé, aucun arbitrage.",
+      "conflict_sources": [
+        "https://demdikk.sn/info-voyageurs/",
+        "https://demdikk.sn/reseau-urbain-dakar/"
+      ],
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null
     },
     {
       "id": "ddd_8",
@@ -2361,7 +2445,16 @@
         "stop_grand_yoff",
         "stop_colobane",
         "stop_sandaga"
-      ]
+      ],
+      "canonical_status": "CONFLICTING",
+      "conflict_reason": "Identité interne ≠ identité publiée par Dakar Dem Dikk pour ce numéro : le conflit est conservé, aucun arbitrage.",
+      "conflict_sources": [
+        "https://demdikk.sn/info-voyageurs/",
+        "https://demdikk.sn/reseau-urbain-dakar/"
+      ],
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null
     },
     {
       "id": "ddd_9",
@@ -2385,7 +2478,16 @@
         "stop_yoff",
         "stop_ngor",
         "stop_almadies"
-      ]
+      ],
+      "canonical_status": "CONFLICTING",
+      "conflict_reason": "Identité interne ≠ identité publiée par Dakar Dem Dikk pour ce numéro : le conflit est conservé, aucun arbitrage.",
+      "conflict_sources": [
+        "https://demdikk.sn/info-voyageurs/",
+        "https://demdikk.sn/reseau-urbain-dakar/"
+      ],
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null
     },
     {
       "id": "aftu_1",
@@ -2413,7 +2515,16 @@
       "official_long_name": "LAT DIOR - HLM GRAND YOFF",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-1/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-1/"
+      ]
     },
     {
       "id": "aftu_2",
@@ -2444,7 +2555,16 @@
       "official_long_name": "ROUTE PRINCIPALE PARCELLES - PETERSEN",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-2/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-2/"
+      ]
     },
     {
       "id": "aftu_3",
@@ -2471,7 +2591,16 @@
       "official_long_name": "YOFF - PETERSEN",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-3/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-3/"
+      ]
     },
     {
       "id": "aftu_4",
@@ -2498,7 +2627,16 @@
       "official_long_name": "YOFF VILLAGE - PETERSEN",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-4/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-4/"
+      ]
     },
     {
       "id": "aftu_5",
@@ -2526,7 +2664,16 @@
       "official_long_name": "PARCELLES ASSAINIES - PETERSEN",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "ONE_TERMINUS_ONLY",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-5/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-5/"
+      ]
     },
     {
       "id": "aftu_6",
@@ -2556,7 +2703,13 @@
       "official_line_number": null,
       "official_long_name": null,
       "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
-      "nomenclature_match": "NOT_APPLICABLE"
+      "nomenclature_match": "NOT_APPLICABLE",
+      "canonical_status": "UNVERIFIED",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null,
+      "conflict_reason": null,
+      "conflict_sources": []
     },
     {
       "id": "aftu_7",
@@ -2586,7 +2739,13 @@
       "official_line_number": null,
       "official_long_name": null,
       "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
-      "nomenclature_match": "NOT_APPLICABLE"
+      "nomenclature_match": "NOT_APPLICABLE",
+      "canonical_status": "UNVERIFIED",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null,
+      "conflict_reason": null,
+      "conflict_sources": []
     },
     {
       "id": "aftu_8",
@@ -2613,7 +2772,13 @@
       "official_line_number": null,
       "official_long_name": null,
       "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
-      "nomenclature_match": "NOT_APPLICABLE"
+      "nomenclature_match": "NOT_APPLICABLE",
+      "canonical_status": "UNVERIFIED",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null,
+      "conflict_reason": null,
+      "conflict_sources": []
     },
     {
       "id": "aftu_9",
@@ -2643,7 +2808,13 @@
       "official_line_number": null,
       "official_long_name": null,
       "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
-      "nomenclature_match": "NOT_APPLICABLE"
+      "nomenclature_match": "NOT_APPLICABLE",
+      "canonical_status": "UNVERIFIED",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null,
+      "conflict_reason": null,
+      "conflict_sources": []
     },
     {
       "id": "aftu_10",
@@ -2672,7 +2843,13 @@
       "official_line_number": null,
       "official_long_name": null,
       "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
-      "nomenclature_match": "NOT_APPLICABLE"
+      "nomenclature_match": "NOT_APPLICABLE",
+      "canonical_status": "UNVERIFIED",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null,
+      "conflict_reason": null,
+      "conflict_sources": []
     },
     {
       "id": "aftu_11",
@@ -2697,7 +2874,13 @@
       "official_line_number": null,
       "official_long_name": null,
       "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
-      "nomenclature_match": "NOT_APPLICABLE"
+      "nomenclature_match": "NOT_APPLICABLE",
+      "canonical_status": "UNVERIFIED",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null,
+      "conflict_reason": null,
+      "conflict_sources": []
     },
     {
       "id": "aftu_12",
@@ -2723,7 +2906,13 @@
       "official_line_number": null,
       "official_long_name": null,
       "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
-      "nomenclature_match": "NOT_APPLICABLE"
+      "nomenclature_match": "NOT_APPLICABLE",
+      "canonical_status": "UNVERIFIED",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null,
+      "conflict_reason": null,
+      "conflict_sources": []
     },
     {
       "id": "aftu_13",
@@ -2752,7 +2941,13 @@
       "official_line_number": null,
       "official_long_name": null,
       "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
-      "nomenclature_match": "NOT_APPLICABLE"
+      "nomenclature_match": "NOT_APPLICABLE",
+      "canonical_status": "UNVERIFIED",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null,
+      "conflict_reason": null,
+      "conflict_sources": []
     },
     {
       "id": "aftu_14",
@@ -2781,7 +2976,13 @@
       "official_line_number": null,
       "official_long_name": null,
       "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
-      "nomenclature_match": "NOT_APPLICABLE"
+      "nomenclature_match": "NOT_APPLICABLE",
+      "canonical_status": "UNVERIFIED",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null,
+      "conflict_reason": null,
+      "conflict_sources": []
     },
     {
       "id": "aftu_15",
@@ -2806,7 +3007,13 @@
       "official_line_number": null,
       "official_long_name": null,
       "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
-      "nomenclature_match": "NOT_APPLICABLE"
+      "nomenclature_match": "NOT_APPLICABLE",
+      "canonical_status": "UNVERIFIED",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null,
+      "conflict_reason": null,
+      "conflict_sources": []
     },
     {
       "id": "aftu_16",
@@ -2832,7 +3039,13 @@
       "official_line_number": null,
       "official_long_name": null,
       "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
-      "nomenclature_match": "NOT_APPLICABLE"
+      "nomenclature_match": "NOT_APPLICABLE",
+      "canonical_status": "UNVERIFIED",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null,
+      "conflict_reason": null,
+      "conflict_sources": []
     },
     {
       "id": "aftu_17",
@@ -2860,7 +3073,13 @@
       "official_line_number": null,
       "official_long_name": null,
       "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
-      "nomenclature_match": "NOT_APPLICABLE"
+      "nomenclature_match": "NOT_APPLICABLE",
+      "canonical_status": "UNVERIFIED",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null,
+      "conflict_reason": null,
+      "conflict_sources": []
     },
     {
       "id": "aftu_18",
@@ -2886,7 +3105,13 @@
       "official_line_number": null,
       "official_long_name": null,
       "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
-      "nomenclature_match": "NOT_APPLICABLE"
+      "nomenclature_match": "NOT_APPLICABLE",
+      "canonical_status": "UNVERIFIED",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null,
+      "conflict_reason": null,
+      "conflict_sources": []
     },
     {
       "id": "aftu_19",
@@ -2912,7 +3137,13 @@
       "official_line_number": null,
       "official_long_name": null,
       "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
-      "nomenclature_match": "NOT_APPLICABLE"
+      "nomenclature_match": "NOT_APPLICABLE",
+      "canonical_status": "UNVERIFIED",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null,
+      "conflict_reason": null,
+      "conflict_sources": []
     },
     {
       "id": "aftu_20",
@@ -2941,7 +3172,13 @@
       "official_line_number": null,
       "official_long_name": null,
       "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
-      "nomenclature_match": "NOT_APPLICABLE"
+      "nomenclature_match": "NOT_APPLICABLE",
+      "canonical_status": "UNVERIFIED",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null,
+      "conflict_reason": null,
+      "conflict_sources": []
     },
     {
       "id": "aftu_21",
@@ -2967,7 +3204,13 @@
       "official_line_number": null,
       "official_long_name": null,
       "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
-      "nomenclature_match": "NOT_APPLICABLE"
+      "nomenclature_match": "NOT_APPLICABLE",
+      "canonical_status": "UNVERIFIED",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null,
+      "conflict_reason": null,
+      "conflict_sources": []
     },
     {
       "id": "aftu_22",
@@ -2993,7 +3236,13 @@
       "official_line_number": null,
       "official_long_name": null,
       "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
-      "nomenclature_match": "NOT_APPLICABLE"
+      "nomenclature_match": "NOT_APPLICABLE",
+      "canonical_status": "UNVERIFIED",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null,
+      "conflict_reason": null,
+      "conflict_sources": []
     },
     {
       "id": "aftu_23",
@@ -3022,7 +3271,13 @@
       "official_line_number": null,
       "official_long_name": null,
       "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
-      "nomenclature_match": "NOT_APPLICABLE"
+      "nomenclature_match": "NOT_APPLICABLE",
+      "canonical_status": "UNVERIFIED",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null,
+      "conflict_reason": null,
+      "conflict_sources": []
     },
     {
       "id": "aftu_24",
@@ -3049,7 +3304,16 @@
       "official_long_name": "UCAD - NOTAIRE GUEDIAWAYE",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-24/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-24/"
+      ]
     },
     {
       "id": "aftu_25",
@@ -3075,7 +3339,16 @@
       "official_long_name": "PARCELLES ASSAINIES - PETERSEN",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-25/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-25/"
+      ]
     },
     {
       "id": "aftu_26",
@@ -3104,7 +3377,16 @@
       "official_long_name": "PARCELLES ASSAINIES - POST THIAROYE",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-26/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-26/"
+      ]
     },
     {
       "id": "aftu_27",
@@ -3131,7 +3413,16 @@
       "official_long_name": "MARCHE BOUBESS - PETERSEN",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-27/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-27/"
+      ]
     },
     {
       "id": "aftu_28",
@@ -3162,7 +3453,16 @@
       "official_long_name": "HAMO V/VI - PETERSEN",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-28/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-28/"
+      ]
     },
     {
       "id": "aftu_29",
@@ -3192,7 +3492,16 @@
       "official_long_name": "CITE NATION UNIES (CAMBERENE) - PETERSEN",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-29/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-29/"
+      ]
     },
     {
       "id": "aftu_30",
@@ -3220,7 +3529,16 @@
       "official_long_name": "GADAYE (GUEDIEWAYE) - GARE DE COLOBANE",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-30/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-30/"
+      ]
     },
     {
       "id": "aftu_31",
@@ -3249,7 +3567,16 @@
       "official_long_name": "TALLY ICOTAF X ROUTE DES NIAYES - HOPITAL ABASS NDAO",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-31/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-31/"
+      ]
     },
     {
       "id": "aftu_32",
@@ -3275,7 +3602,16 @@
       "official_long_name": "SAHM - SERIGNE ASSANE",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-32/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-32/"
+      ]
     },
     {
       "id": "aftu_33",
@@ -3302,7 +3638,16 @@
       "official_long_name": "COLOBANE - SERIGNE ASSANE",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-33/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-33/"
+      ]
     },
     {
       "id": "aftu_34",
@@ -3333,7 +3678,16 @@
       "official_long_name": "NORD FOIRE - LAT DIOR",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-34/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-34/"
+      ]
     },
     {
       "id": "aftu_35",
@@ -3360,7 +3714,16 @@
       "official_long_name": "NGOR - PIKINE TEXACO",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-35/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-35/"
+      ]
     },
     {
       "id": "aftu_36",
@@ -3386,7 +3749,16 @@
       "official_long_name": "MARCHE NDIAREME - NGOR",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-36/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-36/"
+      ]
     },
     {
       "id": "aftu_37",
@@ -3412,7 +3784,16 @@
       "official_long_name": "CITE APIX - UCAD (CLAUDEL)",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-37/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-37/"
+      ]
     },
     {
       "id": "aftu_38",
@@ -3443,7 +3824,16 @@
       "official_long_name": "CITE DES ENSEIGNANTS - SHAM",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-38/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-38/"
+      ]
     },
     {
       "id": "aftu_39",
@@ -3473,7 +3863,16 @@
       "official_long_name": "LAT-DIOR - DIAMALAYE",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-39/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-39/"
+      ]
     },
     {
       "id": "aftu_40",
@@ -3501,7 +3900,16 @@
       "official_long_name": "GRAND MBAO - PETERSEN",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-40/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-40/"
+      ]
     },
     {
       "id": "aftu_41",
@@ -3527,7 +3935,16 @@
       "official_long_name": "PETERSEN - ETAGE MADIALE",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-41/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-41/"
+      ]
     },
     {
       "id": "aftu_42",
@@ -3557,7 +3974,16 @@
       "official_long_name": "GADAYE (GUEDIEWAYE) - OUAKAM BAYE",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-42/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-42/"
+      ]
     },
     {
       "id": "aftu_43",
@@ -3586,7 +4012,16 @@
       "official_long_name": "OUAKAM - THIERNO NDIAYE",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-43/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-43/"
+      ]
     },
     {
       "id": "aftu_44",
@@ -3616,7 +4051,16 @@
       "official_long_name": "GRAND MBAO - OUAKAM",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-44/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-44/"
+      ]
     },
     {
       "id": "aftu_45",
@@ -3642,7 +4086,16 @@
       "official_long_name": "KOUNOUNE NGALAM - PARCELLES EGLISE",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-45/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-45/"
+      ]
     },
     {
       "id": "aftu_46",
@@ -3672,7 +4125,16 @@
       "official_long_name": "SDE SERIGNE ASSANE - LAT DIOR",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-46/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-46/"
+      ]
     },
     {
       "id": "aftu_47",
@@ -3703,7 +4165,16 @@
       "official_long_name": "LAT DIOR - ALMADIES",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-47/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-47/"
+      ]
     },
     {
       "id": "aftu_48",
@@ -3732,7 +4203,16 @@
       "official_long_name": "CITE SERIGNE MANSOUR - LAT DIOR",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-48/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-48/"
+      ]
     },
     {
       "id": "aftu_49",
@@ -3761,7 +4241,16 @@
       "official_long_name": "GADAYE - NGOR",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-49/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-49/"
+      ]
     },
     {
       "id": "aftu_50",
@@ -3788,7 +4277,16 @@
       "official_long_name": "PETERSEN - MALIKA CIMETIERE",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-50/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-50/"
+      ]
     },
     {
       "id": "aftu_51",
@@ -3817,7 +4315,16 @@
       "official_long_name": "JAXAAY - GARE DES BAUX MARAICHERS",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-51/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-51/"
+      ]
     },
     {
       "id": "aftu_52",
@@ -3845,7 +4352,16 @@
       "official_long_name": "BOUNTOU PIKINE - KEUR MASSAR",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-52/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-52/"
+      ]
     },
     {
       "id": "aftu_53",
@@ -3876,7 +4392,16 @@
       "official_long_name": "KEUR MASSAR - SEBIKOTANE",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-53/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-53/"
+      ]
     },
     {
       "id": "aftu_54",
@@ -3902,7 +4427,16 @@
       "official_long_name": "TERMINUS KEUR MASSAR (CITE MTOA) - UCAD",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-54/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-54/"
+      ]
     },
     {
       "id": "aftu_55",
@@ -3932,7 +4466,16 @@
       "official_long_name": "TERMINUS RUFISQUE SONADIS - PETERSEN",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-55/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-55/"
+      ]
     },
     {
       "id": "aftu_56",
@@ -3962,7 +4505,16 @@
       "official_long_name": "JAXAAY 2 - PETERSEN",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-56/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-56/"
+      ]
     },
     {
       "id": "aftu_57",
@@ -3992,7 +4544,16 @@
       "official_long_name": "LIBERTE 6 - RUFISQUE",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-57/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-57/"
+      ]
     },
     {
       "id": "aftu_58",
@@ -4021,7 +4582,16 @@
       "official_long_name": "SAHM - COMICO",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-58/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-58/"
+      ]
     },
     {
       "id": "aftu_59",
@@ -4052,7 +4622,16 @@
       "official_long_name": "DIAMALAYE - CITE GENDARMERIE (JAXAAY)",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-59/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-59/"
+      ]
     },
     {
       "id": "aftu_60",
@@ -4079,7 +4658,16 @@
       "official_long_name": "COLOBANE - BARGNY",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-60/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-60/"
+      ]
     },
     {
       "id": "aftu_61",
@@ -4110,7 +4698,16 @@
       "official_long_name": "ALMADIES - KEUR MASSAR",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-61/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-61/"
+      ]
     },
     {
       "id": "aftu_62",
@@ -4141,7 +4738,16 @@
       "official_long_name": "ARRET CHERIF (RUFISQUE) - PENC MI (GUEULE TAPEE)",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-62/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-62/"
+      ]
     },
     {
       "id": "aftu_63",
@@ -4169,7 +4775,16 @@
       "official_long_name": "TERMINUS CAMP MARCHAND RUFISQUE - STADE LSS",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-63/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-63/"
+      ]
     },
     {
       "id": "aftu_64",
@@ -4200,7 +4815,16 @@
       "official_long_name": "GUEDIAWAYE - RUFISQUE",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-64/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-64/"
+      ]
     },
     {
       "id": "aftu_65",
@@ -4227,7 +4851,16 @@
       "official_long_name": "COLOBANE - JAXAAY",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-65/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-65/"
+      ]
     },
     {
       "id": "aftu_66",
@@ -4256,7 +4889,16 @@
       "official_long_name": "YOFF - GOROM 1",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-66/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-66/"
+      ]
     },
     {
       "id": "aftu_67",
@@ -4285,7 +4927,16 @@
       "official_long_name": "OUAKAM - THIAWLENE RUFISQUE",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-67/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-67/"
+      ]
     },
     {
       "id": "aftu_68",
@@ -4316,7 +4967,16 @@
       "official_long_name": "YEUMBEUL - SEBIKOTANE",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-68/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-68/"
+      ]
     },
     {
       "id": "aftu_69",
@@ -4347,7 +5007,16 @@
       "official_long_name": "DIAMALAYE - TERMINUS TIVAOUANE PEUL",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-69/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-69/"
+      ]
     },
     {
       "id": "aftu_70",
@@ -4377,7 +5046,16 @@
       "official_long_name": "DAROUKHANE - JAXAAY 2",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-70/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-70/"
+      ]
     },
     {
       "id": "aftu_71",
@@ -4408,7 +5086,16 @@
       "official_long_name": "KEUR MASSAR - CLAUDEL",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "ONE_TERMINUS_ONLY",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-71/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-71/"
+      ]
     },
     {
       "id": "aftu_72",
@@ -4438,7 +5125,16 @@
       "official_long_name": "GUEDIAWAYE - KOUNOUNE",
       "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
       "nomenclature_match": "NO_TERMINUS_MATCH",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_DOCUMENTED",
+      "official_route_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-72/",
+      "conflict_reason": "Identité interne ≠ identité publiée par l'exploitant pour ce numéro (l'itinéraire observé n'est pas celui de la ligne officielle).",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/",
+        "https://aftu-senegal.org/map/dakar-urbain-ligne-72/"
+      ]
     },
     {
       "id": "tata_218",
@@ -4468,7 +5164,18 @@
       "observed_long_name": "Mermoz ↔ Keur Massar (Tata 218)",
       "official_line_number": null,
       "collides_with_operator_line": null,
-      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR"
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null,
+      "conflict_reason": "Le numéro porté par cette identité est déjà publié par Dakar Dem Dikk pour un autre service : aucune correspondance n'est établie.",
+      "conflict_sources": [
+        "https://demdikk.sn/info-voyageurs/",
+        "https://demdikk.sn/reseau-urbain-dakar/"
+      ],
+      "match_class": "UNKNOWN",
+      "possible_match_candidates": []
     },
     {
       "id": "tata_219",
@@ -4492,7 +5199,22 @@
       "observed_long_name": "Parcelles Assainies ↔ Petersen (Tata 219)",
       "official_line_number": null,
       "collides_with_operator_line": null,
-      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR"
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null,
+      "conflict_reason": "Le numéro porté par cette identité est déjà publié par Dakar Dem Dikk pour un autre service : aucune correspondance n'est établie.",
+      "conflict_sources": [
+        "https://demdikk.sn/info-voyageurs/",
+        "https://demdikk.sn/reseau-urbain-dakar/"
+      ],
+      "match_class": "POSSIBLE_MATCH",
+      "possible_match_candidates": [
+        "AFTU 2",
+        "AFTU 5",
+        "AFTU 25"
+      ]
     },
     {
       "id": "tata_50",
@@ -4523,7 +5245,17 @@
       "official_line_number": 50,
       "collides_with_operator_line": "AFTU 50",
       "nomenclature_status": "NUMBER_ALREADY_ASSIGNED_TO_AFTU_LINE",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null,
+      "conflict_reason": "Le numéro porté par cette identité est déjà publié pour un autre service (AFTU 50) : aucune correspondance n'est établie.",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/"
+      ],
+      "match_class": "UNKNOWN",
+      "possible_match_candidates": []
     },
     {
       "id": "tata_64",
@@ -4550,7 +5282,17 @@
       "official_line_number": 64,
       "collides_with_operator_line": "AFTU 64",
       "nomenclature_status": "NUMBER_ALREADY_ASSIGNED_TO_AFTU_LINE",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null,
+      "conflict_reason": "Le numéro porté par cette identité est déjà publié pour un autre service (AFTU 64) : aucune correspondance n'est établie.",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/"
+      ],
+      "match_class": "UNKNOWN",
+      "possible_match_candidates": []
     },
     {
       "id": "tata_78",
@@ -4577,7 +5319,20 @@
       "official_line_number": 78,
       "collides_with_operator_line": "AFTU 78",
       "nomenclature_status": "NUMBER_ALREADY_ASSIGNED_TO_AFTU_LINE",
-      "source_url": "https://aftu-senegal.org/infos-pratiques/"
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null,
+      "conflict_reason": "Le numéro porté par cette identité est déjà publié pour un autre service (AFTU 78) : aucune correspondance n'est établie.",
+      "conflict_sources": [
+        "https://aftu-senegal.org/infos-pratiques/"
+      ],
+      "match_class": "POSSIBLE_MATCH",
+      "possible_match_candidates": [
+        "AFTU 3",
+        "AFTU 4"
+      ]
     },
     {
       "id": "new_commune_01",
@@ -4602,7 +5357,16 @@
         "stop_dieuppeul",
         "stop_grand_dakar",
         "stop_biscuiterie"
-      ]
+      ],
+      "canonical_status": "CONFLICTING",
+      "conflict_reason": "Identité interne ≠ identité publiée par Dakar Dem Dikk pour ce numéro : le conflit est conservé, aucun arbitrage.",
+      "conflict_sources": [
+        "https://demdikk.sn/info-voyageurs/",
+        "https://demdikk.sn/reseau-urbain-dakar/"
+      ],
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null
     },
     {
       "id": "new_commune_02",
@@ -4623,7 +5387,16 @@
         "stop_plateau",
         "stop_fann",
         "stop_amitie"
-      ]
+      ],
+      "canonical_status": "CONFLICTING",
+      "conflict_reason": "Identité interne ≠ identité publiée par Dakar Dem Dikk pour ce numéro : le conflit est conservé, aucun arbitrage.",
+      "conflict_sources": [
+        "https://demdikk.sn/info-voyageurs/",
+        "https://demdikk.sn/reseau-urbain-dakar/"
+      ],
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null
     },
     {
       "id": "new_commune_03",
@@ -4651,7 +5424,13 @@
       "official_line_number": null,
       "official_long_name": null,
       "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
-      "nomenclature_match": "NOT_APPLICABLE"
+      "nomenclature_match": "NOT_APPLICABLE",
+      "canonical_status": "UNVERIFIED",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null,
+      "conflict_reason": null,
+      "conflict_sources": []
     },
     {
       "id": "new_commune_04",
@@ -4677,7 +5456,13 @@
       "official_line_number": null,
       "official_long_name": null,
       "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
-      "nomenclature_match": "NOT_APPLICABLE"
+      "nomenclature_match": "NOT_APPLICABLE",
+      "canonical_status": "UNVERIFIED",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null,
+      "conflict_reason": null,
+      "conflict_sources": []
     },
     {
       "id": "new_commune_05",
@@ -4705,7 +5490,13 @@
       "official_line_number": null,
       "official_long_name": null,
       "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
-      "nomenclature_match": "NOT_APPLICABLE"
+      "nomenclature_match": "NOT_APPLICABLE",
+      "canonical_status": "UNVERIFIED",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null,
+      "conflict_reason": null,
+      "conflict_sources": []
     },
     {
       "id": "new_commune_06",
@@ -4730,7 +5521,13 @@
       "official_line_number": null,
       "official_long_name": null,
       "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
-      "nomenclature_match": "NOT_APPLICABLE"
+      "nomenclature_match": "NOT_APPLICABLE",
+      "canonical_status": "UNVERIFIED",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null,
+      "conflict_reason": null,
+      "conflict_sources": []
     },
     {
       "id": "new_commune_07",
@@ -4758,7 +5555,13 @@
       "official_line_number": null,
       "official_long_name": null,
       "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
-      "nomenclature_match": "NOT_APPLICABLE"
+      "nomenclature_match": "NOT_APPLICABLE",
+      "canonical_status": "UNVERIFIED",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null,
+      "conflict_reason": null,
+      "conflict_sources": []
     },
     {
       "id": "new_commune_08",
@@ -4782,7 +5585,13 @@
       "official_line_number": null,
       "official_long_name": null,
       "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
-      "nomenclature_match": "NOT_APPLICABLE"
+      "nomenclature_match": "NOT_APPLICABLE",
+      "canonical_status": "UNVERIFIED",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null,
+      "conflict_reason": null,
+      "conflict_sources": []
     },
     {
       "id": "new_commune_09",
@@ -4808,7 +5617,13 @@
       "official_line_number": null,
       "official_long_name": null,
       "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
-      "nomenclature_match": "NOT_APPLICABLE"
+      "nomenclature_match": "NOT_APPLICABLE",
+      "canonical_status": "UNVERIFIED",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null,
+      "conflict_reason": null,
+      "conflict_sources": []
     },
     {
       "id": "new_commune_10",
@@ -4833,7 +5648,13 @@
       "official_line_number": null,
       "official_long_name": null,
       "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
-      "nomenclature_match": "NOT_APPLICABLE"
+      "nomenclature_match": "NOT_APPLICABLE",
+      "canonical_status": "UNVERIFIED",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null,
+      "conflict_reason": null,
+      "conflict_sources": []
     },
     {
       "id": "new_commune_11",
@@ -4859,7 +5680,18 @@
       "exploitation_ecosystem": "AFTU",
       "observed_long_name": "Tata Ouakam - Ngor Village - Yoff Tonghor (Nord-Ouest)",
       "official_line_number": null,
-      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR"
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null,
+      "conflict_reason": "Le numéro porté par cette identité est déjà publié par Dakar Dem Dikk pour un autre service : aucune correspondance n'est établie.",
+      "conflict_sources": [
+        "https://demdikk.sn/info-voyageurs/",
+        "https://demdikk.sn/reseau-urbain-dakar/"
+      ],
+      "match_class": "UNKNOWN",
+      "possible_match_candidates": []
     },
     {
       "id": "new_commune_12",
@@ -4885,7 +5717,18 @@
       "exploitation_ecosystem": "AFTU",
       "observed_long_name": "Tata Jaxaay - Rufisque - Diamniadio 2 (Est)",
       "official_line_number": null,
-      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR"
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
+      "canonical_status": "CONFLICTING",
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null,
+      "conflict_reason": "Le numéro porté par cette identité est déjà publié par Dakar Dem Dikk pour un autre service : aucune correspondance n'est établie.",
+      "conflict_sources": [
+        "https://demdikk.sn/info-voyageurs/",
+        "https://demdikk.sn/reseau-urbain-dakar/"
+      ],
+      "match_class": "UNKNOWN",
+      "possible_match_candidates": []
     },
     {
       "id": "new_commune_13",
@@ -4906,7 +5749,16 @@
         "stop_bargny_guedj",
         "stop_fass",
         "stop_rebeuss"
-      ]
+      ],
+      "canonical_status": "CONFLICTING",
+      "conflict_reason": "Identité interne ≠ identité publiée par Dakar Dem Dikk pour ce numéro : le conflit est conservé, aucun arbitrage.",
+      "conflict_sources": [
+        "https://demdikk.sn/info-voyageurs/",
+        "https://demdikk.sn/reseau-urbain-dakar/"
+      ],
+      "frequency_status": "UNKNOWN",
+      "official_route_documentation": "ROUTE_NOT_FOUND",
+      "official_route_url": null
     }
   ],
   "services_not_exposed": [
@@ -4976,5 +5828,268 @@
       "schedule_status": "UNKNOWN",
       "audit_note": "Prolongement en essais ; pas encore en service commercial au 2026-09-24. Ne jamais présenter « TER AIBD » comme un service actuel. Aucune gare ajoutée aux arrêts."
     }
-  ]
+  ],
+  "canonical_referentiel": {
+    "version": "2026-09-25",
+    "source_document": "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+    "audit_document": "docs/AUDIT_RESEAUX_AFTU_TATA_DDD_2026-09-25.md",
+    "integration": "LOT1_DOCUMENTAIRE — ajout de statuts, jamais de donnée nouvelle",
+    "principle": "Le référentiel canonique est la source de référence : le statut documentaire est transporté tel quel, aucune donnée n'est promue, complétée par déduction, fusionnée ni supprimée.",
+    "rules": [
+      "Une description d'itinéraire AFTU reste une description de rues : elle n'est jamais convertie en liste d'arrêts.",
+      "Aucune fréquence AFTU/Tata/DDD n'est publiée : frequency_status reste UNKNOWN partout.",
+      "Aucun horaire AFTU n'est publié ; les premiers/derniers départs connus (DDD 1, TAF TAF, Express AIBD) sont documentés dans cet inventaire sans être rattachés à une route du jeu de données.",
+      "Une identité en conflit reste CONFLICTING : aucun arbitrage, aucun remappage, aucune présentation comme officielle.",
+      "« Tata » est une catégorie de service de l'écosystème AFTU : aucun réseau TATA distinct n'est créé.",
+      "Les données GTFS dormantes (data/gtfs/stop_times.txt) ne sont pas une source officielle et ne sont pas utilisées.",
+      "Aucun doublon n'est supprimé : les cas non résolus restent signalés et les deux entités sont conservées."
+    ],
+    "aftu_official": {
+      "published_line_count": 72,
+      "published_numbers_note": "n° 1–5 et 24–89, 91 ; les n° 6–23 et 90 ne sont pas publiés",
+      "route_page_count": 65,
+      "lines_without_route_page": [
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        91
+      ],
+      "stops_published": 0,
+      "schedules_published": 0,
+      "frequencies_published": 0,
+      "source_url": "https://aftu-senegal.org/infos-pratiques/",
+      "route_page_url_template": "https://aftu-senegal.org/map/dakar-urbain-ligne-{N}/",
+      "verified_at": "2026-09-25",
+      "route_descriptions_verified": [
+        {
+          "line_number": 5,
+          "text": "TERMINUS GARE DES PARCELLES ASSAINIES - ROUTE DE L’EGLISE - ROUTE DES NIAYES - PONT STADE LSS - AUTOROUTE SEYDINA L - ROUTE PRINCIPALE DE GRAND YOFF (PAR BASSIN RETENTION) - ROUTE DE L’HOPITAL GENERAL DE GD YOFF (HOGGY) - ROUTE DU FRONT DE TERRE - AVENUE BOURGUIBA - AVENUE CHEIKH AMADOU BAMBA MBACKE (RUE 13) - RUE 39 - RETOUR RUE 17 - RUE 22 - RUE 25 - RETOUR RUE 37 - AVENUE BLAISE DIAGNE - AV. EMILE BADIANE - RUE MANGIN - TERMINUS PETERSEN",
+          "source_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-5/",
+          "nature": "ROUTE_DOCUMENTED",
+          "note": "Ru(e)s et points de repère publiés par l'exploitant : ce n'est pas une liste d'arrêts."
+        },
+        {
+          "line_number": 25,
+          "text": "TERMINUS GARE DES PARCELLES ASSAINIES - ROUTE PRINCIPALE DES PARCELLES ASSAINIES - ECOLE DIOR - CARREFOUR HLM GD MEDINE/DIAMALAYE - VDN PROLONGEE - ECHANGEUR DE LA FOIRE - VOIE DE DEGAGEMENT NORD (VDN) - CARREFOUR SEYDOU N TALL - AVENUE CHEIKH ANTA DIOP - AVENUE BLAISE DIAGNE - AVENUE EMILE BADIANE - RUE MANGIN - TERMINUS GARE PETERSEN",
+          "source_url": "https://aftu-senegal.org/map/dakar-urbain-ligne-25/",
+          "nature": "ROUTE_DOCUMENTED",
+          "note": "Ru(e)s et points de repère publiés par l'exploitant : ce n'est pas une liste d'arrêts."
+        }
+      ],
+      "collision_5_25": {
+        "status": "NOT_A_DUPLICATE",
+        "reason": "Mêmes terminus (Parcelles Assainies – Petersen) mais corridors d'approche incompatibles : la 5 passe par la Route des Niayes / Grand Yoff / front de terre, la 25 par la VDN prolongée / Cheikh Anta Diop.",
+        "decision": "Les deux lignes sont conservées ; aucune fusion, aucune suppression.",
+        "sources": [
+          "https://aftu-senegal.org/infos-pratiques/",
+          "https://aftu-senegal.org/map/dakar-urbain-ligne-5/",
+          "https://aftu-senegal.org/map/dakar-urbain-ligne-25/"
+        ]
+      }
+    },
+    "ddd_official": {
+      "published_identifier_count": 48,
+      "route_blocks_with_stops": 39,
+      "identifiers_without_route": [
+        "15A",
+        "15B",
+        "502A",
+        "502B",
+        "503A",
+        "503B",
+        "504A",
+        "504B",
+        "TAF TAF"
+      ],
+      "stops_published": true,
+      "schedules_published": [
+        "DDD 1",
+        "TAF TAF"
+      ],
+      "frequencies_published": 0,
+      "conflicting_identifiers": [
+        6,
+        23,
+        208,
+        217,
+        218,
+        232,
+        233,
+        501
+      ],
+      "sources": {
+        "info_voyageurs": "https://demdikk.sn/info-voyageurs/",
+        "reseau_urbain": "https://demdikk.sn/reseau-urbain-dakar/",
+        "alerte_ligne_1": "https://demdikk.sn/"
+      },
+      "verified_at": "2026-09-25"
+    },
+    "tata": {
+      "published_network": false,
+      "model": "network=AFTU + service_category=TATA (aucun réseau TATA distinct)",
+      "identities_in_dataset": 7,
+      "match_class": {
+        "tata_78": "POSSIBLE_MATCH",
+        "tata_219": "POSSIBLE_MATCH",
+        "tata_50": "UNKNOWN",
+        "tata_64": "UNKNOWN",
+        "tata_218": "UNKNOWN",
+        "new_commune_11": "UNKNOWN",
+        "new_commune_12": "UNKNOWN"
+      },
+      "context_source": "ITF/ILO — Dakar BRT Labour Impact Assessment (2020) : « AFTU … Tata minibus operator »",
+      "verified_at": "2026-09-25"
+    },
+    "schedules": [
+      {
+        "network": "DDD",
+        "service": "Ligne 1 (urbaine)",
+        "direction": "→ Centre social des Parcelles",
+        "first_departure": "05:30",
+        "last_departure": "20:30",
+        "source_url": "https://demdikk.sn/",
+        "verified_at": "2026-09-25",
+        "schedule_status": "SCHEDULE_CONFIRMED",
+        "frequency_status": "UNKNOWN",
+        "attribution": "Horaire de la ligne officielle DDD 1 ; non rattaché à une route du jeu de données."
+      },
+      {
+        "network": "DDD",
+        "service": "Ligne 1 (urbaine)",
+        "direction": "→ Terminus Leclerc",
+        "first_departure": "06:30",
+        "last_departure": "21:00",
+        "source_url": "https://demdikk.sn/",
+        "verified_at": "2026-09-25",
+        "schedule_status": "SCHEDULE_CONFIRMED",
+        "frequency_status": "UNKNOWN",
+        "attribution": "Horaire de la ligne officielle DDD 1 ; non rattaché à une route du jeu de données."
+      },
+      {
+        "network": "DDD",
+        "service": "TAF TAF",
+        "direction": "Ouakam → AIBD",
+        "first_departure": "06:00",
+        "last_departure": "21:00",
+        "source_url": "https://demdikk.sn/info-voyageurs/",
+        "verified_at": "2026-09-25",
+        "schedule_status": "SCHEDULE_CONFIRMED",
+        "frequency_status": "UNKNOWN",
+        "attribution": "Service TAF TAF (catégorie propre) ; jamais reporté sur une ligne urbaine."
+      },
+      {
+        "network": "DDD",
+        "service": "TAF TAF",
+        "direction": "Ouakam → Sphère Ministérielle",
+        "first_departure": "05:45",
+        "last_departure": "21:00",
+        "source_url": "https://demdikk.sn/info-voyageurs/",
+        "verified_at": "2026-09-25",
+        "schedule_status": "SCHEDULE_CONFIRMED",
+        "frequency_status": "UNKNOWN",
+        "attribution": "Service TAF TAF (catégorie propre) ; jamais reporté sur une ligne urbaine."
+      },
+      {
+        "network": "DDD",
+        "service": "TAF TAF",
+        "direction": "AIBD → Ouakam",
+        "first_departure": "06:00",
+        "last_departure": "21:00",
+        "source_url": "https://demdikk.sn/info-voyageurs/",
+        "verified_at": "2026-09-25",
+        "schedule_status": "SCHEDULE_CONFIRMED",
+        "frequency_status": "UNKNOWN",
+        "attribution": "Service TAF TAF (catégorie propre) ; jamais reporté sur une ligne urbaine."
+      },
+      {
+        "network": "DDD",
+        "service": "TAF TAF",
+        "direction": "Sphère Ministérielle → Ouakam",
+        "first_departure": "06:00",
+        "last_departure": "20:30",
+        "source_url": "https://demdikk.sn/info-voyageurs/",
+        "verified_at": "2026-09-25",
+        "schedule_status": "SCHEDULE_CONFIRMED",
+        "frequency_status": "UNKNOWN",
+        "attribution": "Service TAF TAF (catégorie propre) ; jamais reporté sur une ligne urbaine."
+      },
+      {
+        "network": "DDD",
+        "service": "Express AIBD",
+        "direction": "HLM Grand-Yoff ↔ AIBD",
+        "amplitude": "24 h/24 et 7 j/7",
+        "first_departure": null,
+        "last_departure": null,
+        "source_url": "https://demdikk.sn/offres-de-transport/",
+        "verified_at": "2026-09-25",
+        "schedule_status": "SCHEDULE_CONFIRMED",
+        "frequency_status": "UNKNOWN",
+        "attribution": "Service express hors lignes urbaines ; amplitude de service, non une grille horaire."
+      }
+    ],
+    "unresolved": {
+      "ddd_official_conflicts": [
+        6,
+        23,
+        208,
+        217,
+        218,
+        232,
+        233,
+        501
+      ],
+      "ddd_variants_without_route": [
+        "15A",
+        "15B",
+        "502A",
+        "502B",
+        "503A",
+        "503B",
+        "504A",
+        "504B"
+      ],
+      "ddd_single_source_identities": [
+        311,
+        319,
+        327
+      ],
+      "aftu_lines_without_route_page": [
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        91
+      ],
+      "tata_identities": [
+        "new_commune_11",
+        "new_commune_12",
+        "tata_218",
+        "tata_219",
+        "tata_50",
+        "tata_64",
+        "tata_78"
+      ],
+      "unresolved_duplicates": [
+        [
+          "15A",
+          "15B"
+        ],
+        [
+          "502A",
+          "502B"
+        ],
+        [
+          "503A",
+          "503B"
+        ]
+      ],
+      "realtime": "aucun flux/API temps réel public (CCO DDD interne seulement) — realtime_status = UNKNOWN",
+      "unknown_fields": "horaires et fréquences AFTU/Tata/DDD, arrêts AFTU, itinéraires AFTU 84–89/91 et DDD 15A/B, 502A/B, 503A/B, 504A/B"
+    }
+  }
 }

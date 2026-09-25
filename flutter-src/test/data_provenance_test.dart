@@ -25,6 +25,14 @@ import 'package:dakar_bus/services/data_service.dart';
 ///  * « Tata » n'est pas une exploitation indépendante (parent_operator_id =
 ///    aftu) ; aucune identité Tata n'est promue ;
 ///  * aucune fréquence AFTU/Tata n'est créée : UNKNOWN pour les départs.
+///
+/// INTÉGRATION CANONIQUE 2026-09-25 (LOT 1 — docs/AUDIT_IMPACT_INTEGRATION_REFERENTIEL_2026-09-25.md) :
+///  * les statuts du référentiel canonique AFTU/Tata/DDD sont AJOUTÉS aux routes
+///    (`canonical_status`, `frequency_status`, `official_route_documentation`,
+///    `conflict_reason`, `conflict_sources`) et un bloc racine
+///    `canonical_referentiel` documente le périmètre officiel et les horaires connus ;
+///  * AUCUN arrêt, AUCUNE route, AUCUN horaire et AUCUNE fréquence ne sont ajoutés ;
+///  * aucune de ces lignes n'est promue : CONFLICTING / UNVERIFIED restent tels quels.
 
 const Set<String> kDataStatus = <String>{'CONFIRMED', 'UNVERIFIED', 'CONFLICTING', 'FUTURE'};
 const Set<String> kSourceType = <String>{
@@ -380,6 +388,46 @@ void main() {
       expect(ddd.officialLineCount, 38);
       final TransportRoute nc = ds.routes.firstWhere((TransportRoute r) => r.id == 'new_commune_05');
       expect(nc.countsTowardOfficialTotal, isFalse);
+    });
+  });
+
+  group('Intégration canonique 2026-09-25 (LOT 1) — statuts transportés', () {
+    test('le bloc `canonical_referentiel` documente le périmètre officiel', () {
+      final Map<String, dynamic> c =
+          _raw()['canonical_referentiel'] as Map<String, dynamic>;
+      expect(c['version'], '2026-09-25');
+      expect((c['rules'] as List), hasLength(7));
+      final Map<String, dynamic> aftu = c['aftu_official'] as Map<String, dynamic>;
+      expect(aftu['published_line_count'], 72);
+      expect(aftu['route_page_count'], 65);
+      expect(aftu['lines_without_route_page'], <int>[84, 85, 86, 87, 88, 89, 91]);
+      final Map<String, dynamic> ddd = c['ddd_official'] as Map<String, dynamic>;
+      expect(ddd['published_identifier_count'], 48);
+      expect(ddd['route_blocks_with_stops'], 39);
+      final Map<String, dynamic> tata = c['tata'] as Map<String, dynamic>;
+      expect(tata['published_network'], isFalse);
+      expect(tata['identities_in_dataset'], 7);
+      expect((c['schedules'] as List), hasLength(7),
+          reason: 'horaires connus documentés hors routes (DDD 1, TAF TAF, Express AIBD)');
+    });
+
+    test('aucune fréquence et aucun horaire rattachés aux routes AFTU/Tata/DDD', () {
+      for (final Map<String, dynamic> r in _list('routes')) {
+        if (!<String>['aftu', 'tata', 'ddd'].contains(r['operator_id'])) continue;
+        expect(r['frequency_status'], 'UNKNOWN', reason: '${r['id']}');
+        expect(r.containsKey('first_departure'), isFalse, reason: '${r['id']}');
+        expect(r.containsKey('last_departure'), isFalse, reason: '${r['id']}');
+        expect(<String>['CONFLICTING', 'UNVERIFIED'], contains(r['canonical_status']),
+            reason: '${r['id']} : aucune promotion implicite');
+      }
+    });
+
+    test('volumes et registre de fréquences inchangés par le LOT 1', () {
+      expect(_list('routes'), hasLength(105), reason: 'aucune route ajoutée');
+      expect(_list('stops'), hasLength(117), reason: 'aucun arrêt ajouté');
+      final File reg = File('assets/data/departure-frequencies.json');
+      expect(reg.readAsBytesSync().length, 12018,
+          reason: 'le registre TER/BRT n_est pas touché par l_intégration documentaire');
     });
   });
 }

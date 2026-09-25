@@ -16,8 +16,9 @@ import 'package:dakar_bus/main.dart';
 /// (`GpsResolver`, `PositionValidity`, `DakarBounds`, `isWithinServiceZone`,
 /// `initialCenter`, `didUpdateWidget`, message hors zone) n'est pas touchée ;
 /// `assets/data/dakar_network.json` n'est pas modifié par ce fichier
-/// (verrouillé ailleurs à 213 248 octets, SHA-256 `3c2574e3…` depuis la
-/// normalisation AFTU/Tata du 2026-09-25, et re-verrouillé ici par structure).
+/// (verrouillé ailleurs à 268 473 octets, SHA-256 `2459dd18…` depuis
+/// l'intégration canonique AFTU/Tata/DDD (LOT 1) du 2026-09-25, et re-verrouillé
+/// ici par structure).
 ///
 /// Ce fichier prouve :
 ///
@@ -737,9 +738,19 @@ void main() {
 // gardent leurs identifiants et leurs séquences ; seuls des champs de
 // provenance et de nomenclature sont AJOUTÉS. Verrou conservé à la nouvelle
 // valeur. Voir docs/AUDIT_AFTU_TATA_2026-09-25.md.
-      expect(file.readAsBytesSync().length, 213248,
+      // INTÉGRATION CANONIQUE 2026-09-25 (LOT 1) — VERROU PORTÉ À : 268473 octets
+      // (sha256 2459dd18…). RAISON : intégration documentaire du référentiel canonique
+      // AFTU/Tata/DDD (docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md),
+      // explicitement autorisée. AJOUTS SEULS : aucun arrêt (117), aucune route
+      // (105), aucun identifiant, aucune séquence `stops` et AUCUNE valeur
+      // existante modifiée ; ajout de statuts documentaires (canonical_status,
+      // frequency_status, official_route_documentation, conflict_reason,
+      // conflict_sources) et d'un bloc racine `canonical_referentiel`.
+      // AUCUN horaire rattaché à une route, AUCUNE fréquence inventée.
+      // Voir docs/AUDIT_IMPACT_INTEGRATION_REFERENTIEL_2026-09-25.md.
+      expect(file.readAsBytesSync().length, 268473,
           reason: 'taille verrouillée depuis l’audit données du 2026-09-24 '
-              '(sha256 3c2574e3…)');
+              '(sha256 2459dd18…)');
 
       final Map<String, dynamic> json = _networkJson();
       expect((json['stops'] as List).length, 117);

@@ -717,7 +717,17 @@ void main() {
       // gardent leurs identifiants et leurs séquences ; seuls des champs de
       // provenance et de nomenclature sont AJOUTÉS. Verrou conservé à la nouvelle
       // valeur. Voir docs/AUDIT_AFTU_TATA_2026-09-25.md.
-      expect(bytes.length, 213248,
+      // INTÉGRATION CANONIQUE 2026-09-25 (LOT 1) — VERROU PORTÉ À : 268473 octets
+      // (sha256 2459dd18…). RAISON : intégration documentaire du référentiel canonique
+      // AFTU/Tata/DDD (docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md),
+      // explicitement autorisée. AJOUTS SEULS : aucun arrêt (117), aucune route
+      // (105), aucun identifiant, aucune séquence `stops` et AUCUNE valeur
+      // existante modifiée ; ajout de statuts documentaires (canonical_status,
+      // frequency_status, official_route_documentation, conflict_reason,
+      // conflict_sources) et d'un bloc racine `canonical_referentiel`.
+      // AUCUN horaire rattaché à une route, AUCUNE fréquence inventée.
+      // Voir docs/AUDIT_IMPACT_INTEGRATION_REFERENTIEL_2026-09-25.md.
+      expect(bytes.length, 268473,
           reason: 'taille du JSON actif verrouillée après l’audit données 2026-09-24');
 
       final data = jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
