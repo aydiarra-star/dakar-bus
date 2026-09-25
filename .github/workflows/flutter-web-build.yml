@@ -182,7 +182,15 @@ jobs:
           # dépendre du téléchargement de l'artefact de journal.
           if [ -f "${logs}/test.txt" ] && grep -qE '\[E\]|Some tests failed' "${logs}/test.txt"; then
             resume="$(grep -E 'Some tests failed' "${logs}/test.txt" | tail -n 1)"
-            details="$(grep -A 6 -E '\[E\]' "${logs}/test.txt" | head -n 60 \
+            # Les échecs ordinaires détaillent « Expected/Actual » après la ligne
+            # de progression ; les testWidgets « exception » les détaillent
+            # AVANT, dans un bloc EXCEPTION. On publie les deux, sans jamais
+            # dépendre du téléchargement de l'artefact de journal.
+            details="$(awk '
+              /EXCEPTION CAUGHT/ {blk = 30; print "== exception =="; print; next}
+              blk > 0 {print; blk--; next}
+              /\[E\]|Expected:|Actual:|Which:|The test description|Some tests failed/ {print}
+            ' "${logs}/test.txt" | head -n 130 | cut -c1-200 \
               | sed 's/%/%25/g; s/\r//g' | awk '{printf "%s%%0A", $0}')"
             echo "::error title=flutter test — échec (${resume})::${details}"
           fi

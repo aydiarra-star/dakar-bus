@@ -294,6 +294,14 @@ class DepartureEstimate {
   final String? observedAt;
   final String? confidence;
   final String? frequencyId;
+
+  /// Instant de référence de l'estimation (« maintenant » au moment du calcul).
+  ///
+  /// Parité avec `evaluatedAt` du moteur JS : l'affichage et l'assistant
+  /// calculent la fenêtre relative par rapport à CET instant, jamais par
+  /// rapport à un « maintenant » différent. Sans cela, une estimation produite
+  /// à 11:43 réaffichée à 18:00 annoncerait la fenêtre de 18:00.
+  final String? evaluatedAt;
   final String? retrievedAt;
   final String? dayType;
   final String? serviceStart;
@@ -323,6 +331,7 @@ class DepartureEstimate {
     this.observedAt,
     this.confidence,
     this.frequencyId,
+    this.evaluatedAt,
     this.retrievedAt,
     this.dayType,
     this.serviceStart,
@@ -344,6 +353,7 @@ class DepartureEstimate {
     this.direction,
     this.reason,
     this.note,
+    this.evaluatedAt,
   })  : status = ScheduleStatus.unknown,
         scheduledTime = null,
         estimatedFrom = null,
@@ -387,6 +397,7 @@ class DepartureEstimate {
         'observedAt': observedAt,
         'confidence': confidence,
         'frequencyId': frequencyId,
+        'evaluatedAt': evaluatedAt,
         'retrievedAt': retrievedAt,
         'dayType': dayType,
         'serviceStart': serviceStart,

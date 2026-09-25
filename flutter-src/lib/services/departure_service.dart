@@ -291,7 +291,11 @@ class DepartureEngineService {
 
   /// La période qui contient l'instant courant prime, sinon la prochaine
   /// ouverture, sinon la période terminée la plus tardive.
-  static DepartureSelection? selectFrequency(
+  ///
+  /// Retourne la sélection ET le diagnostic « fréquence existante mais pas pour
+  /// ce type de jour » — parité avec `selection.dayMismatch` du moteur JS, qui
+  /// distingue `NO_FREQUENCY_FOR_DAY` de `NO_FREQUENCY_FOR_LINE`.
+  static (DepartureSelection?, bool) selectFrequencyWithDiagnostics(
     DepartureRegistry registry, {
     required String lineId,
     String? network,
@@ -305,12 +309,15 @@ class DepartureEngineService {
     DepartureSelection? best;
     int bestRank = 99;
     int bestTieBreak = 0;
+    bool dayMismatch = false;
 
     for (final DepartureFrequency f in candidates) {
       if (network != null && f.network != network) continue;
       if (f.stopId != null) continue; // fréquence d'arrêt : non utilisée ici
       if (dayType != null && f.dayTypes.isNotEmpty &&
           !f.dayTypes.contains(dayType)) {
+        // Fréquence documentée, mais pas pour ce type de jour : B2 le dimanche.
+        dayMismatch = true;
         continue;
       }
       if (f.status.toUpperCase() == 'HISTORICAL') continue;
@@ -351,8 +358,28 @@ class DepartureEngineService {
         best = DepartureSelection(frequency: f, policy: policy);
       }
     }
-    return best;
+    return (best, dayMismatch);
   }
+
+  /// Sélection publique : la fréquence retenue, ou `null`.
+  static DepartureSelection? selectFrequency(
+    DepartureRegistry registry, {
+    required String lineId,
+    String? network,
+    String? dayType,
+    String? date,
+    int? minutes,
+    bool allowCommunityFrequencies = false,
+  }) =>
+      selectFrequencyWithDiagnostics(
+        registry,
+        lineId: lineId,
+        network: network,
+        dayType: dayType,
+        date: date,
+        minutes: minutes,
+        allowCommunityFrequencies: allowCommunityFrequencies,
+      ).$1;
 
   // ------------------------------------------------------------------
   // Cœur
@@ -391,12 +418,14 @@ class DepartureEngineService {
           lineId: lineId,
           stopId: stopId,
           direction: direction,
+          evaluatedAt: isoLocal(dateOf(now), minutesOfDay(now)),
           reason: 'SCHEDULE_UNREADABLE',
           note: 'Horaire illisible : aucune heure n’est proposée.',
         );
       }
       return DepartureEstimate(
         status: ScheduleStatus.scheduled,
+        evaluatedAt: isoLocal(dateOf(now), minutesOfDay(now)),
         network: network,
         lineId: lineId,
         stopId: stopId,
@@ -418,6 +447,7 @@ class DepartureEngineService {
         lineId: lineId,
         stopId: stopId,
         direction: direction,
+        evaluatedAt: isoLocal(dateOf(now), minutesOfDay(now)),
         reason: 'NO_DATA',
         note: 'Référentiel de fréquences indisponible : aucune estimation, '
             'aucune heure inventée.',
@@ -425,8 +455,10 @@ class DepartureEngineService {
     }
 
     // 2. Fréquence fiable → estimated (fenêtre)
+    bool dayMismatch = false;
     if (lineId != null) {
-      final DepartureSelection? selection = selectFrequency(
+      final (DepartureSelection? retenue, bool jourNonCouvert) =
+          selectFrequencyWithDiagnostics(
         registry,
         lineId: lineId,
         network: network,
@@ -434,6 +466,8 @@ class DepartureEngineService {
         date: dateOf(now),
         minutes: minutesOfDay(now),
       );
+      final DepartureSelection? selection = retenue;
+      dayMismatch = jourNonCouvert;
       if (selection != null) {
         final DepartureWindow window = estimateNextDepartureFromFrequency(
           currentTime: now,
@@ -446,6 +480,7 @@ class DepartureEngineService {
         if (window.status == ScheduleStatus.estimated) {
           return DepartureEstimate(
             status: ScheduleStatus.estimated,
+            evaluatedAt: isoLocal(dateOf(now), minutesOfDay(now)),
             network: network,
             lineId: lineId,
             stopId: stopId,
@@ -474,6 +509,7 @@ class DepartureEngineService {
           lineId: lineId,
           stopId: stopId,
           direction: direction,
+          evaluatedAt: isoLocal(dateOf(now), minutesOfDay(now)),
           reason: window.reason,
           note: window.note,
         );
@@ -486,9 +522,13 @@ class DepartureEngineService {
       lineId: lineId,
       stopId: stopId,
       direction: direction,
-      reason: 'NO_FREQUENCY_FOR_LINE',
-      note: 'Aucune fréquence documentée pour cette ligne : information '
-          'indisponible, aucune estimation.',
+      evaluatedAt: isoLocal(dateOf(now), minutesOfDay(now)),
+      reason: dayMismatch ? 'NO_FREQUENCY_FOR_DAY' : 'NO_FREQUENCY_FOR_LINE',
+      note: dayMismatch
+          ? 'Fréquence documentée pour d’autres jours seulement : aucune '
+              'estimation pour ce jour.'
+          : 'Aucune fréquence documentée pour cette ligne : information '
+              'indisponible, aucune estimation.',
     );
   }
 
@@ -567,8 +607,21 @@ class DepartureEngineService {
   // §17 / §18 / §19 — présentation, assistant, itinéraires
   // ------------------------------------------------------------------
 
+  /// Instant de référence d'une estimation : celui du calcul (`evaluatedAt`),
+  /// jamais un « maintenant » différent. Un appelant peut toujours imposer un
+  /// autre instant (tests, rejeu), mais l'interface n'a rien à recalculer.
+  static DateTime referenceOf(DepartureEstimate e, {DateTime? now}) {
+    if (now != null) return now;
+    final String? iso = e.evaluatedAt;
+    if (iso != null) {
+      final DateTime? parsed = DateTime.tryParse(iso);
+      if (parsed != null) return parsed;
+    }
+    return DateTime.now();
+  }
+
   static DepartureDisplay displayFor(DepartureEstimate e, {DateTime? now}) {
-    final DateTime ref = now ?? DateTime.now();
+    final DateTime ref = referenceOf(e, now: now);
     final bool official = e.usedSourceIsOfficial &&
         (e.sourceType == DepartureSourceType.official ||
             e.sourceType == DepartureSourceType.institutional);
@@ -681,7 +734,7 @@ class DepartureEngineService {
   }) {
     final String network = mode ?? e.network ?? 'réseau';
     final String vehicleWord = network.toUpperCase() == 'TER' ? 'du train' : 'du bus';
-    final DateTime ref = now ?? DateTime.now();
+    final DateTime ref = referenceOf(e, now: now);
     switch (e.status) {
       case ScheduleStatus.scheduled:
         return 'Le $network est disponible dans cette direction. Départ '
