@@ -535,13 +535,46 @@ void main() {
 
       final String descriptionTer = AssistantReplies.modeInfo(
           'ter', appDataService.operators, appDataService.routes);
+      final DepartureEstimate avantTerEstimate =
+          DepartureEngineService.estimateForLine(modeLabel: 'TER');
       final String avantTer = phraseMoteur('TER');
       await question('Je veux partir maintenant en TER');
       final String apresTer = phraseMoteur('TER');
+      final DepartureEstimate apresTerEstimate =
+          DepartureEngineService.estimateForLine(modeLabel: 'TER');
       final List<String> bullesTer =
           bulles('Le TER est disponible dans cette direction');
       expect(bullesTer, isNotEmpty,
           reason: 'le moteur doit avoir répondu sur le TER : ${_textes(tester)}');
+      // Aucune heure INVENTÉE : toute heure affichée doit provenir du
+      // référentiel — ouverture documentée ou fenêtre calculée par le moteur.
+      // (Avant 05:30, le moteur annonce l'ouverture documentée 05:30, qui est
+      // donc légitime ; l'heure exacte du passage, elle, est toujours refusée.)
+      Set<int> minutesDocumentees(DepartureEstimate e) {
+        final Set<int> out = <int>{};
+        for (final String? iso in <String?>[
+          e.scheduledTime,
+          e.estimatedFrom,
+          e.estimatedTo,
+        ]) {
+          final int? m = DepartureEngineService.clockToMinutes(
+              DepartureEngineService.clockOfIso(iso));
+          if (m != null) out.add(m);
+        }
+        for (final String? clock in <String?>[e.serviceStart, e.serviceEnd]) {
+          final int? m = DepartureEngineService.clockToMinutes(clock);
+          if (m != null) out.add(m);
+        }
+        return out;
+      }
+
+      final Set<int> documentees = <int>{
+        ...minutesDocumentees(
+            DepartureEngineService.estimateForLine(modeLabel: 'TER')),
+        ...minutesDocumentees(avantTerEstimate),
+        ...minutesDocumentees(apresTerEstimate),
+      };
+
       for (final String reponseTer in bullesTer) {
         expect(reponseTer.startsWith(descriptionTer), isTrue,
             reason: 'la description réseau précède la phrase du moteur : '
@@ -549,7 +582,24 @@ void main() {
         expect(reponseTer.endsWith(avantTer) || reponseTer.endsWith(apresTer),
             isTrue,
             reason: 'réponse = phrase du moteur — obtenu : $reponseTer');
-        expect(kHeurePrecise.hasMatch(reponseTer), isFalse, reason: reponseTer);
+        for (final RegExpMatch m in kHeurePrecise.allMatches(reponseTer)) {
+          final List<String> parties = m
+              .group(0)!
+              .split(RegExp(r'(:|h)'))
+              .map((String s) => s.trim())
+              .toList();
+          final int? heures =
+              parties.length == 2 ? int.tryParse(parties[0]) : null;
+          final int? minutes =
+              parties.length == 2 ? int.tryParse(parties[1]) : null;
+          final int? minute = (heures == null || minutes == null)
+              ? null
+              : heures * 60 + minutes;
+          expect(minute, isNotNull, reason: m.group(0));
+          expect(documentees.contains(minute), isTrue,
+              reason: 'heure affichée non documentée : ${m.group(0)} '
+                  '(référentiel : $documentees)');
+        }
         expect(kTempsReel.hasMatch(reponseTer), isFalse, reason: reponseTer);
       }
 
@@ -616,18 +666,23 @@ void main() {
     testWidgets('Fiche d’arrêt : statut du moteur + source, affluence conservée',
         (WidgetTester tester) async {
       final Stop ter = allStops.firstWhere((Stop s) => s.modeLabel == 'TER');
+      final DepartureDisplay avant = ter.departureDisplay();
       await _monte(tester, Scaffold(body: SingleStopView(stop: ter)));
       final List<String> textes = _textes(tester);
-      final DepartureDisplay d = ter.departureDisplay();
+      final DepartureDisplay apres = ter.departureDisplay();
 
       expect(textes, contains('Prochain passage'));
       expect(textes.any((String t) => t.contains('Affluence indisponible')),
           isTrue,
           reason: 'la colonne Affluence reste inchangée : $textes');
-      if (d.available) {
-        expect(textes, contains(d.badge));
-        expect(textes.any((String t) => t.startsWith('Prochain passage estimé') || t.startsWith('Départ')),
-            isTrue, reason: '$textes');
+      if (avant.available || apres.available) {
+        expect(
+            textes.any((String t) => t == avant.badge || t == apres.badge), isTrue,
+            reason: 'le badge du moteur doit être affiché : $textes');
+        expect(
+            textes.any((String t) =>
+                t == avant.headline || t == apres.headline), isTrue,
+            reason: 'la fiche affiche la phrase du moteur : $textes');
         expect(textes.any((String t) => t.contains('SETER')), isTrue,
             reason: 'la source doit être affichée : $textes');
       } else {

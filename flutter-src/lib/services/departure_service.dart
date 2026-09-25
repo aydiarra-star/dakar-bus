@@ -658,7 +658,8 @@ class DepartureEngineService {
             body: 'Service non commencé (ouverture documentée à '
                 '${e.serviceStart ?? '—'})',
             detail: 'Estimation à partir d’une fréquence documentée '
-                '(${e.frequencyMinutes} min)',
+                '(${e.frequencyMinutes} min)'
+                '${e.source == null ? '' : ' — source : ${e.source}'}',
             windowLabel: window,
             trafficNote: 'Le passage réel peut varier selon l’exploitation et '
                 'la circulation.',
