@@ -18,7 +18,7 @@ import '../models/transport_network.dart';
 /// `unknown` (échec fermé). Il n'invente jamais une heure, jamais un véhicule,
 /// jamais un retard.
 class DepartureEngineService {
-  static const String engineVersion = '1.0.0';
+  static const String engineVersion = '1.0.1';
   static const String registryAsset = 'assets/data/departure-frequencies.json';
 
   /// Référentiel chargé une seule fois par l'application (`main()`), comme la

@@ -34,7 +34,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
 
-  const ENGINE_VERSION = '1.0.0';
+  const ENGINE_VERSION = '1.0.1';
 
   /** Statuts autorisés — strictement quatre, aucun statut « LIVE » parallèle. */
   const STATUS = Object.freeze({
