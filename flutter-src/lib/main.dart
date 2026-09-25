@@ -9,7 +9,9 @@ import 'dart:ui';
 import 'package:http/http.dart' as http;
 import 'models/transport_network.dart';
 import 'models/reliability.dart';
+import 'models/departure_estimate.dart';
 import 'services/data_service.dart';
+import 'services/departure_service.dart';
 
 // ============================================================
 // SERVICE GLOBAL RESEAU DAKAR — Connecté à assets/data/dakar_network.json
@@ -34,6 +36,18 @@ Future<void> main() async {
   } catch (e, st) {
     debugPrint('⚠️ DataService init failed: $e');
     debugPrint('$st');
+  }
+  // MOTEUR COMMUN DE DÉPARTS (2026-09-25) : le référentiel de fréquences
+  // sourcées est chargé UNE SEULE FOIS, avant l'interface. En cas d'échec,
+  // `registry` reste nul et TOUT reste UNKNOWN : aucune heure n'est inventée
+  // pour remplir l'écran.
+  try {
+    final bool moteurPret = await DepartureEngineService.ensureLoaded();
+    debugPrint(moteurPret
+        ? '✅ Moteur de départs prêt : ${DepartureEngineService.registry!.frequencies.length} fréquences documentées'
+        : '⚠️ Moteur de départs sans référentiel : tous les statuts resteront UNKNOWN');
+  } catch (e) {
+    debugPrint('⚠️ Moteur de départs indisponible : $e');
   }
   runZonedGuarded(() {
     runApp(const DakarBusApp());
@@ -703,6 +717,16 @@ class Stop {
   final String modeLabel; final DataSourceInfo source;
   final StopType stopType;
 
+  /// Identifiant de la LIGNE dans `dakar_network.json` (ex.
+  /// `ter_dakar_diamniadio`, `brt_b1_guediawaye_petersen`).
+  ///
+  /// BRANCHEMENT MOTEUR (2026-09-25) : le référentiel de fréquences indexe par
+  /// `line_id` ; sans ce champ, le moteur ne peut pas distinguer B1 de B2 ni un
+  /// arrêt TER d'un arrêt de bus homonyme. Renseigné par
+  /// `_integrateNetworkData` depuis `route.id` — jamais deviné. `null` pour un
+  /// arrêt hors référentiel : son statut de départ reste alors UNKNOWN.
+  final String? lineId;
+
   /// Identifiant métier dans `dakar_network.json` (ex. `stop_dakar_ter`).
   ///
   /// GROUPE 2 (§8) : seul lien fiable entre un arrêt affiché et la source unique
@@ -717,14 +741,14 @@ class Stop {
     required this.departureMinutesFromMidnight, required this.icon, required this.color,
     required this.location, required this.modeLabel, this.status = DataStatus.scheduled,
     this.source = DataSourceInfo.demo, this.stopType = StopType.departure,
-    this.stopId,
+    this.stopId, this.lineId,
   });
 
   Stop copyWith({
     String? name, String? direction, double? distanceMeters,
     List<int>? departureMinutesFromMidnight, IconData? icon, Color? color,
     LatLng? location, DataStatus? status, String? modeLabel,
-    DataSourceInfo? source, StopType? stopType, String? stopId,
+    DataSourceInfo? source, StopType? stopType, String? stopId, String? lineId,
   }) => Stop(
     name: name ?? this.name,
     direction: direction ?? this.direction,
@@ -738,6 +762,7 @@ class Stop {
     source: source ?? this.source,
     stopType: stopType ?? this.stopType,
     stopId: stopId ?? this.stopId,
+    lineId: lineId ?? this.lineId,
   );
 
   // AUDIT DONNÉES 2026-09-24 — horaires.
@@ -782,6 +807,29 @@ class Stop {
     for (final d in departureMinutesFromMidnight) { if (d > minFromMidnight) return d; }
     return null;
   }
+
+  /// BRANCHEMENT MOTEUR (2026-09-25) — **la seule source des prochains
+  /// passages**. Délègue à `DepartureEngineService` (même moteur que la PWA) :
+  ///
+  ///   Stop → ligne/réseau → moteur → `DepartureEstimate` → UI
+  ///
+  /// Aucun calcul d'horaire n'a lieu ici : sans référentiel chargé, sans
+  /// fréquence documentée pour la ligne, ou hors service, le moteur renvoie
+  /// UNKNOWN et l'interface affiche « Horaire indisponible ».
+  ///
+  /// [now] n'est là que pour les tests : l'interface utilise l'heure courante.
+  DepartureEstimate departureEstimate({DateTime? now}) =>
+      DepartureEngineService.estimateForLine(
+        modeLabel: modeLabel,
+        lineId: lineId,
+        stopId: stopId,
+        direction: direction,
+        now: now,
+      );
+
+  /// Affichage prêt pour l'interface (libellés produits par le moteur).
+  DepartureDisplay departureDisplay({DateTime? now}) =>
+      DepartureEngineService.displayFor(departureEstimate(now: now), now: now);
 }
 
 enum DataStatus { scheduled, live, unknown }
@@ -1328,6 +1376,10 @@ void _integrateNetworkData() {
       final stop = Stop(
         name: busStop.name,
         stopId: busStop.id,
+        // Ligne réelle du référentiel (`ter_dakar_diamniadio`,
+        // `brt_b1_guediawaye_petersen`, `ddd_1`, `aftu_…`, `tata_…`) : c'est
+        // elle qui porte les fréquences documentées du moteur.
+        lineId: route.id,
         direction: i == stopIds.length - 1
             ? 'Terminus ${busStop.name} (Arrivée)'
             : 'Dir. ${appDataService.stops.lastWhere((s) => s.id == stopIds.last, orElse: () => busStop).name}',
@@ -2631,19 +2683,39 @@ class StopCard extends StatelessWidget {
         const String crowd = ReliabilityLabel.crowdUnavailable;
         Widget timeWidget;
 
-        // AUDIT DONNÉES 2026-09-24.
-        // AVANT : « Fermé » déduit de l'heure (5 h–22 h 30 supposés),
-        //         « Bientôt », « Imminent » et un compte à rebours vert calculé
-        //         sur des départs générés — lu comme du temps réel.
-        // APRÈS : sans horaire fourni → « Horaire indisponible » ; avec un
-        //         horaire fourni → « Prévu HH h MM » (programmé, pas de
-        //         compte à rebours). Aucun flux temps réel n'existe.
-        if (stop.scheduleStatus == ScheduleStatus.unknown) {
-          timeWidget = Text(ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary(dark)));
-        } else if (stop.nextDepartureMinutes() == null) {
+        // BRANCHEMENT MOTEUR DE DÉPARTS (2026-09-25).
+        // AVANT (audit 2026-09-24) : aucun horaire en donnée → la carte
+        //         affichait « Horaire indisponible » partout, y compris sur les
+        //         gares TER et les stations BRT dont la fréquence est publiée.
+        // APRÈS : le statut vient de `DepartureEngineService` (même moteur que
+        //         la PWA) : « ≈ 0–10 min » + badge « Estimation » pour une
+        //         fréquence documentée, « Départ 11h40 » pour un horaire
+        //         programmé, « Arrivée dans 3 min » pour une observation réelle,
+        //         « Horaire indisponible » sinon. Aucune heure précise n'est
+        //         jamais calculée pour une estimation.
+        final DepartureDisplay depart = stop.departureDisplay();
+        // Un horaire réellement FOURNI à l'arrêt (aucun aujourd'hui : le
+        // référentiel n'en publie pas) garde l'affichage « programmé » de
+        // l'audit 2026-09-24. Le moteur ne produit jamais d'horaire sans
+        // source : les deux chemins restent donc distincts et honnêtes.
+        final bool horaireFourni =
+            !depart.available && stop.scheduleStatus == ScheduleStatus.scheduled;
+        if (horaireFourni && stop.nextDepartureMinutes() == null) {
           timeWidget = Text('Aucun départ programmé', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary(dark)));
-        } else {
+        } else if (horaireFourni) {
           timeWidget = Text('Prévu ${stop.nextDepartureLabel()}', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: stop.color));
+        } else if (!depart.available) {
+          timeWidget = Text(ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary(dark)));
+        } else {
+          timeWidget = Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(DepartureEngineService.shortLabel(depart), style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: stop.color)),
+              const SizedBox(height: 2),
+              Text(depart.badge, style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppColors.textSecondary(dark))),
+            ],
+          );
         }
 
         return GestureDetector(
@@ -3446,10 +3518,33 @@ class AssistantReplies {
       }
       if (future > 0) buf.write(' $future ligne(s) annoncée(s), pas encore en service.');
     }
-    buf.write(" Je ne dispose d'aucun horaire ni d'aucune fréquence vérifiés pour ce réseau.");
+    // BRANCHEMENT MOTEUR (2026-09-25). AVANT : la phrase affirmait « aucune
+    // fréquence vérifiée » pour TOUS les réseaux — devenu faux pour le TER et
+    // le BRT depuis le référentiel de fréquences sourcées. APRÈS : la phrase
+    // dit ce que le moteur sait réellement (horaire précis jamais disponible,
+    // fréquence documentée seulement là où elle existe).
+    buf.write(" Je ne dispose d'aucun horaire précis par gare pour ce réseau.");
+    final String libelleReseau = const <String, String>{
+              'ter': 'TER', 'brt': 'BRT', 'ddd': 'DDD', 'aftu': 'AFTU', 'tata': 'TATA',
+            }[operatorId] ??
+        operatorId.toUpperCase();
+    if (DepartureEngineService.hasDocumentedFrequency(libelleReseau)) {
+      buf.write(' Les passages sont estimés à partir de la fréquence documentée par '
+          "l'exploitant : une fenêtre, jamais une heure exacte.");
+    } else {
+      buf.write(" Je ne dispose d'aucune fréquence vérifiée pour ce réseau : "
+          "aucune estimation n'est possible.");
+    }
     buf.write(' Dis-moi ton départ et ton arrivée pour un itinéraire.');
     return buf.toString();
   }
+
+  /// Prochain passage, formulé par le MOTEUR COMMUN à partir du même
+  /// [DepartureEstimate] que l'interface. L'assistant ne calcule aucun horaire :
+  /// il ne fait que transporter la phrase du moteur (fenêtre estimée, ou refus
+  /// explicite quand aucune donnée fiable n'existe).
+  static String nextDeparture(DepartureEstimate estimate, {String? mode}) =>
+      DepartureEngineService.assistantReply(estimate, mode: mode);
 }
 
 // ============================================================
@@ -3516,6 +3611,18 @@ class _AIChatPageState extends State<AIChatPage> {
     return {'from': null, 'to': null};
   }
 
+  /// Réponse « réseau » : la description de la donnée (comptes, provenance,
+  /// statuts) PUIS le prochain passage produit par le moteur commun. Le moteur
+  /// reste la seule source des départs ; l'assistant ne fait que le formuler.
+  String _reponseReseau(String operatorId, String modeLabel) {
+    final String description =
+        AssistantReplies.modeInfo(operatorId, appDataService.operators, appDataService.routes);
+    final DepartureEstimate estimate =
+        DepartureEngineService.estimateForLine(modeLabel: modeLabel);
+    final String passage = AssistantReplies.nextDeparture(estimate, mode: modeLabel);
+    return '$description\n\n$passage';
+  }
+
   String _formatRouteResult(RouteSearchResult res, String from, String to) {
     if (res.errorMessage != null) return '⚠️ ${res.errorMessage}';
     if (!res.hasRoutes) return 'Aucun itinéraire trouvé entre $from et $to.';
@@ -3580,19 +3687,19 @@ class _AIChatPageState extends State<AIChatPage> {
       }
     } else if (lower.contains('ter') || lower.contains('train') || lower.contains('diamniadio')) {
       _dernierModeInterroge = 'TER';
-      aiReply = AssistantReplies.modeInfo('ter', appDataService.operators, appDataService.routes);
+      aiReply = _reponseReseau('ter', 'TER');
     } else if (lower.contains('brt') || lower.contains('guédiawaye') || lower.contains('petersen') || lower.contains('sunu')) {
       _dernierModeInterroge = 'BRT';
-      aiReply = AssistantReplies.modeInfo('brt', appDataService.operators, appDataService.routes);
+      aiReply = _reponseReseau('brt', 'BRT');
     } else if (lower.contains('ddd') || lower.contains('dakar dem dikk') || lower.contains('ligne 1') || lower.contains('ligne 3')) {
       _dernierModeInterroge = 'DDD';
-      aiReply = AssistantReplies.modeInfo('ddd', appDataService.operators, appDataService.routes);
+      aiReply = _reponseReseau('ddd', 'DDD');
     } else if (lower.contains('tata') || lower.contains('minibus') || lower.contains('ligne 50')) {
       _dernierModeInterroge = 'TATA';
-      aiReply = AssistantReplies.modeInfo('tata', appDataService.operators, appDataService.routes);
+      aiReply = _reponseReseau('tata', 'Tata');
     } else if (lower.contains('aftu') || lower.contains('parcelles') || lower.contains('grand yoff')) {
       _dernierModeInterroge = 'AFTU';
-      aiReply = AssistantReplies.modeInfo('aftu', appDataService.operators, appDataService.routes);
+      aiReply = _reponseReseau('aftu', 'AFTU');
     } else if (lower.contains('où suis-je') || lower.contains('ou suis je') || lower.contains('autour de moi') || lower.contains('proche')) {
       if (GpsResolver.isWithinServiceZone(widget.userPosition)) {
         final nearby = allStops.map((s) => MapEntry(s, DistanceHelper.haversineMeters(widget.userPosition!, s.location))).toList()..sort((a,b)=>a.value.compareTo(b.value));
@@ -3889,6 +3996,20 @@ class SingleStopView extends StatelessWidget {
       animation: globalState,
       builder: (context, _) {
         final dark = globalState.darkMode;
+        // Statut du prochain passage : produit par le moteur commun. Un
+        // horaire explicitement fourni à l'arrêt reste affiché comme programmé
+        // (chemin de l'audit 2026-09-24), le moteur n'en produisant jamais.
+        final DepartureDisplay depart = stop.departureDisplay();
+        final bool horaireFourni =
+            !depart.available && stop.scheduleStatus == ScheduleStatus.scheduled;
+        final String departLabel = horaireFourni
+            ? 'Prochain départ programmé'
+            : 'Prochain passage';
+        final String departHeadline = horaireFourni
+            ? (stop.nextDepartureLabel() ?? ReliabilityLabel.scheduleUnavailable)
+            : depart.headline;
+        final String departBadge =
+            horaireFourni ? ScheduleStatus.scheduled.displayLabel() : depart.badge;
         final isFav = globalState.isFavorite(stop.name);
         return ListView(
           padding: const EdgeInsets.all(16),
@@ -3926,17 +4047,37 @@ class SingleStopView extends StatelessWidget {
                     ],
                   ),
                   Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Divider(height: 1, color: AppColors.divider(dark))),
+                  // BRANCHEMENT MOTEUR DE DÉPARTS (2026-09-25) : la fiche
+                  // d'arrêt affiche le `DepartureDisplay` du moteur commun
+                  // (statut, fenêtre, source) au lieu d'une valeur locale —
+                  // « Horaire indisponible » quand le moteur n'a rien de fiable.
+                  // La colonne « Affluence » et le reste de la fiche sont
+                  // inchangés.
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Prochain départ programmé', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
-                          const SizedBox(height: 2),
-                          Text(stop.nextDepartureLabel() ?? ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: stop.color)),
-                        ],
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(departLabel, style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
+                            const SizedBox(height: 2),
+                            Text(departHeadline, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: (depart.available || horaireFourni) ? stop.color : AppColors.textSecondary(dark))),
+                            const SizedBox(height: 2),
+                            Text(departBadge, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary(dark))),
+                            if (depart.detail != null) ...[
+                              const SizedBox(height: 2),
+                              Text(depart.detail!, style: TextStyle(fontSize: 10, color: AppColors.textSecondary(dark))),
+                            ],
+                            if (depart.trafficNote != null) ...[
+                              const SizedBox(height: 2),
+                              Text(depart.trafficNote!, style: TextStyle(fontSize: 10, color: AppColors.textSecondary(dark))),
+                            ],
+                          ],
+                        ),
                       ),
+                      const SizedBox(width: 12),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [

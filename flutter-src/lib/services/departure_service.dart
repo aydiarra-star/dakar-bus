@@ -21,6 +21,74 @@ class DepartureEngineService {
   static const String engineVersion = '1.0.0';
   static const String registryAsset = 'assets/data/departure-frequencies.json';
 
+  /// Référentiel chargé une seule fois par l'application (`main()`), comme la
+  /// PWA charge `data/transit/departure-frequencies.json` au démarrage.
+  ///
+  /// `null` = moteur sans données : TOUT est `UNKNOWN` (échec fermé). Aucune
+  /// fréquence de remplacement n'est créée pour « remplir » l'interface.
+  static DepartureRegistry? registry;
+
+  static bool get isReady => registry != null;
+
+  /// Charge le référentiel embarqué si nécessaire.
+  /// Retourne `true` si le moteur peut produire des estimations.
+  static Future<bool> ensureLoaded() async {
+    if (registry != null) return true;
+    registry = await loadFromAssets();
+    return registry != null;
+  }
+
+  /// Libellé d'interface (« TER », « BRT », « DDD », « AFTU », « Tata ») →
+  /// réseau du référentiel. `null` pour tout libellé non documenté.
+  static String? networkOfModeLabel(String? modeLabel) {
+    if (modeLabel == null) return null;
+    final String m = modeLabel.trim().toUpperCase();
+    if (m == 'TATA') return 'TATA';
+    if (m == 'TER' || m == 'BRT' || m == 'DDD' || m == 'AFTU') return m;
+    return null;
+  }
+
+  /// Ligne documentée par défaut d'un réseau, utilisée seulement quand l'arrêt
+  /// ne porte pas de `lineId` (arrêt hors référentiel). Volontairement limitée
+  /// aux lignes réellement publiées : DDD, AFTU et TATA n'en ont aucune, donc
+  /// aucune estimation ne leur est attribuée par défaut.
+  static const Map<String, String> defaultLineIdByNetwork = <String, String>{
+    'TER': 'ter_dakar_diamniadio',
+    'BRT': 'brt_b1_guediawaye_petersen',
+  };
+
+  /// POINT D'ENTRÉE UNIQUE de l'interface (liste des arrêts, fiche d'arrêt,
+  /// assistant) : un arrêt, son réseau, sa ligne → un [DepartureEstimate].
+  ///
+  /// Ne calcule rien : délègue à [estimateNextDeparture] et au référentiel
+  /// chargé. Aucune heure n'est produite ici.
+  static DepartureEstimate estimateForLine({
+    String? modeLabel,
+    String? lineId,
+    String? stopId,
+    String? direction,
+    DateTime? now,
+  }) {
+    final String? network = networkOfModeLabel(modeLabel);
+    return estimateNextDeparture(
+      now: now ?? DateTime.now(),
+      registry: registry,
+      network: network,
+      lineId: lineId ?? defaultLineIdByNetwork[network],
+      stopId: stopId,
+      direction: direction,
+    );
+  }
+
+  /// Le réseau a-t-il des fréquences documentées dans le référentiel ?
+  /// Sert à formuler l'assistant sans lui faire inventer de cadence.
+  static bool hasDocumentedFrequency(String? modeLabel) {
+    final String? network = networkOfModeLabel(modeLabel);
+    final DepartureRegistry? reg = registry;
+    if (network == null || reg == null) return false;
+    return reg.frequencies.any((DepartureFrequency f) => f.network == network);
+  }
+
   /// Usages autorisés de la position de l'utilisateur. Le GPS utilisateur
   /// n'est jamais un véhicule : voir [vehicleFromUserPosition].
   static const List<String> userPositionUses = <String>[
