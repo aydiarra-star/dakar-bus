@@ -2,6 +2,8 @@
 
 **Phase 3 — construction du référentiel canonique (résolution et préparation, aucune intégration).**
 
+> **Révision 1.1 — erratum du 2026-09-25 (décision A4, validée).** Les interprétations antérieures de `new_commune_11` et `new_commune_12` sont rectifiées : ce sont des **identifiants techniques internes** ; **aucun numéro officiel Tata n’a été établi** pour ces deux fiches ; leur ressemblance avec **DDD 11** et **DDD 12** **ne constitue pas une collision officielle**. Par la même règle, le suffixe technique `01` / `02` / `13` des identifiants `new_commune_01`, `new_commune_02` et `new_commune_13` (DDD) **n’est pas un numéro officiel**. Passages rectifiés : §B.3 (tableau + bilan), §E.1, §E.3, §K.4, §L, §M (chiffre 3). **Aucune donnée, aucun identifiant interne, aucune ligne, aucun arrêt, aucun horaire et aucune fréquence ne sont modifiés.** Détail de la décision : `docs/ETAPE_3A_AUDIT_IDENTIFIANTS_TATA_DDD_2026-09-25.md` (§6.3 A4, §12).
+
 **Date de vérification des sources : 2026-09-25** · **HEAD de référence : `09767c2b1633dead91b35821c74f74d4a5d97395`**
 
 **Périmètre : documentaire uniquement.** Ce document ne modifie ni l'UI, ni le moteur de départs, ni `dakar_network.json`, ni `departure-frequencies.json`, ni aucun test. Il constitue la référence de résolution à valider **avant** toute intégration (Phase 4).
@@ -236,14 +238,16 @@ La Phase 3 **ne crée aucun réseau TATA** : c'est exactement le sens de la cons
 | `tata_64` | Pikine ↔ Liberté 6 (Tata Ligne 64) | Pikine - Marché Zinc / TER, Scat Urbam - Parcelles, Patte d'Oie - BRT, Liberté 6 - BRT Correspondance | `TATA` | `AFTU` | `CONFLICTING` |
 | `tata_78` | Yoff ↔ Petersen via Cambérène (Tata 78) | Yoff - Aéroport & Plage, Cambérène - BRT, Parcelles Assainies U26 - BRT, PEM Petersen - Gare Routière | `TATA` | `AFTU` | `CONFLICTING` |
 
+> **Erratum 1.1** : `new_commune_11` et `new_commune_12` sont des identifiants **techniques** internes ; leur fiche reste `UNVERIFIED` (aucun numéro officiel établi). La collision de numéro qui leur était attribuée en §B.3 est **supprimée** : voir la note de bas de tableau B.3.
+
 ### B.3 Recherche de correspondance AFTU — méthode et résultat
 
 Méthode : pour chaque identité, (1) collision de numéro avec les listes **officielles** AFTU et DDD, (2) correspondance de **terminus** avec les 72 libellés officiels AFTU.
 
 | Identifiant | N° | Correspondance AFTU par terminus | Identités AFTU candidates | Collision de numéro | MATCH_CLASS | STATUT canonique |
 |---|---|---|---|---|---|---|
-| `new_commune_11` | 11 | 11 ligne(s) AFTU à terminus commun | correspondance partielle (un seul terminus commun) : AFTU 1, AFTU 3, AFTU 4, AFTU 35, AFTU 36… | **DDD 11** = « KEUR MASSAR ↔ LAT DIOR » | `UNKNOWN` | `CONFLICTING` |
-| `new_commune_12` | 12 | 13 ligne(s) AFTU à terminus commun | correspondance partielle (un seul terminus commun) : AFTU 51, AFTU 55, AFTU 56, AFTU 57, AFTU 59… | **DDD 12** = « GUÉDIAWAYE ↔ PALAIS 1 » | `UNKNOWN` | `CONFLICTING` |
+| `new_commune_11` | identifiant technique — **aucun n° établi** | 11 ligne(s) AFTU à terminus commun | correspondance partielle (un seul terminus commun) : AFTU 1, AFTU 3, AFTU 4, AFTU 35, AFTU 36… | **aucune** — le « 11 » est un suffixe technique, non un numéro publié (⚠️ ne pas confondre avec **DDD 11**) | `UNKNOWN` | `UNVERIFIED` |
+| `new_commune_12` | identifiant technique — **aucun n° établi** | 13 ligne(s) AFTU à terminus commun | correspondance partielle (un seul terminus commun) : AFTU 51, AFTU 55, AFTU 56, AFTU 57, AFTU 59… | **aucune** — le « 12 » est un suffixe technique, non un numéro publié (⚠️ ne pas confondre avec **DDD 12**) | `UNKNOWN` | `UNVERIFIED` |
 | `tata_218` | 218 | 5 ligne(s) AFTU à terminus commun | correspondance partielle (un seul terminus commun) : AFTU 52, AFTU 53, AFTU 54, AFTU 61, AFTU 71 | **DDD 218** = « THIAROYE ↔ AÉROPORT LSS » | `UNKNOWN` | `CONFLICTING` |
 | `tata_219` | 219 | 15 ligne(s) AFTU à terminus commun | terminus **identiques** à AFTU 2, AFTU 5 et AFTU 25 (« PARCELLES ASSAINIES – PETERSEN ») | **DDD 219** = « DAROUKHANE ↔ OUAKAM » | `POSSIBLE_MATCH` | `CONFLICTING` |
 | `tata_50` | 50 | 3 ligne(s) AFTU à terminus commun | correspondance partielle (un seul terminus commun) : AFTU 24, AFTU 64, AFTU 72 | **AFTU 50** = « PETERSEN - MALIKA CIMETIERE » | `UNKNOWN` | `CONFLICTING` |
@@ -256,9 +260,13 @@ Méthode : pour chaque identité, (1) collision de numéro avec les listes **off
 |---|---|---|
 | `CONFIRMED_MATCH` | **0** | — (aucune identité Tata n'est prouvée identique à une ligne AFTU publiée : ni le numéro ni l'itinéraire ne concordent) |
 | `POSSIBLE_MATCH` | **2** | `tata_78` (corridor AFTU 3/4), `tata_219` (corridor AFTU 2/5/25) |
-| `CONFLICTING` | **7** | **les 7 identités** : le numéro qu'elles portent est déjà publié par un exploitant pour un **autre** service (AFTU 50/64/78 ; DDD 11/12/218/219) |
+| `CONFLICTING` | **5** | `tata_50`, `tata_64`, `tata_78`, `tata_218`, `tata_219` : le numéro qu’elles portent est déjà publié par un exploitant pour un **autre** service (AFTU 50/64/78 ; DDD 218/219). *Erratum 1.1 : `new_commune_11` et `new_commune_12` sortent de cette classe — elles ne portent aucun numéro officiel.* |
 | `NO_MATCH` | **0** | — |
 | `UNKNOWN` | **5** | `new_commune_11`, `new_commune_12`, `tata_218`, `tata_50`, `tata_64` (correspondance de terminus insuffisante pour conclure) |
+
+> **Note de bas de tableau (erratum 1.1 — décision A4)** : `new_commune_11` et `new_commune_12` sont des **identifiants techniques internes**. **Aucun numéro officiel Tata n’a été établi** pour ces deux fiches ; leur ressemblance avec **DDD 11** (« KEUR MASSAR ↔ LAT DIOR ») et **DDD 12** (« GUÉDIAWAYE ↔ PALAIS 1 »), qui sont deux lignes réelles, **ne constitue pas une collision officielle**. Elles sont `UNVERIFIED` et leur identifiant est `MISSING` (aucun numéro officiel retrouvé), jamais `CONFLICTING`. ⚠️ **Vigilance** : les libellés courts dérivés « NEW 11 » / « NEW 12 » entretiennent une confusion visuelle avec DDD 11 / DDD 12 — ne jamais les lire comme des numéros de ligne.
+
+*(Cette note remplace la collision de numéro « DDD 11 / DDD 12 » précédemment enregistrée.)*
 
 > Les colonnes `MATCH_CLASS` (service) et `STATUT` (numérotation) ne se contredisent pas : un service peut avoir un **corridor plausible** chez AFTU tout en portant un **numéro déjà attribué à un autre service**. Les deux informations sont conservées séparément, sans arbitrage.
 
@@ -446,9 +454,9 @@ Résolutions obtenues **sur preuve officielle** (aucune déduction, aucun arbitr
 | DDD | **232** | liste d'arrêts **strictement identique** à celle de la 233 | `CONFLICTING` |
 | DDD | **233** | liste identique à la 232 ; dernier arrêt « Terminus Aéroport LSS » ≠ en-tête « PALAIS 1 » | `CONFLICTING` |
 | DDD | **501** | `S-D1` : GARE DE DAKAR ↔ PALAIS 2 — `S-D2` : PALAIS 2 ↔ LECLERCL | `CONFLICTING` |
-| Tata | **les 7 identités** | numéro déjà publié par un exploitant pour un **autre** service : AFTU 50/64/78 ; DDD 11/12/218/219 | `CONFLICTING` |
+| Tata | **les 5 identités** | numéro déjà publié par un exploitant pour un **autre** service : AFTU 50/64/78 ; DDD 218/219. *Erratum 1.1 : `new_commune_11` / `new_commune_12` sont des identifiants techniques sans numéro officiel — elles ne figurent plus ici.* | `CONFLICTING` |
 
-**Total : 15 entités officielles en `CONFLICTING`** (8 DDD + 7 Tata). Aucune n'est corrigée, fusionnée ou supprimée.
+**Total : 13 entités officielles en `CONFLICTING`** (8 DDD + 5 Tata) — *volume rectifié par l’erratum 1.1 (décision A4) : les deux identités Tata `new_commune_11` / `new_commune_12`, sans numéro officiel établi, n’entrent pas dans ce décompte.* Aucune entité n’est corrigée, fusionnée ou supprimée.
 
 ### E.2 Anomalies de publication (sans effet sur l'identité)
 
@@ -469,11 +477,13 @@ Résolutions obtenues **sur preuve officielle** (aucune déduction, aucun arbitr
 |---|---|---|---|
 | AFTU internes | **54** routes | numéro officiel porté mais itinéraire interne **différent** de la publication | `CONTRADICTED_BY_OPERATOR` — **non résolu ici** (relève d'une phase de correction, §K) |
 | AFTU internes | **26** routes | identifiants `aftu_*` **sans numéro publié** | `NUMBER_NOT_PUBLISHED_BY_OPERATOR` — non résolu ici |
-| DDD candidates | **13** | numéro officiel attribué à une **autre** identité (`ddd_1 .. ddd_23`, `new_commune_01/02/13`) | `CONFLICTING` conservé |
-| DDD candidates | **2** | `ddd_3` (n° 3) et `ddd_14` (n° 14) : numéros **non publiés** par DDD | `UNVERIFIED` conservé |
+| DDD candidates | **10** | numéro officiel attribué à une **autre** identité (`ddd_1 .. ddd_23`) | `CONFLICTING` conservé |
+| DDD candidates | **5** | `ddd_3` (n° 3) et `ddd_14` (n° 14) : numéros **non publiés** par DDD ; `new_commune_01`, `new_commune_02`, `new_commune_13` : identifiants **techniques** — le suffixe `01` / `02` / `13` **n’est pas** un numéro officiel et ne crée aucune correspondance avec DDD 1, 2 ou 13 | `UNVERIFIED` conservé ; identifiant `MISSING` (erratum 1.1) |
 | Tata | **7** | voir §B | `CONFLICTING` conservé |
 
 > Ces conflits **internes** n'invalident pas le référentiel canonique officiel : ils caractérisent l'écart entre le jeu de données embarqué et la publication des exploitants. Ils sont délibérément **laissés en l'état** dans cette phase.
+
+> **Règle appliquée (erratum 1.1)** : le suffixe d’un identifiant **technique** (`new_commune_01`, `new_commune_02`, `new_commune_13`, `new_commune_11`, `new_commune_12`) n’est **jamais** un numéro officiel. Aucun `official_line_number` n’est renseigné pour ces fiches et aucune correspondance avec DDD 1, 2, 11, 12 ou 13 n’est créée sans source officielle explicite.
 
 ---
 
@@ -677,7 +687,7 @@ Les 33 entités listées au §G, et en particulier :
 - **DDD 218 / 232 / 233 / 217** : listes d'arrêts dupliquées côté publication (probable copier-coller) ;
 - **DDD 6 / 501** : identités incompatibles entre les deux pages officielles ;
 - **DDD 23 / 208** : en-tête et liste d'arrêts divergents ;
-- **Tata** : les 7 identités portent des numéros déjà attribués à d'autres services — la question « quelle ligne officielle ces services desservent-ils réellement ? » reste ouverte.
+- **Tata** : **5** identités (`tata_50`, `tata_64`, `tata_78`, `tata_218`, `tata_219`) portent des numéros déjà attribués à d’autres services — la question « quelle ligne officielle ces services desservent-ils réellement ? » reste ouverte. Les 2 autres (`new_commune_11`, `new_commune_12`) n’ont **aucun numéro officiel établi** (erratum 1.1) : leur existence et leur exploitant restent à confirmer.
 
 ---
 
@@ -759,8 +769,8 @@ Légende : `Itinéraire` = **nature de la publication** ; `Arrêts` = arrêts **
 | AFTU | **88** | MTOA | LIBERTE 5 | non publié | non publiés | `NO_SCHEDULE` | `UNKNOWN` | `UNVERIFIED` | `S-A1` |
 | AFTU | **89** | BARGNY | CROISEMENT NIAGUE (CITE SICAP) | non publié | non publiés | `NO_SCHEDULE` | `UNKNOWN` | `UNVERIFIED` | `S-A1` |
 | AFTU | **91** | APIX | DOUGAR | non publié | non publiés | `NO_SCHEDULE` | `UNKNOWN` | `UNVERIFIED` | `S-A1` |
-| Tata (catégorie AFTU) | `new_commune_11` | non publiée par une source officielle | non publiée par une source officielle | non publié | non publiés | `NO_SCHEDULE` | `UNKNOWN` | `CONFLICTING` (numéro déjà pris : DDD 11) | `S-A1` (absence) + `S-I1` |
-| Tata (catégorie AFTU) | `new_commune_12` | non publiée par une source officielle | non publiée par une source officielle | non publié | non publiés | `NO_SCHEDULE` | `UNKNOWN` | `CONFLICTING` (numéro déjà pris : DDD 12) | `S-A1` (absence) + `S-I1` |
+| Tata (catégorie AFTU) | `new_commune_11` | non publiée par une source officielle | non publiée par une source officielle | non publié | non publiés | `NO_SCHEDULE` | `UNKNOWN` | `UNVERIFIED` (identifiant technique : aucun numéro officiel établi — erratum 1.1 ; ⚠️ ne pas confondre avec DDD 11) | `S-A1` (absence) + `S-I1` |
+| Tata (catégorie AFTU) | `new_commune_12` | non publiée par une source officielle | non publiée par une source officielle | non publié | non publiés | `NO_SCHEDULE` | `UNKNOWN` | `UNVERIFIED` (identifiant technique : aucun numéro officiel établi — erratum 1.1 ; ⚠️ ne pas confondre avec DDD 12) | `S-A1` (absence) + `S-I1` |
 | Tata (catégorie AFTU) | `tata_218` | non publiée par une source officielle | non publiée par une source officielle | non publié | non publiés | `NO_SCHEDULE` | `UNKNOWN` | `CONFLICTING` (numéro déjà pris : DDD 218) | `S-A1` (absence) + `S-I1` |
 | Tata (catégorie AFTU) | `tata_219` | non publiée par une source officielle | non publiée par une source officielle | non publié | non publiés | `NO_SCHEDULE` | `UNKNOWN` | `CONFLICTING` (numéro déjà pris : DDD 219) | `S-A1` (absence) + `S-I1` |
 | Tata (catégorie AFTU) | `tata_50` | non publiée par une source officielle | non publiée par une source officielle | non publié | non publiés | `NO_SCHEDULE` | `UNKNOWN` | `CONFLICTING` (numéro déjà pris : AFTU 50) | `S-A1` (absence) + `S-I1` |
@@ -858,7 +868,7 @@ Les **deux** entrées `??` sont des fichiers **non suivis** : le rapport d'audit
 |---|---|---|
 | 1 | Nombre de lignes AFTU résolues | **72 / 72** résolues au niveau identité (numéro + origine + destination). Itinéraire documenté : **65** ; `ROUTE_NOT_FOUND` : **7** (84–89, 91). Arrêts : 0. Horaires : 0. |
 | 2 | Nombre de lignes DDD résolues | **48 / 48** identifiants documentés et classés ; **25 `CONFIRMED`**, **39** avec itinéraire arrêt par arrêt, dont **9 doublons potentiels écartés** par preuve (§F.1). |
-| 3 | Nombre de lignes conflictuelles | **15 officielles** : **8 DDD** (6, 23, 208, 217, 218, 232, 233, 501) + **7 Tata** (numéro déjà attribué). *Hors périmètre : **54 + 26** routes AFTU internes et **13 + 2** candidats DDD internes (§E.3), non résolus dans cette phase.* |
+| 3 | Nombre de lignes conflictuelles | **13 officielles** : **8 DDD** (6, 23, 208, 217, 218, 232, 233, 501) + **5 Tata** (numéro déjà attribué : 50, 64, 78, 218, 219). *Volume rectifié par l’erratum 1.1 : `new_commune_11` / `new_commune_12` sont des identifiants techniques sans numéro officiel (auparavant comptées à tort comme conflictuelles).* *Hors périmètre : **54 + 26** routes AFTU internes et **10 + 5** candidats DDD internes (§E.3), non résolus dans cette phase.* |
 | 4 | Nombre de lignes sans itinéraire | **23** dans le tableau final : **7 AFTU** + **7 Tata** + **9 DDD** (15A, 15B, 502A, 502B, 503A, 503B, 504A, 504B, TAF TAF). *Dont 22 sans aucun itinéraire et 1 (TAF TAF) avec corridor documenté mais sans arrêt publié.* |
 | 5 | Nombre de lignes avec horaires | **2** : **DDD ligne 1** (seule **ligne urbaine** avec horaires officiels) et **TAF TAF** (catégorie de service propre). *Hors lignes urbaines : **Express AIBD** (24 h/24, 7 j/7).* |
 | 6 | Nombre de lignes avec fréquence | **0** (aucune fréquence publiée, tout réseau confondu). |
