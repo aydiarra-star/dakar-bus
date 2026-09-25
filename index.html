@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Dakar Bus - TER • BRT • DDD • AFTU • Tata (76 lignes • 42 arrêts)</title>
-<meta name="description" content="Dakar Bus - Réseau multimodal Dakar : TER (13 gares, Dakar ↔ Diamniadio), BRT SunuBRT (23 stations, Petersen ↔ Guédiawaye), DDD, AFTU, Tata. 42 arrêts au total. Planificateur d'itinéraires, carte temps réel, assistant IA.">
+<meta name="description" content="Dakar Bus - Réseau multimodal Dakar : TER (13 gares, Dakar ↔ Diamniadio), BRT SunuBRT (23 stations, Petersen ↔ Guédiawaye), DDD, AFTU, Tata. 42 arrêts au total. Planificateur d'itinéraires, carte interactive, assistant IA.">
 <meta name="theme-color" content="#00B140">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -255,7 +255,7 @@ tailwind.config = {
     <section id="tab-transports" class="tab-content hidden">
       <div class="grid md:grid-cols-3 gap-4">
         <div class="md:col-span-3 rounded-[24px] bg-white border p-6 flex flex-wrap items-center justify-between gap-4">
-          <div><h2 class="font-display text-[22px] font-bold">Dakar Bus - Flotte en direct</h2><p class="text-[13px] text-slate-500"><span data-count-ter>13</span> gares TER • <span data-count-brt>23</span> stations SunuBRT • <span data-count-bus>6</span> pôles bus • <span id="lines-count">76</span> lignes GTFS</p></div>
+          <div><h2 class="font-display text-[22px] font-bold">Dakar Bus — Réseau &amp; capacités</h2><p class="text-[13px] text-slate-500"><span data-count-ter>13</span> gares TER • <span data-count-brt>23</span> stations SunuBRT • <span data-count-bus>6</span> pôles bus • <span id="lines-count">76</span> lignes GTFS</p></div>
           <div class="flex gap-2"><span class="px-3 py-1.5 rounded-full bg-[#E6F7ED] text-[#007A2F] border border-[#C2EAD0] text-[12px] font-bold">● Aucune donnée véhicule publique</span><button id="toggle-vehicles" disabled title="Aucun flux véhicule public n'est disponible : aucune position n'est simulée." class="px-4 h-9 rounded-full bg-slate-200 text-slate-600 text-[12px] font-bold">Indisponible</button></div>
         </div>
         <div id="transport-cards" class="md:col-span-3 grid md:grid-cols-3 gap-4"></div>
@@ -282,7 +282,7 @@ tailwind.config = {
       <div id="user-location-card" class="rounded-xl bg-slate-50 p-4 text-[13px]">
         <div class="opacity-60">Activez le GPS pour voir :</div>
         <ul class="mt-2 space-y-1 list-disc pl-4 opacity-80">
-          <li>Arrêts les plus proches avec ETA live</li>
+          <li>Arrêts les plus proches (distance à vol d’oiseau)</li>
           <li>Trajets optimisés Dakar Bus</li>
         </ul>
         <button id="activate-gps" class="mt-4 w-full h-11 rounded-full bg-[#00B140] text-white font-bold text-[14px]">📡 Activer GPS en direct</button>

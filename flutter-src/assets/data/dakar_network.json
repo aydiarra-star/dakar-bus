@@ -82,8 +82,143 @@
         "name": "CETUD — réseau AFTU (72 lignes)",
         "url": "https://cetud.sn/reseaux-de-transport/aftu/",
         "consulted_at": "2026-09-24"
+      },
+      {
+        "id": "aftu_officiel",
+        "name": "AFTU (exploitant) — liste des lignes urbaines (n° et origine ↔ destination)",
+        "url": "https://aftu-senegal.org/infos-pratiques/",
+        "consulted_at": "2026-09-25",
+        "source_type": "OFFICIAL_STATIC",
+        "usage": "NOMENCLATURE_ONLY",
+        "note": "Sert uniquement à établir numéro/origine/destination. Ne publie ni cadence, ni amplitude par ligne, ni liste d'arrêts, ni horaire."
+      },
+      {
+        "id": "cetud_esrbrt_tome2",
+        "name": "CETUD — Étude de la situation de référence du projet BRT, Tome 2 (tableaux 48/49 : « fréquence moyenne de passage en mn des lignes de l'AFTU sur quelques points autour du corridor », LAV et samedi)",
+        "url": "https://cetud.sn/wp-content/uploads/2026/03/10-CETUD-ESRBRT-TOME-2_VF.pdf",
+        "consulted_at": "2026-09-25",
+        "source_type": "INSTITUTIONAL",
+        "usage": "MEASUREMENT_REFERENCE_ONLY",
+        "note": "Mesures de passage en des points précis (enquêtes), pas une fréquence par ligne : interdit de la transformer en cadence de ligne (décision 2026-09-25). Aucune fréquence AFTU/Tata n'est intégrée au moteur."
+      },
+      {
+        "id": "ssatp_dakar_minibus",
+        "name": "SSATP / Banque mondiale — Dakar, minibus renewal and professionalization (constat : « the AFTU network lacks formal frequencies/schedules »)",
+        "url": "https://www.ssatp.org/sites/default/files/publication/Dakar_vf.pdf",
+        "consulted_at": "2026-09-25",
+        "source_type": "INSTITUTIONAL",
+        "usage": "EVIDENCE_NO_FORMAL_FREQUENCIES",
+        "note": "Fonde le refus d'intégrer une fréquence AFTU : horaires/fréquences varient selon les GIE et les exploitants."
       }
-    ]
+    ],
+    "updated_at": "2026-09-25",
+    "nomenclature_audit_report": "docs/AUDIT_AFTU_TATA_2026-09-25.md",
+    "aftu_tata_normalisation_2026_09_25": {
+      "decision": "Normalisation documentaire et des identités uniquement : aucune ligne, aucun arrêt, aucune fréquence, aucun horaire ajouté, aucun moteur modifié. Les fréquences AFTU et Tata restent UNKNOWN.",
+      "aftu_published_line_numbers": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        91
+      ],
+      "aftu_identities_confirmed": 0,
+      "aftu_identities_conflicting": 54,
+      "aftu_identities_unverified": 18,
+      "aftu_routes_outside_official_total": 8,
+      "operator_numbers_absent_from_dataset": [
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        91
+      ],
+      "tata_model": "catégorie de service de l'écosystème AFTU (parent_operator_id = aftu), pas un réseau indépendant",
+      "tata_identities_conflicting": 3,
+      "tata_identities_unverified": 4,
+      "frequencies_added": 0,
+      "frequency_decision": "Aucune fréquence AFTU/Tata intégrée : l'exploitant ne publie ni cadence ni amplitude par ligne ; les mesures CETUD ESR-BRT (tableaux 48/49) sont documentées comme mesures ponctuelles (source institutionnelle) et ne sont pas converties en fréquence de ligne."
+    }
   },
   "operators": [
     {
@@ -118,9 +253,90 @@
       "name": "AFTU - Association de Financement des Transports Urbains",
       "color": "#FF8C42",
       "official_line_count": 72,
-      "official_line_count_note": "aftu_1 à aftu_72 reprennent le nombre officiel ; les 8 routes new_commune_03 à 10 n’en font pas partie.",
+      "official_line_count_note": "Le jeu de données contient 80 routes AFTU : 72 identifiants « aftu_1..72 » (numérotation interne) et 8 « new_commune_03..10 » hors total officiel. Les numéros publiés par l'exploitant sont 1–5, 24–89 et 91 (72 lignes, conforme au total CETUD) ; 54 identités du jeu portent un numéro publié mais un itinéraire différent (CONTESTÉ), 18 portent un numéro non publié (non vérifié).",
       "official_line_count_source": "CETUD",
-      "official_line_count_url": "https://cetud.sn/reseaux-de-transport/aftu/"
+      "official_line_count_url": "https://cetud.sn/reseaux-de-transport/aftu/",
+      "nomenclature_status": "ALIGNED_ON_OPERATOR_PUBLICATION",
+      "published_line_numbers": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        91
+      ],
+      "published_line_numbers_source": "https://aftu-senegal.org/infos-pratiques/",
+      "published_line_numbers_consulted_at": "2026-09-25",
+      "operation_span": "06:00-21:00",
+      "operation_span_source": "https://cetud.sn/reseaux-de-transport/aftu/",
+      "frequency_publication": "NONE",
+      "frequency_publication_note": "Aucune cadence ni amplitude par ligne n'est publiée par l'exploitant ni par le CETUD (constat institutionnel SSATP). Mesures ponctuelles disponibles (CETUD ESR-BRT, tableaux 48/49) non convertibles en fréquence de ligne. Décision 2026-09-25 : aucune fréquence AFTU intégrée ; statut UNKNOWN conservé."
     },
     {
       "id": "tata",
@@ -129,7 +345,12 @@
       "official_line_count": null,
       "official_line_count_note": "Aucun total officiel publié pour « Tata » : minibus exploités par des GIE AFTU.",
       "official_line_count_source": null,
-      "official_line_count_url": null
+      "official_line_count_url": null,
+      "is_independent_operator": false,
+      "parent_operator_id": "aftu",
+      "model_note": "« Tata » désigne les minibus/cars de l'écosystème AFTU (GIE), et non une exploitation indépendante : aucun total de lignes officiel n'existe pour « Tata ». La catégorie reste affichée comme filtre d'interface, mais le modèle de données ne crée pas de second réseau : aucun itinéraire Tata n'est CONFIRMED et aucune fréquence n'est créée.",
+      "frequency_publication": "NONE",
+      "frequency_publication_note": "Aucune publication d'exploitation (cadence, amplitude, arrêts) pour les minibus « Tata » : statut UNKNOWN conservé."
     }
   ],
   "stops": [
@@ -2173,20 +2394,26 @@
       "long_name": "Parcelles Assainies ↔ Sandaga (AFTU Ligne 1)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 1 est publiée sous « LAT DIOR - HLM GRAND YOFF ». L'itinéraire observé de ce jeu (« Parcelles Assainies ↔ Sandaga (AFTU Ligne 1) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_parcelles_u26",
         "stop_grand_yoff",
         "stop_colobane",
         "stop_petersen",
         "stop_sandaga"
-      ]
+      ],
+      "observed_long_name": "Parcelles Assainies ↔ Sandaga (AFTU Ligne 1)",
+      "official_line_number": 1,
+      "official_long_name": "LAT DIOR - HLM GRAND YOFF",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_2",
@@ -2195,23 +2422,29 @@
       "long_name": "Guédiawaye ↔ Sandaga (AFTU Ligne 2 Express)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
       "audit_flags": [
         "DUPLICATE_STOP_SEQUENCE"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Séquence d’arrêts strictement identique à tata_50.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 2 est publiée sous « ROUTE PRINCIPALE PARCELLES - PETERSEN ». L'itinéraire observé de ce jeu (« Guédiawaye ↔ Sandaga (AFTU Ligne 2 Express) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_guediawaye",
         "stop_pikine",
         "stop_colobane",
         "stop_petersen",
         "stop_sandaga"
-      ]
+      ],
+      "observed_long_name": "Guédiawaye ↔ Sandaga (AFTU Ligne 2 Express)",
+      "official_line_number": 2,
+      "official_long_name": "ROUTE PRINCIPALE PARCELLES - PETERSEN",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_3",
@@ -2220,19 +2453,25 @@
       "long_name": "Marché Sandaga ↔ Hôpital Dalal Jamm (AFTU Ligne 3)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 3 est publiée sous « YOFF - PETERSEN ». L'itinéraire observé de ce jeu (« Marché Sandaga ↔ Hôpital Dalal Jamm (AFTU Ligne 3) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_sandaga",
         "stop_grand_medine",
         "stop_ouakam",
         "stop_dalal_jamm"
-      ]
+      ],
+      "observed_long_name": "Marché Sandaga ↔ Hôpital Dalal Jamm (AFTU Ligne 3)",
+      "official_line_number": 3,
+      "official_long_name": "YOFF - PETERSEN",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_4",
@@ -2241,19 +2480,25 @@
       "long_name": "Gare TER Dakar ↔ Cambérène (AFTU Ligne 4)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 4 est publiée sous « YOFF VILLAGE - PETERSEN ». L'itinéraire observé de ce jeu (« Gare TER Dakar ↔ Cambérène (AFTU Ligne 4) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_dakar_ter",
         "stop_ouakam",
         "stop_fadia",
         "stop_camberene"
-      ]
+      ],
+      "observed_long_name": "Gare TER Dakar ↔ Cambérène (AFTU Ligne 4)",
+      "official_line_number": 4,
+      "official_long_name": "YOFF VILLAGE - PETERSEN",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_5",
@@ -2262,20 +2507,26 @@
       "long_name": "Keur Massar ↔ Petersen (AFTU Ligne 5)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 5 est publiée sous « PARCELLES ASSAINIES - PETERSEN ». L'itinéraire observé de ce jeu (« Keur Massar ↔ Petersen (AFTU Ligne 5) ») ne correspond pas à cette identité (one terminus only) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_keur_massar",
         "stop_yeumbeul",
         "stop_pikine",
         "stop_colobane",
         "stop_petersen"
-      ]
+      ],
+      "observed_long_name": "Keur Massar ↔ Petersen (AFTU Ligne 5)",
+      "official_line_number": 5,
+      "official_long_name": "PARCELLES ASSAINIES - PETERSEN",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "ONE_TERMINUS_ONLY",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_6",
@@ -2293,14 +2544,19 @@
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 20.2 km pour 6.9 km entre terminus (×2.9) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : le n° 6 ne figure pas dans la liste publiée par l'exploitant (n° 1–5, 24–89, 91). L'identifiant technique « aftu_6 » est conservé pour la stabilité, mais la numérotation 1..72 de ce jeu est une numérotation interne non publiée : identité non établie → UNVERIFIED. Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_dalal_jamm",
         "stop_dakar_ter",
         "stop_grand_medine",
         "stop_grand_yoff",
         "stop_liberte6"
-      ]
+      ],
+      "observed_long_name": "Hôpital Dalal Jamm ↔ Liberté 6 (AFTU Ligne 6)",
+      "official_line_number": null,
+      "official_long_name": null,
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
+      "nomenclature_match": "NOT_APPLICABLE"
     },
     {
       "id": "aftu_7",
@@ -2318,14 +2574,19 @@
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 38.7 km pour 10.5 km entre terminus (×3.7) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : le n° 7 ne figure pas dans la liste publiée par l'exploitant (n° 1–5, 24–89, 91). L'identifiant technique « aftu_7 » est conservé pour la stabilité, mais la numérotation 1..72 de ce jeu est une numérotation interne non publiée : identité non établie → UNVERIFIED. Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_keur_mbaye_fall",
         "stop_gare_maritime",
         "stop_grand_yoff",
         "stop_petersen",
         "stop_dalal_jamm"
-      ]
+      ],
+      "observed_long_name": "Keur Mbaye Fall ↔ Hôpital Dalal Jamm (AFTU Ligne 7)",
+      "official_line_number": null,
+      "official_long_name": null,
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
+      "nomenclature_match": "NOT_APPLICABLE"
     },
     {
       "id": "aftu_8",
@@ -2340,14 +2601,19 @@
       "verified_at": null,
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : le n° 8 ne figure pas dans la liste publiée par l'exploitant (n° 1–5, 24–89, 91). L'identifiant technique « aftu_8 » est conservé pour la stabilité, mais la numérotation 1..72 de ce jeu est une numérotation interne non publiée : identité non établie → UNVERIFIED. Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_yoff",
         "stop_patte_doie",
         "stop_grand_yoff",
         "stop_colobane",
         "stop_petersen"
-      ]
+      ],
+      "observed_long_name": "Yoff ↔ Petersen via Patte d'Oie (AFTU Ligne 8)",
+      "official_line_number": null,
+      "official_long_name": null,
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
+      "nomenclature_match": "NOT_APPLICABLE"
     },
     {
       "id": "aftu_9",
@@ -2365,14 +2631,19 @@
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 41.2 km pour 4.0 km entre terminus (×10.2) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : le n° 9 ne figure pas dans la liste publiée par l'exploitant (n° 1–5, 24–89, 91). L'identifiant technique « aftu_9 » est conservé pour la stabilité, mais la numérotation 1..72 de ce jeu est une numérotation interne non publiée : identité non établie → UNVERIFIED. Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_fadia",
         "stop_petersen",
         "stop_keur_mbaye_fall",
         "stop_gare_maritime",
         "stop_mermoz"
-      ]
+      ],
+      "observed_long_name": "Fadia ↔ Mermoz (AFTU Ligne 9)",
+      "official_line_number": null,
+      "official_long_name": null,
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
+      "nomenclature_match": "NOT_APPLICABLE"
     },
     {
       "id": "aftu_10",
@@ -2390,13 +2661,18 @@
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 14.8 km pour 6.6 km entre terminus (×2.2) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : le n° 10 ne figure pas dans la liste publiée par l'exploitant (n° 1–5, 24–89, 91). L'identifiant technique « aftu_10 » est conservé pour la stabilité, mais la numérotation 1..72 de ce jeu est une numérotation interne non publiée : identité non établie → UNVERIFIED. Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_gare_maritime",
         "stop_grand_medine",
         "stop_dalal_jamm",
         "stop_grand_yoff"
-      ]
+      ],
+      "observed_long_name": "Gare Maritime ↔ Grand Yoff (AFTU Ligne 10)",
+      "official_line_number": null,
+      "official_long_name": null,
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
+      "nomenclature_match": "NOT_APPLICABLE"
     },
     {
       "id": "aftu_11",
@@ -2411,12 +2687,17 @@
       "verified_at": null,
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : le n° 11 ne figure pas dans la liste publiée par l'exploitant (n° 1–5, 24–89, 91). L'identifiant technique « aftu_11 » est conservé pour la stabilité, mais la numérotation 1..72 de ce jeu est une numérotation interne non publiée : identité non établie → UNVERIFIED. Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_grand_yoff",
         "stop_patte_doie",
         "stop_petersen"
-      ]
+      ],
+      "observed_long_name": "Grand Yoff ↔ Petersen Centre (AFTU Ligne 11)",
+      "official_line_number": null,
+      "official_long_name": null,
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
+      "nomenclature_match": "NOT_APPLICABLE"
     },
     {
       "id": "aftu_12",
@@ -2431,13 +2712,18 @@
       "verified_at": null,
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : le n° 12 ne figure pas dans la liste publiée par l'exploitant (n° 1–5, 24–89, 91). L'identifiant technique « aftu_12 » est conservé pour la stabilité, mais la numérotation 1..72 de ce jeu est une numérotation interne non publiée : identité non établie → UNVERIFIED. Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_guediawaye",
         "stop_pikine",
         "stop_colobane",
         "stop_palais_justice"
-      ]
+      ],
+      "observed_long_name": "Guédiawaye ↔ Palais de Justice (AFTU Ligne 12)",
+      "official_line_number": null,
+      "official_long_name": null,
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
+      "nomenclature_match": "NOT_APPLICABLE"
     },
     {
       "id": "aftu_13",
@@ -2455,13 +2741,18 @@
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 26.1 km pour 4.2 km entre terminus (×6.3) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : le n° 13 ne figure pas dans la liste publiée par l'exploitant (n° 1–5, 24–89, 91). L'identifiant technique « aftu_13 » est conservé pour la stabilité, mais la numérotation 1..72 de ce jeu est une numérotation interne non publiée : identité non établie → UNVERIFIED. Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_fadia",
         "stop_ouakam",
         "stop_pikine",
         "stop_sacre_coeur"
-      ]
+      ],
+      "observed_long_name": "Fadia ↔ Sacré-Cœur (AFTU Ligne 13)",
+      "official_line_number": null,
+      "official_long_name": null,
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
+      "nomenclature_match": "NOT_APPLICABLE"
     },
     {
       "id": "aftu_14",
@@ -2479,13 +2770,18 @@
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 56.8 km pour 9.1 km entre terminus (×6.2) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : le n° 14 ne figure pas dans la liste publiée par l'exploitant (n° 1–5, 24–89, 91). L'identifiant technique « aftu_14 » est conservé pour la stabilité, mais la numérotation 1..72 de ce jeu est une numérotation interne non publiée : identité non établie → UNVERIFIED. Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_ngor",
         "stop_hlm",
         "stop_bargny",
         "stop_ucad"
-      ]
+      ],
+      "observed_long_name": "Ngor ↔ UCAD (AFTU Ligne 14)",
+      "official_line_number": null,
+      "official_long_name": null,
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
+      "nomenclature_match": "NOT_APPLICABLE"
     },
     {
       "id": "aftu_15",
@@ -2500,12 +2796,17 @@
       "verified_at": null,
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : le n° 15 ne figure pas dans la liste publiée par l'exploitant (n° 1–5, 24–89, 91). L'identifiant technique « aftu_15 » est conservé pour la stabilité, mais la numérotation 1..72 de ce jeu est une numérotation interne non publiée : identité non établie → UNVERIFIED. Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_parcelles_u26",
         "stop_keur_mbaye_fall",
         "stop_rufisque"
-      ]
+      ],
+      "observed_long_name": "Parcelles ↔ Rufisque (AFTU Ligne 15)",
+      "official_line_number": null,
+      "official_long_name": null,
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
+      "nomenclature_match": "NOT_APPLICABLE"
     },
     {
       "id": "aftu_16",
@@ -2520,13 +2821,18 @@
       "verified_at": null,
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : le n° 16 ne figure pas dans la liste publiée par l'exploitant (n° 1–5, 24–89, 91). L'identifiant technique « aftu_16 » est conservé pour la stabilité, mais la numérotation 1..72 de ce jeu est une numérotation interne non publiée : identité non établie → UNVERIFIED. Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_palais_justice",
         "stop_colobane",
         "stop_grand_medine",
         "stop_pikine"
-      ]
+      ],
+      "observed_long_name": "Palais de Justice ↔ Pikine (AFTU Ligne 16)",
+      "official_line_number": null,
+      "official_long_name": null,
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
+      "nomenclature_match": "NOT_APPLICABLE"
     },
     {
       "id": "aftu_17",
@@ -2544,12 +2850,17 @@
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 14.2 km pour 2.7 km entre terminus (×5.2) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : le n° 17 ne figure pas dans la liste publiée par l'exploitant (n° 1–5, 24–89, 91). L'identifiant technique « aftu_17 » est conservé pour la stabilité, mais la numérotation 1..72 de ce jeu est une numérotation interne non publiée : identité non établie → UNVERIFIED. Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_hlm",
         "stop_obelisque",
         "stop_camberene"
-      ]
+      ],
+      "observed_long_name": "HLM Grand Yoff ↔ Cambérène (AFTU Ligne 17)",
+      "official_line_number": null,
+      "official_long_name": null,
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
+      "nomenclature_match": "NOT_APPLICABLE"
     },
     {
       "id": "aftu_18",
@@ -2564,13 +2875,18 @@
       "verified_at": null,
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : le n° 18 ne figure pas dans la liste publiée par l'exploitant (n° 1–5, 24–89, 91). L'identifiant technique « aftu_18 » est conservé pour la stabilité, mais la numérotation 1..72 de ce jeu est une numérotation interne non publiée : identité non établie → UNVERIFIED. Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_pikine",
         "stop_colobane",
         "stop_castor",
         "stop_ucad"
-      ]
+      ],
+      "observed_long_name": "Pikine ↔ UCAD (AFTU Ligne 18 Universitaire)",
+      "official_line_number": null,
+      "official_long_name": null,
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
+      "nomenclature_match": "NOT_APPLICABLE"
     },
     {
       "id": "aftu_19",
@@ -2585,13 +2901,18 @@
       "verified_at": null,
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : le n° 19 ne figure pas dans la liste publiée par l'exploitant (n° 1–5, 24–89, 91). L'identifiant technique « aftu_19 » est conservé pour la stabilité, mais la numérotation 1..72 de ce jeu est une numérotation interne non publiée : identité non établie → UNVERIFIED. Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_keur_mbaye_fall",
         "stop_grand_yoff",
         "stop_patte_doie",
         "stop_mermoz"
-      ]
+      ],
+      "observed_long_name": "Keur Mbaye Fall ↔ Mermoz (AFTU Ligne 19)",
+      "official_line_number": null,
+      "official_long_name": null,
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
+      "nomenclature_match": "NOT_APPLICABLE"
     },
     {
       "id": "aftu_20",
@@ -2609,13 +2930,18 @@
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 36.6 km pour 7.8 km entre terminus (×4.7) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : le n° 20 ne figure pas dans la liste publiée par l'exploitant (n° 1–5, 24–89, 91). L'identifiant technique « aftu_20 » est conservé pour la stabilité, mais la numérotation 1..72 de ce jeu est une numérotation interne non publiée : identité non établie → UNVERIFIED. Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_baux_maraichers",
         "stop_rufisque",
         "stop_sandaga",
         "stop_dakar_ter"
-      ]
+      ],
+      "observed_long_name": "Baux Maraîchers ↔ Gare TER Dakar (AFTU Ligne 20)",
+      "official_line_number": null,
+      "official_long_name": null,
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
+      "nomenclature_match": "NOT_APPLICABLE"
     },
     {
       "id": "aftu_21",
@@ -2630,13 +2956,18 @@
       "verified_at": null,
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : le n° 21 ne figure pas dans la liste publiée par l'exploitant (n° 1–5, 24–89, 91). L'identifiant technique « aftu_21 » est conservé pour la stabilité, mais la numérotation 1..72 de ce jeu est une numérotation interne non publiée : identité non établie → UNVERIFIED. Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_thiaroye",
         "stop_pikine",
         "stop_colobane",
         "stop_petersen"
-      ]
+      ],
+      "observed_long_name": "Thiaroye ↔ Petersen (AFTU Ligne 21)",
+      "official_line_number": null,
+      "official_long_name": null,
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
+      "nomenclature_match": "NOT_APPLICABLE"
     },
     {
       "id": "aftu_22",
@@ -2651,13 +2982,18 @@
       "verified_at": null,
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : le n° 22 ne figure pas dans la liste publiée par l'exploitant (n° 1–5, 24–89, 91). L'identifiant technique « aftu_22 » est conservé pour la stabilité, mais la numérotation 1..72 de ce jeu est une numérotation interne non publiée : identité non établie → UNVERIFIED. Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_medina",
         "stop_dakar_ter",
         "stop_sandaga",
         "stop_yeumbeul"
-      ]
+      ],
+      "observed_long_name": "Médina ↔ Yeumbeul (AFTU Ligne 22)",
+      "official_line_number": null,
+      "official_long_name": null,
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
+      "nomenclature_match": "NOT_APPLICABLE"
     },
     {
       "id": "aftu_23",
@@ -2675,13 +3011,18 @@
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 21.2 km pour 3.1 km entre terminus (×6.9) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : le n° 23 ne figure pas dans la liste publiée par l'exploitant (n° 1–5, 24–89, 91). L'identifiant technique « aftu_23 » est conservé pour la stabilité, mais la numérotation 1..72 de ce jeu est une numérotation interne non publiée : identité non établie → UNVERIFIED. Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_point_e",
         "stop_pikine",
         "stop_medina",
         "stop_petersen"
-      ]
+      ],
+      "observed_long_name": "Point E ↔ PEM Petersen (AFTU Ligne 23)",
+      "official_line_number": null,
+      "official_long_name": null,
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
+      "nomenclature_match": "NOT_APPLICABLE"
     },
     {
       "id": "aftu_24",
@@ -2690,19 +3031,25 @@
       "long_name": "Castor ↔ Yoff via Hann (AFTU Ligne 24)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 24 est publiée sous « UCAD - NOTAIRE GUEDIAWAYE ». L'itinéraire observé de ce jeu (« Castor ↔ Yoff via Hann (AFTU Ligne 24) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_castor",
         "stop_hann",
         "stop_grand_yoff",
         "stop_yoff"
-      ]
+      ],
+      "observed_long_name": "Castor ↔ Yoff via Hann (AFTU Ligne 24)",
+      "official_line_number": 24,
+      "official_long_name": "UCAD - NOTAIRE GUEDIAWAYE",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_25",
@@ -2711,18 +3058,24 @@
       "long_name": "Hôpital Dalal Jamm ↔ Place de l'Obélisque (AFTU Ligne 25)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 25 est publiée sous « PARCELLES ASSAINIES - PETERSEN ». L'itinéraire observé de ce jeu (« Hôpital Dalal Jamm ↔ Place de l'Obélisque (AFTU Ligne 25) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_dalal_jamm",
         "stop_yoff_pecheurs",
         "stop_obelisque"
-      ]
+      ],
+      "observed_long_name": "Hôpital Dalal Jamm ↔ Place de l'Obélisque (AFTU Ligne 25)",
+      "official_line_number": 25,
+      "official_long_name": "PARCELLES ASSAINIES - PETERSEN",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_26",
@@ -2731,21 +3084,27 @@
       "long_name": "Scat Urbam ↔ Yoff Pêcheurs (AFTU Ligne 26)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 14.0 km pour 5.9 km entre terminus (×2.4) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 26 est publiée sous « PARCELLES ASSAINIES - POST THIAROYE ». L'itinéraire observé de ce jeu (« Scat Urbam ↔ Yoff Pêcheurs (AFTU Ligne 26) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_scatt_urbam",
         "stop_colobane",
         "stop_yoff_pecheurs"
-      ]
+      ],
+      "observed_long_name": "Scat Urbam ↔ Yoff Pêcheurs (AFTU Ligne 26)",
+      "official_line_number": 26,
+      "official_long_name": "PARCELLES ASSAINIES - POST THIAROYE",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_27",
@@ -2754,19 +3113,25 @@
       "long_name": "Médina ↔ Yoff (AFTU Ligne 27)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 27 est publiée sous « MARCHE BOUBESS - PETERSEN ». L'itinéraire observé de ce jeu (« Médina ↔ Yoff (AFTU Ligne 27) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_medina",
         "stop_colobane",
         "stop_grand_yoff",
         "stop_yoff"
-      ]
+      ],
+      "observed_long_name": "Médina ↔ Yoff (AFTU Ligne 27)",
+      "official_line_number": 27,
+      "official_long_name": "MARCHE BOUBESS - PETERSEN",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_28",
@@ -2775,23 +3140,29 @@
       "long_name": "Patte d'Oie ↔ Hôpital Dalal Jamm (AFTU Ligne 28)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 17.0 km pour 5.5 km entre terminus (×3.1) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 28 est publiée sous « HAMO V/VI - PETERSEN ». L'itinéraire observé de ce jeu (« Patte d'Oie ↔ Hôpital Dalal Jamm (AFTU Ligne 28) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_patte_doie",
         "stop_sandaga",
         "stop_castor",
         "stop_baux_maraichers",
         "stop_dalal_jamm"
-      ]
+      ],
+      "observed_long_name": "Patte d'Oie ↔ Hôpital Dalal Jamm (AFTU Ligne 28)",
+      "official_line_number": 28,
+      "official_long_name": "HAMO V/VI - PETERSEN",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_29",
@@ -2800,22 +3171,28 @@
       "long_name": "Thiaroye ↔ Yeumbeul (AFTU Ligne 29)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 10.6 km pour 2.6 km entre terminus (×4.0) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 29 est publiée sous « CITE NATION UNIES (CAMBERENE) - PETERSEN ». L'itinéraire observé de ce jeu (« Thiaroye ↔ Yeumbeul (AFTU Ligne 29) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_thiaroye",
         "stop_pikine",
         "stop_scatt_urbam",
         "stop_yeumbeul"
-      ]
+      ],
+      "observed_long_name": "Thiaroye ↔ Yeumbeul (AFTU Ligne 29)",
+      "official_line_number": 29,
+      "official_long_name": "CITE NATION UNIES (CAMBERENE) - PETERSEN",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_30",
@@ -2824,20 +3201,26 @@
       "long_name": "Patte d'Oie ↔ Petersen (AFTU Ligne 30)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 30 est publiée sous « GADAYE (GUEDIEWAYE) - GARE DE COLOBANE ». L'itinéraire observé de ce jeu (« Patte d'Oie ↔ Petersen (AFTU Ligne 30) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_patte_doie",
         "stop_liberte6",
         "stop_castor",
         "stop_colobane",
         "stop_petersen"
-      ]
+      ],
+      "observed_long_name": "Patte d'Oie ↔ Petersen (AFTU Ligne 30)",
+      "official_line_number": 30,
+      "official_long_name": "GADAYE (GUEDIEWAYE) - GARE DE COLOBANE",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_31",
@@ -2846,21 +3229,27 @@
       "long_name": "Gare TER Dakar ↔ Colobane (AFTU Ligne 31)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 16.8 km pour 2.8 km entre terminus (×5.9) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 31 est publiée sous « TALLY ICOTAF X ROUTE DES NIAYES - HOPITAL ABASS NDAO ». L'itinéraire observé de ce jeu (« Gare TER Dakar ↔ Colobane (AFTU Ligne 31) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_dakar_ter",
         "stop_yoff_pecheurs",
         "stop_colobane"
-      ]
+      ],
+      "observed_long_name": "Gare TER Dakar ↔ Colobane (AFTU Ligne 31)",
+      "official_line_number": 31,
+      "official_long_name": "TALLY ICOTAF X ROUTE DES NIAYES - HOPITAL ABASS NDAO",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_32",
@@ -2869,18 +3258,24 @@
       "long_name": "Hann ↔ Keur Mbaye Fall (AFTU Ligne 32)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 32 est publiée sous « SAHM - SERIGNE ASSANE ». L'itinéraire observé de ce jeu (« Hann ↔ Keur Mbaye Fall (AFTU Ligne 32) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_hann",
         "stop_yoff_pecheurs",
         "stop_keur_mbaye_fall"
-      ]
+      ],
+      "observed_long_name": "Hann ↔ Keur Mbaye Fall (AFTU Ligne 32)",
+      "official_line_number": 32,
+      "official_long_name": "SAHM - SERIGNE ASSANE",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_33",
@@ -2889,19 +3284,25 @@
       "long_name": "Ouakam ↔ Parcelles (AFTU Ligne 33)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 33 est publiée sous « COLOBANE - SERIGNE ASSANE ». L'itinéraire observé de ce jeu (« Ouakam ↔ Parcelles (AFTU Ligne 33) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_ouakam",
         "stop_mermoz",
         "stop_grand_yoff",
         "stop_parcelles_u26"
-      ]
+      ],
+      "observed_long_name": "Ouakam ↔ Parcelles (AFTU Ligne 33)",
+      "official_line_number": 33,
+      "official_long_name": "COLOBANE - SERIGNE ASSANE",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_34",
@@ -2910,23 +3311,29 @@
       "long_name": "Fadia ↔ Gare TER Dakar (AFTU Ligne 34)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 49.0 km pour 6.6 km entre terminus (×7.5) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 34 est publiée sous « NORD FOIRE - LAT DIOR ». L'itinéraire observé de ce jeu (« Fadia ↔ Gare TER Dakar (AFTU Ligne 34) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_fadia",
         "stop_camberene",
         "stop_bargny",
         "stop_palais_justice",
         "stop_dakar_ter"
-      ]
+      ],
+      "observed_long_name": "Fadia ↔ Gare TER Dakar (AFTU Ligne 34)",
+      "official_line_number": 34,
+      "official_long_name": "NORD FOIRE - LAT DIOR",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_35",
@@ -2935,19 +3342,25 @@
       "long_name": "HLM ↔ Petersen via Castor (AFTU Ligne 35)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 35 est publiée sous « NGOR - PIKINE TEXACO ». L'itinéraire observé de ce jeu (« HLM ↔ Petersen via Castor (AFTU Ligne 35) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_hlm",
         "stop_castor",
         "stop_colobane",
         "stop_petersen"
-      ]
+      ],
+      "observed_long_name": "HLM ↔ Petersen via Castor (AFTU Ligne 35)",
+      "official_line_number": 35,
+      "official_long_name": "NGOR - PIKINE TEXACO",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_36",
@@ -2956,18 +3369,24 @@
       "long_name": "HLM Grand Yoff ↔ Yeumbeul (AFTU Ligne 36)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 36 est publiée sous « MARCHE NDIAREME - NGOR ». L'itinéraire observé de ce jeu (« HLM Grand Yoff ↔ Yeumbeul (AFTU Ligne 36) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_hlm",
         "stop_camberene",
         "stop_yeumbeul"
-      ]
+      ],
+      "observed_long_name": "HLM Grand Yoff ↔ Yeumbeul (AFTU Ligne 36)",
+      "official_line_number": 36,
+      "official_long_name": "MARCHE NDIAREME - NGOR",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_37",
@@ -2976,18 +3395,24 @@
       "long_name": "Keur Mbaye Fall ↔ Yoff (AFTU Ligne 37)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 37 est publiée sous « CITE APIX - UCAD (CLAUDEL) ». L'itinéraire observé de ce jeu (« Keur Mbaye Fall ↔ Yoff (AFTU Ligne 37) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_keur_mbaye_fall",
         "stop_parcelles_u26",
         "stop_yoff"
-      ]
+      ],
+      "observed_long_name": "Keur Mbaye Fall ↔ Yoff (AFTU Ligne 37)",
+      "official_line_number": 37,
+      "official_long_name": "CITE APIX - UCAD (CLAUDEL)",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_38",
@@ -2996,23 +3421,29 @@
       "long_name": "Mermoz ↔ Keur Massar (AFTU Ligne 38)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
       "audit_flags": [
         "DUPLICATE_STOP_SEQUENCE"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Séquence d’arrêts strictement identique à tata_218.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 38 est publiée sous « CITE DES ENSEIGNANTS - SHAM ». L'itinéraire observé de ce jeu (« Mermoz ↔ Keur Massar (AFTU Ligne 38) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_mermoz",
         "stop_sacre_coeur",
         "stop_grand_yoff",
         "stop_pikine",
         "stop_keur_massar"
-      ]
+      ],
+      "observed_long_name": "Mermoz ↔ Keur Massar (AFTU Ligne 38)",
+      "official_line_number": 38,
+      "official_long_name": "CITE DES ENSEIGNANTS - SHAM",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_39",
@@ -3021,22 +3452,28 @@
       "long_name": "Colobane ↔ Fadia (AFTU Ligne 39)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 16.1 km pour 3.9 km entre terminus (×4.1) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 39 est publiée sous « LAT-DIOR - DIAMALAYE ». L'itinéraire observé de ce jeu (« Colobane ↔ Fadia (AFTU Ligne 39) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_colobane",
         "stop_yoff_pecheurs",
         "stop_mermoz",
         "stop_fadia"
-      ]
+      ],
+      "observed_long_name": "Colobane ↔ Fadia (AFTU Ligne 39)",
+      "official_line_number": 39,
+      "official_long_name": "LAT-DIOR - DIAMALAYE",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_40",
@@ -3045,20 +3482,26 @@
       "long_name": "Bené Barak ↔ Sandaga (AFTU Ligne 40)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 40 est publiée sous « GRAND MBAO - PETERSEN ». L'itinéraire observé de ce jeu (« Bené Barak ↔ Sandaga (AFTU Ligne 40) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_bene_barak",
         "stop_grand_yoff",
         "stop_colobane",
         "stop_petersen",
         "stop_sandaga"
-      ]
+      ],
+      "observed_long_name": "Bené Barak ↔ Sandaga (AFTU Ligne 40)",
+      "official_line_number": 40,
+      "official_long_name": "GRAND MBAO - PETERSEN",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_41",
@@ -3067,18 +3510,24 @@
       "long_name": "Hann ↔ Diamniadio (AFTU Ligne 41)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 41 est publiée sous « PETERSEN - ETAGE MADIALE ». L'itinéraire observé de ce jeu (« Hann ↔ Diamniadio (AFTU Ligne 41) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_hann",
         "stop_petersen",
         "stop_diamniadio"
-      ]
+      ],
+      "observed_long_name": "Hann ↔ Diamniadio (AFTU Ligne 41)",
+      "official_line_number": 41,
+      "official_long_name": "PETERSEN - ETAGE MADIALE",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_42",
@@ -3087,22 +3536,28 @@
       "long_name": "Fadia ↔ Thiaroye (AFTU Ligne 42)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 20.6 km pour 6.5 km entre terminus (×3.1) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 42 est publiée sous « GADAYE (GUEDIEWAYE) - OUAKAM BAYE ». L'itinéraire observé de ce jeu (« Fadia ↔ Thiaroye (AFTU Ligne 42) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_fadia",
         "stop_castor",
         "stop_yoff",
         "stop_thiaroye"
-      ]
+      ],
+      "observed_long_name": "Fadia ↔ Thiaroye (AFTU Ligne 42)",
+      "official_line_number": 42,
+      "official_long_name": "GADAYE (GUEDIEWAYE) - OUAKAM BAYE",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_43",
@@ -3111,21 +3566,27 @@
       "long_name": "Yeumbeul ↔ Thiaroye (AFTU Ligne 43)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 27.7 km pour 2.6 km entre terminus (×10.5) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 43 est publiée sous « OUAKAM - THIERNO NDIAYE ». L'itinéraire observé de ce jeu (« Yeumbeul ↔ Thiaroye (AFTU Ligne 43) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_yeumbeul",
         "stop_ouakam",
         "stop_thiaroye"
-      ]
+      ],
+      "observed_long_name": "Yeumbeul ↔ Thiaroye (AFTU Ligne 43)",
+      "official_line_number": 43,
+      "official_long_name": "OUAKAM - THIERNO NDIAYE",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_44",
@@ -3134,22 +3595,28 @@
       "long_name": "Yeumbeul ↔ Keur Mbaye Fall (AFTU Ligne 44)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 42.5 km pour 5.1 km entre terminus (×8.3) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 44 est publiée sous « GRAND MBAO - OUAKAM ». L'itinéraire observé de ce jeu (« Yeumbeul ↔ Keur Mbaye Fall (AFTU Ligne 44) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_yeumbeul",
         "stop_mermoz",
         "stop_ngor",
         "stop_keur_mbaye_fall"
-      ]
+      ],
+      "observed_long_name": "Yeumbeul ↔ Keur Mbaye Fall (AFTU Ligne 44)",
+      "official_line_number": 44,
+      "official_long_name": "GRAND MBAO - OUAKAM",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_45",
@@ -3158,18 +3625,24 @@
       "long_name": "Scat Urbam ↔ Colobane (AFTU Ligne 45)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 45 est publiée sous « KOUNOUNE NGALAM - PARCELLES EGLISE ». L'itinéraire observé de ce jeu (« Scat Urbam ↔ Colobane (AFTU Ligne 45) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_scatt_urbam",
         "stop_parcelles_u26",
         "stop_colobane"
-      ]
+      ],
+      "observed_long_name": "Scat Urbam ↔ Colobane (AFTU Ligne 45)",
+      "official_line_number": 45,
+      "official_long_name": "KOUNOUNE NGALAM - PARCELLES EGLISE",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_46",
@@ -3178,22 +3651,28 @@
       "long_name": "Cambérène ↔ Ngor (AFTU Ligne 46)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 33.3 km pour 10.3 km entre terminus (×3.2) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 46 est publiée sous « SDE SERIGNE ASSANE - LAT DIOR ». L'itinéraire observé de ce jeu (« Cambérène ↔ Ngor (AFTU Ligne 46) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_camberene",
         "stop_keur_massar",
         "stop_yoff_pecheurs",
         "stop_ngor"
-      ]
+      ],
+      "observed_long_name": "Cambérène ↔ Ngor (AFTU Ligne 46)",
+      "official_line_number": 46,
+      "official_long_name": "SDE SERIGNE ASSANE - LAT DIOR",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_47",
@@ -3202,23 +3681,29 @@
       "long_name": "Hôpital Dalal Jamm ↔ Médina (AFTU Ligne 47)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 57.7 km pour 9.9 km entre terminus (×5.9) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 47 est publiée sous « LAT DIOR - ALMADIES ». L'itinéraire observé de ce jeu (« Hôpital Dalal Jamm ↔ Médina (AFTU Ligne 47) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_dalal_jamm",
         "stop_yoff_pecheurs",
         "stop_bargny",
         "stop_obelisque",
         "stop_medina"
-      ]
+      ],
+      "observed_long_name": "Hôpital Dalal Jamm ↔ Médina (AFTU Ligne 47)",
+      "official_line_number": 47,
+      "official_long_name": "LAT DIOR - ALMADIES",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_48",
@@ -3227,21 +3712,27 @@
       "long_name": "Ouakam ↔ Ngor (AFTU Ligne 48)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 25.0 km pour 4.1 km entre terminus (×6.1) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 48 est publiée sous « CITE SERIGNE MANSOUR - LAT DIOR ». L'itinéraire observé de ce jeu (« Ouakam ↔ Ngor (AFTU Ligne 48) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_ouakam",
         "stop_guediawaye",
         "stop_ngor"
-      ]
+      ],
+      "observed_long_name": "Ouakam ↔ Ngor (AFTU Ligne 48)",
+      "official_line_number": 48,
+      "official_long_name": "CITE SERIGNE MANSOUR - LAT DIOR",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_49",
@@ -3250,21 +3741,27 @@
       "long_name": "Médina ↔ UCAD (AFTU Ligne 49)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 12.8 km pour 2.0 km entre terminus (×6.5) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 49 est publiée sous « GADAYE - NGOR ». L'itinéraire observé de ce jeu (« Médina ↔ UCAD (AFTU Ligne 49) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_medina",
         "stop_grand_yoff",
         "stop_ucad"
-      ]
+      ],
+      "observed_long_name": "Médina ↔ UCAD (AFTU Ligne 49)",
+      "official_line_number": 49,
+      "official_long_name": "GADAYE - NGOR",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_50",
@@ -3273,19 +3770,25 @@
       "long_name": "Yeumbeul ↔ Médina (AFTU Ligne 50)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 50 est publiée sous « PETERSEN - MALIKA CIMETIERE ». L'itinéraire observé de ce jeu (« Yeumbeul ↔ Médina (AFTU Ligne 50) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_yeumbeul",
         "stop_baux_maraichers",
         "stop_grand_yoff",
         "stop_medina"
-      ]
+      ],
+      "observed_long_name": "Yeumbeul ↔ Médina (AFTU Ligne 50)",
+      "official_line_number": 50,
+      "official_long_name": "PETERSEN - MALIKA CIMETIERE",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_51",
@@ -3294,21 +3797,27 @@
       "long_name": "Scat Urbam ↔ PEM Guédiawaye (AFTU Ligne 51)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 20.0 km pour 2.5 km entre terminus (×7.9) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 51 est publiée sous « JAXAAY - GARE DES BAUX MARAICHERS ». L'itinéraire observé de ce jeu (« Scat Urbam ↔ PEM Guédiawaye (AFTU Ligne 51) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_scatt_urbam",
         "stop_sandaga",
         "stop_guediawaye"
-      ]
+      ],
+      "observed_long_name": "Scat Urbam ↔ PEM Guédiawaye (AFTU Ligne 51)",
+      "official_line_number": 51,
+      "official_long_name": "JAXAAY - GARE DES BAUX MARAICHERS",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_52",
@@ -3317,20 +3826,26 @@
       "long_name": "Ngor ↔ Sandaga via Ouakam (AFTU Ligne 52)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 52 est publiée sous « BOUNTOU PIKINE - KEUR MASSAR ». L'itinéraire observé de ce jeu (« Ngor ↔ Sandaga via Ouakam (AFTU Ligne 52) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_ngor",
         "stop_ouakam",
         "stop_mermoz",
         "stop_petersen",
         "stop_sandaga"
-      ]
+      ],
+      "observed_long_name": "Ngor ↔ Sandaga via Ouakam (AFTU Ligne 52)",
+      "official_line_number": 52,
+      "official_long_name": "BOUNTOU PIKINE - KEUR MASSAR",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_53",
@@ -3339,23 +3854,29 @@
       "long_name": "Almadies ↔ Bené Barak (AFTU Ligne 53)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 56.8 km pour 17.0 km entre terminus (×3.3) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 53 est publiée sous « KEUR MASSAR - SEBIKOTANE ». L'itinéraire observé de ce jeu (« Almadies ↔ Bené Barak (AFTU Ligne 53) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_almadies",
         "stop_castor",
         "stop_keur_massar",
         "stop_medina",
         "stop_bene_barak"
-      ]
+      ],
+      "observed_long_name": "Almadies ↔ Bené Barak (AFTU Ligne 53)",
+      "official_line_number": 53,
+      "official_long_name": "KEUR MASSAR - SEBIKOTANE",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_54",
@@ -3364,18 +3885,24 @@
       "long_name": "Thiaroye ↔ Hann (AFTU Ligne 54)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 54 est publiée sous « TERMINUS KEUR MASSAR (CITE MTOA) - UCAD ». L'itinéraire observé de ce jeu (« Thiaroye ↔ Hann (AFTU Ligne 54) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_thiaroye",
         "stop_patte_doie",
         "stop_hann"
-      ]
+      ],
+      "observed_long_name": "Thiaroye ↔ Hann (AFTU Ligne 54)",
+      "official_line_number": 54,
+      "official_long_name": "TERMINUS KEUR MASSAR (CITE MTOA) - UCAD",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_55",
@@ -3384,22 +3911,28 @@
       "long_name": "Pikine ↔ Castor (AFTU Ligne 55)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 17.5 km pour 8.2 km entre terminus (×2.1) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 55 est publiée sous « TERMINUS RUFISQUE SONADIS - PETERSEN ». L'itinéraire observé de ce jeu (« Pikine ↔ Castor (AFTU Ligne 55) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_pikine",
         "stop_medina",
         "stop_hann",
         "stop_castor"
-      ]
+      ],
+      "observed_long_name": "Pikine ↔ Castor (AFTU Ligne 55)",
+      "official_line_number": 55,
+      "official_long_name": "TERMINUS RUFISQUE SONADIS - PETERSEN",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_56",
@@ -3408,22 +3941,28 @@
       "long_name": "Scat Urbam ↔ Place de l'Obélisque (AFTU Ligne 56)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 40.2 km pour 8.9 km entre terminus (×4.5) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 56 est publiée sous « JAXAAY 2 - PETERSEN ». L'itinéraire observé de ce jeu (« Scat Urbam ↔ Place de l'Obélisque (AFTU Ligne 56) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_scatt_urbam",
         "stop_rufisque",
         "stop_thiaroye",
         "stop_obelisque"
-      ]
+      ],
+      "observed_long_name": "Scat Urbam ↔ Place de l'Obélisque (AFTU Ligne 56)",
+      "official_line_number": 56,
+      "official_long_name": "JAXAAY 2 - PETERSEN",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_57",
@@ -3432,22 +3971,28 @@
       "long_name": "Grand Médine ↔ Hôpital Dalal Jamm (AFTU Ligne 57)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 15.3 km pour 6.4 km entre terminus (×2.4) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 57 est publiée sous « LIBERTE 6 - RUFISQUE ». L'itinéraire observé de ce jeu (« Grand Médine ↔ Hôpital Dalal Jamm (AFTU Ligne 57) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_grand_medine",
         "stop_yoff_pecheurs",
         "stop_baux_maraichers",
         "stop_dalal_jamm"
-      ]
+      ],
+      "observed_long_name": "Grand Médine ↔ Hôpital Dalal Jamm (AFTU Ligne 57)",
+      "official_line_number": 57,
+      "official_long_name": "LIBERTE 6 - RUFISQUE",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_58",
@@ -3456,21 +4001,27 @@
       "long_name": "Mermoz ↔ Gare TER Dakar (AFTU Ligne 58)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 21.5 km pour 5.2 km entre terminus (×4.1) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 58 est publiée sous « SAHM - COMICO ». L'itinéraire observé de ce jeu (« Mermoz ↔ Gare TER Dakar (AFTU Ligne 58) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_mermoz",
         "stop_guediawaye",
         "stop_dakar_ter"
-      ]
+      ],
+      "observed_long_name": "Mermoz ↔ Gare TER Dakar (AFTU Ligne 58)",
+      "official_line_number": 58,
+      "official_long_name": "SAHM - COMICO",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_59",
@@ -3479,23 +4030,29 @@
       "long_name": "Gare TER Dakar ↔ Gare Maritime (AFTU Ligne 59)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 30.5 km pour 1.1 km entre terminus (×28.5) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 59 est publiée sous « DIAMALAYE - CITE GENDARMERIE (JAXAAY) ». L'itinéraire observé de ce jeu (« Gare TER Dakar ↔ Gare Maritime (AFTU Ligne 59) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_dakar_ter",
         "stop_dalal_jamm",
         "stop_liberte6",
         "stop_yoff_pecheurs",
         "stop_gare_maritime"
-      ]
+      ],
+      "observed_long_name": "Gare TER Dakar ↔ Gare Maritime (AFTU Ligne 59)",
+      "official_line_number": 59,
+      "official_long_name": "DIAMALAYE - CITE GENDARMERIE (JAXAAY)",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_60",
@@ -3504,19 +4061,25 @@
       "long_name": "Almadies ↔ Petersen (AFTU Ligne 60)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 60 est publiée sous « COLOBANE - BARGNY ». L'itinéraire observé de ce jeu (« Almadies ↔ Petersen (AFTU Ligne 60) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_almadies",
         "stop_ngor",
         "stop_ouakam",
         "stop_petersen"
-      ]
+      ],
+      "observed_long_name": "Almadies ↔ Petersen (AFTU Ligne 60)",
+      "official_line_number": 60,
+      "official_long_name": "COLOBANE - BARGNY",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_61",
@@ -3525,23 +4088,29 @@
       "long_name": "PEM Guédiawaye ↔ Yoff (AFTU Ligne 61)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 29.9 km pour 7.7 km entre terminus (×3.9) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 61 est publiée sous « ALMADIES - KEUR MASSAR ». L'itinéraire observé de ce jeu (« PEM Guédiawaye ↔ Yoff (AFTU Ligne 61) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_guediawaye",
         "stop_hann",
         "stop_parcelles_u26",
         "stop_petersen",
         "stop_yoff"
-      ]
+      ],
+      "observed_long_name": "PEM Guédiawaye ↔ Yoff (AFTU Ligne 61)",
+      "official_line_number": 61,
+      "official_long_name": "ALMADIES - KEUR MASSAR",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_62",
@@ -3550,23 +4119,29 @@
       "long_name": "Hann ↔ PEM Guédiawaye (AFTU Ligne 62)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 26.5 km pour 6.8 km entre terminus (×3.9) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 62 est publiée sous « ARRET CHERIF (RUFISQUE) - PENC MI (GUEULE TAPEE) ». L'itinéraire observé de ce jeu (« Hann ↔ PEM Guédiawaye (AFTU Ligne 62) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_hann",
         "stop_keur_mbaye_fall",
         "stop_scatt_urbam",
         "stop_dalal_jamm",
         "stop_guediawaye"
-      ]
+      ],
+      "observed_long_name": "Hann ↔ PEM Guédiawaye (AFTU Ligne 62)",
+      "official_line_number": 62,
+      "official_long_name": "ARRET CHERIF (RUFISQUE) - PENC MI (GUEULE TAPEE)",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_63",
@@ -3575,20 +4150,26 @@
       "long_name": "Scat Urbam ↔ Point E (AFTU Ligne 63)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 63 est publiée sous « TERMINUS CAMP MARCHAND RUFISQUE - STADE LSS ». L'itinéraire observé de ce jeu (« Scat Urbam ↔ Point E (AFTU Ligne 63) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_scatt_urbam",
         "stop_parcelles_u26",
         "stop_castor",
         "stop_petersen",
         "stop_point_e"
-      ]
+      ],
+      "observed_long_name": "Scat Urbam ↔ Point E (AFTU Ligne 63)",
+      "official_line_number": 63,
+      "official_long_name": "TERMINUS CAMP MARCHAND RUFISQUE - STADE LSS",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_64",
@@ -3597,23 +4178,29 @@
       "long_name": "Castor ↔ Sacré-Cœur (AFTU Ligne 64)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 24.9 km pour 2.1 km entre terminus (×11.7) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 64 est publiée sous « GUEDIAWAYE - RUFISQUE ». L'itinéraire observé de ce jeu (« Castor ↔ Sacré-Cœur (AFTU Ligne 64) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_castor",
         "stop_guediawaye",
         "stop_sandaga",
         "stop_palais_justice",
         "stop_sacre_coeur"
-      ]
+      ],
+      "observed_long_name": "Castor ↔ Sacré-Cœur (AFTU Ligne 64)",
+      "official_line_number": 64,
+      "official_long_name": "GUEDIAWAYE - RUFISQUE",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_65",
@@ -3622,19 +4209,25 @@
       "long_name": "Sacré-Cœur ↔ Guédiawaye (AFTU Ligne 65)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 65 est publiée sous « COLOBANE - JAXAAY ». L'itinéraire observé de ce jeu (« Sacré-Cœur ↔ Guédiawaye (AFTU Ligne 65) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_sacre_coeur",
         "stop_grand_yoff",
         "stop_scatt_urbam",
         "stop_guediawaye"
-      ]
+      ],
+      "observed_long_name": "Sacré-Cœur ↔ Guédiawaye (AFTU Ligne 65)",
+      "official_line_number": 65,
+      "official_long_name": "COLOBANE - JAXAAY",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_66",
@@ -3643,21 +4236,27 @@
       "long_name": "Mermoz ↔ Thiaroye (AFTU Ligne 66)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 43.0 km pour 10.5 km entre terminus (×4.1) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 66 est publiée sous « YOFF - GOROM 1 ». L'itinéraire observé de ce jeu (« Mermoz ↔ Thiaroye (AFTU Ligne 66) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_mermoz",
         "stop_bargny",
         "stop_thiaroye"
-      ]
+      ],
+      "observed_long_name": "Mermoz ↔ Thiaroye (AFTU Ligne 66)",
+      "official_line_number": 66,
+      "official_long_name": "YOFF - GOROM 1",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_67",
@@ -3666,21 +4265,27 @@
       "long_name": "PEM Petersen ↔ Place de l'Obélisque (AFTU Ligne 67)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 19.4 km pour 1.8 km entre terminus (×10.9) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 67 est publiée sous « OUAKAM - THIAWLENE RUFISQUE ». L'itinéraire observé de ce jeu (« PEM Petersen ↔ Place de l'Obélisque (AFTU Ligne 67) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_petersen",
         "stop_pikine",
         "stop_obelisque"
-      ]
+      ],
+      "observed_long_name": "PEM Petersen ↔ Place de l'Obélisque (AFTU Ligne 67)",
+      "official_line_number": 67,
+      "official_long_name": "OUAKAM - THIAWLENE RUFISQUE",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_68",
@@ -3689,23 +4294,29 @@
       "long_name": "Grand Médine ↔ Bargny (AFTU Ligne 68)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 53.2 km pour 23.3 km entre terminus (×2.3) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 68 est publiée sous « YEUMBEUL - SEBIKOTANE ». L'itinéraire observé de ce jeu (« Grand Médine ↔ Bargny (AFTU Ligne 68) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_grand_medine",
         "stop_thiaroye",
         "stop_keur_mbaye_fall",
         "stop_colobane",
         "stop_bargny"
-      ]
+      ],
+      "observed_long_name": "Grand Médine ↔ Bargny (AFTU Ligne 68)",
+      "official_line_number": 68,
+      "official_long_name": "YEUMBEUL - SEBIKOTANE",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_69",
@@ -3714,23 +4325,29 @@
       "long_name": "Yeumbeul ↔ UCAD (AFTU Ligne 69)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 35.6 km pour 13.9 km entre terminus (×2.6) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 69 est publiée sous « DIAMALAYE - TERMINUS TIVAOUANE PEUL ». L'itinéraire observé de ce jeu (« Yeumbeul ↔ UCAD (AFTU Ligne 69) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_yeumbeul",
         "stop_dalal_jamm",
         "stop_sacre_coeur",
         "stop_guediawaye",
         "stop_ucad"
-      ]
+      ],
+      "observed_long_name": "Yeumbeul ↔ UCAD (AFTU Ligne 69)",
+      "official_line_number": 69,
+      "official_long_name": "DIAMALAYE - TERMINUS TIVAOUANE PEUL",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_70",
@@ -3739,22 +4356,28 @@
       "long_name": "Pikine ↔ Colobane (AFTU Ligne 70)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 46.6 km pour 7.7 km entre terminus (×6.1) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 70 est publiée sous « DAROUKHANE - JAXAAY 2 ». L'itinéraire observé de ce jeu (« Pikine ↔ Colobane (AFTU Ligne 70) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_pikine",
         "stop_bargny",
         "stop_mermoz",
         "stop_colobane"
-      ]
+      ],
+      "observed_long_name": "Pikine ↔ Colobane (AFTU Ligne 70)",
+      "official_line_number": 70,
+      "official_long_name": "DAROUKHANE - JAXAAY 2",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_71",
@@ -3763,23 +4386,29 @@
       "long_name": "Keur Mbaye Fall ↔ Colobane (AFTU Ligne 71)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 38.2 km pour 14.6 km entre terminus (×2.6) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 71 est publiée sous « KEUR MASSAR - CLAUDEL ». L'itinéraire observé de ce jeu (« Keur Mbaye Fall ↔ Colobane (AFTU Ligne 71) ») ne correspond pas à cette identité (one terminus only) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_keur_mbaye_fall",
         "stop_rufisque",
         "stop_guediawaye",
         "stop_ouakam",
         "stop_colobane"
-      ]
+      ],
+      "observed_long_name": "Keur Mbaye Fall ↔ Colobane (AFTU Ligne 71)",
+      "official_line_number": 71,
+      "official_long_name": "KEUR MASSAR - CLAUDEL",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "ONE_TERMINUS_ONLY",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "aftu_72",
@@ -3788,22 +4417,28 @@
       "long_name": "Yeumbeul ↔ Fadia (AFTU Ligne 72)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": true,
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Le nombre de lignes AFTU (72) est officiel (CETUD) ; la numérotation 1–72 et cet itinéraire proviennent d’observations terrain non vérifiées. Itinéraire de 22.6 km pour 9.2 km entre terminus (×2.5) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Nomenclature opérateur (2026-09-25) : la ligne n° 72 est publiée sous « GUEDIAWAYE - KOUNOUNE ». L'itinéraire observé de ce jeu (« Yeumbeul ↔ Fadia (AFTU Ligne 72) ») ne correspond pas à cette identité (no terminus match) : statut CONTESTÉ, jamais fusionnée ni renommée. Trace de l'ancien libellé conservée (observed_long_name). Liste d'arrêts inchangée (observation terrain). Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_yeumbeul",
         "stop_yoff_pecheurs",
         "stop_ouakam",
         "stop_fadia"
-      ]
+      ],
+      "observed_long_name": "Yeumbeul ↔ Fadia (AFTU Ligne 72)",
+      "official_line_number": 72,
+      "official_long_name": "GUEDIAWAYE - KOUNOUNE",
+      "nomenclature_status": "CONTRADICTED_BY_OPERATOR",
+      "nomenclature_match": "NO_TERMINUS_MATCH",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "tata_218",
@@ -3820,14 +4455,20 @@
       "audit_flags": [
         "DUPLICATE_STOP_SEQUENCE"
       ],
-      "audit_note": "Observation terrain non vérifiée. « Tata » désigne les minibus des GIE AFTU ; CETUD ne publie pas de réseau Tata distinct. Le numéro 218 est aussi celui d’une ligne Dakar Dem Dikk officielle (Thiaroye ↔ Aéroport LSS) : risque de confusion. Séquence d’arrêts strictement identique à aftu_38.",
+      "audit_note": "Le n° 218 n'est publié par aucun opérateur : identité non résolue (UNVERIFIED), aucun remappage arbitraire. « Tata » = minibus de l'écosystème AFTU. Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_mermoz",
         "stop_sacre_coeur",
         "stop_grand_yoff",
         "stop_pikine",
         "stop_keur_massar"
-      ]
+      ],
+      "service_category": "TATA",
+      "exploitation_ecosystem": "AFTU",
+      "observed_long_name": "Mermoz ↔ Keur Massar (Tata 218)",
+      "official_line_number": null,
+      "collides_with_operator_line": null,
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR"
     },
     {
       "id": "tata_219",
@@ -3841,11 +4482,17 @@
       "source": null,
       "verified_at": null,
       "schedule_status": "UNKNOWN",
-      "audit_note": "Observation terrain non vérifiée. « Tata » désigne les minibus des GIE AFTU ; CETUD ne publie pas de réseau Tata distinct. Le numéro 219 est aussi celui d’une ligne Dakar Dem Dikk officielle (Daroukhane ↔ Ouakam) : risque de confusion.",
+      "audit_note": "Le n° 219 n'est publié par aucun opérateur : identité non résolue (UNVERIFIED), aucun remappage arbitraire. « Tata » = minibus de l'écosystème AFTU. Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_parcelles_u26",
         "stop_petersen"
-      ]
+      ],
+      "service_category": "TATA",
+      "exploitation_ecosystem": "AFTU",
+      "observed_long_name": "Parcelles Assainies ↔ Petersen (Tata 219)",
+      "official_line_number": null,
+      "collides_with_operator_line": null,
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR"
     },
     {
       "id": "tata_50",
@@ -3854,22 +4501,29 @@
       "long_name": "Guédiawaye ↔ Sandaga (Tata Ligne 50)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
       "audit_flags": [
         "DUPLICATE_STOP_SEQUENCE"
       ],
-      "audit_note": "Observation terrain non vérifiée. « Tata » désigne les minibus des GIE AFTU ; CETUD ne publie pas de réseau Tata distinct. Séquence d’arrêts strictement identique à aftu_2.",
+      "audit_note": "Le n° 50 est publié par AFTU sous « PETERSEN - MALIKA CIMETIERE » : ce service « Tata » n'est donc PAS remappé sur cette ligne (identité non résolue). Statut CONTESTÉ ; libellé observé conservé (observed_long_name). « Tata » = minibus de l'écosystème AFTU, pas une exploitation indépendante. Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_guediawaye",
         "stop_pikine",
         "stop_colobane",
         "stop_petersen",
         "stop_sandaga"
-      ]
+      ],
+      "service_category": "TATA",
+      "exploitation_ecosystem": "AFTU",
+      "observed_long_name": "Guédiawaye ↔ Sandaga (Tata Ligne 50)",
+      "official_line_number": 50,
+      "collides_with_operator_line": "AFTU 50",
+      "nomenclature_status": "NUMBER_ALREADY_ASSIGNED_TO_AFTU_LINE",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "tata_64",
@@ -3878,18 +4532,25 @@
       "long_name": "Pikine ↔ Liberté 6 (Tata Ligne 64)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
-      "audit_note": "Observation terrain non vérifiée. « Tata » désigne les minibus des GIE AFTU ; CETUD ne publie pas de réseau Tata distinct.",
+      "audit_note": "Le n° 64 est publié par AFTU sous « GUEDIAWAYE - RUFISQUE » : ce service « Tata » n'est donc PAS remappé sur cette ligne (identité non résolue). Statut CONTESTÉ ; libellé observé conservé (observed_long_name). « Tata » = minibus de l'écosystème AFTU, pas une exploitation indépendante. Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_pikine",
         "stop_scatt_urbam",
         "stop_patte_doie",
         "stop_liberte6"
-      ]
+      ],
+      "service_category": "TATA",
+      "exploitation_ecosystem": "AFTU",
+      "observed_long_name": "Pikine ↔ Liberté 6 (Tata Ligne 64)",
+      "official_line_number": 64,
+      "collides_with_operator_line": "AFTU 64",
+      "nomenclature_status": "NUMBER_ALREADY_ASSIGNED_TO_AFTU_LINE",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "tata_78",
@@ -3898,18 +4559,25 @@
       "long_name": "Yoff ↔ Petersen via Cambérène (Tata 78)",
       "type": "BUS",
       "data_trust": "FIELD_OBSERVATION",
-      "data_status": "UNVERIFIED",
-      "source_type": "FIELD_OBSERVATION",
-      "source": null,
-      "verified_at": null,
+      "data_status": "CONFLICTING",
+      "source_type": "OFFICIAL_STATIC",
+      "source": "AFTU — liste officielle des lignes urbaines (aftu-senegal.org)",
+      "verified_at": "2026-09-25",
       "schedule_status": "UNKNOWN",
-      "audit_note": "Observation terrain non vérifiée. « Tata » désigne les minibus des GIE AFTU ; CETUD ne publie pas de réseau Tata distinct.",
+      "audit_note": "Le n° 78 est publié par AFTU sous « DIAMAGUENE - LIBERTE 5 » : ce service « Tata » n'est donc PAS remappé sur cette ligne (identité non résolue). Statut CONTESTÉ ; libellé observé conservé (observed_long_name). « Tata » = minibus de l'écosystème AFTU, pas une exploitation indépendante. Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_yoff",
         "stop_camberene",
         "stop_parcelles_u26",
         "stop_petersen"
-      ]
+      ],
+      "service_category": "TATA",
+      "exploitation_ecosystem": "AFTU",
+      "observed_long_name": "Yoff ↔ Petersen via Cambérène (Tata 78)",
+      "official_line_number": 78,
+      "collides_with_operator_line": "AFTU 78",
+      "nomenclature_status": "NUMBER_ALREADY_ASSIGNED_TO_AFTU_LINE",
+      "source_url": "https://aftu-senegal.org/infos-pratiques/"
     },
     {
       "id": "new_commune_01",
@@ -3973,13 +4641,17 @@
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Ligne candidate sans source : ne fait pas partie du total officiel AFTU (72 lignes, CETUD). Itinéraire de 19.2 km pour 4.5 km entre terminus (×4.3) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Identifiant « new_commune_* » : hors des 72 numéros publiés par l'exploitant, donc hors total officiel AFTU (counts_toward_official_total = false). Itinéraire issu d'observations terrain non vérifiées, aucune provenance opérateur : UNVERIFIED. Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_sicap_mermoz",
         "stop_khar_yalla",
         "stop_foire",
         "stop_maristes"
-      ]
+      ],
+      "official_line_number": null,
+      "official_long_name": null,
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
+      "nomenclature_match": "NOT_APPLICABLE"
     },
     {
       "id": "new_commune_04",
@@ -3994,14 +4666,18 @@
       "verified_at": null,
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": false,
-      "audit_note": "Ligne candidate sans source : ne fait pas partie du total officiel AFTU (72 lignes, CETUD).",
+      "audit_note": "Identifiant « new_commune_* » : hors des 72 numéros publiés par l'exploitant, donc hors total officiel AFTU (counts_toward_official_total = false). Itinéraire issu d'observations terrain non vérifiées, aucune provenance opérateur : UNVERIFIED. Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_dalifort",
         "stop_wakhinane_pikine",
         "stop_guinaw_rails_nord",
         "stop_guinaw_rails_sud",
         "stop_djida_thiaroye"
-      ]
+      ],
+      "official_line_number": null,
+      "official_long_name": null,
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
+      "nomenclature_match": "NOT_APPLICABLE"
     },
     {
       "id": "new_commune_05",
@@ -4019,13 +4695,17 @@
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Ligne candidate sans source : ne fait pas partie du total officiel AFTU (72 lignes, CETUD). Itinéraire de 9.9 km pour 4.2 km entre terminus (×2.4) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Identifiant « new_commune_* » : hors des 72 numéros publiés par l'exploitant, donc hors total officiel AFTU (counts_toward_official_total = false). Itinéraire issu d'observations terrain non vérifiées, aucune provenance opérateur : UNVERIFIED. Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_mbao",
         "stop_malika",
         "stop_keur_ndiaye_lo",
         "stop_jaxaay"
-      ]
+      ],
+      "official_line_number": null,
+      "official_long_name": null,
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
+      "nomenclature_match": "NOT_APPLICABLE"
     },
     {
       "id": "new_commune_06",
@@ -4040,13 +4720,17 @@
       "verified_at": null,
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": false,
-      "audit_note": "Ligne candidate sans source : ne fait pas partie du total officiel AFTU (72 lignes, CETUD).",
+      "audit_note": "Identifiant « new_commune_* » : hors des 72 numéros publiés par l'exploitant, donc hors total officiel AFTU (counts_toward_official_total = false). Itinéraire issu d'observations terrain non vérifiées, aucune provenance opérateur : UNVERIFIED. Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_sangalkam",
         "stop_bambilor",
         "stop_sebikotane",
         "stop_yenne"
-      ]
+      ],
+      "official_line_number": null,
+      "official_long_name": null,
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
+      "nomenclature_match": "NOT_APPLICABLE"
     },
     {
       "id": "new_commune_07",
@@ -4064,13 +4748,17 @@
       "audit_flags": [
         "ITINERARY_GEOGRAPHICALLY_INCOHERENT"
       ],
-      "audit_note": "Ligne candidate sans source : ne fait pas partie du total officiel AFTU (72 lignes, CETUD). Itinéraire de 22.2 km pour 5.3 km entre terminus (×4.2) : succession d’arrêts géographiquement incohérente.",
+      "audit_note": "Identifiant « new_commune_* » : hors des 72 numéros publiés par l'exploitant, donc hors total officiel AFTU (counts_toward_official_total = false). Itinéraire issu d'observations terrain non vérifiées, aucune provenance opérateur : UNVERIFIED. Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_tivaouane_peulh",
         "stop_niague",
         "stop_golf_sud",
         "stop_medina_gounass"
-      ]
+      ],
+      "official_line_number": null,
+      "official_long_name": null,
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
+      "nomenclature_match": "NOT_APPLICABLE"
     },
     {
       "id": "new_commune_08",
@@ -4085,12 +4773,16 @@
       "verified_at": null,
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": false,
-      "audit_note": "Ligne candidate sans source : ne fait pas partie du total officiel AFTU (72 lignes, CETUD).",
+      "audit_note": "Identifiant « new_commune_* » : hors des 72 numéros publiés par l'exploitant, donc hors total officiel AFTU (counts_toward_official_total = false). Itinéraire issu d'observations terrain non vérifiées, aucune provenance opérateur : UNVERIFIED. Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_ndiareme",
         "stop_wakhinane_nimzatt",
         "stop_sam_notaire"
-      ]
+      ],
+      "official_line_number": null,
+      "official_long_name": null,
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
+      "nomenclature_match": "NOT_APPLICABLE"
     },
     {
       "id": "new_commune_09",
@@ -4105,14 +4797,18 @@
       "verified_at": null,
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": false,
-      "audit_note": "Ligne candidate sans source : ne fait pas partie du total officiel AFTU (72 lignes, CETUD).",
+      "audit_note": "Identifiant « new_commune_* » : hors des 72 numéros publiés par l'exploitant, donc hors total officiel AFTU (counts_toward_official_total = false). Itinéraire issu d'observations terrain non vérifiées, aucune provenance opérateur : UNVERIFIED. Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_parcelles_u13",
         "stop_parcelles_u15",
         "stop_parcelles_u22",
         "stop_pikine_nord",
         "stop_pikine_est"
-      ]
+      ],
+      "official_line_number": null,
+      "official_long_name": null,
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
+      "nomenclature_match": "NOT_APPLICABLE"
     },
     {
       "id": "new_commune_10",
@@ -4127,13 +4823,17 @@
       "verified_at": null,
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": false,
-      "audit_note": "Ligne candidate sans source : ne fait pas partie du total officiel AFTU (72 lignes, CETUD).",
+      "audit_note": "Identifiant « new_commune_* » : hors des 72 numéros publiés par l'exploitant, donc hors total officiel AFTU (counts_toward_official_total = false). Itinéraire issu d'observations terrain non vérifiées, aucune provenance opérateur : UNVERIFIED. Aucune fréquence, aucun horaire.",
       "stops": [
         "stop_thiaroye_mer",
         "stop_hann_maristes2",
         "stop_hlm_grand_medine2",
         "stop_cite_keur_gorgui"
-      ]
+      ],
+      "official_line_number": null,
+      "official_long_name": null,
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR",
+      "nomenclature_match": "NOT_APPLICABLE"
     },
     {
       "id": "new_commune_11",
@@ -4148,13 +4848,18 @@
       "verified_at": null,
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": false,
-      "audit_note": "Ligne candidate sans source : ne fait pas partie du total officiel publié.",
+      "audit_note": "Identifiant « new_commune_* » côté « Tata » : hors total officiel, identité non résolue (UNVERIFIED). Aucun remappage arbitraire ; aucune fréquence, aucun horaire.",
       "stops": [
         "stop_ouakam_cite_avion2",
         "stop_ngor_village",
         "stop_yoff_tonghor",
         "stop_keur_massar_nord"
-      ]
+      ],
+      "service_category": "TATA",
+      "exploitation_ecosystem": "AFTU",
+      "observed_long_name": "Tata Ouakam - Ngor Village - Yoff Tonghor (Nord-Ouest)",
+      "official_line_number": null,
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR"
     },
     {
       "id": "new_commune_12",
@@ -4169,13 +4874,18 @@
       "verified_at": null,
       "schedule_status": "UNKNOWN",
       "counts_toward_official_total": false,
-      "audit_note": "Ligne candidate sans source : ne fait pas partie du total officiel publié.",
+      "audit_note": "Identifiant « new_commune_* » côté « Tata » : hors total officiel, identité non résolue (UNVERIFIED). Aucun remappage arbitraire ; aucune fréquence, aucun horaire.",
       "stops": [
         "stop_jaxaay_nimzatt",
         "stop_rufisque_ouest",
         "stop_rufisque_nord",
         "stop_diamniadio_2"
-      ]
+      ],
+      "service_category": "TATA",
+      "exploitation_ecosystem": "AFTU",
+      "observed_long_name": "Tata Jaxaay - Rufisque - Diamniadio 2 (Est)",
+      "official_line_number": null,
+      "nomenclature_status": "NUMBER_NOT_PUBLISHED_BY_OPERATOR"
     },
     {
       "id": "new_commune_13",

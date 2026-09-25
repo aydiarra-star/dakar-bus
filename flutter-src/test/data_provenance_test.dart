@@ -16,6 +16,15 @@ import 'package:dakar_bus/services/data_service.dart';
 ///  * les 15 routes DDD ne prétendent pas représenter les 38 lignes CETUD ;
 ///  * les routes candidates new_commune_* ne comptent pas dans les totaux ;
 ///  * les doublons de lieux sont reliés par place_id sans suppression d'id.
+///
+/// NORMALISATION AFTU / TATA 2026-09-25 (docs/AUDIT_AFTU_TATA_2026-09-25.md) :
+///  * la liste publiée par l'exploitant AFTU (n° 1–5, 24–89, 91) fait foi pour
+///    les numéros et les terminus ;
+///  * une identité qui contredit cette liste est CONFLICTING, jamais renommée
+///    silencieusement (l'ancien libellé reste dans `observed_long_name`) ;
+///  * « Tata » n'est pas une exploitation indépendante (parent_operator_id =
+///    aftu) ; aucune identité Tata n'est promue ;
+///  * aucune fréquence AFTU/Tata n'est créée : UNKNOWN pour les départs.
 
 const Set<String> kDataStatus = <String>{'CONFIRMED', 'UNVERIFIED', 'CONFLICTING', 'FUTURE'};
 const Set<String> kSourceType = <String>{
@@ -203,19 +212,63 @@ void main() {
       expect(routes.any((Map<String, dynamic> r) => r['data_trust'] == 'OFFICIAL'), isFalse);
     });
 
-    test('AFTU : 72 lignes officielles ; aftu_1..72 non vérifiées ; candidates hors total', () {
+    test('AFTU : nomenclature opérateur appliquée ; identités contredites jamais renommées', () {
       final Map<String, dynamic> aftu =
           _list('operators').firstWhere((Map<String, dynamic> o) => o['id'] == 'aftu');
       expect(aftu['official_line_count'], 72);
+      // La liste publiée par l'exploitant contient exactement 72 numéros.
+      final List<dynamic> publishedNumbers = aftu['published_line_numbers'] as List<dynamic>;
+      expect(publishedNumbers, hasLength(72));
+      expect(publishedNumbers.take(5), <int>[1, 2, 3, 4, 5]);
+      expect(publishedNumbers.contains(6), isFalse,
+          reason: 'les numéros 6 à 23 ne sont pas publiés par l’exploitant');
+      expect(publishedNumbers.contains(91), isTrue);
+
       final List<Map<String, dynamic>> numbered = _list('routes')
           .where((Map<String, dynamic> r) => RegExp(r'^aftu_\d+$').hasMatch(r['id'] as String))
           .toList();
       expect(numbered, hasLength(72));
+      int contestees = 0;
+      int nonPubliees = 0;
       for (final Map<String, dynamic> r in numbered) {
-        expect(r['data_status'], 'UNVERIFIED', reason: '${r['id']}');
-        expect(r['source_type'], 'FIELD_OBSERVATION', reason: '${r['id']}');
+        final Object? numero = r['official_line_number'];
+        final String statut = r['nomenclature_status'] as String;
+        // L'itinéraire reste une observation terrain : jamais promu officiel.
+        expect(r['data_trust'], 'FIELD_OBSERVATION', reason: '${r['id']}');
+        expect(r['schedule_status'], 'UNKNOWN', reason: '${r['id']}');
+        if (numero == null) {
+          expect(statut, 'NUMBER_NOT_PUBLISHED_BY_OPERATOR', reason: '${r['id']}');
+          expect(r['data_status'], 'UNVERIFIED', reason: '${r['id']}');
+          nonPubliees++;
+        } else {
+          expect(statut, 'CONTRADICTED_BY_OPERATOR', reason: '${r['id']}');
+          expect(r['data_status'], 'CONFLICTING', reason: '${r['id']}');
+          // Trace conservée : l'ancien libellé n'est jamais supprimé.
+          expect(r['observed_long_name'], isA<String>(), reason: '${r['id']}');
+          expect(r['observed_long_name'], r['long_name'], reason: '${r['id']}');
+          expect(r['official_long_name'], isA<String>(), reason: '${r['id']}');
+          expect(r['source'], isA<String>(), reason: '${r['id']}');
+          expect(r['verified_at'], '2026-09-25', reason: '${r['id']}');
+          contestees++;
+        }
       }
-      for (int n = 1; n <= 13; n++) {
+      expect(contestees, 54, reason: '54 identités portent un numéro publié mais un autre itinéraire');
+      expect(nonPubliees, 18, reason: '18 identifiants utilisent un numéro non publié (6 à 23)');
+      // Aucune identité AFTU n'est CONFIRMED : l'opérateur ne publie ni arrêts ni horaires.
+      expect(numbered.any((Map<String, dynamic> r) => r['data_status'] == 'CONFIRMED'), isFalse);
+      // Les numéros publiés absents du jeu sont documentés, jamais ajoutés.
+      expect(aftu['official_line_count_note'], contains('CONTESTÉ'));
+      final List<Map<String, dynamic>> horsTotal = <Map<String, dynamic>>[
+        for (int n = 3; n <= 10; n++)
+          _route('new_commune_${n.toString().padLeft(2, '0')}')
+      ];
+      for (final Map<String, dynamic> r in horsTotal) {
+        expect(r['counts_toward_official_total'], isFalse, reason: '${r['id']}');
+        expect(r['data_status'], 'UNVERIFIED', reason: '${r['id']}');
+        expect(r['source_type'], 'UNKNOWN', reason: '${r['id']}');
+        expect(r['schedule_status'], 'UNKNOWN', reason: '${r['id']}');
+      }
+      for (int n = 1; n <= 2; n++) {
         final String id = 'new_commune_${n.toString().padLeft(2, '0')}';
         final Map<String, dynamic> r = _route(id);
         expect(r['counts_toward_official_total'], isFalse, reason: id);
@@ -224,12 +277,40 @@ void main() {
       }
     });
 
-    test('Tata : observations terrain, jamais officielles', () {
-      for (final Map<String, dynamic> r
-          in _list('routes').where((Map<String, dynamic> r) => r['operator_id'] == 'tata')) {
+    test('Tata : catégorie de l’écosystème AFTU, jamais un réseau indépendant', () {
+      final Map<String, dynamic> tata =
+          _list('operators').firstWhere((Map<String, dynamic> o) => o['id'] == 'tata');
+      expect(tata['is_independent_operator'], isFalse);
+      expect(tata['parent_operator_id'], 'aftu');
+      expect(tata['official_line_count'], isNull,
+          reason: 'aucun total officiel de lignes « Tata » n’est publié');
+
+      final List<Map<String, dynamic>> routes = _list('routes')
+          .where((Map<String, dynamic> r) => r['operator_id'] == 'tata')
+          .toList();
+      expect(routes, hasLength(7));
+      int collisions = 0;
+      for (final Map<String, dynamic> r in routes) {
+        expect(r['service_category'], 'TATA', reason: '${r['id']}');
+        expect(r['exploitation_ecosystem'], 'AFTU', reason: '${r['id']}');
         expect(r['data_status'], isNot('CONFIRMED'), reason: '${r['id']}');
         expect(r['data_trust'], isNot('OFFICIAL'), reason: '${r['id']}');
+        expect(r['schedule_status'], 'UNKNOWN', reason: '${r['id']}');
+        // Aucun remappage arbitraire : le libellé observé est conservé.
+        expect(r['observed_long_name'], r['long_name'], reason: '${r['id']}');
+        if (r['collides_with_operator_line'] != null) {
+          expect(r['data_status'], 'CONFLICTING', reason: '${r['id']}');
+          expect(r['nomenclature_status'], 'NUMBER_ALREADY_ASSIGNED_TO_AFTU_LINE',
+              reason: '${r['id']}');
+          collisions++;
+        } else {
+          expect(r['data_status'], 'UNVERIFIED', reason: '${r['id']}');
+          expect(r['nomenclature_status'], 'NUMBER_NOT_PUBLISHED_BY_OPERATOR',
+              reason: '${r['id']}');
+        }
       }
+      expect(collisions, 3,
+          reason: 'tata_50, tata_64 et tata_78 portent des numéros déjà publiés par AFTU');
     });
   });
 
