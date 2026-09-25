@@ -171,6 +171,10 @@ class Stop { final String? lineId; DepartureEstimate departureEstimate({DateTime
 | `flutter test` | `00:12 +412: All tests passed!` |
 | `flutter build web --release` | `✓ Built build/web` — `build/web` : 29 fichiers produits |
 
+Pour le commit de documentation qui suit (`2677e0b`, tête de PR) : run J9
+**`36094920527`**, `success` — `flutter analyze` `No issues found! (ran in 8.9s)`,
+`flutter test` `00:08 +412: All tests passed!`, `build/web` 29 fichiers.
+
 ### 6.4 Chronologie honnête du lot (rouge → vert)
 
 | Run (CI J9) | Commit | État | Détail |
