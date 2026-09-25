@@ -171,9 +171,11 @@ class Stop { final String? lineId; DepartureEstimate departureEstimate({DateTime
 | `flutter test` | `00:12 +412: All tests passed!` |
 | `flutter build web --release` | `✓ Built build/web` — `build/web` : 29 fichiers produits |
 
-Pour le commit de documentation qui suit (`2677e0b`, tête de PR) : run J9
-**`36094920527`**, `success` — `flutter analyze` `No issues found! (ran in 8.9s)`,
-`flutter test` `00:08 +412: All tests passed!`, `build/web` 29 fichiers.
+Chaque commit de la branche (code **et** documentation) déclenche la CI J9 : les
+trois runs `36094735170` (commit `0deb9bf`), `36094920527` (commit `2677e0b`) et
+`36095031627` (commit `b39a038`, tête de PR) sont tous `success`, avec le même
+résultat — `flutter analyze` sans anomalie, `flutter test` **412 tests verts**
+(00:08 / 00:11 / 00:11), `build/web` 29 fichiers.
 
 ### 6.4 Chronologie honnête du lot (rouge → vert)
 
