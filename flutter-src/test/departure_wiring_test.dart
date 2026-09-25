@@ -472,6 +472,14 @@ void main() {
       expect(kTempsReel.hasMatch(reponse), isFalse, reason: reponse);
     });
 
+    test('ESTIMATED : accord singulier de la dernière minute de service', () {
+      final DepartureEstimate e = DepartureEngineService.estimateForLine(
+          modeLabel: 'TER', now: DateTime(2026, 9, 28, 20, 59));
+      final String reponse = AssistantReplies.nextDeparture(e, mode: 'TER');
+      expect(reponse, contains('fenêtre de 0 à 1 minute.'));
+      expect(reponse.contains('1 minutes'), isFalse, reason: reponse);
+    });
+
     test('UNKNOWN : refus explicite, aucun chiffre', () {
       final DepartureEstimate e = DepartureEngineService.estimateForLine(
           modeLabel: 'DDD', lineId: 'ddd_1', now: DateTime(2026, 9, 28, 11, 43));

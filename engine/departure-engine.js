@@ -881,6 +881,12 @@
     return clockToDisplay(iso.slice(11, 16));
   }
 
+  // Accord du mot « minute » : « 0 à 1 minute », « 0 à 10 minutes ». Le
+  // singulier apparaît en fin de service (dernier départ documenté).
+  function minuteWord(n) {
+    return Number(n) === 1 ? 'minute' : 'minutes';
+  }
+
   function minutesBetween(fromIso, toIso) {
     if (typeof fromIso !== 'string' || typeof toIso !== 'string') return null;
     const a = clockToMinutes(fromIso.slice(11, 16));
@@ -1020,12 +1026,12 @@
             `${clockToDisplay(minutesToClock(to))}. L'heure exacte ${vehicleWord} n'est pas disponible.`;
         }
         return `Le ${mode} est disponible dans cette direction. Le prochain passage est estimé dans une ` +
-          `fenêtre de ${w1} à ${w2} minutes. L'heure exacte ${vehicleWord} n'est pas disponible.`;
+          `fenêtre de ${w1} à ${w2} ${minuteWord(w2)}. L'heure exacte ${vehicleWord} n'est pas disponible.`;
       }
       case STATUS.REAL_TIME: {
         const etaMin = e.estimatedFrom && ref ? Math.max(0, clockToMinutes(e.estimatedFrom.slice(11, 16)) - ref.minutes) : null;
         return `Véhicule ${e.vehicleId || e.eventId || 'observé'} observé à ${formatClock(e.observedAt) || '—'}` +
-          `${etaMin == null ? '' : ` ; arrivée estimée dans ${etaMin} minutes`} (temps réel, source : ${e.source || 'opérateur'}).`;
+          `${etaMin == null ? '' : ` ; arrivée estimée dans ${etaMin} ${minuteWord(etaMin)}`} (temps réel, source : ${e.source || 'opérateur'}).`;
       }
       default:
         return 'Je connais cette ligne, mais je n’ai pas actuellement de donnée suffisamment fiable ' +

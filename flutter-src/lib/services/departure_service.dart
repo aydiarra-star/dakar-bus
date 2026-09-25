@@ -727,6 +727,9 @@ class DepartureEngineService {
     }
   }
 
+  /// Accord du mot « minute » : « 0 à 1 minute », « 0 à 10 minutes ».
+  static String minuteWord(int n) => n == 1 ? 'minute' : 'minutes';
+
   /// L'assistant ne calcule rien : il formule le même [DepartureEstimate].
   static String assistantReply(
     DepartureEstimate e, {
@@ -757,7 +760,8 @@ class DepartureEngineService {
             ? (e.frequencyMinutes ?? 0)
             : clampInt(to - minutesOfDay(ref), w1, 1440);
         return 'Le $network est disponible dans cette direction. Le prochain '
-            'passage est estimé dans une fenêtre de $w1 à $w2 minutes. '
+            'passage est estimé dans une fenêtre de $w1 à $w2 '
+            '${minuteWord(w2)}. '
             'L\'heure exacte $vehicleWord n\'est pas disponible.';
       case ScheduleStatus.realTime:
         final int? eta = clockToMinutes(clockOfIso(e.estimatedFrom));
@@ -765,7 +769,7 @@ class DepartureEngineService {
             eta == null ? null : clampInt(eta - minutesOfDay(ref), 0, 1440);
         return 'Véhicule ${e.vehicleId ?? e.eventId ?? 'observé'} observé à '
             '${clockToDisplay(clockOfIso(e.observedAt)) ?? '—'}'
-            '${delta == null ? '' : ' ; arrivée estimée dans $delta minutes'} '
+            '${delta == null ? '' : ' ; arrivée estimée dans $delta ${minuteWord(delta)}'} '
             '(temps réel, source : ${e.source ?? 'opérateur'}).';
       case ScheduleStatus.unknown:
         return 'Je connais cette ligne, mais je n’ai pas actuellement de donnée '

@@ -424,6 +424,12 @@ test('T14 — l’assistant IA utilise exactement le même statut que l’interf
     }
   }
   assert.match(ENG.assistantReply(est(BRT_B1, now), { mode: 'BRT', now }), /fenêtre de 0 à 6 minutes/);
+
+  // Dernière minute de service : « 0 à 1 minute », jamais « 1 minutes ».
+  const fin = at(LUNDI, '20:59');
+  const answerFin = ENG.assistantReply(est(TER, fin), { mode: 'TER', now: fin });
+  assert.match(answerFin, /fenêtre de 0 à 1 minute\./);
+  assert.ok(!/1 minutes/.test(answerFin), `accord singulier attendu : ${answerFin}`);
 });
 
 // ---------------------------------------------------------------------------
