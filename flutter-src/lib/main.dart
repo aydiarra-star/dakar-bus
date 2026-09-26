@@ -4063,13 +4063,19 @@ class SingleStopView extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Prochain départ programmé', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
-                          const SizedBox(height: 2),
-                          Text(stop.nextDepartureLabel() ?? ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: stop.color)),
-                        ],
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Prochain départ programmé', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
+                            const SizedBox(height: 2),
+                            Text(
+                              stop.nextDepartureLabel() ?? ReliabilityLabel.scheduleUnavailable,
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: stop.color),
+                              softWrap: true,
+                            ),
+                          ],
+                        ),
                       ),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
