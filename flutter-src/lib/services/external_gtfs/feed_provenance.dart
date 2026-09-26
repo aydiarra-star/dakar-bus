@@ -112,7 +112,7 @@ class FeedProvenance {
   factory FeedProvenance.fromManifestEntry(Map<String, dynamic> entry) {
     String? s(String key) {
       final Object? v = entry[key];
-      return v == null ? null : v.toString();
+      return v?.toString();
     }
 
     return FeedProvenance(
