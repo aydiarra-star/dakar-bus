@@ -2815,7 +2815,36 @@ class StopCard extends StatelessWidget {
                   ],
                 ),
               ),
-              trailing: timeWidget,
+              // BUG UI — LIBELLÉ DE DIRECTION REPLIÉ CARACTÈRE PAR CARACTÈRE.
+              //
+              // CAUSE : `ListTile` n'est pas un `Row` contrôlé ici ; il calcule
+              //   lui-même la largeur du titre et du sous-titre :
+              //     largeurTitre = largeurTuile − contentPadding
+              //                    − (leading + horizontalTitleGap)
+              //                    − (trailing + horizontalTitleGap)
+              //   `leading` vaut 48 px (+ 16 px de gap) et `trailing` reçoit
+              //   une largeur NON bornée : le libellé de fréquence
+              //   (« Passage estimé dans 0–6 min · fréquence 6 min », ~285 px
+              //   en 11 px gras) consommait donc presque toute la tuile. La
+              //   colonne de texte (dont `Text(stop.direction,
+              //   « Dir. Papa Gueye Fall - PEM Petersen BRT ») ne recevait plus
+              //   que quelques pixels — d'où un repli caractère par caractère
+              //   et un empilement vertical qui déformait la carte.
+              //
+              // CORRECTIF MINIMAL : borner la largeur du seul élément de droite
+              //   à une fraction de la largeur réellement disponible (contrainte
+              //   responsive issue du parent : aucune largeur fixe arbitraire),
+              //   de sorte que la colonne de texte conserve toujours la majorité
+              //   de l'espace et se replie uniquement entre les mots. Quand le
+              //   libellé tient déjà sur une ligne (écrans larges), sa largeur
+              //   naturelle est conservée : aucun changement d'affichage.
+              //   Aucun texte, couleur, icône, espacement ni style modifié.
+              trailing: LayoutBuilder(
+                builder: (context, constraints) => ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: constraints.maxWidth * 0.34),
+                  child: timeWidget,
+                ),
+              ),
             ),
           ),
         );
