@@ -1,11 +1,12 @@
 import '../models/departure_info.dart';
+import '../models/schedule_models.dart';
 import '../models/transport_network.dart';
 
-/// Adaptateur de sources de fréquence publiées vers un état d'horaire.
+/// Provider de fréquences publiées, indépendant du ScheduleProvider.
 ///
-/// Le provider renvoie UNKNOWN hors des jours/plages documentés et ne produit
-/// jamais de `DataStatus.live`, d'heure de départ ou de liste de stop_times.
-class DataProvider {
+/// Il renvoie UNKNOWN hors des jours/plages documentés et ne produit jamais
+/// REAL_TIME, une heure exacte ou une liste de stop_times.
+class FrequencyProvider {
   static const String _verifiedAt = '2026-09-26';
   static const String _brtB1Url = 'https://www.sunubrt.sn/brt-1-omnibus/';
   static const String _brtB2Url = 'https://www.sunubrt.sn/brt-2-semi-express/';
@@ -130,6 +131,9 @@ class DataProvider {
     DateTime requestedAt, {
     bool isPublicHoliday = false,
     String? operatorName,
+    String? stopId,
+    int? directionId,
+    ServiceDate? serviceDate,
   }) {
     // Les fréquences sont publiées en heure de Dakar (UTC+0), indépendamment
     // du fuseau local de l'appareil.
@@ -147,12 +151,46 @@ class DataProvider {
         operator: operatorName ?? _operatorForUnknownRoute(routeId),
         routeId: routeId,
         requestedAt: dakarTime,
+        stopId: stopId,
+        directionId: directionId,
+        serviceDate: serviceDate,
+      );
+    }
+
+    // Les fréquences actuelles ne possèdent pas de direction_id GTFS à
+    // rapprocher. Ne pas convertir un libellé de direction en identifiant.
+    if (directionId != null) {
+      return DepartureInfo.unknown(
+        operator: operatorName ?? source.operator,
+        routeId: routeId,
+        source: source,
+        requestedAt: dakarTime,
+        stopId: stopId,
+        directionId: directionId,
+        serviceDate: serviceDate,
+      );
+    }
+    if (serviceDate != null && serviceDate != ServiceDate.fromInstant(dakarTime)) {
+      return DepartureInfo.unknown(
+        operator: operatorName ?? source.operator,
+        routeId: routeId,
+        source: source,
+        requestedAt: dakarTime,
+        stopId: stopId,
+        serviceDate: serviceDate,
       );
     }
 
     for (final window in source.frequencies) {
       if (window.appliesAt(dakarTime, isPublicHoliday: isPublicHoliday)) {
-        return DepartureInfo.fromFrequency(source, window, dakarTime);
+        return DepartureInfo.fromFrequency(
+          source,
+          window,
+          dakarTime,
+          stopId: stopId,
+          serviceDate: serviceDate,
+          isPublicHoliday: isPublicHoliday,
+        );
       }
     }
 
@@ -161,6 +199,9 @@ class DataProvider {
       routeId: routeId,
       source: source,
       requestedAt: dakarTime,
+      stopId: stopId,
+      directionId: directionId,
+      serviceDate: serviceDate,
     );
   }
 
@@ -174,4 +215,12 @@ class DataProvider {
     }
     return 'Inconnu';
   }
+}
+
+/// Alias de compatibilité pour les appels existants. Les nouvelles intégrations
+/// doivent dépendre explicitement de [FrequencyProvider], jamais d'un provider
+/// mélangeant horaires et fréquences.
+class DataProvider extends FrequencyProvider {
+  static const List<FrequencySource> officialFrequencySources =
+      FrequencyProvider.officialFrequencySources;
 }

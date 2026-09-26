@@ -1,35 +1,72 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import '../models/departure_info.dart';
+import '../models/schedule_models.dart';
 import '../models/transport_network.dart';
+import 'clock.dart';
 import 'data_provider.dart';
+import 'realtime_provider.dart';
+import 'schedule_provider.dart';
+import 'schedule_service.dart';
 
 /// Service de chargement du réseau Dakar
 /// CORRIGE : respecte le modèle TransportRoute (operatorId, type, stopIds)
 /// + peut charger depuis assets/data/dakar_network.json OU fallback mémoire
 class DataService {
-  final DataProvider _dataProvider;
+  final FrequencyProvider _frequencyProvider;
+  final ScheduleProvider _scheduleProvider;
+  final RealtimeProvider _realtimeProvider;
+  final Clock _clock;
+  final Duration? _realtimeMaxAge;
 
-  DataService({DataProvider? dataProvider})
-      : _dataProvider = dataProvider ?? DataProvider();
+  DataService({
+    DataProvider? dataProvider,
+    FrequencyProvider? frequencyProvider,
+    ScheduleProvider? scheduleProvider,
+    RealtimeProvider? realtimeProvider,
+    Clock? clock,
+    Duration? realtimeMaxAge,
+  })  : _frequencyProvider =
+            frequencyProvider ?? dataProvider ?? FrequencyProvider(),
+        _scheduleProvider = scheduleProvider ?? const EmptyScheduleProvider(),
+        _realtimeProvider = realtimeProvider ?? const EmptyRealtimeProvider(),
+        _clock = clock ?? const SystemClock(),
+        _realtimeMaxAge = realtimeMaxAge;
 
-  /// Résout une fréquence officielle en ESTIMATED uniquement lorsqu'elle
-  /// s'applique à la date/heure demandée. Aucun horaire station par station
-  /// n'est construit ; les lignes sans source restent UNKNOWN.
+  /// Résout une fréquence publiée en ESTIMATED uniquement lorsqu'elle
+  /// s'applique à l'instant demandé. Aucun horaire par arrêt n'est construit.
   DepartureInfo departureInfoForRoute(
     String routeId,
     DateTime requestedAt, {
     bool isPublicHoliday = false,
     String? operatorName,
-  }) =>
-      _dataProvider.departureInfoForRoute(
-        routeId,
-        requestedAt,
-        isPublicHoliday: isPublicHoliday,
-        operatorName: operatorName,
+    String? stopId,
+    int? directionId,
+    ServiceDate? serviceDate,
+  }) {
+    if (stopId != null && !_hasUniqueRouteStop(routeId, stopId)) {
+      return DepartureInfo.unknown(
+        operator: operatorName ?? 'Inconnu',
+        routeId: routeId,
+        requestedAt: requestedAt,
+        stopId: stopId,
+        directionId: directionId,
+        serviceDate: serviceDate,
       );
+    }
+    return _frequencyProvider.departureInfoForRoute(
+      routeId,
+      requestedAt,
+      isPublicHoliday: isPublicHoliday,
+      operatorName: operatorName,
+      stopId: stopId,
+      directionId: directionId,
+      serviceDate: serviceDate,
+    );
+  }
 
-  /// Entry point consumed by Stop. Unknown/incomplete identities remain UNKNOWN.
+  /// Adaptateur historique consommé par Stop. L'horloge est injectable ; le
+  /// nouveau moteur ci-dessous exige toujours now explicitement.
   DepartureInfo departureFor({
     required String? routeId,
     required String? stopId,
@@ -37,27 +74,72 @@ class DataService {
     DateTime? at,
     bool isPublicHoliday = false,
   }) {
+    final DateTime instant = at?.toUtc() ?? _clock.now().toUtc();
     if (routeId == null || stopId == null) {
       return DepartureInfo.unknown(
         operator: network,
         routeId: routeId ?? 'unknown',
-        requestedAt: at,
+        requestedAt: instant,
       );
     }
-    final route = _routes.where((candidate) => candidate.id == routeId);
-    if (route.length != 1 || !route.single.stopIds.contains(stopId)) {
+    if (!_hasUniqueRouteStop(routeId, stopId)) {
       return DepartureInfo.unknown(
         operator: network,
         routeId: routeId,
-        requestedAt: at,
+        requestedAt: instant,
+        stopId: stopId,
       );
     }
+    // Cette branche conserve seulement une fréquence de ligne. La vérification
+    // route.stopIds ne remplace jamais la relation trip -> stop_time du moteur.
     return departureInfoForRoute(
       routeId,
-      at ?? DateTime.now(),
+      instant,
       isPublicHoliday: isPublicHoliday,
       operatorName: network,
+      stopId: stopId,
     );
+  }
+
+  /// API horaire explicite : aucune lecture d'horloge, aucune résolution de
+  /// stop par nom/proximité et aucune interprétation de route.stopIds comme
+  /// stop_times. Les départs exacts proviennent exclusivement de ScheduleEngine.
+  DepartureSearchResult nextDepartureFor({
+    required String routeId,
+    required String stopId,
+    int? directionId,
+    required ServiceDate serviceDate,
+    required DateTime now,
+  }) {
+    final bool routeStopKnownForFrequency = _hasUniqueRouteStop(routeId, stopId);
+
+    return ScheduleEngine(
+      dataset: _scheduleProvider.dataset,
+      // route.stopIds est utilisé uniquement pour borner un repli ESTIMATED.
+      // Une réponse SCHEDULED/REAL_TIME dépend exclusivement du dataset trips.
+      frequencyProvider:
+          routeStopKnownForFrequency ? _frequencyProvider : null,
+      realtimePredictions: _realtimeProvider.predictions,
+      realtimeMaxAge: _realtimeMaxAge,
+    ).nextDepartureFor(
+      routeId: routeId,
+      stopId: stopId,
+      directionId: directionId,
+      serviceDate: serviceDate,
+      now: now,
+    );
+  }
+
+  /// Un repli de fréquence n'est permis que si les clés route/stop sont
+  /// uniques dans le réseau déjà chargé. Cela ne valide jamais un StopTime.
+  bool _hasUniqueRouteStop(String routeId, String stopId) {
+    final List<TransportRoute> matchingRoutes =
+        _routes.where((TransportRoute route) => route.id == routeId).toList();
+    final List<BusStop> matchingStops =
+        _stops.where((BusStop stop) => stop.id == stopId).toList();
+    return matchingRoutes.length == 1 &&
+        matchingRoutes.single.stopIds.contains(stopId) &&
+        matchingStops.length == 1;
   }
 
   List<Operator> _operators = [];
