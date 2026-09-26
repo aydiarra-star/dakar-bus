@@ -155,10 +155,10 @@ jobs:
         shell: bash
         run: |
           set +e
-          flutter test --reporter expanded 2>&1 | tee "${RUNNER_TEMP}/j9-logs/test.txt"
+          flutter test --reporter json 2>&1 | tee "${RUNNER_TEMP}/j9-logs/test.txt"
           status=${PIPESTATUS[0]}
           if [[ $status -ne 0 ]]; then
-            summary="$(grep -E '\[E\]|Expected:|Actual:|TestFailure|Exception|Which:|Stack Trace|Error:|Failure|Some tests failed' "${RUNNER_TEMP}/j9-logs/test.txt" | tail -n 50 | tr '\n' ' ')"
+            summary="$(python3 -c 'import json,sys; [print(json.loads(line)) for line in open(sys.argv[1], encoding="utf-8") if line.startswith("{") and json.loads(line).get("type") == "error"]' "${RUNNER_TEMP}/j9-logs/test.txt" | tail -n 20 | tr '\n' ' ')"
             echo "::error title=Flutter test failures::${summary}"
           fi
           exit "$status"
