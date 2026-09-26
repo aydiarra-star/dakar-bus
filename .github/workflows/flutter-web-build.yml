@@ -143,9 +143,11 @@ jobs:
           flutter analyze 2>&1 | tee "${RUNNER_TEMP}/j9-logs/analyze.txt"
           status=${PIPESTATUS[0]}
           if [[ $status -ne 0 ]]; then
-            while IFS= read -r diagnostic; do
-              echo "::error title=Flutter analyze::$diagnostic"
-            done < "${RUNNER_TEMP}/j9-logs/analyze.txt"
+            grep -E '(^|[[:space:]])(error|warning|info)[[:space:]]+•|^[[:space:]]*(error|warning|info)[[:space:]]+-' \
+              "${RUNNER_TEMP}/j9-logs/analyze.txt" | while IFS= read -r diagnostic; do
+                echo "::error title=Flutter analyze diagnostic::$diagnostic"
+              done
+            echo "::error title=Flutter analyze output::$(tail -n 20 "${RUNNER_TEMP}/j9-logs/analyze.txt" | tr '\n' ' ')"
           fi
           exit "$status"
 
