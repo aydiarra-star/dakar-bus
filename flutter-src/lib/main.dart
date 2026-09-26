@@ -719,8 +719,10 @@ class Stop {
 
   DepartureInfo get departureInfo => departureInfoAt();
 
-  DepartureInfo departureInfoAt(
-      [DateTime? at, bool isPublicHoliday = false]) =>
+  DepartureInfo departureInfoAt({
+    DateTime? at,
+    bool isPublicHoliday = false,
+  }) =>
       appDataService.departureFor(
         network: modeLabel,
         routeId: scheduleRouteId,
@@ -785,7 +787,7 @@ class Stop {
 
   DataStatus departureStatusAt(DateTime at, {bool isPublicHoliday = false}) =>
       departureDataStatus(
-        departureInfoAt(at, isPublicHoliday).status,
+        departureInfoAt(at: at, isPublicHoliday: isPublicHoliday).status,
       );
 
   bool get _hasSchedule => scheduleStatus == ScheduleStatus.scheduled;
@@ -1537,13 +1539,23 @@ class RoutePlanner {
 
     if (fromStop.modeLabel == toStop.modeLabel) {
       final direct = _buildRoute(
-          fromStop, toStop, currentMin, now, isPublicHoliday);
+        fromStop,
+        toStop,
+        currentMin,
+        now,
+        isPublicHoliday: isPublicHoliday,
+      );
       if (direct != null) candidates.add(direct);
     }
 
     if (candidates.isEmpty || candidates.first.totalMinutes > 45) {
       final transfer = _findTransfer(
-          fromStop, toStop, currentMin, now, isPublicHoliday);
+        fromStop,
+        toStop,
+        currentMin,
+        now,
+        isPublicHoliday: isPublicHoliday,
+      );
       if (transfer != null) candidates.add(transfer);
     }
 
@@ -1564,8 +1576,13 @@ class RoutePlanner {
     return allStops.firstWhere((s) => s.name.toLowerCase().contains('dakar'), orElse: () => allStops.first);
   }
 
-  static PlannedRoute? _buildRoute(Stop from, Stop to, int currentMin,
-      DateTime referenceTime, bool isPublicHoliday) {
+  static PlannedRoute? _buildRoute(
+    Stop from,
+    Stop to,
+    int currentMin,
+    DateTime referenceTime, {
+    required bool isPublicHoliday,
+  }) {
     final dist = DistanceHelper.haversineMeters(from.location, to.location);
     final speed = (from.modeLabel == 'TER' || from.modeLabel == 'BRT') ? 35.0 : 20.0;
     int dur = ((dist / 1000.0) / speed * 60).ceil();
@@ -1586,7 +1603,8 @@ class RoutePlanner {
     final int? dep = from.departureAfter(safeCurrentMin);
     final int? arr = dep == null ? null : dep + dur;
     final DepartureInfo departureInfo = from.scheduleRouteId != null && sameBoundRoute
-        ? from.departureInfoAt(referenceTime, isPublicHoliday)
+        ? from.departureInfoAt(
+            at: referenceTime, isPublicHoliday: isPublicHoliday)
         : DepartureInfo.unknown(
             operator: from.modeLabel,
             routeId: from.scheduleRouteId ?? 'unknown',
@@ -1610,21 +1628,31 @@ class RoutePlanner {
     );
   }
 
-  static PlannedRoute? _findTransfer(Stop from, Stop to, int currentMin,
-      DateTime referenceTime, bool isPublicHoliday) {
+  static PlannedRoute? _findTransfer(
+    Stop from,
+    Stop to,
+    int currentMin,
+    DateTime referenceTime, {
+    required bool isPublicHoliday,
+  }) {
     if (allStops.isEmpty) return null;
     final hub = allStops.firstWhere((s) => s.name.contains('Colobane') || s.name.contains('Petersen'), orElse: () => allStops.first);
     if (hub.name == from.name || hub.name == to.name) return null;
 
     final leg1 = _buildRoute(
-        from, hub, currentMin, referenceTime, isPublicHoliday);
+      from,
+      hub,
+      currentMin,
+      referenceTime,
+      isPublicHoliday: isPublicHoliday,
+    );
     if (leg1 == null) return null;
     final leg2 = _buildRoute(
       hub,
       to,
       currentMin + leg1.totalMinutes,
       referenceTime.add(Duration(minutes: leg1.totalMinutes)),
-      isPublicHoliday,
+      isPublicHoliday: isPublicHoliday,
     );
     if (leg2 == null) return null;
 
