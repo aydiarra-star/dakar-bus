@@ -152,7 +152,16 @@ jobs:
           exit "$status"
 
       - name: flutter test
-        run: flutter test --reporter expanded 2>&1 | tee "${RUNNER_TEMP}/j9-logs/test.txt"
+        shell: bash
+        run: |
+          set +e
+          flutter test --reporter expanded 2>&1 | tee "${RUNNER_TEMP}/j9-logs/test.txt"
+          status=${PIPESTATUS[0]}
+          if [[ $status -ne 0 ]]; then
+            summary="$(grep -E ' -[0-9]+:|Expected:|Actual:|Exception|Error:|Some tests failed|\[E\]' "${RUNNER_TEMP}/j9-logs/test.txt" | tail -n 30 | tr '\n' ' ')"
+            echo "::error title=Flutter test failures::${summary}"
+          fi
+          exit "$status"
 
       - name: flutter build web
         run: flutter build web --release --base-href "${BASE_HREF}" 2>&1 | tee "${RUNNER_TEMP}/j9-logs/build-web.txt"
