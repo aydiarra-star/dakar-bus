@@ -9,6 +9,7 @@ import 'dart:ui';
 import 'package:http/http.dart' as http;
 import 'models/transport_network.dart';
 import 'models/reliability.dart';
+import 'models/departure_info.dart';
 import 'services/data_service.dart';
 
 // ============================================================
@@ -699,7 +700,7 @@ void openLineDetail(BuildContext context, DetailedRoute? route) {
 class Stop {
   final String name; final String direction; final double distanceMeters;
   final List<int> departureMinutesFromMidnight; final IconData icon;
-  final Color color; final LatLng location; final DataStatus status;
+  final Color color; final LatLng location; final DataStatus _legacyStatus;
   final String modeLabel; final DataSourceInfo source;
   final StopType stopType;
 
@@ -712,19 +713,39 @@ class Stop {
   /// appel existant n'est cassé.
   final String? stopId;
 
+  /// Ligne officiellement liée à cet arrêt. Une fréquence ne devient jamais
+  /// un élément de [departureMinutesFromMidnight] : elle reste dans le provider.
+  final String? scheduleRouteId;
+
+  DepartureInfo get departureInfo => departureInfoAt();
+
+  DepartureInfo departureInfoAt({
+    DateTime? at,
+    bool isPublicHoliday = false,
+  }) =>
+      appDataService.departureFor(
+        network: modeLabel,
+        routeId: scheduleRouteId,
+        stopId: stopId,
+        at: at,
+        isPublicHoliday: isPublicHoliday,
+      );
+
   const Stop({
     required this.name, required this.direction, required this.distanceMeters,
     required this.departureMinutesFromMidnight, required this.icon, required this.color,
-    required this.location, required this.modeLabel, this.status = DataStatus.scheduled,
+    required this.location, required this.modeLabel,
+    DataStatus status = DataStatus.scheduled,
     this.source = DataSourceInfo.demo, this.stopType = StopType.departure,
-    this.stopId,
-  });
+    this.stopId, this.scheduleRouteId,
+  }) : _legacyStatus = status;
 
   Stop copyWith({
     String? name, String? direction, double? distanceMeters,
     List<int>? departureMinutesFromMidnight, IconData? icon, Color? color,
     LatLng? location, DataStatus? status, String? modeLabel,
     DataSourceInfo? source, StopType? stopType, String? stopId,
+    String? scheduleRouteId,
   }) => Stop(
     name: name ?? this.name,
     direction: direction ?? this.direction,
@@ -738,19 +759,36 @@ class Stop {
     source: source ?? this.source,
     stopType: stopType ?? this.stopType,
     stopId: stopId ?? this.stopId,
+    scheduleRouteId: scheduleRouteId ?? this.scheduleRouteId,
   );
 
   // AUDIT DONNÉES 2026-09-24 — horaires.
   // AVANT : `isContinuousFlow` inventait une « rotation ~5 min » pour AFTU,
   //         DDD et Tata ; des heures d'ouverture (5 h–22 h 30) étaient
   //         supposées ; les départs TER/BRT venaient d'un générateur.
-  // APRÈS : seul un horaire FOURNI est affiché, et au mieux comme programmé.
-  //         Sans horaire : `null` / « Horaire indisponible ». Jamais de temps
-  //         réel (aucun flux n'existe).
+  // APRÈS : une heure réellement publiée reste SCHEDULED ; une fréquence
+  //         officielle applicable passe ESTIMATED sans créer d'heure fixe.
+  //         Sans source applicable : UNKNOWN. Aucun flux temps réel n'existe.
 
-  /// UNKNOWN si aucun départ n'est fourni ; au mieux SCHEDULED, jamais REAL_TIME.
-  ScheduleStatus get scheduleStatus =>
-      ReliabilityLabel.scheduleStatusOf(departureMinutesFromMidnight);
+  /// Un départ lié à une ligne résout le statut à l'heure demandée : la
+  /// fréquence reste ESTIMATED et ne remplit jamais une liste d'heures.
+  ScheduleStatus get scheduleStatus => scheduleRouteId != null
+      ? departureInfo.status
+      : ReliabilityLabel.scheduleStatusOf(departureMinutesFromMidnight);
+
+  /// Cross-layer status consumed by the planner; frequencies map to ESTIMATED.
+  DataStatus get departureStatus => departureDataStatus(scheduleStatus);
+
+  /// Public status surface consumed by app code. Route-bound stops derive it
+  /// from their applicable source; legacy stops retain their stored value.
+  DataStatus get status => scheduleRouteId != null
+      ? departureStatus
+      : _legacyStatus;
+
+  DataStatus departureStatusAt(DateTime at, {bool isPublicHoliday = false}) =>
+      departureDataStatus(
+        departureInfoAt(at: at, isPublicHoliday: isPublicHoliday).status,
+      );
 
   bool get _hasSchedule => scheduleStatus == ScheduleStatus.scheduled;
 
@@ -771,6 +809,7 @@ class Stop {
   }
 
   String? nextDepartureLabel() {
+    if (scheduleRouteId != null) return departureInfo.label;
     final d = nextDepartureMinutes();
     if (d == null) return ReliabilityLabel.scheduleUnavailable;
     final normalized = d % (24 * 60);
@@ -784,7 +823,23 @@ class Stop {
   }
 }
 
-enum DataStatus { scheduled, live, unknown }
+enum DataStatus { scheduled, live, unknown, estimated }
+
+/// Keep the existing 4-value status contract. A realtime classification can
+/// only be mapped here by a future live provider; current frequency sources
+/// resolve exclusively to ESTIMATED or UNKNOWN.
+DataStatus departureDataStatus(ScheduleStatus status) {
+  switch (status) {
+    case ScheduleStatus.scheduled:
+      return DataStatus.scheduled;
+    case ScheduleStatus.realTime:
+      return DataStatus.live;
+    case ScheduleStatus.estimated:
+      return DataStatus.estimated;
+    case ScheduleStatus.unknown:
+      return DataStatus.unknown;
+  }
+}
 
 class TransitRoute {
   final String name; final String code; final String type; final Color color; final List<LatLng> points;
@@ -797,7 +852,8 @@ class RouteSegment {
   final String from; final String to; final int durationMinutes;
   final String? departureTime; final String? arrivalTime;
   final DataStatus status; final bool isWalk;
-  const RouteSegment({required this.modeLabel, required this.color, required this.icon, required this.from, required this.to, required this.durationMinutes, this.departureTime, this.arrivalTime, this.status = DataStatus.scheduled, this.isWalk = false});
+  final DepartureInfo? departureInfo;
+  const RouteSegment({required this.modeLabel, required this.color, required this.icon, required this.from, required this.to, required this.durationMinutes, this.departureTime, this.arrivalTime, this.status = DataStatus.scheduled, this.isWalk = false, this.departureInfo});
 }
 
 class PlannedRoute {
@@ -1328,6 +1384,7 @@ void _integrateNetworkData() {
       final stop = Stop(
         name: busStop.name,
         stopId: busStop.id,
+        scheduleRouteId: route.id,
         direction: i == stopIds.length - 1
             ? 'Terminus ${busStop.name} (Arrivée)'
             : 'Dir. ${appDataService.stops.lastWhere((s) => s.id == stopIds.last, orElse: () => busStop).name}',
@@ -1458,8 +1515,13 @@ final List<TransitRoute> demoRoutes = <TransitRoute>[];
 // MOTEUR D ITINERAIRES INTELLIGENT
 // ============================================================
 class RoutePlanner {
-  static RouteSearchResult plan({required String fromQuery, required String toQuery}) {
-    final now = DateTime.now();
+  static RouteSearchResult plan({
+    required String fromQuery,
+    required String toQuery,
+    DateTime? at,
+    bool isPublicHoliday = false,
+  }) {
+    final now = at ?? DateTime.now();
     // Audit données 2026-09-24 — AVANT : hors 5 h 00–22 h 30, réponse « Les
     // réseaux … sont actuellement fermés (Service de 5h00 à 22h30) ». Ces
     // heures de service ne figurent dans AUCUNE donnée (schedule_status
@@ -1476,12 +1538,24 @@ class RoutePlanner {
     final candidates = <PlannedRoute>[];
 
     if (fromStop.modeLabel == toStop.modeLabel) {
-      final direct = _buildRoute(fromStop, toStop, currentMin);
+      final direct = _buildRoute(
+        fromStop,
+        toStop,
+        currentMin,
+        now,
+        isPublicHoliday: isPublicHoliday,
+      );
       if (direct != null) candidates.add(direct);
     }
 
     if (candidates.isEmpty || candidates.first.totalMinutes > 45) {
-      final transfer = _findTransfer(fromStop, toStop, currentMin);
+      final transfer = _findTransfer(
+        fromStop,
+        toStop,
+        currentMin,
+        now,
+        isPublicHoliday: isPublicHoliday,
+      );
       if (transfer != null) candidates.add(transfer);
     }
 
@@ -1502,7 +1576,13 @@ class RoutePlanner {
     return allStops.firstWhere((s) => s.name.toLowerCase().contains('dakar'), orElse: () => allStops.first);
   }
 
-  static PlannedRoute? _buildRoute(Stop from, Stop to, int currentMin) {
+  static PlannedRoute? _buildRoute(
+    Stop from,
+    Stop to,
+    int currentMin,
+    DateTime referenceTime, {
+    required bool isPublicHoliday,
+  }) {
     final dist = DistanceHelper.haversineMeters(from.location, to.location);
     final speed = (from.modeLabel == 'TER' || from.modeLabel == 'BRT') ? 35.0 : 20.0;
     int dur = ((dist / 1000.0) / speed * 60).ceil();
@@ -1513,39 +1593,82 @@ class RoutePlanner {
     //         courante devenait une « heure de départ » et `dep + dur` une
     //         heure d'arrivée, toutes deux affichées avec `DataStatus.scheduled`.
     // APRÈS : heures de départ/arrivée seulement si un horaire est fourni ;
-    //         sinon `null` → « Horaire indisponible » et `DataStatus.unknown`.
-    //         `dur` reste une ESTIMATION (distance à vol d'oiseau / vitesse
-    //         moyenne supposée), affichée comme telle.
+    //         sinon une fréquence applicable fournit seulement ESTIMATED :
+    //         aucune heure exacte n'est calculée. Sans fréquence : UNKNOWN.
+    //         `dur` reste l'estimation historique (distance / vitesse moyenne) ;
+    //         ses calculs ne sont pas modifiés ici.
     final safeCurrentMin = math.max(0, currentMin);
+    final bool sameBoundRoute = from.scheduleRouteId == null ||
+        from.scheduleRouteId == to.scheduleRouteId;
     final int? dep = from.departureAfter(safeCurrentMin);
     final int? arr = dep == null ? null : dep + dur;
-    final DataStatus status = dep == null ? DataStatus.unknown : DataStatus.scheduled;
+    final DepartureInfo departureInfo = from.scheduleRouteId != null && sameBoundRoute
+        ? from.departureInfoAt(
+            at: referenceTime, isPublicHoliday: isPublicHoliday)
+        : DepartureInfo.unknown(
+            operator: from.modeLabel,
+            routeId: from.scheduleRouteId ?? 'unknown',
+            requestedAt: referenceTime,
+          );
+    final DataStatus status = from.scheduleRouteId != null
+        ? sameBoundRoute
+            ? from.departureStatusAt(referenceTime,
+                isPublicHoliday: isPublicHoliday)
+            : DataStatus.unknown
+        : dep == null ? DataStatus.unknown : DataStatus.scheduled;
 
     return PlannedRoute(
       fromName: from.name, toName: to.name, totalMinutes: dur,
       transferCount: 0, status: status,
-      segments: [RouteSegment(modeLabel: from.modeLabel, color: from.color, icon: from.icon, from: from.name, to: to.name, durationMinutes: dur, departureTime: dep == null ? null : _formatMin(dep), arrivalTime: arr == null ? null : _formatMin(arr), status: status)],
+      segments: [RouteSegment(modeLabel: from.modeLabel, color: from.color,
+        icon: from.icon, from: from.name, to: to.name, durationMinutes: dur,
+        departureTime: dep == null ? null : _formatMin(dep),
+        arrivalTime: arr == null ? null : _formatMin(arr), status: status,
+        departureInfo: from.scheduleRouteId == null ? null : departureInfo)],
     );
   }
 
-  static PlannedRoute? _findTransfer(Stop from, Stop to, int currentMin) {
+  static PlannedRoute? _findTransfer(
+    Stop from,
+    Stop to,
+    int currentMin,
+    DateTime referenceTime, {
+    required bool isPublicHoliday,
+  }) {
     if (allStops.isEmpty) return null;
     final hub = allStops.firstWhere((s) => s.name.contains('Colobane') || s.name.contains('Petersen'), orElse: () => allStops.first);
     if (hub.name == from.name || hub.name == to.name) return null;
 
-    final leg1 = _buildRoute(from, hub, currentMin);
+    final leg1 = _buildRoute(
+      from,
+      hub,
+      currentMin,
+      referenceTime,
+      isPublicHoliday: isPublicHoliday,
+    );
     if (leg1 == null) return null;
-    final leg2 = _buildRoute(hub, to, (currentMin + leg1.totalMinutes));
+    final leg2 = _buildRoute(
+      hub,
+      to,
+      currentMin + leg1.totalMinutes,
+      referenceTime.add(Duration(minutes: leg1.totalMinutes)),
+      isPublicHoliday: isPublicHoliday,
+    );
     if (leg2 == null) return null;
 
     return PlannedRoute(
       fromName: from.name, toName: to.name,
       totalMinutes: leg1.totalMinutes + leg2.totalMinutes + 5,
       transferCount: 1,
-      // Programmé seulement si les deux tronçons le sont (jamais promu).
-      status: leg1.status == DataStatus.scheduled && leg2.status == DataStatus.scheduled
-          ? DataStatus.scheduled
-          : DataStatus.unknown,
+      // La fréquence ne fournit jamais d'heure précise. L'itinéraire composé
+      // reste estimé si ses deux tronçons ont une source applicable.
+      status: leg1.status == DataStatus.unknown || leg2.status == DataStatus.unknown
+          ? DataStatus.unknown
+          : leg1.status == DataStatus.estimated || leg2.status == DataStatus.estimated
+              ? DataStatus.estimated
+              : leg1.status == DataStatus.scheduled && leg2.status == DataStatus.scheduled
+                  ? DataStatus.scheduled
+                  : DataStatus.unknown,
       segments: [...leg1.segments, ...leg2.segments],
     );
   }
@@ -2638,7 +2761,16 @@ class StopCard extends StatelessWidget {
         // APRÈS : sans horaire fourni → « Horaire indisponible » ; avec un
         //         horaire fourni → « Prévu HH h MM » (programmé, pas de
         //         compte à rebours). Aucun flux temps réel n'existe.
-        if (stop.scheduleStatus == ScheduleStatus.unknown) {
+        if (stop.scheduleRouteId != null) {
+          final info = stop.departureInfo;
+          timeWidget = Text(info.label, style: TextStyle(
+            fontSize: info.status == ScheduleStatus.scheduled ? 13 : 11,
+            fontWeight: FontWeight.bold,
+            color: info.status == ScheduleStatus.scheduled
+                ? stop.color
+                : AppColors.textSecondary(dark),
+          ));
+        } else if (stop.scheduleStatus == ScheduleStatus.unknown) {
           timeWidget = Text(ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary(dark)));
         } else if (stop.nextDepartureMinutes() == null) {
           timeWidget = Text('Aucun départ programmé', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary(dark)));
@@ -3380,8 +3512,8 @@ class SettingsPage extends StatelessWidget {
 //         normalement », et pour un trajet « 🕒 hh:mm → hh:mm … Direct /
 //         Rotation ~5 min » calculés sans horaire.
 // APRÈS : chaque réponse est dérivée des opérateurs et routes chargés, avec
-//         leur statut de provenance. Aucun horaire, aucune fréquence, aucun
-//         état de trafic n'est affirmé sans donnée vérifiée.
+//         leur statut de provenance. Une fréquence officielle applicable est
+//         qualifiée ESTIMATED ; aucune heure fixe ou donnée LIVE n'est inventée.
 class AssistantReplies {
 
   /// Texte d'un itinéraire calculé. Sans horaire programmé fourni, la phrase
@@ -3396,6 +3528,8 @@ class AssistantReplies {
       buf.writeln('${i + 1}. ${s.modeLabel} : ${s.from} → ${s.to}');
       if (s.status == DataStatus.scheduled && s.departureTime != null && s.arrivalTime != null) {
         buf.writeln('   🕒 Horaire programmé : ${s.departureTime} → ${s.arrivalTime}');
+      } else if (s.status == DataStatus.estimated && s.departureInfo != null) {
+        buf.writeln('   🕒 ${s.departureInfo!.label} — estimation non garantie');
       } else {
         buf.writeln('   🕒 ${ReliabilityLabel.noVerifiedSchedule}');
       }
@@ -3929,13 +4063,19 @@ class SingleStopView extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Prochain départ programmé', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
-                          const SizedBox(height: 2),
-                          Text(stop.nextDepartureLabel() ?? ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: stop.color)),
-                        ],
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Prochain départ programmé', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
+                            const SizedBox(height: 2),
+                            Text(
+                              stop.nextDepartureLabel() ?? ReliabilityLabel.scheduleUnavailable,
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: stop.color),
+                              softWrap: true,
+                            ),
+                          ],
+                        ),
                       ),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,

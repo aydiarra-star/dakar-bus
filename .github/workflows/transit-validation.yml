@@ -9,10 +9,44 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Déterminer le périmètre du gate historique
+        id: release-scope
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          if [[ "${EVENT_NAME}" == "workflow_dispatch" ]]; then
+            echo "required=true" >> "${GITHUB_OUTPUT}"
+            echo "Exécution manuelle : le release gate est explicitement demandé."
+            exit 0
+          fi
+
+          changed="$(git diff --name-only --no-renames "${PR_BASE_SHA}...${PR_HEAD_SHA}")"
+          # Inputs to validate:data plus files exercised by npm test in this workflow.
+          # Flutter assets/code and this workflow itself are not validator inputs.
+          scope_pattern='^(package\.json|tests/.*\.test\.js|scripts/check-arrets\.js|scripts/lib/(transit-validation|pages-audit)\.js|data/transit/reference-policy\.json|data/gtfs/(stops|trips|stop_times)\.txt|index\.html)$'
+
+          if printf '%s\n' "${changed}" | grep -Eq "${scope_pattern}"; then
+            echo "required=true" >> "${GITHUB_OUTPUT}"
+            echo "Fichiers du périmètre de validation modifiés :"
+            printf '%s\n' "${changed}" | grep -E "${scope_pattern}"
+          else
+            echo "required=false" >> "${GITHUB_OUTPUT}"
+            echo "Aucun fichier du périmètre du release gate historique n'a changé."
+          fi
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - name: Validator unit tests (synthetic fixtures only)
         run: npm test
+      - name: Real data release gate — NOT APPLICABLE (hors périmètre)
+        if: steps.release-scope.outputs.required != 'true'
+        run: echo "SKIPPED / NOT APPLICABLE — aucun input du gate historique n'a changé."
       - name: Real data release gate (expected to block until source data is verified)
+        if: steps.release-scope.outputs.required == 'true'
         run: npm run validate:data

@@ -595,10 +595,10 @@ void main() {
   });
 
   group('Groupe 4 — F6 garde-fou REAL_TIME (test g, Carte 14)', () {
-    test('DataStatus conserve exactement 3 valeurs (Carte 14 : aucune 4e valeur)', () {
-      expect(DataStatus.values, hasLength(3));
+    test('DataStatus conserve les 4 valeurs du contrat du bridge', () {
+      expect(DataStatus.values, hasLength(4));
       expect(DataStatus.values.map((s) => s.name).toList(),
-          <String>['scheduled', 'live', 'unknown']);
+          <String>['scheduled', 'live', 'unknown', 'estimated']);
     });
 
     test('le resolver GPS n\'expose AUCUN DataStatus (aucun statut produit par le GPS)', () {
@@ -617,17 +617,21 @@ void main() {
       expect(r.message, isA<String>());
     });
 
-    test('GARDE-FOU SOURCE : `DataStatus.live` n\'est assigné nulle part dans lib/main.dart', () {
+    test('GARDE-FOU SOURCE : LIVE ne peut venir que du mapping préparatoire', () {
       final file = File('lib/main.dart');
       expect(file.existsSync(), isTrue, reason: 'flutter test s\'exécute à la racine du paquet');
 
       final code = _stripComments(file.readAsStringSync());
-
-      expect(code.contains('DataStatus.live'), isFalse,
-          reason: 'Carte 14 : « aucun live n\'est produit : il n\'existe aucune '
-              'source de données véhicule réelle dans le projet »');
-      expect(code.contains('enum DataStatus { scheduled, live, unknown }'), isTrue,
-          reason: 'la déclaration de l\'enum, elle, doit rester intacte');
+      final mappings = RegExp(
+        r'DataStatus departureDataStatus\(ScheduleStatus status\)\s*\{[^}]*\}',
+      ).allMatches(code).toList();
+      expect(mappings, hasLength(1));
+      expect(code, contains('enum DataStatus { scheduled, live, unknown, estimated }'));
+      final outsideMapping = code.replaceRange(
+        mappings.single.start, mappings.single.end, '',
+      );
+      expect(outsideMapping, isNot(contains('DataStatus.live')),
+          reason: 'seul un futur vrai provider pourra utiliser le mapping vers LIVE');
     });
 
     test('GARDE-FOU SOURCE : aucune position GPS fabriquée n\'est assignée à _userPosition', () {
