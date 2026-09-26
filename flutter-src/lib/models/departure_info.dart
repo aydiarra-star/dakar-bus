@@ -149,7 +149,7 @@ class DepartureInfo {
 
   String get label {
     if (status == ScheduleStatus.estimated) {
-      return 'Passage estimé dans $estimatedWaitFrom–$estimatedWaitTo min · fréquence ${frequencyMinutes} min';
+      return 'Passage estimé dans $estimatedWaitFrom–$estimatedWaitTo min · fréquence $frequencyMinutes min';
     }
     if (status == ScheduleStatus.scheduled) return 'Départ programmé';
     return 'Horaire indisponible';
