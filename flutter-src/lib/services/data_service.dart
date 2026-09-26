@@ -1,11 +1,23 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
+import '../models/departure_info.dart';
+import 'external_gtfs/departure_adapter.dart';
 import '../models/transport_network.dart';
 
 /// Service de chargement du réseau Dakar
 /// CORRIGE : respecte le modèle TransportRoute (operatorId, type, stopIds)
 /// + peut charger depuis assets/data/dakar_network.json OU fallback mémoire
 class DataService {
+  /// Same provider as the assistant. No source or crosswalk is invented here.
+  DepartureAdapter? departureAdapter;
+
+  DepartureInfo departureFor({required String network, required String? routeId,
+      required String? stopId, String? directionId, DateTime? at}) {
+    if (routeId == null || stopId == null) return const DepartureInfo.unknown();
+    return departureAdapter?.resolve(network: network, routeId: routeId,
+        stopId: stopId, directionId: directionId, at: at) ?? const DepartureInfo.unknown();
+  }
+
   List<Operator> _operators = [];
   List<BusStop> _stops = [];
   List<TransportRoute> _routes = [];

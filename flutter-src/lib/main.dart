@@ -9,6 +9,8 @@ import 'dart:ui';
 import 'package:http/http.dart' as http;
 import 'models/transport_network.dart';
 import 'models/reliability.dart';
+import 'models/departure_info.dart';
+import 'services/external_gtfs/departure_adapter.dart';
 import 'services/data_service.dart';
 import 'services/external_gtfs/cetud_feed_bootstrap.dart';
 import 'services/external_gtfs/schedule_assistant.dart';
@@ -41,7 +43,6 @@ Future<void> main() async {
   };
   try {
     await appDataService.loadNetworkData();
-    _integrateNetworkData();
   } catch (e, st) {
     debugPrint('⚠️ DataService init failed: $e');
     debugPrint('$st');
@@ -52,6 +53,15 @@ Future<void> main() async {
     cetudFeedLayerStatus = cetud.layerStatus;
   } catch (e, st) {
     debugPrint('⚠️ CETUD feed bootstrap failed: $e');
+    debugPrint('$st');
+  }
+  // CETUD absence does not prevent registering independently validated sources
+  // on this SAME provider. No production frequency/crosswalk is assumed.
+  appDataService.departureAdapter = DepartureAdapter(transitDataProvider);
+  try {
+    _integrateNetworkData();
+  } catch (e, st) {
+    debugPrint('⚠️ Network integration failed: $e');
     debugPrint('$st');
   }
   runZonedGuarded(() {
@@ -420,6 +430,7 @@ class DetailedRoute {
   /// numéro n'est inventé (§12). Ce champ n'est lu par aucune vue.
   final int? lineNumber;
   final String operator;
+  final String? scheduleNetwork;
   final Color color;
   String origin;
   String destination;
@@ -439,6 +450,7 @@ class DetailedRoute {
     required this.routeId,
     required this.lineNumber,
     required this.operator,
+    this.scheduleNetwork,
     required this.color,
     required this.origin,
     required this.destination,
@@ -598,6 +610,7 @@ class DetailedRoute {
       // aucun numéro n'est inventé (§12). Ce champ n'est lu par aucune vue.
       lineNumber: digits == null ? null : int.tryParse(digits),
       operator: exploitant?.name ?? route.operatorId.toUpperCase(),
+      scheduleNetwork: route.operatorId.toUpperCase(),
       color: _colorForOperatorId(route.operatorId),
       origin: out.first.name,
       destination: out.last.name,
@@ -730,13 +743,20 @@ class Stop {
   /// puis sur la proximité géographique. Le paramètre est optionnel : aucun
   /// appel existant n'est cassé.
   final String? stopId;
+  final String? scheduleRouteId;
+  final String? scheduleDirectionId;
+
+  DepartureInfo get departureInfo => departureInfoAt();
+  DepartureInfo departureInfoAt([DateTime? at]) => appDataService.departureFor(
+      network: modeLabel, routeId: scheduleRouteId, stopId: stopId,
+      directionId: scheduleDirectionId, at: at);
 
   const Stop({
     required this.name, required this.direction, required this.distanceMeters,
     required this.departureMinutesFromMidnight, required this.icon, required this.color,
     required this.location, required this.modeLabel, this.status = DataStatus.scheduled,
     this.source = DataSourceInfo.demo, this.stopType = StopType.departure,
-    this.stopId,
+    this.stopId, this.scheduleRouteId, this.scheduleDirectionId,
   });
 
   Stop copyWith({
@@ -744,6 +764,7 @@ class Stop {
     List<int>? departureMinutesFromMidnight, IconData? icon, Color? color,
     LatLng? location, DataStatus? status, String? modeLabel,
     DataSourceInfo? source, StopType? stopType, String? stopId,
+    String? scheduleRouteId, String? scheduleDirectionId,
   }) => Stop(
     name: name ?? this.name,
     direction: direction ?? this.direction,
@@ -757,6 +778,8 @@ class Stop {
     source: source ?? this.source,
     stopType: stopType ?? this.stopType,
     stopId: stopId ?? this.stopId,
+    scheduleRouteId: scheduleRouteId ?? this.scheduleRouteId,
+    scheduleDirectionId: scheduleDirectionId ?? this.scheduleDirectionId,
   );
 
   // AUDIT DONNÉES 2026-09-24 — horaires.
@@ -767,15 +790,24 @@ class Stop {
   //         Sans horaire : `null` / « Horaire indisponible ». Jamais de temps
   //         réel (aucun flux n'existe).
 
-  /// UNKNOWN si aucun départ n'est fourni ; au mieux SCHEDULED, jamais REAL_TIME.
-  ScheduleStatus get scheduleStatus =>
-      ReliabilityLabel.scheduleStatusOf(departureMinutesFromMidnight);
+  /// Bound stops use the provider classification, including ESTIMATED.
+  /// Legacy minute lists remain compatible and never imply real time.
+  ScheduleStatus get scheduleStatus => scheduleRouteId != null
+      ? departureInfo.status
+      : ReliabilityLabel.scheduleStatusOf(departureMinutesFromMidnight);
 
   bool get _hasSchedule => scheduleStatus == ScheduleStatus.scheduled;
 
   int? nextDepartureMinutes() {
+    if (scheduleRouteId != null) {
+      final info = departureInfo;
+      final time = info.scheduledTime;
+      if (info.status != ScheduleStatus.scheduled || time == null) return null;
+      final now = transitDataProvider.now().toUtc();
+      return time.difference(DateTime.utc(now.year, now.month, now.day)).inMinutes;
+    }
     if (!_hasSchedule) return null;
-    final now = DateTime.now();
+    final now = transitDataProvider.now().toUtc();
     final currentMin = now.hour * 60 + now.minute;
     for (final d in departureMinutesFromMidnight) {
       if (d >= currentMin && (d - currentMin) <= 180) return d;
@@ -786,10 +818,11 @@ class Stop {
   int? remainingMinutes() {
     final d = nextDepartureMinutes();
     if (d == null) return null;
-    return d - (DateTime.now().hour * 60 + DateTime.now().minute);
+    return d - (transitDataProvider.now().toUtc().hour * 60 + transitDataProvider.now().toUtc().minute);
   }
 
   String? nextDepartureLabel() {
+    if (scheduleRouteId != null) return departureInfo.label;
     final d = nextDepartureMinutes();
     if (d == null) return ReliabilityLabel.scheduleUnavailable;
     final normalized = d % (24 * 60);
@@ -797,13 +830,30 @@ class Stop {
   }
 
   int? departureAfter(int minFromMidnight) {
+    if (scheduleRouteId != null) {
+      final now = transitDataProvider.now().toUtc();
+      final midnight = DateTime.utc(now.year, now.month, now.day);
+      final info = departureInfoAt(midnight.add(Duration(minutes: minFromMidnight)));
+      final time = info.scheduledTime;
+      return info.status == ScheduleStatus.scheduled && time != null
+          ? time.difference(midnight).inMinutes : null;
+    }
     if (!_hasSchedule) return null;
     for (final d in departureMinutesFromMidnight) { if (d > minFromMidnight) return d; }
     return null;
   }
 }
 
-enum DataStatus { scheduled, live, unknown }
+enum DataStatus { scheduled, live, unknown, estimated }
+
+DataStatus departureDataStatus(ScheduleStatus status) {
+  switch (status) {
+    case ScheduleStatus.scheduled: return DataStatus.scheduled;
+    case ScheduleStatus.estimated: return DataStatus.estimated;
+    case ScheduleStatus.realTime: return DataStatus.live;
+    case ScheduleStatus.unknown: return DataStatus.unknown;
+  }
+}
 
 class TransitRoute {
   final String name; final String code; final String type; final Color color; final List<LatLng> points;
@@ -816,7 +866,8 @@ class RouteSegment {
   final String from; final String to; final int durationMinutes;
   final String? departureTime; final String? arrivalTime;
   final DataStatus status; final bool isWalk;
-  const RouteSegment({required this.modeLabel, required this.color, required this.icon, required this.from, required this.to, required this.durationMinutes, this.departureTime, this.arrivalTime, this.status = DataStatus.scheduled, this.isWalk = false});
+  final DepartureInfo? departureInfo;
+  const RouteSegment({required this.modeLabel, required this.color, required this.icon, required this.from, required this.to, required this.durationMinutes, this.departureTime, this.arrivalTime, this.status = DataStatus.scheduled, this.isWalk = false, this.departureInfo});
 }
 
 class PlannedRoute {
@@ -1347,6 +1398,7 @@ void _integrateNetworkData() {
       final stop = Stop(
         name: busStop.name,
         stopId: busStop.id,
+        scheduleRouteId: route.id,
         direction: i == stopIds.length - 1
             ? 'Terminus ${busStop.name} (Arrivée)'
             : 'Dir. ${appDataService.stops.lastWhere((s) => s.id == stopIds.last, orElse: () => busStop).name}',
@@ -1478,7 +1530,7 @@ final List<TransitRoute> demoRoutes = <TransitRoute>[];
 // ============================================================
 class RoutePlanner {
   static RouteSearchResult plan({required String fromQuery, required String toQuery}) {
-    final now = DateTime.now();
+    final now = transitDataProvider.now().toUtc();
     // Audit données 2026-09-24 — AVANT : hors 5 h 00–22 h 30, réponse « Les
     // réseaux … sont actuellement fermés (Service de 5h00 à 22h30) ». Ces
     // heures de service ne figurent dans AUCUNE donnée (schedule_status
@@ -1536,14 +1588,23 @@ class RoutePlanner {
     //         `dur` reste une ESTIMATION (distance à vol d'oiseau / vitesse
     //         moyenne supposée), affichée comme telle.
     final safeCurrentMin = math.max(0, currentMin);
-    final int? dep = from.departureAfter(safeCurrentMin);
+    final bool sameBoundRoute = from.scheduleRouteId == null ||
+        from.scheduleRouteId == to.scheduleRouteId;
+    final int? dep = sameBoundRoute ? from.departureAfter(safeCurrentMin) : null;
     final int? arr = dep == null ? null : dep + dur;
-    final DataStatus status = dep == null ? DataStatus.unknown : DataStatus.scheduled;
+    final now = transitDataProvider.now().toUtc();
+    final info = sameBoundRoute
+        ? from.departureInfoAt(DateTime.utc(now.year, now.month, now.day)
+            .add(Duration(minutes: safeCurrentMin)))
+        : const DepartureInfo.unknown();
+    final DataStatus status = from.scheduleRouteId != null
+        ? departureDataStatus(info.status)
+        : dep == null ? DataStatus.unknown : DataStatus.scheduled;
 
     return PlannedRoute(
       fromName: from.name, toName: to.name, totalMinutes: dur,
       transferCount: 0, status: status,
-      segments: [RouteSegment(modeLabel: from.modeLabel, color: from.color, icon: from.icon, from: from.name, to: to.name, durationMinutes: dur, departureTime: dep == null ? null : _formatMin(dep), arrivalTime: arr == null ? null : _formatMin(arr), status: status)],
+      segments: [RouteSegment(modeLabel: from.modeLabel, color: from.color, icon: from.icon, from: from.name, to: to.name, durationMinutes: dur, departureTime: dep == null ? null : _formatMin(dep), arrivalTime: arr == null ? null : _formatMin(arr), status: status, departureInfo: from.scheduleRouteId == null ? null : info)],
     );
   }
 
@@ -1554,17 +1615,30 @@ class RoutePlanner {
 
     final leg1 = _buildRoute(from, hub, currentMin);
     if (leg1 == null) return null;
-    final leg2 = _buildRoute(hub, to, (currentMin + leg1.totalMinutes));
+    var leg2 = _buildRoute(hub, to, (currentMin + leg1.totalMinutes));
     if (leg2 == null) return null;
+    // An uncertain first boarding does not establish an exact connection time.
+    // Keep a line-frequency estimate, but suppress a precise second departure.
+    if (leg1.status != DataStatus.scheduled && leg2.status != DataStatus.estimated) {
+      leg2 = PlannedRoute(fromName: leg2.fromName, toName: leg2.toName,
+        totalMinutes: leg2.totalMinutes, transferCount: leg2.transferCount,
+        status: DataStatus.unknown,
+        segments: leg2.segments.map((s) => RouteSegment(modeLabel: s.modeLabel,
+          color: s.color, icon: s.icon, from: s.from, to: s.to,
+          durationMinutes: s.durationMinutes, status: DataStatus.unknown,
+          departureInfo: const DepartureInfo.unknown())).toList());
+    }
 
     return PlannedRoute(
       fromName: from.name, toName: to.name,
       totalMinutes: leg1.totalMinutes + leg2.totalMinutes + 5,
       transferCount: 1,
       // Programmé seulement si les deux tronçons le sont (jamais promu).
-      status: leg1.status == DataStatus.scheduled && leg2.status == DataStatus.scheduled
-          ? DataStatus.scheduled
-          : DataStatus.unknown,
+      status: leg1.status == DataStatus.unknown || leg2.status == DataStatus.unknown
+          ? DataStatus.unknown
+          : leg1.status == DataStatus.estimated || leg2.status == DataStatus.estimated
+              ? DataStatus.estimated
+              : leg1.status == leg2.status ? leg1.status : DataStatus.estimated,
       segments: [...leg1.segments, ...leg2.segments],
     );
   }
@@ -2657,7 +2731,10 @@ class StopCard extends StatelessWidget {
         // APRÈS : sans horaire fourni → « Horaire indisponible » ; avec un
         //         horaire fourni → « Prévu HH h MM » (programmé, pas de
         //         compte à rebours). Aucun flux temps réel n'existe.
-        if (stop.scheduleStatus == ScheduleStatus.unknown) {
+        if (stop.scheduleRouteId != null) {
+          final info = stop.departureInfo;
+          timeWidget = Text(info.label, style: TextStyle(fontSize: info.status == ScheduleStatus.scheduled ? 13 : 11, fontWeight: FontWeight.bold, color: info.status == ScheduleStatus.scheduled ? stop.color : AppColors.textSecondary(dark)));
+        } else if (stop.scheduleStatus == ScheduleStatus.unknown) {
           timeWidget = Text(ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary(dark)));
         } else if (stop.nextDepartureMinutes() == null) {
           timeWidget = Text('Aucun départ programmé', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary(dark)));
@@ -2907,7 +2984,7 @@ class _TripsPageState extends State<TripsPage> {
                       child: Padding(
                         padding: EdgeInsets.only(bottom: isLast ? 0 : 16),
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Row(children: [Icon(s.icon, size: 14, color: s.color), const SizedBox(width: 6), Text(s.modeLabel, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: s.color)), const Spacer(), Text(s.departureTime ?? ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))]),
+                          Row(children: [Icon(s.icon, size: 14, color: s.color), const SizedBox(width: 6), Text(s.modeLabel, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: s.color)), const Spacer(), Text(s.departureInfo?.label ?? s.departureTime ?? ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))]),
                           const SizedBox(height: 4),
                           Text('${s.from} - ${s.to}', style: TextStyle(fontSize: 12, color: AppColors.textPrimary(dark))),
                           const SizedBox(height: 2),
@@ -3415,6 +3492,8 @@ class AssistantReplies {
       buf.writeln('${i + 1}. ${s.modeLabel} : ${s.from} → ${s.to}');
       if (s.status == DataStatus.scheduled && s.departureTime != null && s.arrivalTime != null) {
         buf.writeln('   🕒 Horaire programmé : ${s.departureTime} → ${s.arrivalTime}');
+      } else if (s.departureInfo != null && s.status != DataStatus.unknown) {
+        buf.writeln('   🕒 ${s.departureInfo!.label}');
       } else {
         buf.writeln('   🕒 ${ReliabilityLabel.noVerifiedSchedule}');
       }
@@ -3805,7 +3884,7 @@ class DetailedRoutePage extends StatelessWidget {
                                   // Audit 2026-09-24 — AVANT : « Heure : ~N min » (N = rang × 3,
                                   // hypothèse non sourcée) lu comme une heure. Aucun horaire n'existe
                                   // dans les données : `estimatedTime` reste dans le modèle, non affiché.
-                                  Text(ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textPrimary(dark))),
+                                  Text(appDataService.departureFor(network: route.scheduleNetwork ?? '', routeId: route.routeId, stopId: stop.stopId).label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textPrimary(dark))),
                                   const Spacer(),
                                   Text('📍 ${stop.distanceFromStart}', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
                                 ]),

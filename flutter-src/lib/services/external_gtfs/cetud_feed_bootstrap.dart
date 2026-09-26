@@ -2,7 +2,8 @@
 //
 // Tant qu'aucun feed officiel n'a été obtenu, installé (scripts/gtfs/
 // install-cetud-feed.js) puis déclaré comme asset, aucun manifeste n'existe :
-// le provider est construit SANS source actuelle et l'assistant répond par le
+// sans fréquence actuelle injectée, le provider n'a aucune source actuelle ;
+// l'assistant répond par le
 // repli exact « Je n'ai pas actuellement de donnée horaire suffisamment fiable
 // pour annoncer un départ précis. ». Aucune donnée horaire n'est embarquée par
 // défaut, et PassBi (HISTORICAL) n'est jamais chargé dans l'application.
@@ -13,6 +14,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import 'feed_provenance.dart';
+import 'frequency_source.dart';
 import 'gtfs_feed.dart';
 import 'gtfs_schedule_service.dart';
 import 'transit_data_provider.dart';
@@ -50,14 +52,22 @@ typedef AssetTextLoader = Future<String> Function(String key);
 Future<String> _rootBundleLoader(String key) => rootBundle.loadString(key);
 
 /// Construit le provider commun à partir du manifeste CETUD embarqué (s'il existe).
+/// [frequencySources] est indépendant de cette couche : seules des sources
+/// documentées CURRENT peuvent être injectées. Aucune n'est fournie par défaut.
 ///
 /// [loadText] permet d'injecter une autre source d'assets (tests).
 Future<CetudBootstrapResult> bootstrapCetudFeedLayer({
   AssetTextLoader? loadText,
   DateTime Function()? now,
+  Iterable<FrequencySource> frequencySources = const <FrequencySource>[],
 }) async {
   final AssetTextLoader load = loadText ?? _rootBundleLoader;
   final TransitDataProvider provider = TransitDataProvider(now: now);
+  // Independently documented CURRENT sources survive an absent CETUD manifest.
+  // No production frequency is supplied by default; provenance guards apply.
+  for (final source in frequencySources) {
+    provider.registerSource(source, role: ProviderRoles.currentFrequency);
+  }
   final DateTime instant = (now ?? DateTime.now)();
   final String asOf = instant.toUtc().toIso8601String().substring(0, 10);
   final List<String> notes = <String>[];
