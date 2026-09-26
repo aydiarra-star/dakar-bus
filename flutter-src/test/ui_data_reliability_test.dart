@@ -231,10 +231,19 @@ void main() {
       expect(s.nextDepartureLabel(), 'Horaire indisponible');
     });
 
-    test('aucun arrêt affiché ne porte d\'horaire fabriqué', () {
+    test('les fréquences estimées ne créent aucun horaire fabriqué', () {
       for (final Stop s in allStops) {
         expect(s.departureMinutesFromMidnight, isEmpty, reason: s.name);
-        expect(s.scheduleStatus, ScheduleStatus.unknown, reason: s.name);
+        expect(s.scheduleStatus, isNot(ScheduleStatus.realTime), reason: s.name);
+        expect(
+          <ScheduleStatus>{ScheduleStatus.unknown, ScheduleStatus.estimated},
+          contains(s.scheduleStatus),
+          reason: s.name,
+        );
+        if (s.scheduleStatus == ScheduleStatus.estimated) {
+          expect(s.departureInfo.frequencyMinutes, isNotNull, reason: s.name);
+          expect(s.departureInfo.scheduledTime, isNull, reason: s.name);
+        }
       }
     });
 
@@ -249,22 +258,27 @@ void main() {
   // 5. L'assistant ne génère aucun horaire absent des données vérifiées.
   // ==================================================================
   group('5 — l\'assistant n\'invente aucun horaire', () {
-    test('itinéraire sans horaire : phrase imposée, aucune heure, aucune fréquence', () {
+    test('itinéraire TER transmet ESTIMATED sans fabriquer d\'heure', () {
       // Deux gares TER du JSON (intégrées dans allStops par setUpAll).
-      final RouteSearchResult res =
-          RoutePlanner.plan(fromQuery: 'Gare TER Dakar', toQuery: 'Rufisque - Gare TER');
+      final RouteSearchResult res = RoutePlanner.plan(
+        fromQuery: 'Gare TER Dakar',
+        toQuery: 'Rufisque - Gare TER',
+        at: DateTime.utc(2026, 9, 28, 14),
+      );
       expect(res.errorMessage, isNull);
       expect(res.hasRoutes, isTrue, reason: 'gares présentes dans allStops');
       final PlannedRoute r = res.routes.first;
+      expect(r.status, DataStatus.estimated);
       for (final RouteSegment seg in r.segments) {
         expect(seg.departureTime, isNull);
         expect(seg.arrivalTime, isNull);
-        expect(seg.status, DataStatus.unknown);
+        expect(seg.status, DataStatus.estimated);
+        expect(seg.departureInfo?.frequencyMinutes, 10);
       }
       final String txt = AssistantReplies.itinerary(r, 'Dakar', 'Rufisque');
-      expect(txt, contains("Je ne dispose pas d'un horaire vérifié pour ce trajet."));
+      expect(txt, contains('Passage estimé dans 0–10 min'));
+      expect(txt, contains('estimation non garantie'));
       expect(kHeure.hasMatch(txt), isFalse, reason: txt);
-      expect(kFrequence.hasMatch(txt), isFalse, reason: txt);
       expect(kTempsReel.hasMatch(txt), isFalse, reason: txt);
       expect(txt, isNot(contains('Direct')));
     });

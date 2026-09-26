@@ -1,11 +1,65 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
+import '../models/departure_info.dart';
 import '../models/transport_network.dart';
+import 'data_provider.dart';
 
 /// Service de chargement du réseau Dakar
 /// CORRIGE : respecte le modèle TransportRoute (operatorId, type, stopIds)
 /// + peut charger depuis assets/data/dakar_network.json OU fallback mémoire
 class DataService {
+  final DataProvider _dataProvider;
+
+  DataService({DataProvider? dataProvider})
+      : _dataProvider = dataProvider ?? DataProvider();
+
+  /// Résout une fréquence officielle en ESTIMATED uniquement lorsqu'elle
+  /// s'applique à la date/heure demandée. Aucun horaire station par station
+  /// n'est construit ; les lignes sans source restent UNKNOWN.
+  DepartureInfo departureInfoForRoute(
+    String routeId,
+    DateTime requestedAt, {
+    bool isPublicHoliday = false,
+    String? operatorName,
+  }) =>
+      _dataProvider.departureInfoForRoute(
+        routeId,
+        requestedAt,
+        isPublicHoliday: isPublicHoliday,
+        operatorName: operatorName,
+      );
+
+  /// Entry point consumed by Stop. Unknown/incomplete identities remain UNKNOWN.
+  DepartureInfo departureFor({
+    required String? routeId,
+    required String? stopId,
+    required String network,
+    DateTime? at,
+    bool isPublicHoliday = false,
+  }) {
+    if (routeId == null || stopId == null) {
+      return DepartureInfo.unknown(
+        operator: network,
+        routeId: routeId ?? 'unknown',
+        requestedAt: at,
+      );
+    }
+    final route = _routes.where((candidate) => candidate.id == routeId);
+    if (route.length != 1 || !route.single.stopIds.contains(stopId)) {
+      return DepartureInfo.unknown(
+        operator: network,
+        routeId: routeId,
+        requestedAt: at,
+      );
+    }
+    return departureInfoForRoute(
+      routeId,
+      at ?? DateTime.now(),
+      isPublicHoliday: isPublicHoliday,
+      operatorName: network,
+    );
+  }
+
   List<Operator> _operators = [];
   List<BusStop> _stops = [];
   List<TransportRoute> _routes = [];
