@@ -8,6 +8,7 @@
     "test-cetud": "node server/test-cetud.js",
     "test": "node --test tests/*.test.js",
     "check:arrets": "node scripts/check-arrets.js",
+    "check:identites": "node scripts/check-line-identities.js",
     "validate:data": "node scripts/check-arrets.js",
     "audit:pages": "node scripts/audit-pages.js",
     "prebuild": "npm run validate:data"

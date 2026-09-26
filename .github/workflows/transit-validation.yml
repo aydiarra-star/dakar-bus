@@ -14,5 +14,7 @@ jobs:
           node-version: '22'
       - name: Validator unit tests (synthetic fixtures only)
         run: npm test
+      - name: Line identity control (no similarity-based public mapping)
+        run: npm run check:identites
       - name: Real data release gate (expected to block until source data is verified)
         run: npm run validate:data

@@ -29,6 +29,18 @@ import 'package:flutter_test/flutter_test.dart';
 /// des 22 routes ne doit avoir été modifiée par ce lot (voir
 /// `kEmpreinteDonneesExistantes`). Le lot ne touche ni aux arrêts, ni aux
 /// horaires, ni aux fréquences, ni à la géométrie, ni aux autres routes.
+///
+/// LOT 15 (2026-09-26) — extension d'axe, sans réécriture : les MÊMES quatre
+/// champs ont été ajoutés, en ajout seul, aux 80 routes AFTU (`operator_id
+/// == 'aftu'`). Le périmètre des porteurs passe donc de 22 à 102 routes
+/// (22 Tata/DDD + 80 AFTU). Les tuples, les notes et l'empreinte des 22
+/// routes du §9-1 restent strictement inchangés : les verrous ci-dessous sont
+/// conservés tels quels. Côté AFTU : 54 `CONFLICTING` (numéro officiel publié
+/// mais itinéraire interne différent, référentiel rév. 1.1 §E.3) et 26
+/// `MISSING` (18 numéros tombant dans le trou de publication 6–23, 8
+/// identifiants techniques `new_commune_03..10`), 0 `CONFIRMED`.
+/// Le contrôle automatisé correspondant est `scripts/check-line-identities.js`
+/// (`npm run check:identites`).
 
 /// Les quatre valeurs autorisées de `official_identifier_status`. Enum fermé.
 const Set<String> kOfficialIdentifierStatus = <String>{
@@ -205,6 +217,12 @@ List<Map<String, dynamic>> _routes() =>
 Map<String, dynamic> _route(String id) =>
     _routes().firstWhere((Map<String, dynamic> r) => r['id'] == id);
 
+/// Les 80 identifiants de routes AFTU (lot 15), dans l'ordre du fichier.
+List<String> _aftuRouteIds() => _routes()
+    .where((Map<String, dynamic> r) => r['operator_id'] == 'aftu')
+    .map((Map<String, dynamic> r) => r['id'] as String)
+    .toList();
+
 /// Rend une valeur JSON sous forme de chaîne canonique, sans dépendance
 /// externe (le paquet `crypto` n'est pas une dépendance du projet).
 String _render(Object? v) {
@@ -273,24 +291,30 @@ void main() {
           reason: 'aucune route ajoutée, renommée ou supprimée par le lot §9-1');
     });
 
-    test('exactement 22 routes portent official_identifier_status', () {
+    test('exactement 102 routes portent official_identifier_status '
+        '(22 Tata/DDD + 80 AFTU)', () {
       final List<Map<String, dynamic>> porteurs = _routes()
           .where((Map<String, dynamic> r) =>
               r.containsKey('official_identifier_status'))
           .toList();
-      expect(porteurs.length, 22,
-          reason: '22 lignes Tata/DDD du lot §9-1, ni plus ni moins');
+      expect(porteurs.length, 102,
+          reason: '22 lignes Tata/DDD (§9-1) + 80 lignes AFTU (lot 15), ni plus '
+              'ni moins');
       // Comparaison ensembliste : l'ordre du tableau §12 (Tata puis DDD) n'est
       // pas l'ordre du fichier (DDD, Tata, puis new_commune_*).
       expect(
         porteurs.map((Map<String, dynamic> r) => r['id'] as String).toList(),
-        unorderedEquals(kOfficialIdentifierRouteIds),
-        reason: 'ce sont exactement les 22 lignes auditées (audit 3A §12)',
+        unorderedEquals(<String>[
+          ...kOfficialIdentifierRouteIds,
+          ..._aftuRouteIds(),
+        ]),
+        reason: 'exactement les 22 lignes auditées (audit 3A §12) et les 80 '
+            'lignes AFTU du lot 15',
       );
     });
 
-    test('les 4 champs sont présents ensemble sur les 22, et sur elles seules',
-        () {
+    test('les 4 champs sont présents ensemble sur les 22 et sur les 80 AFTU, et '
+        'nulle part ailleurs', () {
       for (final Map<String, dynamic> r in _routes()) {
         final String id = r['id'] as String;
         final List<String> presents =
@@ -298,9 +322,13 @@ void main() {
         if (kOfficialIdentifierRouteIds.contains(id)) {
           expect(presents, kOfficialIdentifierFields,
               reason: '$id : les 4 champs du §9-1 attendus');
+        } else if (r['operator_id'] == 'aftu') {
+          expect(presents, kOfficialIdentifierFields,
+              reason: '$id : les 4 champs du lot 15 attendus sur les 80 AFTU');
         } else {
           expect(presents, isEmpty,
-              reason: '$id : hors périmètre du lot §9-1');
+              reason: '$id : hors périmètre des lots §9-1 et lot 15 '
+                  '(TER/BRT non concernés)');
         }
       }
     });
@@ -500,6 +528,95 @@ void main() {
           kEmpreinteDonneesExistantes,
           reason: 'une donnée préexistante a été modifiée, ajoutée ou '
               'supprimée en dehors des quatre champs du §9-1');
+    });
+  });
+
+  group('Lot 15 — identités documentaires des 80 lignes AFTU', () {
+    // Plage officielle AFTU publiée (référentiel rév. 1.1, §A.1) :
+    // 1–5, 24–89, 91. Trous documentés : 6–23, 90.
+    final Set<int> officiels = <int>{
+      1, 2, 3, 4, 5,
+      for (int n = 24; n <= 89; n++) n,
+      91,
+    };
+
+    test('distribution : 54 CONFLICTING, 26 MISSING, 0 CONFIRMED', () {
+      final Map<String, int> compte = <String, int>{};
+      for (final String id in _aftuRouteIds()) {
+        final String statut = _route(id)['official_identifier_status'] as String;
+        compte[statut] = (compte[statut] ?? 0) + 1;
+      }
+      expect(_aftuRouteIds().length, 80);
+      expect(compte['CONFLICTING'] ?? 0, 54,
+          reason: 'numéro officiel publié mais itinéraire interne différent '
+              '(référentiel rév. 1.1 §E.3)');
+      expect(compte['MISSING'] ?? 0, 26,
+          reason: '18 numéros dans le trou 6–23 + 8 identifiants techniques');
+      expect(compte['CONFIRMED'] ?? 0, 0,
+          reason: 'aucune identité publique AFTU n’est démontrée');
+      expect(compte['UNKNOWN'] ?? 0, 0,
+          reason: 'aucune ligne indéterminée sur l’axe identifiant');
+    });
+
+    test('un numéro n’est « observé » que s’il appartient à la plage publiée',
+        () {
+      for (final String id in _aftuRouteIds()) {
+        final Map<String, dynamic> r = _route(id);
+        final RegExpMatch? m = RegExp(r'^aftu_(\d+)$').firstMatch(id);
+        final bool observe = r['official_number_observed'] as bool;
+        if (m == null) {
+          expect(observe, isFalse,
+              reason: '$id : identifiant technique, aucun numéro officiel');
+          continue;
+        }
+        final bool dansPlage = officiels.contains(int.parse(m.group(1)!));
+        expect(observe, dansPlage,
+            reason: '$id : « observé » doit coïncider avec la plage officielle '
+                'AFTU — jamais une inférence sur le numéro');
+      }
+    });
+
+    test('observé ⟺ propriétaire AFTU ; sinon aucun propriétaire', () {
+      for (final String id in _aftuRouteIds()) {
+        final Map<String, dynamic> r = _route(id);
+        final bool observe = r['official_number_observed'] as bool;
+        final Object? proprietaire = r['official_number_belongs_to'];
+        if (observe) {
+          expect(proprietaire, 'AFTU',
+              reason: '$id : numéro publié par l’AFTU');
+        } else {
+          expect(proprietaire, isNull,
+              reason: '$id : aucun numéro publié, donc aucun propriétaire');
+        }
+      }
+    });
+
+    test('chaque route AFTU porte un motif documenté non vide', () {
+      for (final String id in _aftuRouteIds()) {
+        final Object? note = _route(id)['official_identifier_note'];
+        expect(note, isA<String>(), reason: id);
+        expect((note as String).trim(), isNotEmpty, reason: id);
+      }
+    });
+
+    test('TER et BRT restent hors de l’axe identifiant', () {
+      for (final Map<String, dynamic> r in _routes()) {
+        if (r['operator_id'] != 'ter' && r['operator_id'] != 'brt') {
+          continue;
+        }
+        for (final String f in kOfficialIdentifierFields) {
+          expect(r.containsKey(f), isFalse,
+              reason: '${r['id']} : réseau hors périmètre du lot 15');
+        }
+      }
+    });
+
+    test('aucun réseau TATA inventé, aucun numéro attribué à « TATA »', () {
+      for (final Map<String, dynamic> r in _routes()) {
+        expect(r['official_number_belongs_to'], isNot('TATA'),
+            reason: '${r['id']} : « Tata » est une catégorie de service, pas un '
+                'réseau publié');
+      }
     });
   });
 }
