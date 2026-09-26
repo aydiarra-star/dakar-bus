@@ -137,35 +137,10 @@ jobs:
           cp pubspec.lock "${RUNNER_TEMP}/j9-logs/pubspec.lock"
 
       - name: flutter analyze
-        shell: bash
-        run: |
-          set +e
-          flutter analyze 2>&1 | tee "${RUNNER_TEMP}/j9-logs/analyze.txt"
-          status=${PIPESTATUS[0]}
-          if [[ $status -ne 0 ]]; then
-            grep -E '(^|[[:space:]])(error|warning|info)[[:space:]]+•|^[[:space:]]*(error|warning|info)[[:space:]]+-' \
-              "${RUNNER_TEMP}/j9-logs/analyze.txt" | while IFS= read -r diagnostic; do
-                echo "::error title=Flutter analyze diagnostic::$diagnostic"
-              done
-            echo "::error title=Flutter analyze output::$(tail -n 20 "${RUNNER_TEMP}/j9-logs/analyze.txt" | tr '\n' ' ')"
-          fi
-          exit "$status"
+        run: flutter analyze 2>&1 | tee "${RUNNER_TEMP}/j9-logs/analyze.txt"
 
       - name: flutter test
-        shell: bash
-        run: |
-          set +e
-          flutter test --reporter json 2>&1 | tee "${RUNNER_TEMP}/j9-logs/test.txt"
-          status=${PIPESTATUS[0]}
-          if [[ $status -ne 0 ]]; then
-            summary="$(python3 -c 'import json,sys; [print(json.loads(line)) for line in open(sys.argv[1], encoding="utf-8") if line.startswith("{") and json.loads(line).get("type") == "error"]' "${RUNNER_TEMP}/j9-logs/test.txt" | tail -n 20 | tr '\n' ' ')"
-            echo "::error title=Flutter test failures::${summary}"
-            set +e
-            flutter test --reporter expanded --plain-name "RENDU : la fiche d'arrêt affiche" test/demo_data_cleanup_test.dart > "${RUNNER_TEMP}/j9-logs/focused-test.txt" 2>&1
-            focused="$(tail -n 80 "${RUNNER_TEMP}/j9-logs/focused-test.txt" | tr '\n' ' ')"
-            echo "::error title=Focused SingleStopView test::${focused}"
-          fi
-          exit "$status"
+        run: flutter test --reporter expanded 2>&1 | tee "${RUNNER_TEMP}/j9-logs/test.txt"
 
       - name: flutter build web
         run: flutter build web --release --base-href "${BASE_HREF}" 2>&1 | tee "${RUNNER_TEMP}/j9-logs/build-web.txt"
