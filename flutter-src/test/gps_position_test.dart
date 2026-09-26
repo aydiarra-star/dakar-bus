@@ -6,6 +6,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:dakar_bus/main.dart';
+import 'package:dakar_bus/models/transport_network.dart' as network;
+import 'package:dakar_bus/services/data_service.dart';
+import 'package:dakar_bus/services/external_gtfs/cetud_feed_bootstrap.dart';
+import 'package:dakar_bus/services/external_gtfs/departure_adapter.dart';
+import 'package:dakar_bus/services/external_gtfs/frequency_source.dart';
+import 'package:dakar_bus/services/external_gtfs/gtfs_feed.dart';
+import 'package:dakar_bus/services/external_gtfs/gtfs_schedule_service.dart' as gtfs;
+import 'package:dakar_bus/services/external_gtfs/transit_data_provider.dart';
+import 'external_gtfs_test.dart' show aftuTexts, cetudProvenance, saturday0730;
+
 
 // GROUPE 4 (Step 4B) — GPS §11 + §16.
 //
@@ -171,6 +181,25 @@ String _stripComments(String src) {
     i++;
   }
   return out.toString();
+}
+
+// Adversarial TEST source: a static departure falsely labelled REAL_TIME.
+// The real provider (not a mocked provider) must refuse to mark it current.
+class _UnobservedRealtimeSource extends gtfs.GtfsScheduleService {
+  _UnobservedRealtimeSource(super.feed);
+
+  @override
+  gtfs.DepartureResult getDeparturesAtStop(String routeId, String? stopId,
+      String date, String time, {int? limit = 5, String? asOf}) {
+    final r = super.getDeparturesAtStop(routeId, stopId, date, time,
+        limit: limit, asOf: asOf);
+    return gtfs.DepartureResult(routeId: r.routeId, stopId: r.stopId,
+      date: r.date, currentTime: r.currentTime, status: 'REAL_TIME',
+      reason: r.reason, source: r.source, sourceType: r.sourceType,
+      feedVersion: r.feedVersion, validity: r.validity,
+      provenanceLevel: r.provenanceLevel, departures: r.departures,
+      isCurrent: true); // Deliberately forged claim; must not survive provider.
+  }
 }
 
 void main() {
@@ -595,10 +624,14 @@ void main() {
   });
 
   group('Groupe 4 — F6 garde-fou REAL_TIME (test g, Carte 14)', () {
-    test('DataStatus conserve exactement 3 valeurs (Carte 14 : aucune 4e valeur)', () {
-      expect(DataStatus.values, hasLength(3));
+    test('DataStatus conserve exactement les 4 valeurs du contrat du bridge', () {
+      expect(DataStatus.values, hasLength(4));
       expect(DataStatus.values.map((s) => s.name).toList(),
-          <String>['scheduled', 'live', 'unknown']);
+          <String>['scheduled', 'live', 'unknown', 'estimated']);
+      expect(departureDataStatus(network.ScheduleStatus.scheduled), DataStatus.scheduled);
+      expect(departureDataStatus(network.ScheduleStatus.estimated), DataStatus.estimated);
+      expect(departureDataStatus(network.ScheduleStatus.unknown), DataStatus.unknown);
+      expect(departureDataStatus(network.ScheduleStatus.realTime), DataStatus.live);
     });
 
     test('le resolver GPS n\'expose AUCUN DataStatus (aucun statut produit par le GPS)', () {
@@ -617,17 +650,86 @@ void main() {
       expect(r.message, isA<String>());
     });
 
-    test('GARDE-FOU SOURCE : `DataStatus.live` n\'est assigné nulle part dans lib/main.dart', () {
-      final file = File('lib/main.dart');
-      expect(file.existsSync(), isTrue, reason: 'flutter test s\'exécute à la racine du paquet');
+    test('GARDE-FOU SOURCE : live reste limité au mapping de type explicite', () {
+      final code = _stripComments(File('lib/main.dart').readAsStringSync());
+      final mapping = RegExp(
+          r'DataStatus departureDataStatus\(ScheduleStatus status\)\s*\{[\s\S]*?\n\}')
+          .allMatches(code).toList();
+      expect(mapping, hasLength(1));
+      // Whitelist the COMPLETE pure function, not any arbitrary block containing
+      // DataStatus.live. Any extra assignment/branch requires review.
+      const expected = '''
+DataStatus departureDataStatus(ScheduleStatus status) {
+  switch (status) {
+    case ScheduleStatus.scheduled: return DataStatus.scheduled;
+    case ScheduleStatus.estimated: return DataStatus.estimated;
+    case ScheduleStatus.realTime: return DataStatus.live;
+    case ScheduleStatus.unknown: return DataStatus.unknown;
+  }
+}
+''';
+      String compact(String value) => value.replaceAll(RegExp(r'\s+'), '');
+      expect(compact(mapping.single.group(0)!), compact(expected));
+      final outsideMapping = code.replaceRange(mapping.single.start, mapping.single.end, '');
+      expect(outsideMapping.contains('DataStatus.live'), isFalse,
+          reason: 'aucune production directe de live hors du mapping contrôlé');
+    });
 
-      final code = _stripComments(file.readAsStringSync());
+    test('GARDE-FOU PRODUCTION : bootstrap et réseau embarqué sans live', () async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      final boot = await bootstrapCetudFeedLayer(now: saturday0730);
+      expect(boot.layerStatus, CetudLayerStatus.absent);
+      expect(boot.provider.sources, isEmpty,
+          reason: 'aucune source véhicule réelle branchée actuellement');
+      final data = DataService();
+      await data.loadNetworkData();
+      expect(data.routes, hasLength(105), reason: 'asset réel, pas le fallback');
+      data.departureAdapter = DepartureAdapter(boot.provider);
+      for (final route in data.routes) {
+        expect(route.scheduleStatus, isNot(network.ScheduleStatus.realTime));
+        for (final stopId in route.stopIds) {
+          final info = data.departureFor(network: route.operatorId,
+              routeId: route.id, stopId: stopId);
+          expect(departureDataStatus(info.status), DataStatus.unknown);
+          expect(info.scheduledTime, isNull);
+          expect(info.estimatedWaitTo, isNull, reason: 'aucun ETA inventé');
+        }
+      }
+    });
 
-      expect(code.contains('DataStatus.live'), isFalse,
-          reason: 'Carte 14 : « aucun live n\'est produit : il n\'existe aucune '
-              'source de données véhicule réelle dans le projet »');
-      expect(code.contains('enum DataStatus { scheduled, live, unknown }'), isTrue,
-          reason: 'la déclaration de l\'enum, elle, doit rester intacte');
+    test('GARDE-FOU MOTEUR : statique, fréquence et faux REAL_TIME ne produisent pas live', () {
+      final feed = GtfsFeed.fromTexts(aftuTexts, cetudProvenance('AFTU'), network: 'AFTU');
+      final sources = <gtfs.ScheduleSource>[
+        gtfs.GtfsScheduleService(feed),
+        FrequencySource([FrequencyEntry(network: 'AFTU', lineNumber: '30',
+          routeIds: ['TEST_AFTU_R30'], headwayMinutes: 10,
+          from: '06:00', to: '21:00')], cetudProvenance('AFTU')),
+        _UnobservedRealtimeSource(feed),
+      ];
+      final expected = [DataStatus.scheduled, DataStatus.estimated, DataStatus.unknown];
+      for (var i = 0; i < sources.length; i++) {
+        final provider = TransitDataProvider(now: saturday0730);
+        provider.registerSource(sources[i], role: sources[i].kind == 'frequency'
+            ? ProviderRoles.currentFrequency : ProviderRoles.currentOfficial);
+        final data = DataService()..departureAdapter = DepartureAdapter(provider, bindings: [
+          const DepartureBinding(network: 'AFTU', routeId: 'TEST_LINE',
+            stopId: 'TEST_STOP', providerRouteId: 'TEST_AFTU_R30',
+            providerStopId: 'TEST_S_Y', frequencyAppliesAtStop: true),
+        ]);
+        final info = data.departureFor(network: 'AFTU', routeId: 'TEST_LINE', stopId: 'TEST_STOP');
+        expect(departureDataStatus(info.status), expected[i]);
+        expect(departureDataStatus(info.status), isNot(DataStatus.live));
+        expect(info.label, isNot(contains('Temps réel')));
+        if (i == 1) {
+          expect(info.scheduledTime, isNull);
+          expect(info.estimatedWaitFrom, 0);
+          expect(info.estimatedWaitTo, 10);
+        }
+        if (i == 2) {
+          expect(provider.getDepartures('TEST_AFTU_R30', 'TEST_S_Y').isCurrent, isFalse);
+          expect(info.estimatedWaitTo, isNull, reason: 'ETA fictif refusé');
+        }
+      }
     });
 
     test('GARDE-FOU SOURCE : aucune position GPS fabriquée n\'est assignée à _userPosition', () {
