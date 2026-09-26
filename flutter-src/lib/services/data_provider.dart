@@ -104,14 +104,14 @@ class DataProvider {
           startMinute: 21 * 60 + 5,
           endMinute: 22 * 60 + 5,
           frequencyMinutes: 20,
-          direction: 'Départ de Diamniadio',
+          direction: 'Départ de Diamniadio (21:05–22:05)',
         ),
         FrequencyWindow(
           weekdays: kMondayToSaturday,
           startMinute: 21 * 60 + 5,
           endMinute: 22 * 60 + 5,
           frequencyMinutes: 20,
-          direction: 'Départ de Dakar',
+          direction: 'Départ de Dakar (21:05–22:05)',
         ),
         FrequencyWindow(
           weekdays: <int>{DateTime.sunday},

@@ -160,6 +160,10 @@ jobs:
           if [[ $status -ne 0 ]]; then
             summary="$(python3 -c 'import json,sys; [print(json.loads(line)) for line in open(sys.argv[1], encoding="utf-8") if line.startswith("{") and json.loads(line).get("type") == "error"]' "${RUNNER_TEMP}/j9-logs/test.txt" | tail -n 20 | tr '\n' ' ')"
             echo "::error title=Flutter test failures::${summary}"
+            set +e
+            flutter test --reporter expanded --plain-name "RENDU : la fiche d'arrêt affiche" test/demo_data_cleanup_test.dart > "${RUNNER_TEMP}/j9-logs/focused-test.txt" 2>&1
+            focused="$(tail -n 80 "${RUNNER_TEMP}/j9-logs/focused-test.txt" | tr '\n' ' ')"
+            echo "::error title=Focused SingleStopView test::${focused}"
           fi
           exit "$status"
 
