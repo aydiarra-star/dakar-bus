@@ -209,7 +209,7 @@ void main() {
         role: ProviderRoles.currentOfficial);
     expect(later.getDeparturesNow('TEST_AFTU_R30', 'TEST_S_Y').status, ScheduleStatus.unknown);
     expect(answerScheduleQuestion(later, "Prochain bus AFTU 30 à l'arrêt Yeumbeul TEST ?").sentence,
-        ScheduleSentences.knownLineNoSchedule);
+        ScheduleSentences.noReliableData);
   });
 
   test('Bootstrap : sans manifeste → ABSENT et repli ; avec manifeste + tables → CURRENT_INSTALLED', () async {
