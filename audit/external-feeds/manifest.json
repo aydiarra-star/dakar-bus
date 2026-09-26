@@ -1,0 +1,450 @@
+{
+  "schema": "dakar-bus/external-feeds-manifest/v1",
+  "audit": "LOT 16 BIS — docs/AUDIT_FEEDS_CETUD_PASSBI_2026-09-26.md",
+  "generated_at": "2026-09-26",
+  "principle": "Aucune donnée inventée. Rien n'est importé en production. Les fichiers de source/ sont des copies octet pour octet, conservées pour traçabilité ; leur validité temporelle est HISTORICAL au 2026-09-26.",
+  "source_classification": {
+    "SOURCE_INSTITUTIONAL": "CETUD (cetud.sn) — uniquement lorsque la donnée provient effectivement du CETUD",
+    "SOURCE_APPLICATION": "PassBi (senpassbi.com / impactsolutionsas) — application tierce, pas une autorité"
+  },
+  "feeds": [
+    {
+      "id": "passbi_core/gtfs_AFTU.zip",
+      "source_name": "PassBi Core (Impact Solutions SAS) — dépôt GitHub public impactsolutionsas/passbi_core",
+      "source_type": "SOURCE_APPLICATION",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core/blob/4de3d96e0c602ff2bdf718901d35c0f9d8098e96/gtfs_folder/gtfs_AFTU.zip",
+      "source_raw_url": "https://github.com/impactsolutionsas/passbi_core/raw/4de3d96e0c602ff2bdf718901d35c0f9d8098e96/gtfs_folder/gtfs_AFTU.zip",
+      "git_commit_audited": "4de3d96e0c602ff2bdf718901d35c0f9d8098e96",
+      "git_commit_file_added": "7a2b99824699cb10daf69852c8fbecb746200d77",
+      "git_blob_sha1": "2cb0fff80857d8b0a3591c58956cffc75d77071a",
+      "retrieved_at": "2026-09-26",
+      "retrieval_method": "git clone https://github.com/impactsolutionsas/passbi_core.git (bac à sable : seul github.com joignable) ; copie octet pour octet dans source/",
+      "published_at": "2026-02-10T11:44:46Z (date du commit qui ajoute gtfs_folder/ au dépôt public)",
+      "content_file_dates_in_zip": [
+        "2023-01-23",
+        "2023-01-24",
+        "2023-02-02"
+      ],
+      "valid_from": "2022-01-01",
+      "valid_to": "2023-12-31",
+      "validity_as_of_2026-09-26": "HISTORICAL",
+      "sha256": "7fae6b438de6177ff1d777546684e83c8882927b67efa4645dbecca3d77af428",
+      "file_size_bytes": 10693791,
+      "format": "GTFS static (ZIP de fichiers .txt CSV)",
+      "networks": [
+        "AFTU"
+      ],
+      "agency_declared": "Association de Financement des Professionnels du transport Urbain (agency.txt)",
+      "license": "AUCUNE déclarée (ni LICENSE, ni feed_info.txt, ni mention dans README) — réutilisation non couverte",
+      "access_type": "dépôt git public, sans authentification",
+      "provenance_note": "Origine des données NON documentée dans le dépôt. Le site senpassbi.com affirme « Official partner of CETUD » et « computed on official GTFS data » : allégation marketing, non vérifiée. Aucune publication CETUD correspondante trouvée. Statut retenu : SOURCE_APPLICATION, origine CETUD alléguée non prouvée.",
+      "counts": {
+        "agency": 1,
+        "routes": 73,
+        "stops": 2401,
+        "trips": 11077,
+        "calendar": 4,
+        "calendar_dates": 40,
+        "fare_attributes": 10,
+        "frequencies": null,
+        "transfers": null,
+        "feed_info": null,
+        "shapes": 9498,
+        "shapes_distinct_shape_id": 144,
+        "fare_rules": 1196602,
+        "stop_times": 677918
+      },
+      "files_present": [
+        "agency.txt",
+        "calendar.txt",
+        "calendar_dates.txt",
+        "fare_attributes.txt",
+        "fare_rules.txt",
+        "routes.txt",
+        "shapes.txt",
+        "stop_times.txt",
+        "stops.txt",
+        "trips.txt"
+      ],
+      "files_absent": [
+        "frequencies.txt",
+        "transfers.txt",
+        "feed_info.txt"
+      ],
+      "quality_notes": [
+        "calendar_dates.txt: en-tête séparé par ';' ('service_id;date;exception_type') alors que les lignes de données utilisent ',' — non conforme GTFS, lu en mode tolérant",
+        "trips.txt: 738 trip(s) sans aucune ligne dans stop_times.txt (horaire absent) — AFTU_31=85, AFTU_38=71, AFTU_41=70, AFTU_46=73, AFTU_52=190, AFTU_53=89, AFTU_57=91, AFTU_69=69"
+      ]
+    },
+    {
+      "id": "passbi_core/gtfs_Dem_Dikk.zip",
+      "source_name": "PassBi Core (Impact Solutions SAS) — dépôt GitHub public impactsolutionsas/passbi_core",
+      "source_type": "SOURCE_APPLICATION",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core/blob/4de3d96e0c602ff2bdf718901d35c0f9d8098e96/gtfs_folder/gtfs_Dem_Dikk.zip",
+      "source_raw_url": "https://github.com/impactsolutionsas/passbi_core/raw/4de3d96e0c602ff2bdf718901d35c0f9d8098e96/gtfs_folder/gtfs_Dem_Dikk.zip",
+      "git_commit_audited": "4de3d96e0c602ff2bdf718901d35c0f9d8098e96",
+      "git_commit_file_added": "7a2b99824699cb10daf69852c8fbecb746200d77",
+      "git_blob_sha1": "0d719ed5704a99cca60bac8e0ed038681c5fc5b3",
+      "retrieved_at": "2026-09-26",
+      "retrieval_method": "git clone https://github.com/impactsolutionsas/passbi_core.git (bac à sable : seul github.com joignable) ; copie octet pour octet dans source/",
+      "published_at": "2026-02-10T11:44:46Z (date du commit qui ajoute gtfs_folder/ au dépôt public)",
+      "content_file_dates_in_zip": [
+        "2023-01-24",
+        "2023-02-02"
+      ],
+      "valid_from": "2022-01-01",
+      "valid_to": "2023-12-31",
+      "validity_as_of_2026-09-26": "HISTORICAL",
+      "sha256": "578323c9fa4375313d57c4120071da3d0da499eb9216e5a4a22a28ffae707159",
+      "file_size_bytes": 2635299,
+      "format": "GTFS static (ZIP de fichiers .txt CSV)",
+      "networks": [
+        "DDD"
+      ],
+      "agency_declared": "Dakar Dem Dikk (agency.txt)",
+      "license": "AUCUNE déclarée (ni LICENSE, ni feed_info.txt, ni mention dans README) — réutilisation non couverte",
+      "access_type": "dépôt git public, sans authentification",
+      "provenance_note": "Origine des données NON documentée dans le dépôt. Le site senpassbi.com affirme « Official partner of CETUD » et « computed on official GTFS data » : allégation marketing, non vérifiée. Aucune publication CETUD correspondante trouvée. Statut retenu : SOURCE_APPLICATION, origine CETUD alléguée non prouvée.",
+      "counts": {
+        "agency": 1,
+        "routes": 53,
+        "stops": 1277,
+        "trips": 9529,
+        "calendar": 4,
+        "calendar_dates": 40,
+        "fare_attributes": 6,
+        "frequencies": null,
+        "transfers": null,
+        "feed_info": null,
+        "shapes": 3500,
+        "shapes_distinct_shape_id": 102,
+        "fare_rules": null,
+        "stop_times": 314029
+      },
+      "files_present": [
+        "agency.txt",
+        "calendar.txt",
+        "calendar_dates.txt",
+        "fare_attributes.txt",
+        "routes.txt",
+        "shapes.txt",
+        "stop_times.txt",
+        "stops.txt",
+        "trips.txt"
+      ],
+      "files_absent": [
+        "fare_rules.txt",
+        "frequencies.txt",
+        "transfers.txt",
+        "feed_info.txt"
+      ],
+      "quality_notes": [
+        "calendar_dates.txt: en-tête séparé par ';' ('service_id;date;exception_type') alors que les lignes de données utilisent ',' — non conforme GTFS, lu en mode tolérant",
+        "trips.txt: 333 trip(s) sans aucune ligne dans stop_times.txt (horaire absent) — DDD_217=4, DDD_311=41, DDD_323=288"
+      ]
+    },
+    {
+      "id": "passbi_core/gtfs_BRT.zip",
+      "source_name": "PassBi Core (Impact Solutions SAS) — dépôt GitHub public impactsolutionsas/passbi_core",
+      "source_type": "SOURCE_APPLICATION",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core/blob/4de3d96e0c602ff2bdf718901d35c0f9d8098e96/gtfs_folder/gtfs_BRT.zip",
+      "source_raw_url": "https://github.com/impactsolutionsas/passbi_core/raw/4de3d96e0c602ff2bdf718901d35c0f9d8098e96/gtfs_folder/gtfs_BRT.zip",
+      "git_commit_audited": "4de3d96e0c602ff2bdf718901d35c0f9d8098e96",
+      "git_commit_file_added": "7a2b99824699cb10daf69852c8fbecb746200d77",
+      "git_blob_sha1": "22e9f4cff94f213040dfa6e61250e1a04c0802e5",
+      "retrieved_at": "2026-09-26",
+      "retrieval_method": "git clone https://github.com/impactsolutionsas/passbi_core.git (bac à sable : seul github.com joignable) ; copie octet pour octet dans source/",
+      "published_at": "2026-02-10T11:44:46Z (date du commit qui ajoute gtfs_folder/ au dépôt public)",
+      "content_file_dates_in_zip": [
+        "2024-10-24"
+      ],
+      "valid_from": "2024-10-24",
+      "valid_to": "2024-12-31",
+      "validity_as_of_2026-09-26": "HISTORICAL",
+      "sha256": "f5e27b7ee446d52a6c32961db3684637cb0ebb319bb80883c82bcc47104e46c4",
+      "file_size_bytes": 520189,
+      "format": "GTFS static (ZIP de fichiers .txt CSV)",
+      "networks": [
+        "BRT"
+      ],
+      "agency_declared": "BRT (agency.txt : agency_name « BRT », agency_url vide)",
+      "license": "AUCUNE déclarée (ni LICENSE, ni feed_info.txt, ni mention dans README) — réutilisation non couverte",
+      "access_type": "dépôt git public, sans authentification",
+      "provenance_note": "Origine des données NON documentée dans le dépôt. Le site senpassbi.com affirme « Official partner of CETUD » et « computed on official GTFS data » : allégation marketing, non vérifiée. Aucune publication CETUD correspondante trouvée. Statut retenu : SOURCE_APPLICATION, origine CETUD alléguée non prouvée.",
+      "counts": {
+        "agency": 1,
+        "routes": 2,
+        "stops": 79,
+        "trips": 4036,
+        "calendar": 0,
+        "calendar_dates": 69,
+        "fare_attributes": null,
+        "frequencies": null,
+        "transfers": 0,
+        "feed_info": null,
+        "shapes": 6785,
+        "shapes_distinct_shape_id": 35,
+        "fare_rules": null,
+        "stop_times": 58674
+      },
+      "files_present": [
+        "stops.txt",
+        "trips.txt",
+        "transfers.txt",
+        "agency.txt",
+        "calendar.txt",
+        "stop_times.txt",
+        "calendar_dates.txt",
+        "routes.txt",
+        "shapes.txt"
+      ],
+      "files_absent": [
+        "fare_attributes.txt",
+        "fare_rules.txt",
+        "frequencies.txt",
+        "feed_info.txt"
+      ],
+      "quality_notes": []
+    },
+    {
+      "id": "passbi_core/gtfs_TER.zip",
+      "source_name": "PassBi Core (Impact Solutions SAS) — dépôt GitHub public impactsolutionsas/passbi_core",
+      "source_type": "SOURCE_APPLICATION",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core/blob/4de3d96e0c602ff2bdf718901d35c0f9d8098e96/gtfs_folder/gtfs_TER.zip",
+      "source_raw_url": "https://github.com/impactsolutionsas/passbi_core/raw/4de3d96e0c602ff2bdf718901d35c0f9d8098e96/gtfs_folder/gtfs_TER.zip",
+      "git_commit_audited": "4de3d96e0c602ff2bdf718901d35c0f9d8098e96",
+      "git_commit_file_added": "7a2b99824699cb10daf69852c8fbecb746200d77",
+      "git_blob_sha1": "0ea1bfb2929b8498e0c07830541a0ebd685a9427",
+      "retrieved_at": "2026-09-26",
+      "retrieval_method": "git clone https://github.com/impactsolutionsas/passbi_core.git (bac à sable : seul github.com joignable) ; copie octet pour octet dans source/",
+      "published_at": "2026-02-10T11:44:46Z (date du commit qui ajoute gtfs_folder/ au dépôt public)",
+      "content_file_dates_in_zip": [
+        "2025-08-20"
+      ],
+      "valid_from": "2025-08-18",
+      "valid_to": "2025-08-31",
+      "validity_as_of_2026-09-26": "HISTORICAL",
+      "sha256": "09cb31f4291b28aae072b9b053dc31d06154a7eeb8c212b4bc08825823197408",
+      "file_size_bytes": 109650,
+      "format": "GTFS static (ZIP de fichiers .txt CSV) — CRLF",
+      "networks": [
+        "TER"
+      ],
+      "agency_declared": "SETER (agency.txt, agency_timezone UTC)",
+      "license": "AUCUNE déclarée (ni LICENSE, ni feed_info.txt, ni mention dans README) — réutilisation non couverte",
+      "access_type": "dépôt git public, sans authentification",
+      "provenance_note": "Origine des données NON documentée dans le dépôt. Le site senpassbi.com affirme « Official partner of CETUD » et « computed on official GTFS data » : allégation marketing, non vérifiée. Aucune publication CETUD correspondante trouvée. Statut retenu : SOURCE_APPLICATION, origine CETUD alléguée non prouvée.",
+      "counts": {
+        "agency": 1,
+        "routes": 6,
+        "stops": 26,
+        "trips": 572,
+        "calendar": 12,
+        "calendar_dates": null,
+        "fare_attributes": null,
+        "frequencies": null,
+        "transfers": null,
+        "feed_info": null,
+        "shapes": null,
+        "shapes_distinct_shape_id": null,
+        "fare_rules": null,
+        "stop_times": 7332
+      },
+      "files_present": [
+        "agency.txt",
+        "calendar.txt",
+        "routes.txt",
+        "trips.txt",
+        "stops.txt",
+        "stop_times.txt"
+      ],
+      "files_absent": [
+        "calendar_dates.txt",
+        "shapes.txt",
+        "fare_attributes.txt",
+        "fare_rules.txt",
+        "frequencies.txt",
+        "transfers.txt",
+        "feed_info.txt"
+      ],
+      "quality_notes": []
+    }
+  ],
+  "artefacts": [
+    {
+      "id": "passbi_core/docs/api/openapi.yaml",
+      "source_name": "PassBi Core — spécification OpenAPI publique",
+      "source_type": "SOURCE_APPLICATION",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core/blob/4de3d96e0c602ff2bdf718901d35c0f9d8098e96/docs/api/openapi.yaml",
+      "git_commit_audited": "4de3d96e0c602ff2bdf718901d35c0f9d8098e96",
+      "git_blob_sha1": "59df0edfce927d51497b7d7c6de36f256f433417",
+      "retrieved_at": "2026-09-26",
+      "published_at": "2026-02-13T17:52:03Z (dernier commit touchant le fichier)",
+      "sha256": "b8cba8a1cd3abb012266d240fcc1dfab99798afc03690f5ab55e21ac3b063bd7",
+      "file_size_bytes": 35039,
+      "format": "OpenAPI 3.0.3 (YAML)",
+      "networks": [
+        "AFTU",
+        "DDD",
+        "BRT",
+        "TER"
+      ],
+      "license": "aucune déclarée",
+      "access_type": "dépôt git public ; site de documentation https://impactsolutionsas.github.io/passbi_core/ public",
+      "note": "Serveur de production déclaré https://passbi-api.onrender.com — répond « This service has been suspended. » le 2026-09-26 (API documentée mais NON accessible)."
+    },
+    {
+      "id": "cetud/plan-lignes-ddd.jpeg",
+      "source_name": "Plan des lignes DDD — bouton « Télécharger les lignes et horaires » de la page CETUD DDD",
+      "source_type": "SOURCE_INSTITUTIONAL (CETUD) — copie obtenue via le site de l'opérateur DDD",
+      "source_url_cetud": "https://cetud.sn/wp-content/uploads/2024/11/plan-lignes-ddd.jpeg",
+      "source_url_retrieved_copy": "https://demdikk.sn/wp-content/uploads/2023/01/plan-lignes-ddd.jpeg",
+      "cetud_media_metadata": {
+        "api": "https://cetud.sn/wp-json/wp/v2/media/1668",
+        "filesize": 87217,
+        "width": 1282,
+        "height": 905,
+        "uploaded": "2024-12-03"
+      },
+      "demdikk_media_metadata": {
+        "api": "https://demdikk.sn/wp-json/wp/v2/media/3938",
+        "filesize": 87217,
+        "width": 1282,
+        "height": 905,
+        "uploaded": "2023-01-16T10:38:08"
+      },
+      "retrieved_at": "2026-09-26",
+      "retrieval_method": "recherche d'images (miniatures) : le premier résultat correspondait au fichier complet demdikk.sn (87 217 octets, 1282×905) ; cetud.sn/demdikk.sn injoignables en HTTP direct depuis le bac à sable",
+      "sha256": "6c40333cb4423e5bf4b33422eb70e20e08ab67c0c5d629ac06f901bbaf74f0f8",
+      "file_size_bytes": 87217,
+      "format": "image/jpeg 1282×905",
+      "networks": [
+        "DDD"
+      ],
+      "license": "non précisée",
+      "access_type": "fichier public (wp-content/uploads)",
+      "identity_note": "Taille (87 217 octets) et dimensions (1282×905) IDENTIQUES aux métadonnées WordPress du fichier cetud.sn ; identité octet pour octet avec la copie cetud.sn NON prouvée (SHA-256 cetud.sn non calculable depuis le bac à sable — voir fetch_sources.sh).",
+      "content_note": "Carte (fond de plan type Google Maps) avec tracés colorés étiquetés au format route_id « DDD_xxx ». AUCUN horaire, AUCUN arrêt, AUCUN tableau : le bouton « lignes et horaires » livre une image cartographique, pas un GTFS.",
+      "visible_labels_read_manually": [
+        "DDD_1",
+        "DDD_2",
+        "DDD_4",
+        "DDD_5",
+        "DDD_7",
+        "DDD_8",
+        "DDD_11",
+        "DDD_12",
+        "DDD_13",
+        "DDD_15",
+        "DDD_16A",
+        "DDD_18",
+        "DDD_23",
+        "DDD_121",
+        "DDD_208",
+        "DDD_220",
+        "DDD_227",
+        "DDD_228",
+        "DDD_233",
+        "DDD_234",
+        "DDD_401",
+        "DDD_402",
+        "DDD_403",
+        "DDD_N305",
+        "DDD_N308",
+        "DDD_N311",
+        "DDD_N315",
+        "DDD_N319"
+      ],
+      "visible_labels_note": "Lecture visuelle non exhaustive (étiquettes superposées, image 1282×905) ; aucune OCR ; les libellés « DDD_Nxxx » sont retranscrits tels quels, leur sens n'est pas déduit."
+    }
+  ],
+  "not_retrieved": [
+    {
+      "id": "cetud/plan-lignes-aftu.jpeg",
+      "source_name": "Plan des lignes AFTU — bouton « Télécharger le plan des lignes » de la page CETUD AFTU",
+      "source_type": "SOURCE_INSTITUTIONAL (CETUD)",
+      "source_url": "https://cetud.sn/wp-content/uploads/2024/11/plan-lignes-aftu.jpeg",
+      "cetud_media_metadata": {
+        "api": "https://cetud.sn/wp-json/wp/v2/media/1667",
+        "filesize": 88338,
+        "width": 1282,
+        "height": 905,
+        "uploaded": "2024-12-03"
+      },
+      "status": "NON RÉCUPÉRÉ (hôte injoignable depuis le bac à sable ; aucune copie miroir identifiée) — SHA-256 inconnu — voir fetch_sources.sh",
+      "format": "image/jpeg (cartographique, pas GTFS)",
+      "networks": [
+        "AFTU"
+      ]
+    },
+    {
+      "id": "cetud/sunubrt-guide-du-voyageur-vf.pdf",
+      "source_url": "https://cetud.sn/wp-content/uploads/2024/11/sunubrt-guide-du-voyageur-vf.pdf",
+      "status": "NON RÉCUPÉRÉ (binaire, hôte injoignable) — référencé dans sitemap.xml",
+      "networks": [
+        "BRT"
+      ]
+    },
+    {
+      "id": "cetud/Plan-de-la-ligne-TER.pdf",
+      "source_url": "https://cetud.sn/wp-content/uploads/2024/11/Plan-de-la-ligne-TER.pdf",
+      "status": "NON RÉCUPÉRÉ (binaire, hôte injoignable) — référencé dans sitemap.xml",
+      "networks": [
+        "TER"
+      ]
+    }
+  ],
+  "second_copy": {
+    "id": "passbi-gtfs-v1/fixtures",
+    "source_name": "PassBi — dépôt public impactsolutionsas/passbi-gtfs-v1 (fixtures de test)",
+    "source_type": "SOURCE_APPLICATION",
+    "source_url": "https://github.com/impactsolutionsas/passbi-gtfs-v1/tree/59438b4c69ea61e546f752ad880d8dee7e470d3e/fixtures",
+    "git_commit_audited": "59438b4c69ea61e546f752ad880d8dee7e470d3e",
+    "git_commit_fixtures_added": "4cc1a1c9b56dfb150e3a4ceae3ff63d4da54638c (2025-10-03T18:18:26Z)",
+    "retrieved_at": "2026-09-26",
+    "kept_in_source_dir": false,
+    "reason_not_kept": "contenu identique aux ZIP de passbi_core modulo CRLF, SAUF calendriers re-datés (DDD calendar 2022→2025, DDD calendar_dates 40 lignes 2022-2023→2025, BRT calendar_dates 2024→2025) : re-datage développeur, PAS une mise à jour officielle. Pas de fixture AFTU.",
+    "sha256_per_file": {
+      "gtfs_ddd": {
+        "agency.txt": "f7bd3fbd863775a3b050e095d9c9c3f8f7cf24aae146528470c6ff3669f6c307",
+        "calendar.txt": "daa332c686d947f3751bba828c0aa470f03e886d8416860a1b58e1c2f805e436",
+        "calendar_dates.txt": "cd2781103c3417e2072c9dd9f00155cb4027a98e2b45c0f04cb1ef6792653a86",
+        "fare_attributes.txt": "c99b3e145dc6dea5b947b4b114c00096694ef97918e255e5b4e3726bd9d29a9c",
+        "routes.txt": "bb7c14e6afffe5d05eb60cd7891f23479602d9f3cf021c458c5d4278a0c89708",
+        "shapes.txt": "f00052210c4dd0e35368d202d4b4cad9b071c2aa2bcccae527a04d29daf33151",
+        "stop_times.txt": "e22e597017bc56ec1cc8b1691a0db74f82b2db4ddad34ddb30a7163325213fa1",
+        "stops.txt": "2d734b1ca7acbe07028603332be9b899a3a7b3d55e4a1419d52e7266a5c0b3de",
+        "trips.txt": "6fcc5f59cf81ffdacd69d91e2be82223b887389863ea68c4e25e8ca9df8eec19"
+      },
+      "gtfs_brt": {
+        "agency.txt": "79044f64d2da1cc90ae9464af133afe1d7a898d47094ce9e16a5d33f6a089509",
+        "calendar.txt": "df53464dd12a0cd9a1f91ce4b88cd8fb4574119c356794a457e7df7d201f6ce5",
+        "calendar_dates.txt": "2fd297bdcfd23c8ea27b2ad1955ecd6b378301fc4a0f6678d0e9ac3ba4307a31",
+        "routes.txt": "118e00f54837f685bc12b96c0d2ec09a82a5549863c267aa78926cf2d1b15318",
+        "shapes.txt": "abc3937f1c9a9c7cadc4a3d0c3514f02a70b9b41a5e0ce57ea02deeb637a631e",
+        "stop_times.txt": "aeb780403aa0ec379798e61472f320f0bd476994c669c66e54df9c314bdbbc7a",
+        "stops.txt": "b71a045f1ed6bea29f9ed0a4ed6554ec3d44f3a1024b88b1ed5d08f767050ff9",
+        "transfers.txt": "42c3990de696c4775911d5574f2ff11d82d206ddae5edc83143a5a56eae3b89d",
+        "trips.txt": "12b9111192d202eb5c80b32dd6063fef1a0390f6f9485813c0730a4831917daf"
+      },
+      "gtfs_ter": {
+        "agency.txt": "4999b8ce9336f8fc01a6a1566d30d49f403332dbbfc424f5ee7b2e36ac59c7e4",
+        "calendar.txt": "fc3f4ffec99d6a92c58128ec120953c7ed033f8694739d7dc20efbe60fe8bedc",
+        "routes.txt": "0b0c9718e39286beb330564228813f9fafdc27970bc6a6ebd74a68ee6966afe3",
+        "stop_times.txt": "754410c576b41a042e7df75105516b4f9579dfe9cce19de667286ccf196f84e9",
+        "stops.txt": "c1e1102f4b3cbc8291f10b6b87a54221c9bc4a7fd98c44263992c5758bc3e81f",
+        "trips.txt": "1f0a93fc8019744d37635d1f253cc449fcff53dff901700afb30f0a36b225dc5"
+      }
+    }
+  },
+  "negative_findings": [
+    "cetud.sn : aucun fichier GTFS/ZIP/CSV/JSON publié (robots.txt, sitemap.xml, API REST médias, pages Observatoire / réseaux de transport) — le « FICHIER GTFS » n'est mentionné qu'en prose sur /observatoire/systeme-de-donnees/, sans lien.",
+    "captrans.sn : site WordPress institutionnel, 0 document téléversé, aucun portail/API/flux.",
+    "senpassbi.com / www.senpassbi.com : /api, /api/v1, /api/docs, /docs, /swagger, /swagger.json, /openapi.json, /openapi.yaml, /api-docs → page SPA 404 ; api.senpassbi.com → 404 LiteSpeed (hôte non documenté).",
+    "passbi-api.onrender.com (serveur de production déclaré par l'OpenAPI) → « This service has been suspended. »",
+    "Mobility Database (MobilityData/mobility-database-catalogs, arbre complet) : aucune entrée Sénégal/Dakar.",
+    "GitHub (recherche code/dépôts) : aucun autre GTFS Dakar public que ceux d'impactsolutionsas (et le GTFS interne dormant de ce dépôt).",
+    "DT4A (git.digitaltransport4africa.org/data/africa) : authentification requise — non exploré.",
+    "Aucun flux temps réel public (GTFS-RT, positions, trip updates, alertes) pour AFTU/DDD/BRT/TER."
+  ]
+}

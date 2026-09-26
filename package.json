@@ -10,6 +10,10 @@
     "check:arrets": "node scripts/check-arrets.js",
     "validate:data": "node scripts/check-arrets.js",
     "audit:pages": "node scripts/audit-pages.js",
+    "gtfs:check": "node scripts/gtfs/gtfs-check.js",
+    "gtfs:passbi:check": "node scripts/gtfs/check-passbi-layer.js",
+    "gtfs:cetud:check": "node scripts/gtfs/check-cetud-layer.js",
+    "gtfs:cetud:install": "node scripts/gtfs/install-cetud-feed.js",
     "prebuild": "npm run validate:data"
   },
   "engines": {

@@ -1,0 +1,1278 @@
+{
+  "as_of": "2026-09-26",
+  "generated_by": "audit/external-feeds/analyze_feeds.py",
+  "dakar_network_json_read_only": {
+    "path": "flutter-src/assets/data/dakar_network.json",
+    "audited_at": "2026-09-24",
+    "schema": "dakar-bus-network/provenance-v1"
+  },
+  "referentiel_officiel_charge": true,
+  "feeds": {
+    "AFTU": {
+      "file": "gtfs_AFTU.zip",
+      "counts": {
+        "agency": 1,
+        "routes": 73,
+        "stops": 2401,
+        "trips": 11077,
+        "calendar": 4,
+        "calendar_dates": 40,
+        "fare_attributes": 10,
+        "frequencies": null,
+        "transfers": null,
+        "feed_info": null,
+        "shapes": 9498,
+        "shapes_distinct_shape_id": 144,
+        "fare_rules": 1196602,
+        "stop_times": 677918
+      },
+      "files_present": [
+        "agency.txt",
+        "calendar.txt",
+        "calendar_dates.txt",
+        "fare_attributes.txt",
+        "fare_rules.txt",
+        "routes.txt",
+        "shapes.txt",
+        "stop_times.txt",
+        "stops.txt",
+        "trips.txt"
+      ],
+      "files_absent": [
+        "frequencies.txt",
+        "transfers.txt",
+        "feed_info.txt"
+      ],
+      "zip_entries": [
+        {
+          "name": "agency.txt",
+          "size": 206,
+          "compressed": 151,
+          "mtime": "2023-02-02T14:43:06"
+        },
+        {
+          "name": "calendar.txt",
+          "size": 241,
+          "compressed": 125,
+          "mtime": "2023-01-23T17:07:36"
+        },
+        {
+          "name": "calendar_dates.txt",
+          "size": 731,
+          "compressed": 192,
+          "mtime": "2023-02-02T14:44:40"
+        },
+        {
+          "name": "fare_attributes.txt",
+          "size": 352,
+          "compressed": 126,
+          "mtime": "2023-01-23T17:07:30"
+        },
+        {
+          "name": "fare_rules.txt",
+          "size": 45779204,
+          "compressed": 3277883,
+          "mtime": "2023-02-02T10:17:40"
+        },
+        {
+          "name": "routes.txt",
+          "size": 4278,
+          "compressed": 1415,
+          "mtime": "2023-01-23T17:07:02"
+        },
+        {
+          "name": "shapes.txt",
+          "size": 672770,
+          "compressed": 206129,
+          "mtime": "2023-01-24T09:30:30"
+        },
+        {
+          "name": "stop_times.txt",
+          "size": 41609556,
+          "compressed": 7088073,
+          "mtime": "2023-01-23T17:42:32"
+        },
+        {
+          "name": "stops.txt",
+          "size": 211019,
+          "compressed": 83497,
+          "mtime": "2023-02-02T10:19:06"
+        },
+        {
+          "name": "trips.txt",
+          "size": 624392,
+          "compressed": 35168,
+          "mtime": "2023-01-23T17:06:28"
+        }
+      ],
+      "agency": [
+        {
+          "agency_id": "AFTU",
+          "agency_name": "Association de Financement des Professionnels du transport Urbain",
+          "agency_url": "https://aftu-senegal.org/",
+          "agency_timezone": "Africa/Dakar",
+          "agency_phone": "00221 33 859 02 88",
+          "agency_lang": "fr"
+        }
+      ],
+      "fare_attributes": [
+        {
+          "fare_id": "aftu_section_1",
+          "price": "100",
+          "currency_type": "XOF",
+          "payment_method": "0",
+          "transfers": "0",
+          "transfer_duration": ""
+        },
+        {
+          "fare_id": "aftu_section_2",
+          "price": "150",
+          "currency_type": "XOF",
+          "payment_method": "0",
+          "transfers": "0",
+          "transfer_duration": ""
+        },
+        {
+          "fare_id": "aftu_section_3",
+          "price": "200",
+          "currency_type": "XOF",
+          "payment_method": "0",
+          "transfers": "0",
+          "transfer_duration": ""
+        },
+        {
+          "fare_id": "aftu_section_4",
+          "price": "250",
+          "currency_type": "XOF",
+          "payment_method": "0",
+          "transfers": "0",
+          "transfer_duration": ""
+        },
+        {
+          "fare_id": "aftu_section_5",
+          "price": "300",
+          "currency_type": "XOF",
+          "payment_method": "0",
+          "transfers": "0",
+          "transfer_duration": ""
+        },
+        {
+          "fare_id": "aftu_section_6",
+          "price": "350",
+          "currency_type": "XOF",
+          "payment_method": "0",
+          "transfers": "0",
+          "transfer_duration": ""
+        },
+        {
+          "fare_id": "aftu_section_7",
+          "price": "400",
+          "currency_type": "XOF",
+          "payment_method": "0",
+          "transfers": "0",
+          "transfer_duration": ""
+        },
+        {
+          "fare_id": "aftu_section_8",
+          "price": "450",
+          "currency_type": "XOF",
+          "payment_method": "0",
+          "transfers": "0",
+          "transfer_duration": ""
+        },
+        {
+          "fare_id": "aftu_section_9",
+          "price": "500",
+          "currency_type": "XOF",
+          "payment_method": "0",
+          "transfers": "0",
+          "transfer_duration": ""
+        },
+        {
+          "fare_id": "aftu_section_10",
+          "price": "550",
+          "currency_type": "XOF",
+          "payment_method": "0",
+          "transfers": "0",
+          "transfer_duration": ""
+        }
+      ],
+      "fare_rules_summary": {
+        "distinct_route_id": 67,
+        "rows_per_fare_id": {
+          "aftu_section_1": 251988,
+          "aftu_section_10": 120,
+          "aftu_section_2": 278242,
+          "aftu_section_3": 240580,
+          "aftu_section_4": 181386,
+          "aftu_section_5": 120538,
+          "aftu_section_6": 73872,
+          "aftu_section_7": 32654,
+          "aftu_section_8": 16218,
+          "aftu_section_9": 1004
+        }
+      },
+      "calendar": {
+        "services": {
+          "FULL": {
+            "days": [
+              "monday",
+              "tuesday",
+              "wednesday",
+              "thursday",
+              "friday",
+              "saturday",
+              "sunday"
+            ],
+            "start_date": "20220101",
+            "end_date": "20231231"
+          },
+          "LAV": {
+            "days": [
+              "monday",
+              "tuesday",
+              "wednesday",
+              "thursday",
+              "friday"
+            ],
+            "start_date": "20220101",
+            "end_date": "20231231"
+          },
+          "SAMEDI": {
+            "days": [
+              "saturday"
+            ],
+            "start_date": "20220101",
+            "end_date": "20231231"
+          },
+          "DIMANCHE": {
+            "days": [
+              "sunday"
+            ],
+            "start_date": "20220101",
+            "end_date": "20231231"
+          }
+        },
+        "calendar_span": [
+          "2022-01-01",
+          "2023-12-31"
+        ],
+        "calendar_dates_span": [
+          "2022-04-04",
+          "2023-12-25"
+        ],
+        "calendar_dates_added_by_service": {
+          "DIMANCHE": 20
+        },
+        "calendar_dates_removed_by_service": {
+          "LAV": 20
+        },
+        "valid_from": "2022-01-01",
+        "valid_to": "2023-12-31",
+        "as_of": "2026-09-26",
+        "validity": "HISTORICAL"
+      },
+      "has_frequencies_txt": false,
+      "stops_coord_check": {
+        "dans_emprise_dakar_(lat 12..17, lon -18..-16)": 2401,
+        "hors_emprise": 0,
+        "header_order": [
+          "stop_id",
+          "stop_name",
+          "stop_desc",
+          "stop_lon",
+          "stop_lat",
+          "zone_id",
+          "stop_url",
+          "location_type"
+        ]
+      },
+      "notes": [
+        "calendar_dates.txt: en-tête séparé par ';' ('service_id;date;exception_type') alors que les lignes de données utilisent ',' — non conforme GTFS, lu en mode tolérant",
+        "trips.txt: 738 trip(s) sans aucune ligne dans stop_times.txt (horaire absent) — AFTU_31=85, AFTU_38=71, AFTU_41=70, AFTU_46=73, AFTU_52=190, AFTU_53=89, AFTU_57=91, AFTU_69=69"
+      ],
+      "routes_count": 73,
+      "line_numbers": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "24",
+        "25",
+        "26",
+        "27",
+        "28",
+        "29",
+        "30",
+        "31",
+        "32",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38",
+        "39",
+        "40",
+        "41",
+        "42",
+        "43",
+        "44",
+        "45",
+        "46",
+        "47",
+        "48",
+        "49",
+        "50",
+        "51",
+        "52",
+        "53",
+        "54",
+        "55",
+        "56",
+        "57",
+        "58",
+        "59",
+        "60",
+        "61",
+        "62",
+        "63",
+        "64",
+        "65",
+        "66",
+        "67",
+        "68",
+        "69",
+        "70",
+        "71",
+        "72",
+        "73",
+        "74",
+        "75",
+        "76",
+        "77",
+        "78",
+        "79",
+        "80",
+        "81",
+        "82",
+        "83",
+        "84",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "90",
+        "91"
+      ],
+      "comparison_status_counts": {
+        "passbi_vs_dakar_bus": {
+          "MISMATCH": 54,
+          "MISSING_IN_SOURCE": 18,
+          "MISSING_IN_DAKAR_BUS": 19
+        },
+        "passbi_vs_official": {
+          "MATCH": 49,
+          "UNKNOWN": 18,
+          "MISMATCH": 23,
+          "MISSING_IN_OFFICIAL_LIST": 1
+        },
+        "official_vs_dakar_bus": {
+          "MISMATCH": 54,
+          "MISSING_IN_SOURCE": 18,
+          "MISSING_IN_DAKAR_BUS": 18,
+          "UNKNOWN": 1
+        }
+      }
+    },
+    "DDD": {
+      "file": "gtfs_Dem_Dikk.zip",
+      "counts": {
+        "agency": 1,
+        "routes": 53,
+        "stops": 1277,
+        "trips": 9529,
+        "calendar": 4,
+        "calendar_dates": 40,
+        "fare_attributes": 6,
+        "frequencies": null,
+        "transfers": null,
+        "feed_info": null,
+        "shapes": 3500,
+        "shapes_distinct_shape_id": 102,
+        "fare_rules": null,
+        "stop_times": 314029
+      },
+      "files_present": [
+        "agency.txt",
+        "calendar.txt",
+        "calendar_dates.txt",
+        "fare_attributes.txt",
+        "routes.txt",
+        "shapes.txt",
+        "stop_times.txt",
+        "stops.txt",
+        "trips.txt"
+      ],
+      "files_absent": [
+        "fare_rules.txt",
+        "frequencies.txt",
+        "transfers.txt",
+        "feed_info.txt"
+      ],
+      "zip_entries": [
+        {
+          "name": "agency.txt",
+          "size": 152,
+          "compressed": 109,
+          "mtime": "2023-01-24T16:31:34"
+        },
+        {
+          "name": "calendar.txt",
+          "size": 241,
+          "compressed": 125,
+          "mtime": "2023-01-24T16:31:32"
+        },
+        {
+          "name": "calendar_dates.txt",
+          "size": 731,
+          "compressed": 192,
+          "mtime": "2023-02-02T14:44:40"
+        },
+        {
+          "name": "fare_attributes.txt",
+          "size": 233,
+          "compressed": 113,
+          "mtime": "2023-01-24T16:31:26"
+        },
+        {
+          "name": "routes.txt",
+          "size": 3109,
+          "compressed": 976,
+          "mtime": "2023-01-24T16:31:24"
+        },
+        {
+          "name": "shapes.txt",
+          "size": 249250,
+          "compressed": 74350,
+          "mtime": "2023-01-24T17:32:28"
+        },
+        {
+          "name": "stop_times.txt",
+          "size": 21260384,
+          "compressed": 2482189,
+          "mtime": "2023-01-24T18:09:00"
+        },
+        {
+          "name": "stops.txt",
+          "size": 104376,
+          "compressed": 41993,
+          "mtime": "2023-01-24T16:30:32"
+        },
+        {
+          "name": "trips.txt",
+          "size": 599158,
+          "compressed": 34324,
+          "mtime": "2023-01-24T17:07:02"
+        }
+      ],
+      "agency": [
+        {
+          "agency_id": "DDD",
+          "agency_name": "Dakar Dem Dikk",
+          "agency_url": "https://demdikk.sn/dakar-et-banlieue/",
+          "agency_timezone": "Africa/Dakar",
+          "agency_phone": "",
+          "agency_lang": "fr"
+        }
+      ],
+      "fare_attributes": [
+        {
+          "fare_id": "ddd_section_1",
+          "price": "100",
+          "currency_type": "XOF",
+          "payment_method": "0",
+          "transfers": "0",
+          "transfer_duration": ""
+        },
+        {
+          "fare_id": "ddd_section_2",
+          "price": "150",
+          "currency_type": "XOF",
+          "payment_method": "0",
+          "transfers": "0",
+          "transfer_duration": ""
+        },
+        {
+          "fare_id": "ddd_section_3",
+          "price": "175",
+          "currency_type": "XOF",
+          "payment_method": "0",
+          "transfers": "0",
+          "transfer_duration": ""
+        },
+        {
+          "fare_id": "ddd_section_4",
+          "price": "200",
+          "currency_type": "XOF",
+          "payment_method": "0",
+          "transfers": "0",
+          "transfer_duration": ""
+        },
+        {
+          "fare_id": "ddd_section_5",
+          "price": "250",
+          "currency_type": "XOF",
+          "payment_method": "0",
+          "transfers": "0",
+          "transfer_duration": ""
+        },
+        {
+          "fare_id": "ddd_section_6",
+          "price": "350",
+          "currency_type": "XOF",
+          "payment_method": "0",
+          "transfers": "0",
+          "transfer_duration": ""
+        }
+      ],
+      "fare_rules_summary": {
+        "distinct_route_id": 0,
+        "rows_per_fare_id": {}
+      },
+      "calendar": {
+        "services": {
+          "FULL": {
+            "days": [
+              "monday",
+              "tuesday",
+              "wednesday",
+              "thursday",
+              "friday",
+              "saturday",
+              "sunday"
+            ],
+            "start_date": "20220101",
+            "end_date": "20231231"
+          },
+          "LAV": {
+            "days": [
+              "monday",
+              "tuesday",
+              "wednesday",
+              "thursday",
+              "friday"
+            ],
+            "start_date": "20220101",
+            "end_date": "20231231"
+          },
+          "SAMEDI": {
+            "days": [
+              "saturday"
+            ],
+            "start_date": "20220101",
+            "end_date": "20231231"
+          },
+          "DIMANCHE": {
+            "days": [
+              "sunday"
+            ],
+            "start_date": "20220101",
+            "end_date": "20231231"
+          }
+        },
+        "calendar_span": [
+          "2022-01-01",
+          "2023-12-31"
+        ],
+        "calendar_dates_span": [
+          "2022-04-04",
+          "2023-12-25"
+        ],
+        "calendar_dates_added_by_service": {
+          "DIMANCHE": 20
+        },
+        "calendar_dates_removed_by_service": {
+          "LAV": 20
+        },
+        "valid_from": "2022-01-01",
+        "valid_to": "2023-12-31",
+        "as_of": "2026-09-26",
+        "validity": "HISTORICAL"
+      },
+      "has_frequencies_txt": false,
+      "stops_coord_check": {
+        "dans_emprise_dakar_(lat 12..17, lon -18..-16)": 1277,
+        "hors_emprise": 0,
+        "header_order": [
+          "stop_id",
+          "stop_name",
+          "stop_desc",
+          "stop_lon",
+          "stop_lat",
+          "zone_id",
+          "stop_url",
+          "location_type"
+        ]
+      },
+      "notes": [
+        "calendar_dates.txt: en-tête séparé par ';' ('service_id;date;exception_type') alors que les lignes de données utilisent ',' — non conforme GTFS, lu en mode tolérant",
+        "trips.txt: 333 trip(s) sans aucune ligne dans stop_times.txt (horaire absent) — DDD_217=4, DDD_311=41, DDD_323=288"
+      ],
+      "routes_count": 53,
+      "line_numbers": [
+        "1",
+        "2",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "15",
+        "16",
+        "18",
+        "20",
+        "23",
+        "102",
+        "103",
+        "105",
+        "111",
+        "121",
+        "208",
+        "210",
+        "213",
+        "217",
+        "218",
+        "219",
+        "220",
+        "221",
+        "223",
+        "227",
+        "228",
+        "231",
+        "232",
+        "233",
+        "234",
+        "301",
+        "305",
+        "308",
+        "311",
+        "315",
+        "319",
+        "323",
+        "401",
+        "402",
+        "403",
+        "404",
+        "405",
+        "501",
+        "502",
+        "503",
+        "504"
+      ],
+      "comparison_status_counts": {
+        "passbi_vs_dakar_bus": {
+          "MISMATCH": 10,
+          "MISSING_IN_DAKAR_BUS": 43,
+          "MISSING_IN_SOURCE": 2,
+          "UNKNOWN": 14
+        },
+        "passbi_vs_official": {
+          "MATCH": 33,
+          "UNKNOWN": 2,
+          "MISSING_IN_SOURCE": 14,
+          "MISSING_IN_OFFICIAL_LIST": 19,
+          "MISMATCH": 1
+        },
+        "official_vs_dakar_bus": {
+          "MISMATCH": 10,
+          "MISSING_IN_DAKAR_BUS": 38,
+          "MISSING_IN_SOURCE": 2,
+          "UNKNOWN": 19
+        }
+      }
+    },
+    "BRT": {
+      "file": "gtfs_BRT.zip",
+      "counts": {
+        "agency": 1,
+        "routes": 2,
+        "stops": 79,
+        "trips": 4036,
+        "calendar": 0,
+        "calendar_dates": 69,
+        "fare_attributes": null,
+        "frequencies": null,
+        "transfers": 0,
+        "feed_info": null,
+        "shapes": 6785,
+        "shapes_distinct_shape_id": 35,
+        "fare_rules": null,
+        "stop_times": 58674
+      },
+      "files_present": [
+        "stops.txt",
+        "trips.txt",
+        "transfers.txt",
+        "agency.txt",
+        "calendar.txt",
+        "stop_times.txt",
+        "calendar_dates.txt",
+        "routes.txt",
+        "shapes.txt"
+      ],
+      "files_absent": [
+        "fare_attributes.txt",
+        "fare_rules.txt",
+        "frequencies.txt",
+        "feed_info.txt"
+      ],
+      "zip_entries": [
+        {
+          "name": "stops.txt",
+          "size": 4360,
+          "compressed": 1491,
+          "mtime": "2024-10-24T17:34:02"
+        },
+        {
+          "name": "trips.txt",
+          "size": 165405,
+          "compressed": 18196,
+          "mtime": "2024-10-24T17:34:02"
+        },
+        {
+          "name": "transfers.txt",
+          "size": 56,
+          "compressed": 41,
+          "mtime": "2024-10-24T17:34:02"
+        },
+        {
+          "name": "agency.txt",
+          "size": 71,
+          "compressed": 53,
+          "mtime": "2024-10-24T17:34:02"
+        },
+        {
+          "name": "calendar.txt",
+          "size": 88,
+          "compressed": 65,
+          "mtime": "2024-10-24T17:34:02"
+        },
+        {
+          "name": "stop_times.txt",
+          "size": 2735338,
+          "compressed": 453601,
+          "mtime": "2024-10-24T17:34:02"
+        },
+        {
+          "name": "calendar_dates.txt",
+          "size": 1066,
+          "compressed": 261,
+          "mtime": "2024-10-24T17:34:04"
+        },
+        {
+          "name": "routes.txt",
+          "size": 163,
+          "compressed": 104,
+          "mtime": "2024-10-24T17:34:04"
+        },
+        {
+          "name": "shapes.txt",
+          "size": 267600,
+          "compressed": 45317,
+          "mtime": "2024-10-24T17:34:04"
+        }
+      ],
+      "agency": [
+        {
+          "agency_id": "BRT",
+          "agency_name": "BRT",
+          "agency_url": "",
+          "agency_timezone": "Africa/Dakar"
+        }
+      ],
+      "fare_attributes": [],
+      "fare_rules_summary": {
+        "distinct_route_id": 0,
+        "rows_per_fare_id": {}
+      },
+      "calendar": {
+        "services": {
+          "0_3": {
+            "days": [],
+            "start_date": "",
+            "end_date": "",
+            "defined_only_in_calendar_dates": true,
+            "dates_added": 8,
+            "dates_removed": 0
+          },
+          "0_1": {
+            "days": [],
+            "start_date": "",
+            "end_date": "",
+            "defined_only_in_calendar_dates": true,
+            "dates_added": 10,
+            "dates_removed": 0
+          },
+          "0_6": {
+            "days": [],
+            "start_date": "",
+            "end_date": "",
+            "defined_only_in_calendar_dates": true,
+            "dates_added": 10,
+            "dates_removed": 0
+          },
+          "0_2": {
+            "days": [],
+            "start_date": "",
+            "end_date": "",
+            "defined_only_in_calendar_dates": true,
+            "dates_added": 10,
+            "dates_removed": 0
+          },
+          "0_4": {
+            "days": [],
+            "start_date": "",
+            "end_date": "",
+            "defined_only_in_calendar_dates": true,
+            "dates_added": 10,
+            "dates_removed": 0
+          },
+          "1_7": {
+            "days": [],
+            "start_date": "",
+            "end_date": "",
+            "defined_only_in_calendar_dates": true,
+            "dates_added": 12,
+            "dates_removed": 0
+          },
+          "0_5": {
+            "days": [],
+            "start_date": "",
+            "end_date": "",
+            "defined_only_in_calendar_dates": true,
+            "dates_added": 9,
+            "dates_removed": 0
+          }
+        },
+        "calendar_span": [
+          null,
+          null
+        ],
+        "calendar_dates_span": [
+          "2024-10-24",
+          "2024-12-31"
+        ],
+        "calendar_dates_added_by_service": {
+          "0_4": 10,
+          "0_5": 9,
+          "0_6": 10,
+          "1_7": 12,
+          "0_1": 10,
+          "0_2": 10,
+          "0_3": 8
+        },
+        "calendar_dates_removed_by_service": {},
+        "valid_from": "2024-10-24",
+        "valid_to": "2024-12-31",
+        "as_of": "2026-09-26",
+        "validity": "HISTORICAL"
+      },
+      "has_frequencies_txt": false,
+      "stops_coord_check": {
+        "dans_emprise_dakar_(lat 12..17, lon -18..-16)": 79,
+        "hors_emprise": 0,
+        "header_order": [
+          "stop_id",
+          "stop_name",
+          "stop_desc",
+          "stop_lat",
+          "stop_lon",
+          "zone_id",
+          "location_type",
+          "parent_station",
+          "wheelchair_boarding",
+          "vehicle_type"
+        ]
+      },
+      "notes": [],
+      "routes_count": 2,
+      "line_numbers": [
+        "B1",
+        "B2"
+      ]
+    },
+    "TER": {
+      "file": "gtfs_TER.zip",
+      "counts": {
+        "agency": 1,
+        "routes": 6,
+        "stops": 26,
+        "trips": 572,
+        "calendar": 12,
+        "calendar_dates": null,
+        "fare_attributes": null,
+        "frequencies": null,
+        "transfers": null,
+        "feed_info": null,
+        "shapes": null,
+        "shapes_distinct_shape_id": null,
+        "fare_rules": null,
+        "stop_times": 7332
+      },
+      "files_present": [
+        "agency.txt",
+        "calendar.txt",
+        "routes.txt",
+        "trips.txt",
+        "stops.txt",
+        "stop_times.txt"
+      ],
+      "files_absent": [
+        "calendar_dates.txt",
+        "shapes.txt",
+        "fare_attributes.txt",
+        "fare_rules.txt",
+        "frequencies.txt",
+        "transfers.txt",
+        "feed_info.txt"
+      ],
+      "zip_entries": [
+        {
+          "name": "agency.txt",
+          "size": 148,
+          "compressed": 116,
+          "mtime": "2025-08-20T17:00:06"
+        },
+        {
+          "name": "calendar.txt",
+          "size": 929,
+          "compressed": 405,
+          "mtime": "2025-08-20T17:00:06"
+        },
+        {
+          "name": "routes.txt",
+          "size": 1111,
+          "compressed": 342,
+          "mtime": "2025-08-20T17:00:06"
+        },
+        {
+          "name": "trips.txt",
+          "size": 111164,
+          "compressed": 18094,
+          "mtime": "2025-08-20T17:00:06"
+        },
+        {
+          "name": "stops.txt",
+          "size": 3981,
+          "compressed": 1074,
+          "mtime": "2025-08-20T17:00:36"
+        },
+        {
+          "name": "stop_times.txt",
+          "size": 1332777,
+          "compressed": 89013,
+          "mtime": "2025-08-20T17:00:36"
+        }
+      ],
+      "agency": [
+        {
+          "agency_id": "82abd4ab-f3b1-4852-92bf-32d82ebc5826",
+          "agency_name": "SETER",
+          "agency_url": "https://www.seter.sn/",
+          "agency_timezone": "UTC",
+          "agency_phone": "",
+          "agency_email": ""
+        }
+      ],
+      "fare_attributes": [],
+      "fare_rules_summary": {
+        "distinct_route_id": 0,
+        "rows_per_fare_id": {}
+      },
+      "calendar": {
+        "services": {
+          "38f23463-d512-5c3f-6ed7-33132080f1e8": {
+            "days": [
+              "monday",
+              "tuesday",
+              "wednesday",
+              "thursday",
+              "friday",
+              "saturday"
+            ],
+            "start_date": "20250825",
+            "end_date": "20250831"
+          },
+          "fa54f07d-702e-e4cc-6400-6efff8c64d25": {
+            "days": [
+              "friday",
+              "saturday"
+            ],
+            "start_date": "20250825",
+            "end_date": "20250831"
+          },
+          "4cd85026-70ce-fee8-af22-6008c0215228": {
+            "days": [
+              "saturday"
+            ],
+            "start_date": "20250825",
+            "end_date": "20250831"
+          },
+          "db5eb1cc-bd0f-b516-2ab4-b4cf1998f578": {
+            "days": [
+              "sunday"
+            ],
+            "start_date": "20250825",
+            "end_date": "20250831"
+          },
+          "8a62eb4e-3a8e-7ba3-a39b-4df1c864209a": {
+            "days": [
+              "wednesday",
+              "thursday",
+              "friday",
+              "saturday"
+            ],
+            "start_date": "20250818",
+            "end_date": "20250824"
+          },
+          "ac8d71e0-9004-ff7f-e71d-251a8d28201f": {
+            "days": [
+              "wednesday",
+              "thursday",
+              "friday"
+            ],
+            "start_date": "20250818",
+            "end_date": "20250824"
+          },
+          "cec3ed22-c370-134c-6a0c-ec3b6a3117e6": {
+            "days": [
+              "thursday",
+              "friday",
+              "saturday"
+            ],
+            "start_date": "20250818",
+            "end_date": "20250824"
+          },
+          "4db2746d-049c-77fc-60e7-928aab2fc765": {
+            "days": [
+              "thursday",
+              "friday"
+            ],
+            "start_date": "20250818",
+            "end_date": "20250824"
+          },
+          "75be6f61-e1f2-c62b-c602-0ba9ba92a5eb": {
+            "days": [
+              "friday",
+              "saturday"
+            ],
+            "start_date": "20250818",
+            "end_date": "20250824"
+          },
+          "d8799802-fcc1-014a-94c9-a2270693cc9f": {
+            "days": [
+              "saturday"
+            ],
+            "start_date": "20250818",
+            "end_date": "20250824"
+          },
+          "1ed51a8d-1fbd-4ba5-f69a-bb6798679894": {
+            "days": [
+              "sunday"
+            ],
+            "start_date": "20250818",
+            "end_date": "20250824"
+          },
+          "68f0b070-0d73-aa17-88ce-ed18734f1fee": {
+            "days": [
+              "monday",
+              "tuesday",
+              "wednesday",
+              "thursday",
+              "friday"
+            ],
+            "start_date": "20250825",
+            "end_date": "20250831"
+          }
+        },
+        "calendar_span": [
+          "2025-08-18",
+          "2025-08-31"
+        ],
+        "calendar_dates_span": [
+          null,
+          null
+        ],
+        "calendar_dates_added_by_service": {},
+        "calendar_dates_removed_by_service": {},
+        "valid_from": "2025-08-18",
+        "valid_to": "2025-08-31",
+        "as_of": "2026-09-26",
+        "validity": "HISTORICAL"
+      },
+      "has_frequencies_txt": false,
+      "stops_coord_check": {
+        "dans_emprise_dakar_(lat 12..17, lon -18..-16)": 26,
+        "hors_emprise": 0,
+        "header_order": [
+          "stop_id",
+          "stop_code",
+          "stop_name",
+          "stop_desc",
+          "stop_lat",
+          "stop_lon",
+          "location_type",
+          "parent_station",
+          "stop_timezone",
+          "platform_code"
+        ]
+      },
+      "notes": [],
+      "routes_count": 6,
+      "line_numbers": [
+        "10001",
+        "13005",
+        "14922",
+        "20001",
+        "20922",
+        "23001"
+      ]
+    }
+  },
+  "dakar_bus_routes_not_comparable_by_number": [
+    {
+      "id": "ter_dakar_diamniadio",
+      "operator_id": "ter",
+      "short_name": "TER",
+      "long_name": "Dakar Gare ↔ Diamniadio (13 gares officielles SETER/CETUD)"
+    },
+    {
+      "id": "brt_b1_guediawaye_petersen",
+      "operator_id": "brt",
+      "short_name": "BRT B1",
+      "long_name": "PEM Guédiawaye ↔ PEM Petersen (Corridor SunuBRT 23 stations)"
+    },
+    {
+      "id": "brt_b2_express",
+      "operator_id": "brt",
+      "short_name": "BRT B2 Express",
+      "long_name": "Préfecture de Guédiawaye ↔ Papa Gueye Fall (semi-express, 7 stations)"
+    },
+    {
+      "id": "tata_218",
+      "operator_id": "tata",
+      "short_name": "Tata 218",
+      "long_name": "Mermoz ↔ Keur Massar (Tata 218)"
+    },
+    {
+      "id": "tata_219",
+      "operator_id": "tata",
+      "short_name": "Tata 219",
+      "long_name": "Parcelles Assainies ↔ Petersen (Tata 219)"
+    },
+    {
+      "id": "tata_50",
+      "operator_id": "tata",
+      "short_name": "Tata 50",
+      "long_name": "Guédiawaye ↔ Sandaga (Tata Ligne 50)"
+    },
+    {
+      "id": "tata_64",
+      "operator_id": "tata",
+      "short_name": "Tata 64",
+      "long_name": "Pikine ↔ Liberté 6 (Tata Ligne 64)"
+    },
+    {
+      "id": "tata_78",
+      "operator_id": "tata",
+      "short_name": "Tata 78",
+      "long_name": "Yoff ↔ Petersen via Cambérène (Tata 78)"
+    },
+    {
+      "id": "new_commune_01",
+      "operator_id": "ddd",
+      "short_name": "NEW 01",
+      "long_name": "DDD Fass - SICAP - Grand Dakar (Communes Dakar)"
+    },
+    {
+      "id": "new_commune_02",
+      "operator_id": "ddd",
+      "short_name": "NEW 02",
+      "long_name": "DDD Plateau - Fann - Amitié (Dakar Centre)"
+    },
+    {
+      "id": "new_commune_03",
+      "operator_id": "aftu",
+      "short_name": "NEW 03",
+      "long_name": "AFTU Sicap Mermoz - Maristes (Dakar Nord)"
+    },
+    {
+      "id": "new_commune_04",
+      "operator_id": "aftu",
+      "short_name": "NEW 04",
+      "long_name": "AFTU Dalifort - Guinaw Rails - Djida (Pikine)"
+    },
+    {
+      "id": "new_commune_05",
+      "operator_id": "aftu",
+      "short_name": "NEW 05",
+      "long_name": "AFTU Mbao - Malika - Jaxaay (Banlieue Est)"
+    },
+    {
+      "id": "new_commune_06",
+      "operator_id": "aftu",
+      "short_name": "NEW 06",
+      "long_name": "AFTU Sangalkam - Bambilor - Sébikotane - Yenne (Rufisque Sud)"
+    },
+    {
+      "id": "new_commune_07",
+      "operator_id": "aftu",
+      "short_name": "NEW 07",
+      "long_name": "AFTU Tivaouane - Niague - Golf Sud (Niayes)"
+    },
+    {
+      "id": "new_commune_08",
+      "operator_id": "aftu",
+      "short_name": "NEW 08",
+      "long_name": "AFTU Guédiawaye Complet (Ndiarème - Sam Notaire)"
+    },
+    {
+      "id": "new_commune_09",
+      "operator_id": "aftu",
+      "short_name": "NEW 09",
+      "long_name": "AFTU Parcelles U13-U15-U22 - Pikine Nord/Est"
+    },
+    {
+      "id": "new_commune_10",
+      "operator_id": "aftu",
+      "short_name": "NEW 10",
+      "long_name": "AFTU Thiaroye Mer - Hann Maristes - Keur Gorgui"
+    },
+    {
+      "id": "new_commune_11",
+      "operator_id": "tata",
+      "short_name": "NEW 11",
+      "long_name": "Tata Ouakam - Ngor Village - Yoff Tonghor (Nord-Ouest)"
+    },
+    {
+      "id": "new_commune_12",
+      "operator_id": "tata",
+      "short_name": "NEW 12",
+      "long_name": "Tata Jaxaay - Rufisque - Diamniadio 2 (Est)"
+    },
+    {
+      "id": "new_commune_13",
+      "operator_id": "ddd",
+      "short_name": "NEW 13",
+      "long_name": "DDD Sébikotane - Bargny - Fass (Côte)"
+    }
+  ]
+}

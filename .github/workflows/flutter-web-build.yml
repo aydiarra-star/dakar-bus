@@ -33,6 +33,7 @@ on:
       - arena/01a0d0ad-dakar-bus
       - arena/01a0d193-dakar-bus
       - arena/01a0d21a-dakar-bus
+      - arena/01a0dc17-dakar-bus
     paths:
       - 'flutter-src/**'
       - '.github/workflows/flutter-web-build.yml'

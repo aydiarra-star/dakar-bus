@@ -10,11 +10,22 @@ import 'package:http/http.dart' as http;
 import 'models/transport_network.dart';
 import 'models/reliability.dart';
 import 'services/data_service.dart';
+import 'services/external_gtfs/cetud_feed_bootstrap.dart';
+import 'services/external_gtfs/schedule_assistant.dart';
+import 'services/external_gtfs/transit_data_provider.dart';
 
 // ============================================================
 // SERVICE GLOBAL RESEAU DAKAR — Connecté à assets/data/dakar_network.json
 // ============================================================
 final DataService appDataService = DataService();
+
+// ============================================================
+// PROVIDER HORAIRE COMMUN (LOT 18 BIS) — couche CETUD CURRENT.
+// Aucune source tant que le feed officiel n'est pas installé : l'assistant
+// répond alors par le repli exact, jamais par un horaire PassBi (HISTORICAL).
+// ============================================================
+TransitDataProvider transitDataProvider = TransitDataProvider();
+String cetudFeedLayerStatus = CetudLayerStatus.absent;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,6 +44,14 @@ Future<void> main() async {
     _integrateNetworkData();
   } catch (e, st) {
     debugPrint('⚠️ DataService init failed: $e');
+    debugPrint('$st');
+  }
+  try {
+    final CetudBootstrapResult cetud = await bootstrapCetudFeedLayer();
+    transitDataProvider = cetud.provider;
+    cetudFeedLayerStatus = cetud.layerStatus;
+  } catch (e, st) {
+    debugPrint('⚠️ CETUD feed bootstrap failed: $e');
     debugPrint('$st');
   }
   runZonedGuarded(() {
@@ -3543,6 +3562,18 @@ class _AIChatPageState extends State<AIChatPage> {
     final lower = text.toLowerCase();
     String aiReply;
     bool isTripRequest = lower.contains('aller') || lower.contains('trajet') || lower.contains('veux aller') || lower.contains('comment aller') || RegExp(r"de\s+.+\s+(?:à|a)\s+.+").hasMatch(lower);
+    // LOT 18 BIS : question horaire (ligne + arrêt) → provider commun
+    // (CETUD CURRENT → stop_times), sinon repli exact. Évaluée avant les
+    // branches TER/BRT/DDD/TATA/AFTU afin qu'une demande d'horaire ne
+    // reçoive jamais une fiche réseau à la place d'une réponse horaire.
+    final ScheduleAnswer scheduleAnswer = isTripRequest
+        ? const ScheduleAnswer(
+            handled: false,
+            status: 'NOT_A_SCHEDULE_QUESTION',
+            sentence: null,
+            question: ScheduleQuestion(raw: '', isScheduleQuestion: false),
+          )
+        : answerScheduleQuestion(transitDataProvider, text);
 
     if (isTripRequest) {
       final trip = _extractTrip(text);
@@ -3577,6 +3608,11 @@ class _AIChatPageState extends State<AIChatPage> {
         if (res.hasRoutes && res.routes.first.segments.isNotEmpty) {
           _dernierModeInterroge = res.routes.first.segments.first.modeLabel;
         }
+      }
+    } else if (scheduleAnswer.handled) {
+      aiReply = scheduleAnswer.sentence ?? ScheduleSentences.noReliableData;
+      if (scheduleAnswer.network != null) {
+        _dernierModeInterroge = scheduleAnswer.network;
       }
     } else if (lower.contains('ter') || lower.contains('train') || lower.contains('diamniadio')) {
       _dernierModeInterroge = 'TER';
