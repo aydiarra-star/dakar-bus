@@ -71,14 +71,14 @@ class ReliabilityLabel {
 
   /// Adaptateur legacy pour les listes de minutes sans provenance.
   ///
-  /// Une liste ne prouve ni l'origine, ni la validité, ni le calendrier : elle
-  /// ne peut donc jamais promouvoir un horaire en SCHEDULED. Les nouveaux
-  /// horaires passent par les factories validées de DepartureInfo.
-  static ScheduleStatus scheduleStatusOf(List<int> departures) {
-    // Lire la liste conserve le contrat historique sans lui attribuer un statut.
-    if (departures.isEmpty) return ScheduleStatus.unknown;
-    return ScheduleStatus.unknown;
-  }
+  /// Une liste ne prouve ni l'origine, ni la validité, ni le calendrier : vide
+  /// ou non, elle ne permet jamais de conclure SCHEDULED. Les horaires
+  /// exploitables passent par les factories validées de DepartureInfo.
+  ///
+  /// [departures] est conservé dans la signature parce que l'appelant legacy ne
+  /// fournit que cette liste ; sa valeur ne change pas le verdict.
+  static ScheduleStatus scheduleStatusOf(List<int> departures) =>
+      ScheduleStatus.unknown;
 
   /// Garde-fou : un statut d'horaire ne peut pas « monter » vers REAL_TIME
   /// sans flux réel. [hasRealtimeFeed] est `false` dans tout le projet.

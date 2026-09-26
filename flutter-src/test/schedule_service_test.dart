@@ -633,6 +633,267 @@ void main() {
     });
   });
 
+  // ==================================================================
+  // Intégrité de stop_sequence : un passage ne peut pas desservir la
+  // séquence N après la séquence N+1. Un trip contradictoire est écarté,
+  // jamais réordonné ; il n'invalide ni les autres trips, ni le dataset.
+  // ==================================================================
+  group('nextDepartureFor — intégrité de stop_sequence', () {
+    final ServiceDate monday = ServiceDate(2026, 9, 28);
+    final DateTime now = DateTime.utc(2026, 9, 28, 14, 38);
+
+    Trip tripOf(String tripId) => Trip(
+          routeId: _route,
+          tripId: tripId,
+          serviceId: _serviceId,
+          directionId: 0,
+        );
+
+    DepartureSearchResult search(ScheduleEngine engine) {
+      return engine.nextDepartureFor(
+        routeId: _route,
+        stopId: _stop,
+        directionId: 0,
+        serviceDate: monday,
+        now: now,
+      );
+    }
+
+    test('séquences cohérentes avec l’ordre temporel : trip accepté', () {
+      final ScheduleDataset dataset = _dataset(
+        trips: <Trip>[tripOf('test_trip_coherent_synthetic_only')],
+        stopTimes: <StopTime>[
+          StopTime(
+            tripId: 'test_trip_coherent_synthetic_only',
+            stopId: _otherStop,
+            stopSequence: 1,
+            departureTime: ServiceTime(14, 30, 0),
+          ),
+          StopTime(
+            tripId: 'test_trip_coherent_synthetic_only',
+            stopId: _stop,
+            stopSequence: 2,
+            departureTime: ServiceTime(14, 40, 0),
+          ),
+        ],
+      );
+      final FoundDeparture result = _found(search(_engine(dataset)));
+      expect(result.nextDepartureAt, DateTime.utc(2026, 9, 28, 14, 40));
+      expect(result.departures.single.stopSequence, 2);
+      expect(result.departures.single.status, ScheduleStatus.scheduled);
+    });
+
+    test('séquence décroissante dans le temps : trip rejeté, UNKNOWN', () {
+      final ScheduleDataset dataset = _dataset(
+        trips: <Trip>[tripOf('test_trip_reversed_synthetic_only')],
+        stopTimes: <StopTime>[
+          StopTime(
+            tripId: 'test_trip_reversed_synthetic_only',
+            stopId: _stop,
+            stopSequence: 2,
+            departureTime: ServiceTime(14, 40, 0),
+          ),
+          StopTime(
+            tripId: 'test_trip_reversed_synthetic_only',
+            stopId: _otherStop,
+            stopSequence: 1,
+            departureTime: ServiceTime(14, 45, 0),
+          ),
+        ],
+      );
+      expect(search(_engine(dataset)), isA<UnknownDeparture>());
+    });
+
+    test('l’ordre temporel est aussi vérifié sur arrival_time seul', () {
+      final ScheduleDataset dataset = _dataset(
+        trips: <Trip>[tripOf('test_trip_arrival_only_synthetic_only')],
+        stopTimes: <StopTime>[
+          StopTime(
+            tripId: 'test_trip_arrival_only_synthetic_only',
+            stopId: _stop,
+            stopSequence: 2,
+            arrivalTime: ServiceTime(14, 40, 0),
+          ),
+          StopTime(
+            tripId: 'test_trip_arrival_only_synthetic_only',
+            stopId: _otherStop,
+            stopSequence: 1,
+            arrivalTime: ServiceTime(14, 45, 0),
+          ),
+        ],
+      );
+      expect(search(_engine(dataset)), isA<UnknownDeparture>());
+    });
+
+    test('deux arrêts au même instant : séquences croissantes acceptées', () {
+      final ScheduleDataset dataset = _dataset(
+        trips: <Trip>[tripOf('test_trip_same_instant_synthetic_only')],
+        stopTimes: <StopTime>[
+          StopTime(
+            tripId: 'test_trip_same_instant_synthetic_only',
+            stopId: _stop,
+            stopSequence: 4,
+            departureTime: ServiceTime(14, 40, 0),
+          ),
+          StopTime(
+            tripId: 'test_trip_same_instant_synthetic_only',
+            stopId: _otherStop,
+            stopSequence: 2,
+            departureTime: ServiceTime(14, 40, 0),
+          ),
+        ],
+      );
+      // À heure égale aucune contradiction temporelle n'est démontrable : le
+      // départ du stop interrogé (séquence 4) reste sélectionnable.
+      final FoundDeparture result = _found(search(_engine(dataset)));
+      expect(result.nextDepartureAt, DateTime.utc(2026, 9, 28, 14, 40));
+      expect(result.departures.single.stopSequence, 4);
+    });
+
+    test('trip incohérent écarté, trip valide utilisé', () {
+      final ScheduleDataset dataset = _dataset(
+        trips: <Trip>[
+          tripOf('test_trip_incoherent_synthetic_only'),
+          tripOf('test_trip_valid_synthetic_only'),
+        ],
+        stopTimes: <StopTime>[
+          // Trip incohérent : la séquence 2 est desservie avant la séquence 1.
+          // Son 14:39, plus tôt que le candidat valide, ne doit JAMAIS sortir.
+          StopTime(
+            tripId: 'test_trip_incoherent_synthetic_only',
+            stopId: _stop,
+            stopSequence: 2,
+            departureTime: ServiceTime(14, 39, 0),
+          ),
+          StopTime(
+            tripId: 'test_trip_incoherent_synthetic_only',
+            stopId: _otherStop,
+            stopSequence: 1,
+            departureTime: ServiceTime(14, 45, 0),
+          ),
+          StopTime(
+            tripId: 'test_trip_valid_synthetic_only',
+            stopId: _stop,
+            stopSequence: 1,
+            departureTime: ServiceTime(14, 50, 0),
+          ),
+        ],
+      );
+      final FoundDeparture result = _found(search(_engine(dataset)));
+      expect(result.nextDepartureAt, DateTime.utc(2026, 9, 28, 14, 50));
+      expect(result.departures.single.tripId, 'test_trip_valid_synthetic_only');
+    });
+
+    test('tous les trips incohérents et couverture partielle : UNKNOWN', () {
+      final ScheduleDataset dataset = _dataset(
+        trips: <Trip>[tripOf('test_trip_incoherent_synthetic_only')],
+        stopTimes: <StopTime>[
+          StopTime(
+            tripId: 'test_trip_incoherent_synthetic_only',
+            stopId: _stop,
+            stopSequence: 2,
+            departureTime: ServiceTime(14, 40, 0),
+          ),
+          StopTime(
+            tripId: 'test_trip_incoherent_synthetic_only',
+            stopId: _otherStop,
+            stopSequence: 1,
+            departureTime: ServiceTime(14, 45, 0),
+          ),
+        ],
+        provenance: _provenance(complete: false),
+      );
+      expect(search(_engine(dataset)), isA<UnknownDeparture>());
+    });
+
+    test('tous les trips incohérents malgré une couverture complète : UNKNOWN, jamais NoDeparture', () {
+      final ScheduleDataset dataset = _dataset(
+        trips: <Trip>[tripOf('test_trip_incoherent_synthetic_only')],
+        stopTimes: <StopTime>[
+          StopTime(
+            tripId: 'test_trip_incoherent_synthetic_only',
+            stopId: _stop,
+            stopSequence: 2,
+            departureTime: ServiceTime(14, 40, 0),
+          ),
+          StopTime(
+            tripId: 'test_trip_incoherent_synthetic_only',
+            stopId: _otherStop,
+            stopSequence: 1,
+            departureTime: ServiceTime(14, 45, 0),
+          ),
+        ],
+        provenance: _provenance(complete: true),
+      );
+      final DepartureSearchResult result = search(_engine(dataset));
+      expect(result, isA<UnknownDeparture>());
+      expect(result, isNot(isA<NoDeparture>()));
+    });
+
+    test('stop_sequence dupliquée dans un trip : refusée par le dataset, UNKNOWN', () {
+      final ScheduleDataset dataset = _dataset(
+        trips: <Trip>[tripOf('test_trip_duplicated_synthetic_only')],
+        stopTimes: <StopTime>[
+          StopTime(
+            tripId: 'test_trip_duplicated_synthetic_only',
+            stopId: _stop,
+            stopSequence: 1,
+            departureTime: ServiceTime(14, 40, 0),
+          ),
+          StopTime(
+            tripId: 'test_trip_duplicated_synthetic_only',
+            stopId: _otherStop,
+            stopSequence: 1,
+            departureTime: ServiceTime(14, 45, 0),
+          ),
+        ],
+      );
+      // Séquences identiques : déjà une erreur structurelle en amont, le moteur
+      // n'a donc pas à départager deux passages homonymes.
+      expect(dataset.validationErrors, isNotEmpty);
+      expect(search(_engine(dataset)), isA<UnknownDeparture>());
+    });
+
+    test('prédiction temps réel sur un trip à séquence incohérente : rejetée', () {
+      final ScheduleDataset dataset = _dataset(
+        trips: <Trip>[tripOf('test_trip_rt_incoherent_synthetic_only')],
+        stopTimes: <StopTime>[
+          StopTime(
+            tripId: 'test_trip_rt_incoherent_synthetic_only',
+            stopId: _stop,
+            stopSequence: 2,
+            departureTime: ServiceTime(14, 40, 0),
+          ),
+          StopTime(
+            tripId: 'test_trip_rt_incoherent_synthetic_only',
+            stopId: _otherStop,
+            stopSequence: 1,
+            departureTime: ServiceTime(14, 45, 0),
+          ),
+        ],
+      );
+      final DepartureSearchResult result = search(_engine(
+        dataset,
+        realtime: <RealtimePrediction>[
+          RealtimePrediction(
+            routeId: _route,
+            tripId: 'test_trip_rt_incoherent_synthetic_only',
+            stopId: _stop,
+            stopSequence: 2,
+            directionId: 0,
+            serviceDate: monday,
+            predictedDepartureAt: DateTime.utc(2026, 9, 28, 14, 42),
+            observedAt: DateTime.utc(2026, 9, 28, 14, 37, 50),
+            provenance: _realtimeProvenance(),
+          ),
+        ],
+        realtimeMaxAge: const Duration(seconds: 60),
+      ));
+      expect(result, isA<UnknownDeparture>());
+      expect(result, isNot(isA<FoundDeparture>()));
+    });
+  });
+
   group('FrequencyProvider et temps réel', () {
     test('fréquence TER seule reste ESTIMATED sans heure exacte', () {
       final DateTime now = DateTime.utc(2026, 9, 28, 14, 38);

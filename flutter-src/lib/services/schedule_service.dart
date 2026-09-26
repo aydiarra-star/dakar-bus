@@ -174,11 +174,24 @@ class ScheduleEngine {
       stopTimesByTrip.putIfAbsent(stopTime.tripId, () => <StopTime>[]).add(stopTime);
     }
 
+    // Intégrité de séquence par trip : un passage ne peut pas desservir la
+    // séquence N après la séquence N+1. Un trip contradictoire est écarté —
+    // jamais réordonné, jamais réparé — sans invalider les autres trips ni le
+    // dataset. Le calcul est fait une fois par trip, hors de la boucle de dates.
+    final Set<String> incoherentTripIds = <String>{
+      for (final Trip trip in routeTrips)
+        if (!_hasCoherentSequence(
+          stopTimesByTrip[trip.tripId] ?? const <StopTime>[],
+        ))
+          trip.tripId,
+    };
+
     DateTime? earliestInstant;
     final Map<String, DepartureInfo> earliestDepartures = <String, DepartureInfo>{};
     bool indeterminateCalendar = false;
     bool indeterminateDirection = false;
     bool missingDepartureTime = false;
+    bool incoherentSequence = false;
     ServiceDate date = serviceDate;
     int scannedDays = 0;
 
@@ -206,6 +219,14 @@ class ScheduleEngine {
         if (directionId != null &&
             trip.directionId != null &&
             trip.directionId != directionId) {
+          continue;
+        }
+
+        // Un trip dont l'ordre temporel contredit ses stop_sequence ne décrit
+        // aucun passage exploitable : il ne fournit ni horaire statique, ni
+        // appariement temps réel. Il est ignoré ici, avant toute sélection.
+        if (incoherentTripIds.contains(trip.tripId)) {
+          incoherentSequence = true;
           continue;
         }
 
@@ -317,10 +338,57 @@ class ScheduleEngine {
       return FoundDeparture(ordered);
     }
 
+    // Aucun départ exploitable alors qu'au moins un trip desservant ce stop a
+    // été écarté pour séquence contradictoire : ce trip aurait pu fournir un
+    // départ, l'absence n'est donc pas démontrable. Un trip valide trouvé plus
+    // haut l'emporte toujours : l'incohérence d'un trip ne disqualifie pas les
+    // autres.
+    if (incoherentSequence) {
+      return _estimatedOrUnknown(
+        routeId: routeId,
+        stopId: stopId,
+        directionId: directionId,
+        serviceDate: serviceDate,
+        now: now,
+        reason: 'Au moins un trip a des stop_sequence en contradiction avec '
+            'l’ordre temporel de son passage.',
+      );
+    }
+
     return NoDeparture(
       coveredThrough: provenance.validTo!,
       reason: 'Aucun trip actif ne dessert ce stop dans la couverture complète.',
     );
+  }
+
+  /// `true` si les stop_sequence du trip ne contredisent pas l'ordre temporel
+  /// de son passage.
+  ///
+  /// La position temporelle d'un stop_time est son `departureTime`, à défaut
+  /// son `arrivalTime` ; un stop_time sans aucune heure ne porte pas
+  /// d'information temporelle et n'est pas pris en compte. À heure égale les
+  /// séquences sont comparées dans l'ordre croissant : un même arrêt servi deux
+  /// fois au même instant (boucle) reste donc accepté. Seule une séquence
+  /// strictement décroissante dans le temps invalide le trip. Les stop_sequence
+  /// dupliquées au sein d'un trip sont déjà refusées en amont par
+  /// `ScheduleDataset.validationErrors`.
+  static bool _hasCoherentSequence(List<StopTime> tripStopTimes) {
+    final List<StopTime> timed = tripStopTimes
+        .where((StopTime stopTime) =>
+            stopTime.departureTime != null || stopTime.arrivalTime != null)
+        .toList(growable: false)
+      ..sort((StopTime a, StopTime b) {
+        final int timeOrder = (a.departureTime ?? a.arrivalTime)!
+            .compareTo(b.departureTime ?? b.arrivalTime!);
+        if (timeOrder != 0) return timeOrder;
+        return a.stopSequence.compareTo(b.stopSequence);
+      });
+    for (int index = 1; index < timed.length; index++) {
+      if (timed[index].stopSequence < timed[index - 1].stopSequence) {
+        return false;
+      }
+    }
+    return true;
   }
 
   RealtimePrediction? _matchingRealtime({

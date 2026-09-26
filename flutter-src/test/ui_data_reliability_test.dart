@@ -220,6 +220,30 @@ void main() {
       expect(ScheduleStatus.unknown.displayLabel(), 'Horaire indisponible');
     });
 
+    test('contrat legacy : aucune liste de minutes sans provenance ne vaut SCHEDULED', () {
+      // Vide ou non, la liste ne prouve ni l'origine, ni la validité, ni le
+      // calendrier : le verdict est UNKNOWN dans tous les cas, au niveau du
+      // module comme au niveau de l'arrêt exposé à l'interface.
+      for (final List<int> departures in const <List<int>>[
+        <int>[],
+        <int>[0],
+        <int>[600],
+        <int>[23 * 60 + 59],
+        <int>[5 * 60, 12 * 60, 23 * 60 + 59],
+      ]) {
+        expect(
+          ReliabilityLabel.scheduleStatusOf(departures),
+          ScheduleStatus.unknown,
+          reason: 'liste $departures',
+        );
+        expect(
+          _stop('Arrêt legacy', departures: departures).scheduleStatus,
+          ScheduleStatus.unknown,
+          reason: 'liste $departures',
+        );
+      }
+    });
+
     test('données : aucune route du JSON n\'est REAL_TIME', () {
       for (final TransportRoute r in appDataService.routes) {
         expect(r.scheduleStatus, isNot(ScheduleStatus.realTime), reason: r.id);
@@ -251,9 +275,14 @@ void main() {
       }
     });
 
-    test('horaire fourni : présenté comme programmé, jamais comme temps réel', () {
+    test('horaire legacy sans provenance : ni programmé, ni temps réel', () {
       final Stop s = _stop('Arrêt programmé', departures: const <int>[23 * 60 + 59]);
-      expect(s.scheduleStatus, ScheduleStatus.scheduled);
+      expect(
+        s.scheduleStatus,
+        ScheduleStatus.unknown,
+        reason: 'une liste de minutes sans provenance ne prouve pas un horaire',
+      );
+      expect(s.scheduleStatus, isNot(ScheduleStatus.scheduled));
       expect(s.scheduleStatus, isNot(ScheduleStatus.realTime));
     });
   });
