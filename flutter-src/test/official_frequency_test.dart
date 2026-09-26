@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:dakar_bus/main.dart' as app;
-import 'package:dakar_bus/models/departure_info.dart';
 import 'package:dakar_bus/models/transport_network.dart';
 import 'package:dakar_bus/services/data_provider.dart';
 import 'package:dakar_bus/services/data_service.dart';
@@ -234,7 +233,7 @@ void main() {
           ..addAll(<app.Stop>[from, to]);
 
         // La réponse obtenue sur le Stop est déjà de type ScheduleStatus.estimated.
-        final throughStop = from.departureInfoAt(requestedAt);
+        final throughStop = from.departureInfoAt(at: requestedAt);
         expect(throughStop.status, ScheduleStatus.estimated);
         expect(from.departureStatusAt(requestedAt), app.DataStatus.estimated);
         expect(throughStop.serviceActive, isTrue);
