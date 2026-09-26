@@ -69,11 +69,16 @@ class ReliabilityLabel {
     }
   }
 
-  /// Statut d'horaire d'une liste de départs. Liste vide → UNKNOWN.
-  /// Une liste fournie est au mieux SCHEDULED : ce module ne produit JAMAIS
-  /// REAL_TIME (aucun flux officiel ni opérateur n'est disponible).
-  static ScheduleStatus scheduleStatusOf(List<int> departures) =>
-      departures.isEmpty ? ScheduleStatus.unknown : ScheduleStatus.scheduled;
+  /// Adaptateur legacy pour les listes de minutes sans provenance.
+  ///
+  /// Une liste ne prouve ni l'origine, ni la validité, ni le calendrier : elle
+  /// ne peut donc jamais promouvoir un horaire en SCHEDULED. Les nouveaux
+  /// horaires passent par les factories validées de DepartureInfo.
+  static ScheduleStatus scheduleStatusOf(List<int> departures) {
+    // Lire la liste conserve le contrat historique sans lui attribuer un statut.
+    if (departures.isEmpty) return ScheduleStatus.unknown;
+    return ScheduleStatus.unknown;
+  }
 
   /// Garde-fou : un statut d'horaire ne peut pas « monter » vers REAL_TIME
   /// sans flux réel. [hasRealtimeFeed] est `false` dans tout le projet.

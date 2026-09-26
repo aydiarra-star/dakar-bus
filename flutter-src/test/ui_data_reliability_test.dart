@@ -210,7 +210,11 @@ void main() {
   group('4 — UNKNOWN ne devient jamais REAL_TIME', () {
     test('règle : aucune liste de départs ne produit REAL_TIME', () {
       expect(ReliabilityLabel.scheduleStatusOf(const <int>[]), ScheduleStatus.unknown);
-      expect(ReliabilityLabel.scheduleStatusOf(const <int>[600]), ScheduleStatus.scheduled);
+      expect(
+        ReliabilityLabel.scheduleStatusOf(const <int>[600]),
+        ScheduleStatus.unknown,
+        reason: 'une liste de minutes sans provenance ne prouve pas un horaire',
+      );
       expect(ReliabilityLabel.guardRealtime(ScheduleStatus.realTime), ScheduleStatus.unknown);
       expect(ReliabilityLabel.guardRealtime(ScheduleStatus.unknown), ScheduleStatus.unknown);
       expect(ScheduleStatus.unknown.displayLabel(), 'Horaire indisponible');
@@ -332,25 +336,28 @@ void main() {
   // Garde-fou rendu — page Alertes : la carte DDD n'affirme plus rien de
   // non vérifié (3 cartes conservées, cf. groupe 6).
   // ==================================================================
-  testWidgets('RENDU : la carte DDD ne revendique ni officiel ni horaires', (WidgetTester tester) async {
-    tester.view.physicalSize = const Size(1080, 2600);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-    await tester.pumpWidget(const MaterialApp(home: AlertsPage()));
-    await tester.pumpAndSettle();
+  testWidgets(
+    'RENDU : la carte DDD ne revendique ni officiel ni horaires',
+    (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1080, 2600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(const MaterialApp(home: AlertsPage()));
+      await tester.pumpAndSettle();
 
-    final List<String> textes = tester
-        .widgetList<Text>(find.byType(Text))
-        .map((Text t) => t.data ?? '')
-        .where((String s) => s.isNotEmpty)
-        .toList();
-    expect(textes, contains('Données non vérifiées'));
-    for (final String t in textes) {
-      expect(t, isNot(contains('horaires habituels')));
-      expect(t, isNot(contains('Direction DDD')));
-      expect(t, isNot(contains('Réseau actif')));
-      expect(t, isNot(contains('certifiées')));
-    }
-  });
+      final List<String> textes = tester
+          .widgetList<Text>(find.byType(Text))
+          .map((Text t) => t.data ?? '')
+          .where((String s) => s.isNotEmpty)
+          .toList();
+      expect(textes, contains('Données non vérifiées'));
+      for (final String t in textes) {
+        expect(t, isNot(contains('horaires habituels')));
+        expect(t, isNot(contains('Direction DDD')));
+        expect(t, isNot(contains('Réseau actif')));
+        expect(t, isNot(contains('certifiées')));
+      }
+    },
+  );
 }
