@@ -216,9 +216,10 @@ String scheduledSentence({
   required String sourceTypeLabel,
   required String? validFrom,
   required String? validTo,
+  String status = ScheduleStatus.scheduled,
 }) {
   final StringBuffer b = StringBuffer(
-      "La ligne $network $lineNumber dessert cet itinéraire. Depuis l'arrêt $stopName, le prochain départ programmé est à $timeHHMM.");
+      "La ligne $network $lineNumber dessert cet itinéraire. Depuis l'arrêt $stopName, le prochain départ ${status == 'REAL_TIME' ? 'annoncé en temps réel' : 'programmé'} est à $timeHHMM.");
   if (terminus != null && terminus.isNotEmpty) b.write(' Direction $terminus.');
   b.write(' Source : $source ($sourceTypeLabel, validité $validFrom → $validTo).');
   return b.toString();
@@ -352,6 +353,7 @@ ScheduleAnswer answerScheduleQuestion(
   }
   List<String>? stopAmbiguity;
   String? unknownReason;
+  DepartureResult? bestEstimate;
   for (final List<RouteMatch> group in bySource.values) {
     final RegisteredSource source = group.first.source;
     final ScheduleSource service = source.service;
@@ -390,12 +392,16 @@ ScheduleAnswer answerScheduleQuestion(
           time: ref.time,
           limit: limit,
         );
-        if (res.status == ScheduleStatus.scheduled) {
+        // REAL_TIME est relayé seulement depuis un résultat actuel du provider.
+        if (res.status == ScheduleStatus.scheduled ||
+            (res.status == 'REAL_TIME' && res.isCurrent)) {
           for (final Departure d in res.departures) {
             final int offset =
                 normalizeServiceDate(d.serviceDate).compareTo(ref.serviceDate) < 0 ? 86400 : 0;
             candidates.add(_Candidate(d, res, d.departureSeconds - offset));
           }
+        } else if (res.status == ScheduleStatus.estimated && res.estimate != null) {
+          bestEstimate ??= res;
         } else if (res.status == ScheduleStatus.unknown) {
           unknownReason ??= res.reason;
         }
@@ -422,7 +428,7 @@ ScheduleAnswer answerScheduleQuestion(
       final Departure d = best.departure;
       return ScheduleAnswer(
         handled: true,
-        status: ScheduleStatus.scheduled,
+        status: best.result.status,
         sentence: scheduledSentence(
           network: network ?? '',
           lineNumber: lineNumber,
@@ -433,6 +439,7 @@ ScheduleAnswer answerScheduleQuestion(
           sourceTypeLabel: d.sourceType,
           validFrom: d.validity.validFrom,
           validTo: d.validity.validTo,
+          status: best.result.status,
         ),
         question: q,
         network: network,
@@ -452,6 +459,24 @@ ScheduleAnswer answerScheduleQuestion(
           "Plusieurs arrêts correspondent à « ${q.stopName} » : ${stopAmbiguity.join(', ')}. Précisez l'arrêt.",
       question: q,
       network: network,
+    );
+  }
+  // Une fréquence reste une estimation de ligne, jamais une heure à l'arrêt.
+  // Les départs précis et les ambiguïtés d'arrêt restent prioritaires.
+  if (bestEstimate != null) {
+    return ScheduleAnswer(
+      handled: true,
+      status: ScheduleStatus.estimated,
+      sentence: estimatedSentence(
+        network: bestEstimate.estimate!.network,
+        lineNumber: lineNumber,
+        estimate: bestEstimate.estimate!,
+      ),
+      question: q,
+      network: bestEstimate.estimate!.network,
+      provenanceLevel: bestEstimate.provenanceLevel,
+      source: bestEstimate.source,
+      estimate: bestEstimate.estimate,
     );
   }
   return ScheduleAnswer(
