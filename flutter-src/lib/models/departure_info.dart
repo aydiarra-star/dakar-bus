@@ -151,7 +151,17 @@ class DepartureInfo {
     if (status == ScheduleStatus.estimated) {
       return 'Passage estimé dans $estimatedWaitFrom–$estimatedWaitTo min · fréquence $frequencyMinutes min';
     }
-    if (status == ScheduleStatus.scheduled) return 'Départ programmé';
+    if (status == ScheduleStatus.scheduled) {
+      // Lot 4.18 : horaire PassBi réellement trouvé (SCHEDULED).
+      final from = estimatedWaitFrom;
+      if (from != null && from <= 0) {
+        return 'Prochain départ dans moins d’une minute';
+      }
+      if (from != null) {
+        return 'Prochain départ dans $from min';
+      }
+      return 'Départ programmé';
+    }
     return 'Horaire indisponible';
   }
 

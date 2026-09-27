@@ -1,0 +1,55 @@
+{
+  "set": "passbi-operational-layer",
+  "generated_at": "2026-09-27",
+  "generator": "scripts/build-passbi-processed.mjs",
+  "operational_status": "ACTIVE",
+  "source": "PassBi (impactsolutionsas/passbi_core)",
+  "source_type": "PUBLIC_GTFS",
+  "date_source": "2026-02-10",
+  "date_verified": "2026-09-27",
+  "calendar_mode": "ROLLING",
+  "note": "Dérivation bit-à-bit des zips source (non modifiés) vers la couche opérationnelle Dart. Les dates valid_from/valid_to d origine sont conservées dans chaque meta. Remplacement futur : déposer les nouveaux feeds et réexécuter ce script.",
+  "inputs": {
+    "gtfs_TER.zip": {
+      "sha256": "09cb31f4291b28aae072b9b053dc31d06154a7eeb8c212b4bc08825823197408"
+    },
+    "gtfs_BRT.zip": {
+      "sha256": "f5e27b7ee446d52a6c32961db3684637cb0ebb319bb80883c82bcc47104e46c4"
+    },
+    "gtfs_Dem_Dikk.zip": {
+      "sha256": "578323c9fa4375313d57c4120071da3d0da499eb9216e5a4a22a28ffae707159"
+    },
+    "gtfs_AFTU.zip": {
+      "sha256": "7fae6b438de6177ff1d777546684e83c8882927b67efa4645dbecca3d77af428"
+    }
+  },
+  "outputs": {
+    "ter.json": {
+      "sha256": "8495a6c43f29b06f4319cc8364c3d7e20d5303821e808c77e6aa6ff2ad33797a",
+      "bytes": 222857
+    },
+    "brt.json": {
+      "sha256": "0cf6f7ebcb16eab600b664ac80ef7ee4601be196d9de3ad130f71a5ae4d4a068",
+      "bytes": 1559351
+    },
+    "ddd.json": {
+      "sha256": "d2bc953c59e438a99f7ff1daf54d0f418656907df891f5959195cc950d17cf68",
+      "bytes": 8588657
+    },
+    "aftu.json": {
+      "sha256": "0645326a15a21adb0920c5597de6e5ed2795288ae8ceec9c800db80872b89e7c",
+      "bytes": 18469790
+    },
+    "crosswalk.json": {
+      "sha256": "4d91f20e7292e5d743edd21a9c7d0640b80d88f04fb5a035defdfafaf396cdcd",
+      "bytes": 359713
+    }
+  },
+  "crosswalk_stats": {
+    "routes_mapped": 5,
+    "routes_total": 105,
+    "stops_mapped": 44,
+    "stops_total": 51,
+    "transfers": 1505
+  }
+}

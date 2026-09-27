@@ -3,15 +3,65 @@ import 'package:flutter/services.dart';
 import '../models/departure_info.dart';
 import '../models/transport_network.dart';
 import 'data_provider.dart';
+import 'eta_calculator.dart';
+import 'gtfs/passbi_source.dart';
+import 'gtfs/routing_engine.dart';
+import 'schedule_provider.dart';
 
 /// Service de chargement du réseau Dakar
 /// CORRIGE : respecte le modèle TransportRoute (operatorId, type, stopIds)
 /// + peut charger depuis assets/data/dakar_network.json OU fallback mémoire
+///
+/// Lot 4.18 : intègration des feeds GTFS PassBi (source opérationnelle
+/// actuelle, `SourceType.publicGtfs`). La chaîne est
+/// DataService → ScheduleProvider → EtaCalculator → moteur de routage → UI.
 class DataService {
   final DataProvider _dataProvider;
 
   DataService({DataProvider? dataProvider})
       : _dataProvider = dataProvider ?? DataProvider();
+
+  /// Source opérationnelle PassBi (quatre feeds GTFS, un seul lecteur).
+  final PassBiSource passBiSource = PassBiSource();
+  late final ScheduleProvider scheduleProvider =
+      ScheduleProvider(passBiSource);
+  late final EtaCalculator etaCalculator = EtaCalculator(
+    scheduleProvider: scheduleProvider,
+    frequencyProvider: _dataProvider,
+  );
+  late final PassBiRoutingEngine routingEngine =
+      PassBiRoutingEngine(passBiSource);
+
+  /// Chargement des horaires PassBi (distinct de loadNetworkData).
+  /// En cas d'échec, l'app reste sur les données legacy — jamais de plantage.
+  Future<void> loadPassBiSchedules() async {
+    try {
+      await passBiSource.loadAll();
+    } catch (e) {
+      // ignore: avoid_print
+      print('⚠️ PassBi GTFS indisponible (mode legacy) : $e');
+    }
+  }
+
+  bool get passBiActive => passBiSource.isActive;
+
+  /// Planification PassBi entre arrêts du référentiel dakar (via crosswalk).
+  List<PassBiJourney> planPassBiJourneys({
+    required Set<String> fromPassBiKeys,
+    required Set<String> toPassBiKeys,
+    required DateTime at,
+    int maxResults = 4,
+  }) =>
+      routingEngine.planJourneys(
+        fromKeys: fromPassBiKeys,
+        toKeys: toPassBiKeys,
+        at: at,
+        maxResults: maxResults,
+      );
+
+  /// Clés PassBi (composite) correspondant à un arrêt dakar — tous réseaux.
+  Set<String> passBiStopKeysForDakarStop(String dakarStopId) =>
+      passBiSource.compositeStopsForDakarStop(dakarStopId);
 
   /// Résout une fréquence officielle en ESTIMATED uniquement lorsqu'elle
   /// s'applique à la date/heure demandée. Aucun horaire station par station
@@ -52,9 +102,13 @@ class DataService {
         requestedAt: at,
       );
     }
-    return departureInfoForRoute(
-      routeId,
-      at ?? DateTime.now(),
+    // Lot 4.18 : horaires PassBi (SCHEDULED) en priorité, puis fréquences
+    // officielles legacy (ESTIMATED), sinon UNKNOWN. Jamais de REAL_TIME.
+    return etaCalculator.compute(
+      routeId: routeId,
+      stopId: stopId,
+      network: network,
+      at: at ?? DateTime.now(),
       isPublicHoliday: isPublicHoliday,
       operatorName: network,
     );
