@@ -908,7 +908,7 @@ void main() {
   });
 
   group('FrequencyProvider et temps réel', () {
-    test('fréquence TER seule reste ESTIMATED sans heure exacte', () {
+    test('fréquence TER seule reste ESTIMATED avec ETA calculée (Lot 4.14)', () {
       final DateTime now = DateTime.utc(2026, 9, 28, 14, 38);
       final DepartureSearchResult result = ScheduleEngine(
         dataset: null,
@@ -924,7 +924,7 @@ void main() {
       expect(info.status, ScheduleStatus.estimated);
       expect(info.frequencyMinutes, 10);
       expect(info.scheduledTime, isNull);
-      expect(info.nextDepartureAt, isNull);
+      expect(info.etaAt ?? info.nextDepartureAt, isNotNull);
       expect(info.serviceDate, ServiceDate(2026, 9, 28));
     });
 
