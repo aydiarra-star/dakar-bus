@@ -482,13 +482,14 @@ void main() {
     });
 
     test('toutes les mobilités utilisent même rendu 🟢 X min', () {
+      final dataset = _datasetWithTimes([ServiceTime(14, 10, 0)]);
       final terInfo = DepartureInfo.scheduled(
-        dataset: _datasetWithTimes([ServiceTime(14, 10, 0)]),
-        trip: _datasetWithTimes([ServiceTime(14, 10, 0)]).trips.first,
-        stopTime: _datasetWithTimes([ServiceTime(14, 10, 0)]).stopTimes.first,
-        service: _datasetWithTimes([ServiceTime(14, 10, 0)]).services.first,
+        dataset: dataset,
+        trip: dataset.trips.first,
+        stopTime: dataset.stopTimes.first,
+        service: dataset.services.first,
         serviceDate: ServiceDate(2026, 9, 28),
-        provenance: _datasetWithTimes([ServiceTime(14, 10, 0)]).provenance!,
+        provenance: dataset.provenance!,
         calculatedAt: DateTime.utc(2026, 9, 28, 14, 0),
       );
       expect(_display(terInfo), '🟢 10 min');

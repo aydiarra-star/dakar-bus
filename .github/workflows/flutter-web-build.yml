@@ -142,20 +142,6 @@ jobs:
       - name: flutter test
         run: flutter test --reporter expanded 2>&1 | tee "${RUNNER_TEMP}/j9-logs/test.txt"
 
-      # Diagnostic temporaire : le sandbox ne peut pas télécharger les logs GitHub Actions.
-      - name: Diagnostic test en échec
-        if: failure()
-        run: |
-          file="${RUNNER_TEMP}/j9-logs/test.txt"
-          if [ -f "$file" ]; then
-            grep -A 18 -B 3 'Expected:\|\[E\]\|Test failed' "$file" | head -n 45 | while IFS= read -r line; do
-              line="${line//'%'/'%25'}"
-              line="${line//$'\r'/'%0D'}"
-              line="${line//$'\n'/'%0A'}"
-              echo "::notice title=Détail flutter test::${line}"
-            done || true
-          fi
-
       - name: flutter build web
         run: flutter build web --release --base-href "${BASE_HREF}" 2>&1 | tee "${RUNNER_TEMP}/j9-logs/build-web.txt"
 
