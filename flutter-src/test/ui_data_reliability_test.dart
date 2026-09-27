@@ -217,7 +217,7 @@ void main() {
       );
       expect(ReliabilityLabel.guardRealtime(ScheduleStatus.realTime), ScheduleStatus.unknown);
       expect(ReliabilityLabel.guardRealtime(ScheduleStatus.unknown), ScheduleStatus.unknown);
-      expect(ScheduleStatus.unknown.displayLabel(), 'Horaire indisponible');
+      expect(ScheduleStatus.unknown.displayLabel(), 'Passage non communiqué');
     });
 
     test('contrat legacy : aucune liste de minutes sans provenance ne vaut SCHEDULED', () {
@@ -256,7 +256,7 @@ void main() {
       expect(s.nextDepartureMinutes(), isNull);
       expect(s.remainingMinutes(), isNull);
       expect(s.departureAfter(0), isNull);
-      expect(s.nextDepartureLabel(), 'Horaire indisponible');
+      expect(s.nextDepartureLabel(), 'Passage non communiqué');
     });
 
     test('les fréquences estimées ne créent aucun horaire fabriqué', () {
@@ -309,8 +309,9 @@ void main() {
         expect(seg.departureInfo?.frequencyMinutes, 10);
       }
       final String txt = AssistantReplies.itinerary(r, 'Dakar', 'Rufisque');
-      expect(txt, contains('Passage estimé dans 0–10 min'));
-      expect(txt, contains('estimation non garantie'));
+      expect(txt, contains('Passage non communiqué'));
+      expect(txt, isNot(contains('🟡')));
+      expect(txt, contains('estimation non vérifiée'));
       expect(kHeure.hasMatch(txt), isFalse, reason: txt);
       expect(kTempsReel.hasMatch(txt), isFalse, reason: txt);
       expect(txt, isNot(contains('Direct')));

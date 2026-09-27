@@ -13,6 +13,42 @@ enum EtaSource {
   combined,
 }
 
+/// État du service, indépendant de la provenance et de la précision de l'ETA.
+/// L'absence de preuve et l'absence d'ETA ne sont PAS une interruption.
+enum OperationalStatus { normal, delayed, unavailable }
+
+/// Preuve explicite d'un incident d'exploitation, limitée à une ligne et à une
+/// période. Aucun flux d'incident n'est branché aujourd'hui : le simple statut
+/// d'un horaire, une fréquence ou une confiance basse ne créent pas cette preuve.
+class OperationalEvidence {
+  final OperationalStatus status;
+  final String routeId;
+  final String source;
+  final SourceType sourceType;
+  final DateTime observedAt;
+  final DateTime validUntil;
+
+  OperationalEvidence({
+    required this.status,
+    required this.routeId,
+    required this.source,
+    required this.sourceType,
+    required DateTime observedAt,
+    required DateTime validUntil,
+  }) : observedAt = observedAt.toUtc(), validUntil = validUntil.toUtc() {
+    if (routeId.trim().isEmpty || source.trim().isEmpty ||
+        !(Uri.tryParse(source)?.hasScheme ?? false) ||
+        !{SourceType.officialStatic, SourceType.officialRealtime,
+          SourceType.operatorRealtime}.contains(sourceType) ||
+        !this.validUntil.isAfter(this.observedAt)) {
+      throw ArgumentError('Un état opérationnel exige ligne, source et validité explicites');
+    }
+  }
+
+  bool isValidAt(DateTime at) =>
+      !at.toUtc().isBefore(observedAt) && !at.toUtc().isAfter(validUntil);
+}
+
 /// Période pendant laquelle une fréquence publiée est applicable.
 ///
 /// Cette structure décrit uniquement une fréquence ; elle ne contient aucun
@@ -127,6 +163,8 @@ class DepartureInfo {
   final DateTime? etaAt;
   final double? etaConfidence;
   final String? calculationMethod;
+  final OperationalEvidence? operationalEvidence;
+  final DateTime? realtimeValidUntil;
 
   DepartureInfo._({
     required this.status,
@@ -159,6 +197,8 @@ class DepartureInfo {
     this.etaAt,
     this.etaConfidence,
     this.calculationMethod,
+    this.operationalEvidence,
+    this.realtimeValidUntil,
   });
 
   /// Aucun départ exact n'est connu. Les éventuelles métadonnées de source ne
@@ -371,6 +411,7 @@ class DepartureInfo {
       etaAt: prediction.predictedDepartureAt,
       etaConfidence: prediction.provenance.confidence,
       calculationMethod: 'REAL_TIME',
+      realtimeValidUntil: prediction.observedAt.add(maxAge),
     );
   }
 
@@ -453,8 +494,13 @@ class DepartureInfo {
     ServiceDate? serviceDate,
     bool isPublicHoliday = false,
   }) {
-    if (source.status != ScheduleStatus.estimated) {
-      throw ArgumentError('Une fréquence ne peut produire que ESTIMATED');
+    if (source.status != ScheduleStatus.estimated ||
+        !source.frequencies.contains(window) ||
+        !window.appliesAt(requestedAt, isPublicHoliday: isPublicHoliday) ||
+        source.source.trim().isEmpty || source.dateVerified.trim().isEmpty ||
+        etaSource == EtaSource.schedule || etaSource == EtaSource.realTime ||
+        (calculationMethod?.trim().isEmpty ?? true)) {
+      throw ArgumentError('Une ETA estimée exige fréquence applicable, source et méthode de calcul explicites');
     }
     final DateTime dakarInstant = requestedAt.toUtc();
     final DateTime etaUtc = etaAt.toUtc();
@@ -501,6 +547,12 @@ class DepartureInfo {
     double? etaConfidence,
   }) {
     final DateTime etaUtc = etaAt.toUtc();
+    if (status != ScheduleStatus.estimated ||
+        etaSource == EtaSource.schedule || etaSource == EtaSource.realTime ||
+        (calculationMethod?.trim().isEmpty ?? true) ||
+        etaUtc.isBefore((calculatedAt ?? referenceTime)?.toUtc() ?? etaUtc)) {
+      throw ArgumentError('ETA calculée : ancrage estimé et méthode explicite requis');
+    }
     return DepartureInfo._(
       status: status,
       operator: operator,
@@ -532,6 +584,54 @@ class DepartureInfo {
       etaAt: etaUtc,
       etaConfidence: etaConfidence ?? confidence,
       calculationMethod: calculationMethod ?? etaSource.name,
+      operationalEvidence: operationalEvidence,
+      realtimeValidUntil: realtimeValidUntil,
+    );
+  }
+
+  /// État à l'instant consulté : la prédiction temps réel fraîche appariée au
+  /// passage théorique prouve un retard si elle est strictement postérieure.
+  /// Sans ETA ni preuve d'incident, l'état reste inconnu (null), jamais rouge.
+  OperationalStatus? operationalStatusAt(DateTime at) {
+    if (operationalEvidence != null && operationalEvidence!.isValidAt(at)) {
+      return operationalEvidence!.status;
+    }
+    if (realtimeValidUntil != null && at.toUtc().isAfter(realtimeValidUntil!)) {
+      return null;
+    }
+    final target = etaAt ?? nextDepartureAt;
+    if (target == null || target.isBefore(at.toUtc()) ||
+        status == ScheduleStatus.unknown) return null;
+    if (status == ScheduleStatus.realTime && scheduledTime != null &&
+        target.isAfter(scheduledTime!)) return OperationalStatus.delayed;
+    return OperationalStatus.normal;
+  }
+
+  OperationalStatus? get operationalStatus =>
+      operationalStatusAt(calculatedAt ?? referenceTime ?? operationalEvidence?.observedAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true));
+
+  /// Seule une preuve explicite, fraîche et rattachée à la même ligne peut
+  /// signaler une suspension. Aucune source d'alerte n'est simulée par l'app.
+  DepartureInfo withOperationalEvidence(OperationalEvidence evidence, DateTime at) {
+    if (evidence.routeId != routeId || !evidence.isValidAt(at) ||
+        (evidence.status == OperationalStatus.delayed && etaAt == null)) {
+      throw ArgumentError('Preuve opérationnelle non applicable au départ');
+    }
+    return DepartureInfo._(
+      status: status, operator: operator, routeId: routeId,
+      stopId: stopId, stopSequence: stopSequence, tripId: tripId,
+      directionId: directionId, serviceDate: serviceDate,
+      referenceTime: referenceTime, estimatedWaitFrom: estimatedWaitFrom,
+      estimatedWaitTo: estimatedWaitTo, scheduledTime: scheduledTime,
+      nextDepartureAt: nextDepartureAt, calculatedAt: calculatedAt,
+      observedAt: observedAt, source: source, sourceType: sourceType,
+      dateSource: dateSource, dateVerified: dateVerified,
+      validFrom: validFrom, validTo: validTo, confidence: confidence,
+      frequencyMinutes: frequencyMinutes, operatingHours: operatingHours,
+      direction: direction, provenance: provenance, etaSource: etaSource,
+      etaAt: etaAt, etaConfidence: etaConfidence,
+      calculationMethod: calculationMethod, operationalEvidence: evidence,
+      realtimeValidUntil: realtimeValidUntil,
     );
   }
 
@@ -581,6 +681,12 @@ class DepartureInfo {
     return (micros + Duration.microsecondsPerSecond - 1) ~/ Duration.microsecondsPerSecond;
   }
 
+  /// Valeur instantanée dérivée (jamais une durée issue de la fréquence).
+  int? get etaMinutes {
+    final instant = calculatedAt ?? referenceTime;
+    return instant == null ? null : etaMinutesAt(instant);
+  }
+
   int? etaMinutesAt(DateTime now) {
     final int? seconds = etaRemainingSecondsAt(now);
     if (seconds == null) return null;
@@ -600,16 +706,10 @@ class DepartureInfo {
   /// Vrai si une ETA chiffrée est disponible et non passée.
   bool get hasEta => _etaTarget != null;
 
-  String get label {
-    if (status == ScheduleStatus.estimated) {
-      return 'Passage estimé dans '
-          '$estimatedWaitFrom–$estimatedWaitTo min · fréquence '
-          '$frequencyMinutes min';
-    }
-    if (status == ScheduleStatus.scheduled) return 'Départ programmé';
-    if (status == ScheduleStatus.realTime) return 'Prédiction temps réel disponible';
-    return 'Horaire indisponible';
-  }
+  /// Compatibilité : jamais de fenêtre transformée en compte à rebours.
+  /// Le libellé destiné à l'interface est DeparturePresentation, avec l'instant
+  /// de consultation explicite et le calcul unique dans EtaCalculator.
+  String get label => 'Passage non communiqué';
 }
 
 /// Valeurs nulles-safe partagées pour les périodes documentées.

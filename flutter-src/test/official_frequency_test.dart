@@ -256,7 +256,7 @@ void main() {
         expect(route.segments.single.arrivalTime, isNull);
         expect(
           app.AssistantReplies.itinerary(route, route.fromName, route.toName),
-          contains('Passage estimé dans 0–6 min'),
+          contains('Passage non communiqué'),
         );
       } finally {
         app.allStops

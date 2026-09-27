@@ -33,14 +33,17 @@ class EtaCalculator {
   static EtaResult? fromDepartureInfo(DepartureInfo info, DateTime nowUtc) {
     final DateTime now = nowUtc.toUtc();
 
+    // Une prédiction temps réel périmée ne prouve plus un passage futur.
+    if (info.realtimeValidUntil != null &&
+        now.isAfter(info.realtimeValidUntil!)) return null;
+
     // Une heure vérifiable est requise. Une fréquence seule ne porte aucune ETA.
     if (info.status == ScheduleStatus.unknown) return null;
     if (info.status == ScheduleStatus.estimated && info.etaAt == null) {
       return null;
     }
-    final DateTime? target = info.status == ScheduleStatus.estimated
-        ? info.etaAt
-        : info.nextDepartureAt ?? info.scheduledTime;
+    final DateTime? target = info.etaAt ??
+        (info.status == ScheduleStatus.estimated ? null : info.nextDepartureAt ?? info.scheduledTime);
     if (target == null) return null;
     final int? seconds = _remainingSeconds(target, now);
     if (seconds == null) return null;

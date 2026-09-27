@@ -5,7 +5,7 @@ import 'package:dakar_bus/models/transport_network.dart';
 import 'package:dakar_bus/services/clock.dart';
 import 'package:dakar_bus/services/data_provider.dart';
 import 'package:dakar_bus/services/data_service.dart';
-import 'package:dakar_bus/services/eta_calculator.dart';
+import 'package:dakar_bus/services/departure_presentation.dart';
 import 'package:dakar_bus/services/schedule_provider.dart';
 import 'package:dakar_bus/services/schedule_service.dart';
 
@@ -154,17 +154,8 @@ FoundDeparture _found(DepartureSearchResult result) {
   return result as FoundDeparture;
 }
 
-String _departureDisplayLabel(DepartureInfo info) {
-  // Lot 4.14 : ETA universelle `🟢 X min` / `🟢 Maintenant`
-  final anchor = info.calculatedAt ?? info.referenceTime;
-  if (anchor == null) return 'Horaire indisponible';
-  final EtaResult? eta = EtaCalculator.fromDepartureInfo(info, anchor);
-  if (eta != null) {
-    if (eta.isNow) return '🟢 Maintenant';
-    return '🟢 ${eta.minutes} min';
-  }
-  return 'Horaire indisponible';
-}
+String _departureDisplayLabel(DepartureInfo info) => DeparturePresentation.at(
+    info, info.calculatedAt ?? info.referenceTime ?? DateTime.utc(1970)).label;
 
 void main() {
   group('nextDepartureFor — instants et secondes', () {
@@ -1227,12 +1218,12 @@ void main() {
       final label = _departureDisplayLabel(info);
       expect(label, isNot(contains('Passage estimé')));
       expect(label, isNot(contains('🟡')));
-      expect(label, 'Horaire indisponible');
+      expect(label, 'Passage non communiqué');
       expect(info.etaSource, isNull);
     });
     test('cas 4 — UNKNOWN → Horaire indisponible', () {
       final info = DepartureInfo.unknown(operator: 'Test', routeId: _route, requestedAt: DateTime.utc(2026, 9, 28, 12, 0));
-      expect(_departureDisplayLabel(info), 'Horaire indisponible');
+      expect(_departureDisplayLabel(info), 'Passage non communiqué');
     });
     test('cas 5 — intervalle jamais présenté comme heure', () {
       final service = DataService();
@@ -1245,19 +1236,19 @@ void main() {
       expect(label, isNot(contains('Passage estimé toutes les')));
       expect(label, isNot(contains('0–')));
       expect(label, isNot(contains('🟡')));
-      expect(label, 'Horaire indisponible');
+      expect(label, 'Passage non communiqué');
     });
     test('cas 6 — pas de faux zéro, pas de conversion fréquence→heure brute', () {
       final service = DataService();
       final infoNow = service.departureInfoForRoute('brt_b1_guediawaye_petersen', DateTime.utc(2026, 9, 28, 14, 0));
-      expect(_departureDisplayLabel(infoNow), 'Horaire indisponible');
+      expect(_departureDisplayLabel(infoNow), 'Passage non communiqué');
       expect(_departureDisplayLabel(infoNow), isNot(contains('0 min')));
       final infoTer = service.departureInfoForRoute('ter_dakar_diamniadio', DateTime.utc(2026, 9, 28, 14, 0));
       final labelTer = _departureDisplayLabel(infoTer);
       expect(labelTer, isNot(contains('Passage estimé')));
       expect(labelTer, isNot(contains('🟡')));
       expect(labelTer, isNot(contains('0 min')));
-      expect(labelTer, 'Horaire indisponible');
+      expect(labelTer, 'Passage non communiqué');
     });
   });
 }

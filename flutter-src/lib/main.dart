@@ -11,7 +11,7 @@ import 'models/transport_network.dart';
 import 'models/reliability.dart';
 import 'models/departure_info.dart';
 import 'services/data_service.dart';
-import 'services/eta_calculator.dart';
+import 'services/departure_presentation.dart';
 
 // ============================================================
 // SERVICE GLOBAL RESEAU DAKAR — Connecté à assets/data/dakar_network.json
@@ -809,13 +809,9 @@ class Stop {
     return d - (DateTime.now().hour * 60 + DateTime.now().minute);
   }
 
-  String? nextDepartureLabel() {
-    if (scheduleRouteId != null) return departureDisplayLabel(departureInfo);
-    final d = nextDepartureMinutes();
-    if (d == null) return ReliabilityLabel.scheduleUnavailable;
-    final normalized = d % (24 * 60);
-    return '${(normalized ~/ 60).toString().padLeft(2, '0')} h ${(normalized % 60).toString().padLeft(2, '0')}';
-  }
+  String? nextDepartureLabel() => scheduleRouteId == null
+      ? DeparturePresentation.noEta
+      : departureDisplayLabel(departureInfo);
 
   int? departureAfter(int minFromMidnight) {
     if (!_hasSchedule) return null;
@@ -842,22 +838,28 @@ DataStatus departureDataStatus(ScheduleStatus status) {
   }
 }
 
-/// Carte station — contrat Lot 4.14 : ETA universelle `🟢 X min` / `🟢 Maintenant`.
-/// Hiérarchie : REAL_TIME > SCHEDULED > ETA calculée avec ancrage vérifiable.
-/// La UI ne calcule jamais d'heure, elle FORMATE l'ETA déjà calculée par le moteur.
-/// Aucune fabrication d'heure (pas de DateTime.now, pas de fréquence→heure inventée).
-String departureDisplayLabel(DepartureInfo info) {
-  final DateTime? anchor = info.calculatedAt ?? info.referenceTime;
-  if (anchor == null) return ReliabilityLabel.scheduleUnavailable;
-  // Calculateur centralisé — respecte la hiérarchie et ne retourne jamais 0 min
-  final EtaResult? eta = EtaCalculator.fromDepartureInfo(info, anchor);
-  if (eta != null) {
-    if (eta.isNow) return '🟢 Maintenant';
-    return '🟢 ${eta.minutes} min';
+/// Affichage commun aux cartes, trajets et réponses de l'assistant.
+/// L'instant est celui du DepartureInfo résolu (ou celui fourni par l'appelant).
+DeparturePresentation departurePresentation(DepartureInfo? info, {DateTime? at}) {
+  final instant = at ?? info?.calculatedAt ?? info?.referenceTime ??
+      DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+  return DeparturePresentation.at(info, instant);
+}
+
+String departureDisplayLabel(DepartureInfo info, {DateTime? at}) =>
+    departurePresentation(info, at: at).label;
+
+Color departureDisplayColor(DeparturePresentation display, bool dark) {
+  switch (display.operationalStatus) {
+    case OperationalStatus.normal:
+      return Colors.green.shade700;
+    case OperationalStatus.delayed:
+      return Colors.amber.shade800;
+    case OperationalStatus.unavailable:
+      return Colors.red.shade700;
+    case null:
+      return AppColors.textSecondary(dark);
   }
-  // Garde-fou ESTIMATED : sans ETA défendable, ne jamais afficher fréquence→heure
-  // (une fenêtre de fréquence ne garantit ni phase ni passage à cet arrêt)
-  return ReliabilityLabel.scheduleUnavailable;
 }
 
 class TransitRoute {
@@ -2773,32 +2775,14 @@ class StopCard extends StatelessWidget {
         const String crowd = ReliabilityLabel.crowdUnavailable;
         Widget timeWidget;
 
-        // AUDIT DONNÉES 2026-09-24.
-        // AVANT : « Fermé » déduit de l'heure (5 h–22 h 30 supposés),
-        //         « Bientôt », « Imminent » et un compte à rebours vert calculé
-        //         sur des départs générés — lu comme du temps réel.
-        // APRÈS : sans horaire fourni → « Horaire indisponible » ; avec un
-        //         horaire fourni → « Prévu HH h MM » (programmé, pas de
-        //         compte à rebours). Aucun flux temps réel n'existe.
-        if (stop.scheduleRouteId != null) {
-          final info = stop.departureInfo;
-          final label = departureDisplayLabel(info);
-          final isLive = info.status == ScheduleStatus.scheduled ||
-              info.status == ScheduleStatus.realTime;
-          timeWidget = Text(label, style: TextStyle(
-            fontSize: isLive ? 13 : 11,
-            fontWeight: FontWeight.bold,
-            color: isLive
-                ? stop.color
-                : AppColors.textSecondary(dark),
-          ));
-        } else if (stop.scheduleStatus == ScheduleStatus.unknown) {
-          timeWidget = Text(ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary(dark)));
-        } else if (stop.nextDepartureMinutes() == null) {
-          timeWidget = Text('Aucun départ programmé', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary(dark)));
-        } else {
-          timeWidget = Text('Prévu ${stop.nextDepartureLabel()}', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: stop.color));
-        }
+        final display = departurePresentation(
+          stop.scheduleRouteId == null ? null : stop.departureInfo,
+        );
+        timeWidget = Text(display.label, style: TextStyle(
+          fontSize: display.eta == null ? 11 : 13,
+          fontWeight: FontWeight.bold,
+          color: departureDisplayColor(display, dark),
+        ));
 
         return GestureDetector(
           onLongPress: () {
@@ -3029,21 +3013,8 @@ class _TripsPageState extends State<TripsPage> {
     );
   }
 
-  String _departureLabelForSegment(RouteSegment s) {
-    final DepartureInfo? info = s.departureInfo;
-    if (info == null) return ReliabilityLabel.scheduleUnavailable;
-    // Lot 4.14 : ETA universelle `🟢 X min` / `🟢 Maintenant`
-    // Source unique : DepartureInfo via DataService + EtaCalculator.
-    // Aucune fréquence→heure inventée, aucun DateTime.now().
-    final DateTime? anchor = info.calculatedAt ?? info.referenceTime;
-    if (anchor == null) return ReliabilityLabel.scheduleUnavailable;
-    final EtaResult? eta = EtaCalculator.fromDepartureInfo(info, anchor);
-    if (eta != null) {
-      if (eta.isNow) return '🟢 Maintenant';
-      return '🟢 ${eta.minutes} min';
-    }
-    return ReliabilityLabel.scheduleUnavailable;
-  }
+  String _departureLabelForSegment(RouteSegment s) =>
+      departurePresentation(s.departureInfo).label;
 
   Widget _buildRouteCard(PlannedRoute r, bool dark) {
     return Card(
@@ -3087,7 +3058,7 @@ class _TripsPageState extends State<TripsPage> {
                       child: Padding(
                         padding: EdgeInsets.only(bottom: isLast ? 0 : 16),
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Row(children: [Icon(s.icon, size: 14, color: s.color), const SizedBox(width: 6), Text(s.modeLabel, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: s.color)), const Spacer(), Text(s.departureInfo != null ? _departureLabelForSegment(s) : (s.departureTime ?? ReliabilityLabel.scheduleUnavailable), style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))]),
+                          Row(children: [Icon(s.icon, size: 14, color: s.color), const SizedBox(width: 6), Text(s.modeLabel, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: s.color)), const Spacer(), Text(_departureLabelForSegment(s), style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: departureDisplayColor(departurePresentation(s.departureInfo), dark)))]),
                           const SizedBox(height: 4),
                           Text('${s.from} - ${s.to}', style: TextStyle(fontSize: 12, color: AppColors.textPrimary(dark))),
                           const SizedBox(height: 2),
@@ -3593,13 +3564,7 @@ class AssistantReplies {
     for (int i = 0; i < r.segments.length; i++) {
       final s = r.segments[i];
       buf.writeln('${i + 1}. ${s.modeLabel} : ${s.from} → ${s.to}');
-      if (s.status == DataStatus.scheduled && s.departureTime != null && s.arrivalTime != null) {
-        buf.writeln('   🕒 Horaire programmé : ${s.departureTime} → ${s.arrivalTime}');
-      } else if (s.status == DataStatus.estimated && s.departureInfo != null) {
-        buf.writeln('   🕒 ${s.departureInfo!.label} — estimation non garantie');
-      } else {
-        buf.writeln('   🕒 ${ReliabilityLabel.noVerifiedSchedule}');
-      }
+      buf.writeln('   🕒 ${departurePresentation(s.departureInfo).label}');
       buf.writeln('   Durée estimée : ~${s.durationMinutes} min (estimation non vérifiée)');
     }
     return buf.toString();
@@ -4137,17 +4102,12 @@ class SingleStopView extends StatelessWidget {
                             Text('Prochain départ programmé', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
                             const SizedBox(height: 2),
                             Text(
-                              stop.scheduleRouteId != null
-                                  ? departureDisplayLabel(stop.departureInfo)
-                                  : (stop.nextDepartureLabel() ?? ReliabilityLabel.scheduleUnavailable),
+                              departurePresentation(stop.scheduleRouteId == null ? null : stop.departureInfo).label,
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: stop.scheduleRouteId != null &&
-                                        (stop.departureInfo.status == ScheduleStatus.scheduled ||
-                                            stop.departureInfo.status == ScheduleStatus.realTime)
-                                    ? stop.color
-                                    : AppColors.textSecondary(dark),
+                                color: departureDisplayColor(
+                                  departurePresentation(stop.scheduleRouteId == null ? null : stop.departureInfo), dark),
                               ),
                               softWrap: true,
                             ),

@@ -12,7 +12,7 @@ import 'transport_network.dart';
 ///    et jamais de temps réel (aucun flux n'existe dans le projet).
 class ReliabilityLabel {
 
-  static const String scheduleUnavailable = 'Horaire indisponible';
+  static const String scheduleUnavailable = 'Passage non communiqué';
   /// Phrase imposée, mot pour mot, quand aucun horaire vérifié n'existe.
   static const String noVerifiedSchedule =
       "Je ne dispose pas d'un horaire vérifié pour ce trajet.";

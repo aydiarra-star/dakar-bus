@@ -163,7 +163,7 @@ extension ScheduleStatusLabel on ScheduleStatus {
       case ScheduleStatus.estimated:
         return 'Estimation';
       case ScheduleStatus.unknown:
-        return 'Horaire indisponible';
+        return 'Passage non communiqué';
     }
   }
 
