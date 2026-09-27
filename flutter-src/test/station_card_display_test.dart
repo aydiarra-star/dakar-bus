@@ -1226,25 +1226,13 @@ void main() {
       expect(_departureDisplayLabel(info), '🟢 Départ maintenant');
     });
     test('cas 3 — ESTIMATED fréquence 6', () {
-      final requestedAt = DateTime.utc(2026, 9, 28, 14, 0);
-      final src = FrequencySource(
-        operator: 'SunuBRT',
-        routeId: 'brt_b1_test',
-        routeLabel: 'BRT B1',
-        source: 'SunuBRT',
-        sourceType: SourceType.operatorTimetable,
-        dateSource: '2026-09-01',
-        dateVerified: '2026-09-26',
-        validFrom: null,
-        validTo: null,
-        confidence: 0.8,
-        status: ScheduleStatus.estimated,
-        frequencies: [
-          FrequencyWindow(weekdays: kEveryDay, startMinute: 0, endMinute: 24 * 60 - 1, frequencyMinutes: 6),
-        ],
-        operatingHours: '00:00–23:59',
+      final service = DataService();
+      final info = service.departureInfoForRoute(
+        'brt_b1_guediawaye_petersen',
+        DateTime.utc(2026, 9, 28, 14, 0),
       );
-      final info = DepartureInfo.fromFrequency(src, src.frequencies.first, requestedAt);
+      expect(info.status, ScheduleStatus.estimated);
+      expect(info.frequencyMinutes, 6);
       expect(_departureDisplayLabel(info), '🟡 Passage estimé toutes les 6 min');
     });
   });
