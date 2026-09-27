@@ -153,6 +153,29 @@ FoundDeparture _found(DepartureSearchResult result) {
   return result as FoundDeparture;
 }
 
+String _departureDisplayLabel(DepartureInfo info) {
+  switch (info.status) {
+    case ScheduleStatus.scheduled:
+    case ScheduleStatus.realTime:
+      final anchor = info.calculatedAt ?? info.referenceTime;
+      final label = anchor != null ? info.remainingLabelAt(anchor) : null;
+      if (label != null) return '🟢 $label';
+      final dt = info.nextDepartureAt ?? info.scheduledTime;
+      if (dt != null) {
+        final hh = dt.toUtc().hour.toString().padLeft(2, '0');
+        final mm = dt.toUtc().minute.toString().padLeft(2, '0');
+        return '🟢 $hh:$mm';
+      }
+      return 'Horaire indisponible';
+    case ScheduleStatus.estimated:
+      final m = info.frequencyMinutes;
+      if (m == null) return 'Horaire indisponible';
+      return '🟡 Passage estimé toutes les $m min';
+    case ScheduleStatus.unknown:
+      return 'Horaire indisponible';
+  }
+}
+
 void main() {
   group('nextDepartureFor — instants et secondes', () {
     final ServiceDate monday = ServiceDate(2026, 9, 28);
@@ -1168,5 +1191,119 @@ void main() {
       now: DateTime.utc(2026, 9, 28, 14, 38),
     );
     expect(_found(result).nextDepartureAt, DateTime.utc(2026, 9, 28, 14, 40));
+  });
+
+  group('station_card_display — contrat Lots 4.9-4.10 (6 cas)', () {
+    test('cas 1 — SCHEDULED départ dans 3 min → 🟢 Départ dans 3 min', () {
+      final calcAt = DateTime.utc(2026, 9, 28, 14, 37);
+      final st = ServiceTime(14, 40, 0);
+      final dataset = _dataset(times: <ServiceTime>[st]);
+      final info = DepartureInfo.scheduled(
+        dataset: dataset,
+        trip: dataset.trips.first,
+        stopTime: dataset.stopTimes.first,
+        service: dataset.services.first,
+        serviceDate: ServiceDate(2026, 9, 28),
+        provenance: dataset.provenance!,
+        calculatedAt: calcAt,
+      );
+      final label = _departureDisplayLabel(info);
+      expect(label, '🟢 Départ dans 3 min');
+      expect(label, isNot(contains('Passage estimé')));
+      expect(label, isNot(contains('0–')));
+    });
+    test('cas 2 — SCHEDULED départ maintenant', () {
+      final calcAt = DateTime.utc(2026, 9, 28, 14, 40);
+      final st = ServiceTime(14, 40, 0);
+      final dataset = _dataset(times: <ServiceTime>[st]);
+      final info = DepartureInfo.scheduled(
+        dataset: dataset,
+        trip: dataset.trips.first,
+        stopTime: dataset.stopTimes.first,
+        service: dataset.services.first,
+        serviceDate: ServiceDate(2026, 9, 28),
+        provenance: dataset.provenance!,
+        calculatedAt: calcAt,
+      );
+      expect(_departureDisplayLabel(info), '🟢 Départ maintenant');
+    });
+    test('cas 3 — ESTIMATED fréquence 6', () {
+      final requestedAt = DateTime.utc(2026, 9, 28, 14, 0);
+      final src = FrequencySource(
+        operator: 'SunuBRT',
+        routeId: 'brt_b1_test',
+        routeLabel: 'BRT B1',
+        source: 'SunuBRT',
+        sourceType: SourceType.operatorTimetable,
+        dateSource: '2026-09-01',
+        dateVerified: '2026-09-26',
+        validFrom: null,
+        validTo: null,
+        confidence: 0.8,
+        status: ScheduleStatus.estimated,
+        frequencies: [
+          FrequencyWindow(weekdays: kEveryDay, startMinute: 0, endMinute: 24 * 60 - 1, frequencyMinutes: 6),
+        ],
+        operatingHours: '00:00–23:59',
+      );
+      final info = DepartureInfo.fromFrequency(src, src.frequencies.first, requestedAt);
+      expect(_departureDisplayLabel(info), '🟡 Passage estimé toutes les 6 min');
+      expect(_departureDisplayLabel(info), isNot(contains('Départ dans')));
+    });
+    test('cas 4 — UNKNOWN', () {
+      final info = DepartureInfo.unknown(operator: 'Test', routeId: _route, requestedAt: DateTime.utc(2026, 9, 28, 12, 0));
+      expect(_departureDisplayLabel(info), 'Horaire indisponible');
+    });
+    test('cas 5 — intervalle jamais présenté comme heure', () {
+      final requestedAt = DateTime.utc(2026, 9, 28, 14, 0);
+      final src = FrequencySource(
+        operator: 'SunuBRT',
+        routeId: 'brt_b1_test',
+        routeLabel: 'BRT B1',
+        source: 'SunuBRT',
+        sourceType: SourceType.operatorTimetable,
+        dateSource: '2026-09-01',
+        dateVerified: '2026-09-26',
+        validFrom: null,
+        validTo: null,
+        confidence: 0.8,
+        status: ScheduleStatus.estimated,
+        frequencies: [
+          FrequencyWindow(weekdays: kEveryDay, startMinute: 0, endMinute: 24 * 60 - 1, frequencyMinutes: 6),
+        ],
+        operatingHours: '00:00–23:59',
+      );
+      final info = DepartureInfo.fromFrequency(src, src.frequencies.first, requestedAt);
+      final label = _departureDisplayLabel(info);
+      expect(label, isNot(contains('Passage estimé dans')));
+      expect(label, isNot(contains('0–')));
+      expect(label, '🟡 Passage estimé toutes les 6 min');
+    });
+    test('cas 6 — pas de faux zéro', () {
+      final requestedAt = DateTime.utc(2026, 9, 28, 14, 0);
+      for (final m in [6, 10, 20]) {
+        final src = FrequencySource(
+          operator: 'SunuBRT',
+          routeId: 'brt_b1_test',
+          routeLabel: 'BRT B1',
+          source: 'SunuBRT',
+          sourceType: SourceType.operatorTimetable,
+          dateSource: '2026-09-01',
+          dateVerified: '2026-09-26',
+          validFrom: null,
+          validTo: null,
+          confidence: 0.8,
+          status: ScheduleStatus.estimated,
+          frequencies: [
+            FrequencyWindow(weekdays: kEveryDay, startMinute: 0, endMinute: 24 * 60 - 1, frequencyMinutes: m),
+          ],
+          operatingHours: '00:00–23:59',
+        );
+        final info = DepartureInfo.fromFrequency(src, src.frequencies.first, requestedAt);
+        final label = _departureDisplayLabel(info);
+        expect(label, isNot(contains('Départ dans 0 min')));
+        expect(label, '🟡 Passage estimé toutes les $m min');
+      }
+    });
   });
 }
