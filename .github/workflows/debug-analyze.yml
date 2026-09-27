@@ -1,0 +1,48 @@
+name: debug-analyze
+on: workflow_dispatch
+
+permissions:
+  contents: read
+  gists: write
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: bash
+        working-directory: flutter-src
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          channel: 'stable'
+          cache: true
+      - name: flutter pub get
+        run: flutter pub get
+      - name: flutter analyze verbose
+        id: analyze
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          flutter analyze --verbose 2>&1 | tee /tmp/analyze.txt || true
+          echo "----- analyze.txt -----"
+          cat /tmp/analyze.txt
+          # also try dart analyze
+          dart analyze --verbose 2>&1 | tee /tmp/dart-analyze.txt || true
+          echo "----- dart-analyze.txt -----"
+          cat /tmp/dart-analyze.txt
+      - name: create gist
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # create gist via gh api
+          content=$(cat /tmp/analyze.txt | head -n 500)
+          # escape json
+          jq -n --arg c "$content" '{description: "analyze debug", public: false, files: {"analyze.txt": {content: $c}}}' > /tmp/gist.json
+          gh api gists --input /tmp/gist.json 2>&1 | tee /tmp/gist.json.out
+          cat /tmp/gist.json.out
+          # also try to post via curl
+          echo "done"
