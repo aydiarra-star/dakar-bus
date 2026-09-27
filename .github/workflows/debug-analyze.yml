@@ -1,9 +1,16 @@
 name: debug-analyze
-on: workflow_dispatch
+on:
+  push:
+    branches:
+      - arena/01a0df09-dakar-bus
+    paths:
+      - '.github/workflows/debug-analyze.yml'
+      - 'flutter-src/**'
+  workflow_dispatch:
 
 permissions:
   contents: read
-  gists: write
+  issues: write
 
 jobs:
   analyze:
@@ -30,19 +37,19 @@ jobs:
           flutter analyze --verbose 2>&1 | tee /tmp/analyze.txt || true
           echo "----- analyze.txt -----"
           cat /tmp/analyze.txt
-          # also try dart analyze
           dart analyze --verbose 2>&1 | tee /tmp/dart-analyze.txt || true
           echo "----- dart-analyze.txt -----"
           cat /tmp/dart-analyze.txt
-      - name: create gist
+          # save to file for issue
+          cp /tmp/analyze.txt ${{ runner.temp }}/analyze.txt
+      - name: create issue with analyze
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # create gist via gh api
-          content=$(cat /tmp/analyze.txt | head -n 500)
-          # escape json
-          jq -n --arg c "$content" '{description: "analyze debug", public: false, files: {"analyze.txt": {content: $c}}}' > /tmp/gist.json
-          gh api gists --input /tmp/gist.json 2>&1 | tee /tmp/gist.json.out
-          cat /tmp/gist.json.out
-          # also try to post via curl
-          echo "done"
+          content=$(cat /tmp/analyze.txt)
+          # truncate to 60000 chars for issue body
+          body=$(echo "$content" | head -c 60000)
+          # create issue via gh api
+          jq -n --arg body "$body" '{title: "debug analyze 35 issues", body: $body}' > /tmp/issue.json
+          gh api repos/${{ github.repository }}/issues --input /tmp/issue.json 2>&1 | tee /tmp/issue.out
+          cat /tmp/issue.out
