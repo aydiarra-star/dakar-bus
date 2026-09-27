@@ -809,7 +809,7 @@ class Stop {
   }
 
   String? nextDepartureLabel() {
-    if (scheduleRouteId != null) return departureInfo.label;
+    if (scheduleRouteId != null) return departureDisplayLabel(departureInfo);
     final d = nextDepartureMinutes();
     if (d == null) return ReliabilityLabel.scheduleUnavailable;
     final normalized = d % (24 * 60);
@@ -838,6 +838,31 @@ DataStatus departureDataStatus(ScheduleStatus status) {
       return DataStatus.estimated;
     case ScheduleStatus.unknown:
       return DataStatus.unknown;
+  }
+}
+
+/// Carte station — contrat Lots 4.9–4.10 : présentation pure de DepartureInfo.
+/// Aucune fabrication d'heure (pas de DateTime.now, pas de fréquence→heure, pas de faux 0 min).
+String departureDisplayLabel(DepartureInfo info) {
+  switch (info.status) {
+    case ScheduleStatus.scheduled:
+    case ScheduleStatus.realTime:
+      final anchor = info.calculatedAt ?? info.referenceTime;
+      final label = anchor != null ? info.remainingLabelAt(anchor) : null;
+      if (label != null) return '🟢 $label';
+      final dt = info.nextDepartureAt ?? info.scheduledTime;
+      if (dt != null) {
+        final hh = dt.toUtc().hour.toString().padLeft(2, '0');
+        final mm = dt.toUtc().minute.toString().padLeft(2, '0');
+        return '🟢 $hh:$mm';
+      }
+      return ReliabilityLabel.scheduleUnavailable;
+    case ScheduleStatus.estimated:
+      final m = info.frequencyMinutes;
+      if (m == null) return ReliabilityLabel.scheduleUnavailable;
+      return '🟡 Passage estimé toutes les $m min';
+    case ScheduleStatus.unknown:
+      return ReliabilityLabel.scheduleUnavailable;
   }
 }
 
@@ -2763,10 +2788,13 @@ class StopCard extends StatelessWidget {
         //         compte à rebours). Aucun flux temps réel n'existe.
         if (stop.scheduleRouteId != null) {
           final info = stop.departureInfo;
-          timeWidget = Text(info.label, style: TextStyle(
-            fontSize: info.status == ScheduleStatus.scheduled ? 13 : 11,
+          final label = departureDisplayLabel(info);
+          final isLive = info.status == ScheduleStatus.scheduled ||
+              info.status == ScheduleStatus.realTime;
+          timeWidget = Text(label, style: TextStyle(
+            fontSize: isLive ? 13 : 11,
             fontWeight: FontWeight.bold,
-            color: info.status == ScheduleStatus.scheduled
+            color: isLive
                 ? stop.color
                 : AppColors.textSecondary(dark),
           ));
@@ -4128,8 +4156,18 @@ class SingleStopView extends StatelessWidget {
                             Text('Prochain départ programmé', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
                             const SizedBox(height: 2),
                             Text(
-                              stop.nextDepartureLabel() ?? ReliabilityLabel.scheduleUnavailable,
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: stop.color),
+                              stop.scheduleRouteId != null
+                                  ? departureDisplayLabel(stop.departureInfo)
+                                  : (stop.nextDepartureLabel() ?? ReliabilityLabel.scheduleUnavailable),
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: stop.scheduleRouteId != null &&
+                                        (stop.departureInfo.status == ScheduleStatus.scheduled ||
+                                            stop.departureInfo.status == ScheduleStatus.realTime)
+                                    ? stop.color
+                                    : AppColors.textSecondary(dark),
+                              ),
                               softWrap: true,
                             ),
                           ],
