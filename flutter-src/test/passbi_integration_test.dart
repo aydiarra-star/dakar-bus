@@ -165,9 +165,13 @@ void main() {
     test('exceptions datées appliquées (ajout et retrait)', () {
       final brt = src.network('BRT')!;
       final ddd = src.network('DDD')!;
-      expect(brt.exceptions.length, 69);
-      expect(ddd.exceptions.length, 40);
-      expect(src.network('AFTU')!.exceptions.length, 40);
+      // Nombre de LIGNES calendar_dates (service, date) — vérifié brut :
+      // BRT 69, DDD 40, AFTU 40 ; la map produit est indexée par service
+      // (7 clés BRT), sa longueur ne mesure pas le nombre de lignes.
+      int datedRows(net) => net.exceptions.values.fold<int>(0, (a, m) => a + m.length);
+      expect(datedRows(brt), 69);
+      expect(datedRows(ddd), 40);
+      expect(datedRows(src.network('AFTU')!), 40);
       expect(src.network('TER')!.exceptions.length, 0);
 
       // Lundi de Pâques 2022-04-04 : LAV retiré par exception type 2.
@@ -274,7 +278,12 @@ void main() {
       );
       expect(lundi!.scheduledTime, DateTime.utc(2026, 9, 28, 12, 11, 25));
       expect(dimanche!.scheduledTime, DateTime.utc(2026, 10, 4, 12, 7, 51));
-      expect(lundi.scheduledTime!.isAfter(dimanche.scheduledTime!), isTrue);
+      // Dates différentes (28 sept. vs 4 oct.) : la comparaison absolue
+      // n'a aucun sens ; l'exigence est horaire — le lundi part plus tard
+      // dans la journée (12:11:25 > 12:07:51).
+      final modLundi = lundi.scheduledTime!.hour * 60 + lundi.scheduledTime!.minute;
+      final modDim = dimanche.scheduledTime!.hour * 60 + dimanche.scheduledTime!.minute;
+      expect(modLundi > modDim, isTrue);
     });
   });
 
@@ -535,8 +544,10 @@ void main() {
         at: lundi14,
       );
       expect(info.status, ScheduleStatus.scheduled);
-      expect(info.estimatedWaitFrom, 2);
-      expect(info.label, 'Prochain départ dans 2 min');
+      // Lot 4.19 A : quai sœur PGFA 14:00:30 → attente < 1 min (cohérent
+      // avec le groupe 12 du présent fichier, exécuté au même instant).
+      expect(info.estimatedWaitFrom, 0);
+      expect(info.label, 'Prochain départ dans moins d’une minute');
       expect(info.sourceType, SourceType.publicGtfs);
       // Route inconnue du référentiel → UNKNOWN, jamais planté.
       final ko = ds.departureFor(
