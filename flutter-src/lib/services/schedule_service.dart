@@ -2,7 +2,6 @@ import '../models/departure_info.dart';
 import '../models/schedule_models.dart';
 import '../models/transport_network.dart';
 import 'data_provider.dart';
-import 'eta_calculator.dart';
 
 /// Issue discriminant séparée du statut d'une DepartureInfo.
 sealed class DepartureSearchResult {

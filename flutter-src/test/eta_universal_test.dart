@@ -1,10 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:dakar_bus/models/departure_info.dart';
 import 'package:dakar_bus/models/schedule_models.dart';
-import 'package:dakar_bus/services/data_provider.dart';
+import 'package:dakar_bus/models/transport_network.dart';
 import 'package:dakar_bus/services/data_service.dart';
 import 'package:dakar_bus/services/eta_calculator.dart';
-import 'package:dakar_bus/services/schedule_provider.dart';
 import 'package:dakar_bus/services/schedule_service.dart';
 
 const String _route = 'test_route_universal';
