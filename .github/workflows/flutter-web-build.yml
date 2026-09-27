@@ -146,6 +146,7 @@ jobs:
 
       - name: Post test failure as issue
         if: failure()
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -157,6 +158,7 @@ jobs:
           body=$(printf "TEST FAILURE for %s (4 failures):\n\`\`\`\n%s\n\`\`\`" "${{ github.sha }}" "$content")
           jq -n --arg body "$body" --arg title "test failure 4 for ${{ github.sha }}" '{title: $title, body: $body}' > /tmp/issue.json
           gh api repos/${{ github.repository }}/issues --input /tmp/issue.json 2>&1 | tee /tmp/issue.out || true
+          cat /tmp/issue.out || true
           cat /tmp/issue.out || true
 
       - name: flutter build web
