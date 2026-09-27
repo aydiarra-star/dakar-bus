@@ -40,16 +40,22 @@ jobs:
           dart analyze --verbose 2>&1 | tee /tmp/dart-analyze.txt || true
           echo "----- dart-analyze.txt -----"
           cat /tmp/dart-analyze.txt
-          # save to file for issue
-          cp /tmp/analyze.txt ${{ runner.temp }}/analyze.txt
+      - name: flutter test verbose
+        id: test
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          flutter test --reporter expanded 2>&1 | tee /tmp/test.txt || true
+          echo "----- test.txt -----"
+          cat /tmp/test.txt
       - name: create issue with analyze
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          content=$(cat /tmp/analyze.txt)
-          # truncate to 60000 chars for issue body
-          body=$(echo "$content" | head -c 60000)
-          # create issue via gh api
-          jq -n --arg body "$body" '{title: "debug analyze 35 issues", body: $body}' > /tmp/issue.json
+          content_analyze=$(cat /tmp/analyze.txt)
+          content_test=$(cat /tmp/test.txt | head -c 40000)
+          body="ANALYZE:\n$content_analyze\n\nTEST:\n$content_test"
+          body=$(echo "$body" | head -c 60000)
+          jq -n --arg body "$body" '{title: "debug analyze+test", body: $body}' > /tmp/issue.json
           gh api repos/${{ github.repository }}/issues --input /tmp/issue.json 2>&1 | tee /tmp/issue.out
           cat /tmp/issue.out
