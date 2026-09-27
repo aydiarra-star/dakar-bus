@@ -1193,7 +1193,7 @@ void main() {
     expect(_found(result).nextDepartureAt, DateTime.utc(2026, 9, 28, 14, 40));
   });
 
-  group('station_card_display — contrat Lots 4.9-4.10 (3 cas)', () {
+  group('station_card_display — contrat Lots 4.9-4.10 (6 cas)', () {
     test('cas 1 — SCHEDULED départ dans 3 min → 🟢 Départ dans 3 min', () {
       final calcAt = DateTime.utc(2026, 9, 28, 14, 37);
       final st = ServiceTime(14, 40, 0);
@@ -1234,6 +1234,33 @@ void main() {
       expect(info.status, ScheduleStatus.estimated);
       expect(info.frequencyMinutes, 6);
       expect(_departureDisplayLabel(info), '🟡 Passage estimé toutes les 6 min');
+    });
+    test('cas 4 — UNKNOWN', () {
+      final info = DepartureInfo.unknown(operator: 'Test', routeId: _route, requestedAt: DateTime.utc(2026, 9, 28, 12, 0));
+      expect(_departureDisplayLabel(info), 'Horaire indisponible');
+    });
+    test('cas 5 — intervalle jamais présenté comme heure', () {
+      final service = DataService();
+      final info = service.departureInfoForRoute(
+        'brt_b1_guediawaye_petersen',
+        DateTime.utc(2026, 9, 28, 14, 0),
+      );
+      final label = _departureDisplayLabel(info);
+      expect(label, isNot(contains('Passage estimé dans')));
+      expect(label, isNot(contains('0–')));
+      expect(label, '🟡 Passage estimé toutes les 6 min');
+    });
+    test('cas 6 — pas de faux zéro', () {
+      final service = DataService();
+      // BRT B1 est 6, TER est 10, on teste 6 et 10 via DataService
+      final info6 = service.departureInfoForRoute('brt_b1_guediawaye_petersen', DateTime.utc(2026, 9, 28, 14, 0));
+      final info10 = service.departureInfoForRoute('ter_dakar_diamniadio', DateTime.utc(2026, 9, 28, 14, 0));
+      expect(_departureDisplayLabel(info6), '🟡 Passage estimé toutes les 6 min');
+      expect(_departureDisplayLabel(info10), '🟡 Passage estimé toutes les 10 min');
+      expect(_departureDisplayLabel(info6), isNot(contains('Départ dans 0 min')));
+      expect(_departureDisplayLabel(info10), isNot(contains('Départ dans 0 min')));
+      expect(_departureDisplayLabel(info6), isNot(contains('Départ dans 6 min')));
+      expect(_departureDisplayLabel(info10), isNot(contains('Départ dans 10 min')));
     });
   });
 }
