@@ -151,12 +151,12 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "=== test.txt tail ===" 
-          cat "${RUNNER_TEMP}/j9-logs/test.txt" 2>/dev/null | tail -n 100 || true
-          echo "=== grep FAILED ==="
-          cat "${RUNNER_TEMP}/j9-logs/test.txt" 2>/dev/null | grep -E "FAILED|failed|Expected|Actual" | head -n 100 || true
-          content=$(cat "${RUNNER_TEMP}/j9-logs/test.txt" 2>/dev/null | grep -E "FAILED|Expected|Actual" | head -n 50 | head -c 4000)
+          cat "${RUNNER_TEMP}/j9-logs/test.txt" 2>/dev/null | tail -n 200 || true
+          echo "=== full grep ==="
+          cat "${RUNNER_TEMP}/j9-logs/test.txt" 2>/dev/null | grep -E "FAIL|Expected|Actual" | head -n 200 || true
+          content=$(cat "${RUNNER_TEMP}/j9-logs/test.txt" 2>/dev/null | grep -A 3 "Expected:" | head -n 100 | head -c 8000)
           if [ -z "$content" ]; then
-            content=$(cat "${RUNNER_TEMP}/j9-logs/test.txt" 2>/dev/null | tail -n 20 | head -c 4000)
+            content=$(cat "${RUNNER_TEMP}/j9-logs/test.txt" 2>/dev/null | tail -n 100 | head -c 8000)
           fi
           body=$(printf "FAIL %s:\n\`\`\`\n%s\n\`\`\`" "${{ github.sha }}" "$content")
           echo "$body" > /tmp/body.txt
