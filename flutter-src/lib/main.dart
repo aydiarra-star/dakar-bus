@@ -2817,7 +2817,7 @@ class StopCard extends StatelessWidget {
                   children: [
                     Text(stop.direction, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textSecondary(dark))),
                     const SizedBox(height: 2),
-                    Text('${DistanceHelper.format(distanceMeters)} • ${stop.modeLabel} (${stop.source.badgeEmoji}) • $crowd', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
+                    Text('${DistanceHelper.format(distanceMeters)} • ${stop.modeLabel} (${stop.source.label}) • $crowd', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
                   ],
                 ),
               ),
@@ -3921,10 +3921,10 @@ class DetailedRoutePage extends StatelessWidget {
                                   Expanded(child: Text(stop.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary(dark)))),
                                   // Audit 2026-09-24 — AVANT : « [OFFICIEL] » sur TOUS les arrêts,
                                   // quel que soit le statut. APRÈS : badge dérivé du statut le moins
-                                  // sûr (ligne, arrêt) ; vert seulement si CONFIRMED.
+                                  // sûr (ligne, arrêt) ; le badge de provenance reste neutre.
                                   Builder(builder: (context) {
                                     final ProvenanceStatus st = route.statusOf(stop);
-                                    final Color c = ReliabilityLabel.canShowOfficial(st) ? AppColors.success : AppColors.warning;
+                                    final Color c = AppColors.textSecondary(dark); // provenance neutre, pas état opérationnel
                                     return Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: c.withOpacity(0.1), borderRadius: BorderRadius.circular(4)), child: Text('[${ReliabilityLabel.badge(st)}]', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: c)));
                                   }),
                                 ]),
@@ -4099,7 +4099,7 @@ class SingleStopView extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Prochain départ programmé', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
+                            Text('Prochain passage', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
                             const SizedBox(height: 2),
                             Text(
                               departurePresentation(stop.scheduleRouteId == null ? null : stop.departureInfo).label,
