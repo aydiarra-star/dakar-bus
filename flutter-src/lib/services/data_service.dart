@@ -44,6 +44,18 @@ class DataService {
     int? directionId,
     ServiceDate? serviceDate,
   }) {
+    // La preuve trip→stop_time et son calendrier priment sur la fréquence.
+    // L'absence de dataset en production n'est jamais comblée artificiellement.
+    if (stopId != null && _scheduleProvider.dataset != null &&
+        (serviceDate == null || serviceDate == ServiceDate.fromInstant(requestedAt))) {
+      final result = nextDepartureFor(
+        routeId: routeId, stopId: stopId, directionId: directionId,
+        serviceDate: serviceDate ?? ServiceDate.fromInstant(requestedAt),
+        now: requestedAt.toUtc(),
+      );
+      if (result is FoundDeparture) return result.departures.first;
+      if (result is EstimatedDeparture) return result.info;
+    }
     if (stopId != null && !_hasUniqueRouteStop(routeId, stopId)) {
       return DepartureInfo.unknown(
         operator: operatorName ?? 'Inconnu',
@@ -82,16 +94,8 @@ class DataService {
         requestedAt: instant,
       );
     }
-    if (!_hasUniqueRouteStop(routeId, stopId)) {
-      return DepartureInfo.unknown(
-        operator: network,
-        routeId: routeId,
-        requestedAt: instant,
-        stopId: stopId,
-      );
-    }
-    // Cette branche conserve seulement une fréquence de ligne. La vérification
-    // route.stopIds ne remplace jamais la relation trip -> stop_time du moteur.
+    // Le même résultat ScheduleEngine→DepartureInfo dessert arrêt, trajet et
+    // assistant. La fréquence seule reste sans ETA en l'absence d'ancrage.
     return departureInfoForRoute(
       routeId,
       instant,

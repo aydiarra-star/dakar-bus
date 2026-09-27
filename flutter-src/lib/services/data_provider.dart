@@ -1,6 +1,7 @@
 import '../models/departure_info.dart';
 import '../models/schedule_models.dart';
 import '../models/transport_network.dart';
+import 'eta_calculator.dart';
 
 /// Provider de fréquences publiées, indépendant du ScheduleProvider.
 ///
@@ -157,6 +158,21 @@ class FrequencyProvider {
       );
     }
 
+    // Le SEUL ancrage terminal vérifié dans les sources existantes :
+    // TER Dakar–Diamniadio. L'opérateur publie 05:45 départ Dakar et 05:35
+    // départ Diamniadio L–S avec une cadence de 10 min, puis 21:05–22:05
+    // toutes les 20 min. Le registre audité confirme le départ Dakar dimanche
+    // 06:25 et la cadence de 20 min. Rien de cela ne donne un passage aux 11
+    // gares intermédiaires ; ni BRT, DDD, AFTU, B3 n'ont cet ancrage.
+    // Aucun trip_id ou sens GTFS n'est créé ; le statut reste ESTIMATED et
+    // la source de l'ETA est COMBINED, jamais HISTORICAL ou SCHEDULED.
+    final anchored = _operatorTerminalEta(
+      source: source, stopId: stopId, directionId: directionId,
+      serviceDate: serviceDate, requestedAt: dakarTime,
+      isPublicHoliday: isPublicHoliday,
+    );
+    if (anchored != null) return anchored;
+
     // Les fréquences actuelles ne possèdent pas de direction_id GTFS à
     // rapprocher. Ne pas convertir un libellé de direction en identifiant.
     if (directionId != null) {
@@ -203,6 +219,55 @@ class FrequencyProvider {
       directionId: directionId,
       serviceDate: serviceDate,
     );
+  }
+
+  DepartureInfo? _operatorTerminalEta({
+    required FrequencySource source,
+    required String? stopId,
+    required int? directionId,
+    required ServiceDate? serviceDate,
+    required DateTime requestedAt,
+    required bool isPublicHoliday,
+  }) {
+    if (source.routeId != 'ter_dakar_diamniadio' ||
+        (stopId != 'stop_dakar_ter' && stopId != 'stop_diamniadio') ||
+        directionId != null ||
+        (serviceDate != null && serviceDate != ServiceDate.fromInstant(requestedAt))) {
+      return null;
+    }
+    // Une vérification postérieure à la date demandée ne prouve rien à cette
+    // date. Seule la ligne et le terminus explicitement sourcés sont admis.
+    final verifiedAt = DateTime.tryParse(source.dateVerified);
+    if (verifiedAt == null || verifiedAt.isAfter(requestedAt)) return null;
+    final date = requestedAt.toUtc();
+    for (final window in source.frequencies) {
+      final departureFromDakar = window.direction == 'Départ de Dakar' ||
+          window.direction == 'Départ de Dakar (21:05–22:05)' ||
+          window.direction == 'Toute la ligne';
+      final departureFromDiamniadio = window.direction == 'Départ de Diamniadio' ||
+          window.direction == 'Départ de Diamniadio (21:05–22:05)';
+      if (stopId == 'stop_dakar_ter' && !departureFromDakar ||
+          stopId == 'stop_diamniadio' && !departureFromDiamniadio) continue;
+      final first = DateTime.utc(date.year, date.month, date.day,
+          window.startMinute ~/ 60, window.startMinute % 60);
+      if (!window.appliesAt(first, isPublicHoliday: isPublicHoliday)) continue;
+      final last = DateTime.utc(date.year, date.month, date.day,
+          window.endMinute ~/ 60, window.endMinute % 60);
+      final eta = EtaCalculator.anchoredTerminalEta(
+        firstDepartureAt: first, lastDepartureAt: last,
+        headway: Duration(minutes: window.frequencyMinutes),
+        nowUtc: requestedAt,
+      );
+      if (eta == null) continue;
+      return DepartureInfo.estimatedWithEta(
+        source: source, window: window, requestedAt: requestedAt,
+        etaAt: eta, etaSource: EtaSource.combined,
+        calculationMethod: 'OPERATOR_TERMINAL_FIRST_DEPARTURE_AND_HEADWAY',
+        stopId: stopId, serviceDate: serviceDate,
+        isPublicHoliday: isPublicHoliday,
+      );
+    }
+    return null;
   }
 
   String _operatorForUnknownRoute(String routeId) {

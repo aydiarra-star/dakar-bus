@@ -496,7 +496,8 @@ class DepartureInfo {
   }) {
     if (source.status != ScheduleStatus.estimated ||
         !source.frequencies.contains(window) ||
-        !window.appliesAt(requestedAt, isPublicHoliday: isPublicHoliday) ||
+        ServiceDate.fromInstant(requestedAt) != ServiceDate.fromInstant(etaAt) ||
+        !window.appliesAt(etaAt, isPublicHoliday: isPublicHoliday) ||
         source.source.trim().isEmpty || source.dateVerified.trim().isEmpty ||
         etaSource == EtaSource.schedule || etaSource == EtaSource.realTime ||
         (calculationMethod?.trim().isEmpty ?? true)) {

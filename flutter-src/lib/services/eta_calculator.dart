@@ -1,5 +1,6 @@
 import '../models/departure_info.dart';
 import '../models/transport_network.dart';
+import '../models/schedule_models.dart';
 
 /// Résultat centralisé du calcul ETA. Jamais inventé sans données suffisantes.
 class EtaResult {
@@ -62,6 +63,32 @@ class EtaCalculator {
       confidence: info.etaConfidence ?? info.confidence,
       calculationMethod: info.calculationMethod ?? source.name,
     );
+  }
+
+  /// Cadence ancrée : SEULEMENT si un opérateur a publié l'heure du premier
+  /// départ AU TERMINUS concerné et la cadence exacte jusqu'au dernier.
+  /// Un simple intervalle à un arrêt intermédiaire ne passe jamais ici.
+  /// La vérification source/terminus/service est la responsabilité du provider ;
+  /// ce calculateur ne fait que l'arithmétique d'instants déjà documentés.
+  static DateTime? anchoredTerminalEta({
+    required DateTime firstDepartureAt,
+    required DateTime lastDepartureAt,
+    required Duration headway,
+    required DateTime nowUtc,
+  }) {
+    final first = firstDepartureAt.toUtc();
+    final last = lastDepartureAt.toUtc();
+    final now = nowUtc.toUtc();
+    if (headway <= Duration.zero || last.isBefore(first) ||
+        ServiceDate.fromInstant(first) != ServiceDate.fromInstant(last) ||
+        ServiceDate.fromInstant(first) != ServiceDate.fromInstant(now) ||
+        now.isAfter(last)) return null;
+    if (!now.isAfter(first)) return first;
+    final elapsed = now.difference(first).inMicroseconds;
+    final interval = headway.inMicroseconds;
+    final hops = (elapsed + interval - 1) ~/ interval;
+    final next = first.add(Duration(microseconds: hops * interval));
+    return next.isAfter(last) ? null : next;
   }
 
   /// La position de l'utilisateur ne prédit pas le passage du véhicule.
