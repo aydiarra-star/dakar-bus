@@ -1193,7 +1193,7 @@ void main() {
     expect(_found(result).nextDepartureAt, DateTime.utc(2026, 9, 28, 14, 40));
   });
 
-  group('station_card_display — contrat Lots 4.9-4.10 (1 cas)', () {
+  group('station_card_display — contrat Lots 4.9-4.10 (2 cas)', () {
     test('cas 1 — SCHEDULED départ dans 3 min → 🟢 Départ dans 3 min', () {
       final calcAt = DateTime.utc(2026, 9, 28, 14, 37);
       final st = ServiceTime(14, 40, 0);
@@ -1209,6 +1209,21 @@ void main() {
       );
       final label = _departureDisplayLabel(info);
       expect(label, '🟢 Départ dans 3 min');
+    });
+    test('cas 2 — SCHEDULED départ maintenant', () {
+      final calcAt = DateTime.utc(2026, 9, 28, 14, 40);
+      final st = ServiceTime(14, 40, 0);
+      final dataset = _dataset(times: <ServiceTime>[st]);
+      final info = DepartureInfo.scheduled(
+        dataset: dataset,
+        trip: dataset.trips.first,
+        stopTime: dataset.stopTimes.first,
+        service: dataset.services.first,
+        serviceDate: ServiceDate(2026, 9, 28),
+        provenance: dataset.provenance!,
+        calculatedAt: calcAt,
+      );
+      expect(_departureDisplayLabel(info), '🟢 Départ maintenant');
     });
   });
 }
