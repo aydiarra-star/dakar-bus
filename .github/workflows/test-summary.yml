@@ -1,0 +1,36 @@
+name: test-summary
+on:
+  push:
+    branches:
+      - arena/01a0df09-dakar-bus
+    paths:
+      - 'flutter-src/**'
+      - '.github/workflows/test-summary.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: bash
+        working-directory: flutter-src
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          channel: 'stable'
+          cache: true
+      - run: flutter pub get
+      - run: flutter test --reporter expanded 2>&1 | tee /tmp/test.txt || true
+      - run: |
+          echo "## Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat /tmp/test.txt | tail -n 200 >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat /tmp/test.txt | grep -E "FAILED|Expected|Actual" | head -n 100 >> $GITHUB_STEP_SUMMARY || true
