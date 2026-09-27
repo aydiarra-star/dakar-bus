@@ -841,15 +841,25 @@ DataStatus departureDataStatus(ScheduleStatus status) {
   }
 }
 
-/// Carte station — contrat Lots 4.9–4.10 : présentation pure de DepartureInfo.
+/// Carte station — contrat Lots 4.9–4.13 : présentation pure de DepartureInfo.
 /// Aucune fabrication d'heure (pas de DateTime.now, pas de fréquence→heure, pas de faux 0 min).
 String departureDisplayLabel(DepartureInfo info) {
   switch (info.status) {
     case ScheduleStatus.scheduled:
-    case ScheduleStatus.realTime:
       final anchor = info.calculatedAt ?? info.referenceTime;
       final label = anchor != null ? info.remainingLabelAt(anchor) : null;
       if (label != null) return '🟢 $label';
+      final dt = info.nextDepartureAt ?? info.scheduledTime;
+      if (dt != null) {
+        final hh = dt.toUtc().hour.toString().padLeft(2, '0');
+        final mm = dt.toUtc().minute.toString().padLeft(2, '0');
+        return '🟢 $hh:$mm';
+      }
+      return ReliabilityLabel.scheduleUnavailable;
+    case ScheduleStatus.realTime:
+      final anchor = info.calculatedAt ?? info.referenceTime;
+      final String? raw = anchor != null ? info.remainingLabelAt(anchor) : null;
+      if (raw != null) return '🟢 ${raw.replaceFirst('Départ', 'Arrivée')}';
       final dt = info.nextDepartureAt ?? info.scheduledTime;
       if (dt != null) {
         final hh = dt.toUtc().hour.toString().padLeft(2, '0');
@@ -3044,10 +3054,20 @@ class _TripsPageState extends State<TripsPage> {
     // remainingLabelAt(calculatedAt/referenceTime) fourni par le moteur.
     switch (info.status) {
       case ScheduleStatus.scheduled:
-      case ScheduleStatus.realTime:
         final DateTime? anchor = info.calculatedAt ?? info.referenceTime;
         final String? label = anchor != null ? info.remainingLabelAt(anchor) : null;
         if (label != null) return '🟢 $label';
+        final DateTime? dt = info.nextDepartureAt ?? info.scheduledTime;
+        if (dt != null) {
+          final String hh = dt.toUtc().hour.toString().padLeft(2, '0');
+          final String mm = dt.toUtc().minute.toString().padLeft(2, '0');
+          return '🟢 $hh:$mm';
+        }
+        return ReliabilityLabel.scheduleUnavailable;
+      case ScheduleStatus.realTime:
+        final DateTime? anchor = info.calculatedAt ?? info.referenceTime;
+        final String? raw = anchor != null ? info.remainingLabelAt(anchor) : null;
+        if (raw != null) return '🟢 ${raw.replaceFirst('Départ', 'Arrivée')}';
         final DateTime? dt = info.nextDepartureAt ?? info.scheduledTime;
         if (dt != null) {
           final String hh = dt.toUtc().hour.toString().padLeft(2, '0');
