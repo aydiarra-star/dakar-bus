@@ -250,13 +250,13 @@ void main() {
       }
     });
 
-    test('arrêt sans horaire : « Horaire indisponible », aucune heure calculée', () {
+    test('arrêt sans horaire : aucun passage affiché, aucune heure calculée', () {
       final Stop s = _stop('Arrêt sans horaire');
       expect(s.scheduleStatus, ScheduleStatus.unknown);
       expect(s.nextDepartureMinutes(), isNull);
       expect(s.remainingMinutes(), isNull);
       expect(s.departureAfter(0), isNull);
-      expect(s.nextDepartureLabel(), 'Passage non communiqué');
+      expect(s.nextDepartureLabel(), isNull);
     });
 
     test('les fréquences estimées ne créent aucun horaire fabriqué', () {

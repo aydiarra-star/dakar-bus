@@ -10,7 +10,11 @@ class DeparturePresentation {
 
   const DeparturePresentation._(this.label, this.operationalStatus, this.eta);
 
-  static const String noEta = 'Passage non communiqué';
+  /// Une absence d'ETA n'est pas un passage à afficher. Conservé comme valeur
+  /// de compatibilité pour les appels qui attendent encore un String.
+  static const String noEta = '';
+
+  bool get hasDisplay => label.isNotEmpty;
 
   static DeparturePresentation at(DepartureInfo? info, DateTime at) {
     if (info == null) return const DeparturePresentation._(noEta, null, null);

@@ -1218,12 +1218,12 @@ void main() {
       final label = _departureDisplayLabel(info);
       expect(label, isNot(contains('Passage estimé')));
       expect(label, isNot(contains('🟡')));
-      expect(label, 'Passage non communiqué');
+      expect(label, DeparturePresentation.noEta);
       expect(info.etaSource, isNull);
     });
-    test('cas 4 — UNKNOWN → Horaire indisponible', () {
+    test('cas 4 — UNKNOWN → aucun passage affiché', () {
       final info = DepartureInfo.unknown(operator: 'Test', routeId: _route, requestedAt: DateTime.utc(2026, 9, 28, 12, 0));
-      expect(_departureDisplayLabel(info), 'Passage non communiqué');
+      expect(_departureDisplayLabel(info), DeparturePresentation.noEta);
     });
     test('cas 5 — intervalle jamais présenté comme heure', () {
       final service = DataService();
@@ -1236,19 +1236,19 @@ void main() {
       expect(label, isNot(contains('Passage estimé toutes les')));
       expect(label, isNot(contains('0–')));
       expect(label, isNot(contains('🟡')));
-      expect(label, 'Passage non communiqué');
+      expect(label, DeparturePresentation.noEta);
     });
     test('cas 6 — pas de faux zéro, pas de conversion fréquence→heure brute', () {
       final service = DataService();
       final infoNow = service.departureInfoForRoute('brt_b1_guediawaye_petersen', DateTime.utc(2026, 9, 28, 14, 0));
-      expect(_departureDisplayLabel(infoNow), 'Passage non communiqué');
+      expect(_departureDisplayLabel(infoNow), DeparturePresentation.noEta);
       expect(_departureDisplayLabel(infoNow), isNot(contains('0 min')));
       final infoTer = service.departureInfoForRoute('ter_dakar_diamniadio', DateTime.utc(2026, 9, 28, 14, 0));
       final labelTer = _departureDisplayLabel(infoTer);
       expect(labelTer, isNot(contains('Passage estimé')));
       expect(labelTer, isNot(contains('🟡')));
       expect(labelTer, isNot(contains('0 min')));
-      expect(labelTer, 'Passage non communiqué');
+      expect(labelTer, DeparturePresentation.noEta);
     });
   });
 }

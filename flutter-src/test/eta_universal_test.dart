@@ -243,7 +243,7 @@ void main() {
       final info = DepartureInfo.unknown(operator: 'Test', routeId: 'unknown', requestedAt: DateTime.utc(2026, 9, 28, 12, 0));
       final eta = EtaCalculator.fromGps(info: info, nowUtc: DateTime.utc(2026, 9, 28, 12, 0));
       expect(eta, isNull);
-      expect(_display(info), 'Passage non communiqué');
+      expect(_display(info), DeparturePresentation.noEta);
     });
   });
 
@@ -257,7 +257,7 @@ void main() {
       expect(info.nextDepartureAt, isNull);
       expect(info.etaSource, isNull);
       expect(info.calculationMethod, isNull);
-      expect(_display(info), 'Passage non communiqué');
+      expect(_display(info), DeparturePresentation.noEta);
     });
 
     test('ETA historique vraie à partir d’observations → HISTORICAL', () {
@@ -343,13 +343,13 @@ void main() {
   });
 
   group('Lot 4.14 — DONNÉES INSUFFISANTES', () {
-    test('fréquence seule sans fenêtre exploitable → Horaire indisponible', () {
+    test('fréquence seule sans fenêtre exploitable → aucun passage affiché', () {
       final info = DepartureInfo.unknown(operator: 'Test', routeId: 'ddd_1', requestedAt: DateTime.utc(2026, 9, 28, 12, 0));
-      expect(_display(info), 'Passage non communiqué');
+      expect(_display(info), DeparturePresentation.noEta);
       expect(info.etaAt, isNull);
     });
 
-    test('ESTIMATED sans ETA calculée → Horaire indisponible, jamais 6 min inventé', () {
+    test('ESTIMATED sans ETA calculée → aucun passage affiché, jamais 6 min inventé', () {
       final window = FrequencyWindow(weekdays: {DateTime.monday}, startMinute: 6 * 60, endMinute: 21 * 60, frequencyMinutes: 6);
       final source = FrequencySource(
         operator: 'Test',
@@ -368,10 +368,10 @@ void main() {
       );
       // Créer un ESTIMATED sans ETA (fréquence pure)
       final info = DepartureInfo.fromFrequency(source, window, DateTime.utc(2026, 9, 28, 14, 1));
-      // Sans ETA, l'affichage doit être Horaire indisponible, pas 🟢 6 min
+      // Sans ETA, l'affichage doit rester vide, pas 🟢 6 min
       expect(info.nextDepartureAt, isNull);
       expect(info.etaAt, isNull);
-      expect(_display(info), 'Passage non communiqué');
+      expect(_display(info), DeparturePresentation.noEta);
     });
 
     test('BRT toutes les 6 min ne devient pas une ETA de 6 ou 5 min', () {
@@ -379,7 +379,7 @@ void main() {
           'brt_b1_guediawaye_petersen', DateTime.utc(2026, 9, 28, 14, 1));
       expect(info.frequencyMinutes, 6);
       expect(info.etaSource, isNull);
-      expect(_display(info), 'Passage non communiqué');
+      expect(_display(info), DeparturePresentation.noEta);
     });
   });
 
@@ -491,10 +491,10 @@ void main() {
       expect(_display(terInfo), '🟢 10 min');
 
       final brtInfo = DataService().departureInfoForRoute('brt_b1_guediawaye_petersen', DateTime.utc(2026, 9, 28, 14, 0));
-      expect(_display(brtInfo), 'Passage non communiqué');
+      expect(_display(brtInfo), DeparturePresentation.noEta);
 
       final dddInfo = DataService().departureInfoForRoute('ddd_1', DateTime.utc(2026, 9, 28, 14, 0));
-      expect(_display(dddInfo), 'Passage non communiqué');
+      expect(_display(dddInfo), DeparturePresentation.noEta);
       expect(_display(dddInfo), isNot(contains('🟢 0 min')));
     });
   });
@@ -514,7 +514,7 @@ void main() {
       final unanchored = DepartureInfo.fromFrequency(
           source, window, DateTime.utc(2026, 9, 28, 13, 34));
       expect(unanchored.etaSource, isNull);
-      expect(_display(unanchored), 'Passage non communiqué');
+      expect(_display(unanchored), DeparturePresentation.noEta);
       // Fixture synthétique : passage observé + temps de trajet mesuré.
       final etaAt = EtaCalculator.travelTimeModelEta(
         lastKnownPassage: DateTime.utc(2026, 9, 28, 13, 30),
@@ -555,7 +555,7 @@ void main() {
           'brt_b1_guediawaye_petersen', DateTime.utc(2026, 9, 28, 14, 1));
       expect(info.status, ScheduleStatus.estimated);
       expect(info.etaSource, isNull);
-      expect(_display(info), 'Passage non communiqué');
+      expect(_display(info), DeparturePresentation.noEta);
     });
 
     test('BRT B2 : fenêtre seule ne définit pas de phase de passage', () {
@@ -563,7 +563,7 @@ void main() {
           'brt_b2_express', DateTime.utc(2026, 9, 28, 14, 1));
       expect(info.status, ScheduleStatus.estimated);
       expect(info.etaSource, isNull);
-      expect(_display(info), 'Passage non communiqué');
+      expect(_display(info), DeparturePresentation.noEta);
     });
 
     test('TER : fréquence seule ne garantit pas un départ à 14:05', () {
@@ -571,20 +571,20 @@ void main() {
           'ter_dakar_diamniadio', DateTime.utc(2026, 9, 28, 14, 0));
       expect(info.status, ScheduleStatus.estimated);
       expect(info.etaSource, isNull);
-      expect(_display(info), 'Passage non communiqué');
+      expect(_display(info), DeparturePresentation.noEta);
     });
 
-    test('DDD sans horaire → Horaire indisponible (jamais inventé)', () {
+    test('DDD sans horaire → aucun passage affiché (jamais inventé)', () {
       final info = DataService().departureInfoForRoute('ddd_1', DateTime.utc(2026, 9, 28, 14, 0));
       expect(info.status, ScheduleStatus.unknown);
-      expect(_display(info), 'Passage non communiqué');
+      expect(_display(info), DeparturePresentation.noEta);
       expect(_display(info), isNot(contains('🟢')));
     });
 
-    test('AFTU sans horaire → Horaire indisponible', () {
+    test('AFTU sans horaire → aucun passage affiché', () {
       final info = DataService().departureInfoForRoute('aftu_1', DateTime.utc(2026, 9, 28, 14, 0));
       expect(info.status, ScheduleStatus.unknown);
-      expect(_display(info), 'Passage non communiqué');
+      expect(_display(info), DeparturePresentation.noEta);
     });
   });
 }

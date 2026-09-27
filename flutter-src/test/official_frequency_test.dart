@@ -256,7 +256,7 @@ void main() {
         expect(route.segments.single.arrivalTime, isNull);
         expect(
           app.AssistantReplies.itinerary(route, route.fromName, route.toName),
-          contains('Passage non communiqué'),
+          isNot(contains('🕒')),
         );
       } finally {
         app.allStops

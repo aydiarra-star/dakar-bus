@@ -137,7 +137,7 @@ void main() {
     final route = app.PlannedRoute(fromName: 'A', toName: 'B', segments: [segment],
         totalMinutes: 10, status: app.DataStatus.estimated);
     final reply = app.AssistantReplies.itinerary(route, 'A', 'B');
-    expect(reply, contains(DeparturePresentation.noEta));
+    expect(reply, isNot(contains('🕒')));
     expect(reply, isNot(contains('13:40')));
     expect(reply, isNot(contains('Passage estimé dans')));
   });
