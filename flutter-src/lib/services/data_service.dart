@@ -55,6 +55,15 @@ class DataService {
       );
       if (result is FoundDeparture) return result.departures.first;
       if (result is EstimatedDeparture) return result.info;
+      if (result is NoDeparture) {
+        // Une grille exhaustive contredisant un passage ultérieur prévaut sur
+        // un repli de fréquence, même si celui-ci a un ancrage opérateur.
+        return DepartureInfo.unknown(
+          operator: operatorName ?? 'Inconnu', routeId: routeId,
+          requestedAt: requestedAt, stopId: stopId,
+          directionId: directionId, serviceDate: serviceDate,
+        );
+      }
     }
     if (stopId != null && !_hasUniqueRouteStop(routeId, stopId)) {
       return DepartureInfo.unknown(
