@@ -119,7 +119,9 @@ void main() {
     await tester.pumpWidget(MaterialApp(
       home: app.DetailedRoutePage(route: route, at: monday),
     ));
-    expect(find.text('🟢 6 min'), findsOneWidget);
+    // Dakar et Diamniadio ont chacun un départ de terminus à 13:35 ce lundi :
+    // les deux ETA sont légitimes. Ne pas supposer un seul widget dans la fiche.
+    expect(find.text('🟢 6 min'), findsWidgets);
     expect(find.text('Passage non communiqué'), findsNothing);
     expect(find.text('Horaire indisponible'), findsNothing);
   });
