@@ -1,5 +1,4 @@
 import '../models/departure_info.dart';
-import '../models/schedule_models.dart';
 import '../models/transport_network.dart';
 
 /// Résultat centralisé du calcul ETA. Jamais inventé sans données suffisantes.
