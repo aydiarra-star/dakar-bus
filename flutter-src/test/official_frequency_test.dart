@@ -188,11 +188,7 @@ void main() {
         'ter_dakar_diamniadio',
         at(2026, 9, 28, 5),
       );
-      // Lot 4.14 : avant service, peut être unknown ou estimated avec ETA du premier départ
-      expect(beforeService.status, anyOf(ScheduleStatus.estimated, ScheduleStatus.unknown));
-      if (beforeService.status == ScheduleStatus.estimated) {
-        expect(beforeService.etaAt ?? beforeService.nextDepartureAt, isNotNull);
-      }
+      expect(beforeService.status, ScheduleStatus.unknown);
 
       final terSource = DataProvider.officialFrequencySources
           .singleWhere((source) => source.routeId == 'ter_dakar_diamniadio');

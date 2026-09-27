@@ -908,7 +908,7 @@ void main() {
   });
 
   group('FrequencyProvider et temps réel', () {
-    test('fréquence TER seule reste ESTIMATED avec ETA calculée (Lot 4.14)', () {
+    test('fréquence TER seule reste ESTIMATED sans heure exacte', () {
       final DateTime now = DateTime.utc(2026, 9, 28, 14, 38);
       final DepartureSearchResult result = ScheduleEngine(
         dataset: null,
@@ -924,7 +924,8 @@ void main() {
       expect(info.status, ScheduleStatus.estimated);
       expect(info.frequencyMinutes, 10);
       expect(info.scheduledTime, isNull);
-      expect(info.etaAt ?? info.nextDepartureAt, isNotNull);
+      expect(info.nextDepartureAt, isNull);
+      expect(info.etaAt, isNull);
       expect(info.serviceDate, ServiceDate(2026, 9, 28));
     });
 
@@ -1215,7 +1216,7 @@ void main() {
       );
       expect(_departureDisplayLabel(info), '🟢 Maintenant');
     });
-    test('cas 3 — ESTIMATED fréquence 6 → 🟢 X min (ETA calculée, jamais jaune)', () {
+    test('cas 3 — ESTIMATED fréquence 6 ne produit pas d’ETA', () {
       final service = DataService();
       final info = service.departureInfoForRoute(
         'brt_b1_guediawaye_petersen',
@@ -1226,9 +1227,8 @@ void main() {
       final label = _departureDisplayLabel(info);
       expect(label, isNot(contains('Passage estimé')));
       expect(label, isNot(contains('🟡')));
-      expect(label, '🟢 5 min');
-      expect(info.etaSource, EtaSource.combined);
-      expect(info.etaSource, isNot(EtaSource.historical));
+      expect(label, 'Horaire indisponible');
+      expect(info.etaSource, isNull);
     });
     test('cas 4 — UNKNOWN → Horaire indisponible', () {
       final info = DepartureInfo.unknown(operator: 'Test', routeId: _route, requestedAt: DateTime.utc(2026, 9, 28, 12, 0));
@@ -1245,19 +1245,19 @@ void main() {
       expect(label, isNot(contains('Passage estimé toutes les')));
       expect(label, isNot(contains('0–')));
       expect(label, isNot(contains('🟡')));
-      expect(label, contains('🟢'));
+      expect(label, 'Horaire indisponible');
     });
     test('cas 6 — pas de faux zéro, pas de conversion fréquence→heure brute', () {
       final service = DataService();
       final infoNow = service.departureInfoForRoute('brt_b1_guediawaye_petersen', DateTime.utc(2026, 9, 28, 14, 0));
-      expect(_departureDisplayLabel(infoNow), anyOf('🟢 Maintenant', contains('🟢')));
+      expect(_departureDisplayLabel(infoNow), 'Horaire indisponible');
       expect(_departureDisplayLabel(infoNow), isNot(contains('0 min')));
       final infoTer = service.departureInfoForRoute('ter_dakar_diamniadio', DateTime.utc(2026, 9, 28, 14, 0));
       final labelTer = _departureDisplayLabel(infoTer);
       expect(labelTer, isNot(contains('Passage estimé')));
       expect(labelTer, isNot(contains('🟡')));
       expect(labelTer, isNot(contains('0 min')));
-      expect(labelTer, isNot('🟢 10 min'));
+      expect(labelTer, 'Horaire indisponible');
     });
   });
 }

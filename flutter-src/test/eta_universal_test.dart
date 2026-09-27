@@ -228,11 +228,17 @@ void main() {
       );
       // ETA de base = 5 min
       expect(_display(info), '🟢 5 min');
-      // Via GPS, la source devient gps mais minutes identiques
+      // La seule position utilisateur ne calcule aucune ETA véhicule.
       final gpsEta = EtaCalculator.fromGps(info: info, nowUtc: DateTime.utc(2026, 9, 28, 13, 55), userLat: 14.68, userLon: -17.44);
       expect(gpsEta, isNotNull);
       expect(gpsEta!.minutes, 5);
-      expect(gpsEta.source, EtaSource.gps);
+      expect(gpsEta.source, EtaSource.schedule);
+      final vehicleEta = EtaCalculator.fromGps(
+        info: info, nowUtc: DateTime.utc(2026, 9, 28, 13, 55),
+        vehiclePositions: [{'lat': 14.68, 'lon': -17.44}],
+      );
+      // Une coordonnée sans vitesse, trajet ni horodatage ne change pas la source.
+      expect(vehicleEta!.source, EtaSource.schedule);
       // Display reste 🟢 5 min
       expect('🟢 ${gpsEta.minutes} min', '🟢 5 min');
     });
@@ -245,51 +251,36 @@ void main() {
     });
   });
 
-  group('Lot 4.14 — HISTORICAL', () {
-    test('ETA calculée à partir de fenêtre fréquence → 🟢 X min (COMBINED, pas HISTORICAL)', () {
-      final window = FrequencyWindow(weekdays: {DateTime.monday}, startMinute: 13 * 60, endMinute: 15 * 60, frequencyMinutes: 10);
-      // Fréquence 10, fenêtre 13:00-15:00, now 13:34 → prochain 13:40 → 6 min
-      // Une fenêtre de fréquence N'EST PAS une donnée historique — elle doit être tracée COMBINED
-      final etaAt = EtaCalculator.estimatedEtaFromWindow(window: window, nowUtc: DateTime.utc(2026, 9, 28, 13, 34));
-      expect(etaAt, DateTime.utc(2026, 9, 28, 13, 40));
-      final source = FrequencySource(
-        operator: 'Test',
-        routeId: 'test_hist',
-        routeLabel: 'Test',
-        source: 'https://example.com',
-        sourceType: SourceType.officialStatic,
-        dateSource: null,
-        dateVerified: '2026-09-21',
-        validFrom: null,
-        validTo: null,
-        confidence: 0.8,
-        status: ScheduleStatus.estimated,
-        operatingHours: '13:00–15:00',
-        frequencies: [window],
-      );
-      final info = DepartureInfo.estimatedWithEta(
-        source: source,
-        window: window,
-        requestedAt: DateTime.utc(2026, 9, 28, 13, 34),
-        etaAt: etaAt!,
-        etaSource: EtaSource.combined,
-        calculationMethod: 'FREQUENCY_WINDOW',
-      );
+  group('Lot 4.14B — fréquence distincte des observations historiques', () {
+    test('une fenêtre de fréquence ne constitue ni HISTORICAL ni une ETA', () {
+      final info = DataService().departureInfoForRoute(
+        'brt_b1_guediawaye_petersen', DateTime.utc(2026, 9, 28, 14, 1));
       expect(info.status, ScheduleStatus.estimated);
-      expect(info.etaSource, EtaSource.combined);
-      expect(info.etaSource, isNot(EtaSource.historical));
-      expect(_display(info), '🟢 6 min');
+      expect(info.frequencyMinutes, 6);
+      expect(info.etaAt, isNull);
+      expect(info.nextDepartureAt, isNull);
+      expect(info.etaSource, isNull);
+      expect(info.calculationMethod, isNull);
+      expect(_display(info), 'Horaire indisponible');
     });
 
     test('ETA historique vraie à partir d’observations → HISTORICAL', () {
       // Vraie historique : liste d’observations passées
       final observed = [
+        DateTime.utc(2026, 9, 28, 12, 40),
+        DateTime.utc(2026, 9, 28, 13, 0),
         DateTime.utc(2026, 9, 28, 13, 20),
-        DateTime.utc(2026, 9, 28, 13, 40),
-        DateTime.utc(2026, 9, 28, 14, 0),
       ];
       final etaAt = EtaCalculator.historicalEta(observedDepartures: observed, nowUtc: DateTime.utc(2026, 9, 28, 13, 34));
       expect(etaAt, DateTime.utc(2026, 9, 28, 13, 40));
+      expect(EtaCalculator.historicalEta(
+        observedDepartures: [DateTime.utc(2026, 9, 28, 13, 20)],
+        nowUtc: DateTime.utc(2026, 9, 28, 13, 34),
+      ), isNull);
+      expect(EtaCalculator.historicalEta(
+        observedDepartures: [...observed, DateTime.utc(2026, 9, 28, 14, 0)],
+        nowUtc: DateTime.utc(2026, 9, 28, 13, 34),
+      ), isNull);
       final window = FrequencyWindow(weekdays: {DateTime.monday}, startMinute: 13 * 60, endMinute: 15 * 60, frequencyMinutes: 10);
       final source = FrequencySource(
         operator: 'Test',
@@ -382,22 +373,17 @@ void main() {
       // Créer un ESTIMATED sans ETA (fréquence pure)
       final info = DepartureInfo.fromFrequency(source, window, DateTime.utc(2026, 9, 28, 14, 1));
       // Sans ETA, l'affichage doit être Horaire indisponible, pas 🟢 6 min
-      // Mais notre DataService calcule l'ETA, donc fromFrequency pur est insuffisant
-      // On vérifie que _display retourne Horaire indisponible si on n'a pas d'ETA
-      // (c'est le cas pour un DepartureInfo.fromFrequency sans etaAt)
       expect(info.nextDepartureAt, isNull);
       expect(info.etaAt, isNull);
       expect(_display(info), 'Horaire indisponible');
     });
 
-    test('BRT toutes les 6 min seule ne devient pas 🟢 6 min automatiquement', () {
-      final service = DataService();
-      // À 14:00, BRT B1 a une ETA calculée (Maintenant), pas 6 min brut
-      // On vérifie qu'à 14:01, ce n'est pas 6 min mais 5 min (calcul via fenêtre)
-      final info = service.departureInfoForRoute('brt_b1_guediawaye_petersen', DateTime.utc(2026, 9, 28, 14, 1));
-      final label = _display(info);
-      expect(label, isNot('🟢 6 min')); // ne doit pas être la fréquence brute
-      expect(label, '🟢 5 min');
+    test('BRT toutes les 6 min ne devient pas une ETA de 6 ou 5 min', () {
+      final info = DataService().departureInfoForRoute(
+          'brt_b1_guediawaye_petersen', DateTime.utc(2026, 9, 28, 14, 1));
+      expect(info.frequencyMinutes, 6);
+      expect(info.etaSource, isNull);
+      expect(_display(info), 'Horaire indisponible');
     });
   });
 
@@ -508,8 +494,7 @@ void main() {
       expect(_display(terInfo), '🟢 10 min');
 
       final brtInfo = DataService().departureInfoForRoute('brt_b1_guediawaye_petersen', DateTime.utc(2026, 9, 28, 14, 0));
-      // 14:00 → Maintenant
-      expect(_display(brtInfo), anyOf('🟢 Maintenant', contains('🟢')));
+      expect(_display(brtInfo), 'Horaire indisponible');
 
       final dddInfo = DataService().departureInfoForRoute('ddd_1', DateTime.utc(2026, 9, 28, 14, 0));
       expect(_display(dddInfo), 'Horaire indisponible');
@@ -518,37 +503,36 @@ void main() {
   });
 
   group('Lot 4.14 — PROVENANCE conservée', () {
-    test('display 🟢 6 min mais status ESTIMATED + HISTORICAL tracé', () {
-      final window = FrequencyWindow(weekdays: {DateTime.monday}, startMinute: 13 * 60, endMinute: 15 * 60, frequencyMinutes: 10);
+    test('COMBINED exige un ancrage observé en plus de la fréquence', () {
+      final window = FrequencyWindow(weekdays: {DateTime.monday},
+          startMinute: 13 * 60, endMinute: 15 * 60, frequencyMinutes: 10);
       final source = FrequencySource(
-        operator: 'Test',
-        routeId: 'test_prov',
-        routeLabel: 'Test',
-        source: 'https://example.com',
-        sourceType: SourceType.officialStatic,
-        dateSource: null,
-        dateVerified: '2026-09-21',
-        validFrom: null,
-        validTo: null,
-        confidence: 0.8,
-        status: ScheduleStatus.estimated,
-        operatingHours: '13:00–15:00',
+        operator: 'Test', routeId: 'test_prov', routeLabel: 'Test',
+        source: 'https://example.com', sourceType: SourceType.officialStatic,
+        dateSource: null, dateVerified: '2026-09-21',
+        validFrom: null, validTo: null, confidence: 0.8,
+        status: ScheduleStatus.estimated, operatingHours: '13:00–15:00',
         frequencies: [window],
       );
-      final etaAt = DateTime.utc(2026, 9, 28, 13, 40);
-      final info = DepartureInfo.estimatedWithEta(
-        source: source,
-        window: window,
-        requestedAt: DateTime.utc(2026, 9, 28, 13, 34),
-        etaAt: etaAt,
-        etaSource: EtaSource.combined,
-        calculationMethod: 'FREQUENCY_WINDOW',
+      final unanchored = DepartureInfo.fromFrequency(
+          source, window, DateTime.utc(2026, 9, 28, 13, 34));
+      expect(unanchored.etaSource, isNull);
+      expect(_display(unanchored), 'Horaire indisponible');
+      // Fixture synthétique : passage observé + temps de trajet mesuré.
+      final etaAt = EtaCalculator.travelTimeModelEta(
+        lastKnownPassage: DateTime.utc(2026, 9, 28, 13, 30),
+        averageTravelTime: const Duration(minutes: 10),
+        nowUtc: DateTime.utc(2026, 9, 28, 13, 34),
       );
-      expect(info.status, ScheduleStatus.estimated);
-      expect(info.etaSource, EtaSource.combined);
-      expect(info.etaSource, isNot(EtaSource.historical));
-      expect(info.calculationMethod, 'FREQUENCY_WINDOW');
-      expect(_display(info), '🟢 6 min');
+      final anchored = unanchored.withCalculatedEta(
+        etaAt: etaAt!, etaSource: EtaSource.combined,
+        calculationMethod: 'OBSERVATION_AND_TRAVEL_TIME',
+      );
+      expect(anchored.status, ScheduleStatus.estimated);
+      expect(anchored.etaSource, EtaSource.combined);
+      expect(anchored.calculationMethod, 'OBSERVATION_AND_TRAVEL_TIME');
+      expect(EstimatedDeparture(anchored).info, same(anchored));
+      expect(_display(anchored), '🟢 6 min');
     });
 
     test('SCHEDULE reste SCHEDULE avec source SCHEDULE', () {
@@ -569,24 +553,28 @@ void main() {
   });
 
   group('Lot 4.14 — BRT / DDD / AFTU généralisés', () {
-    test('BRT B1 fréquence 6 → ETA 5 min à 14:01 (COMBINED, pas HISTORICAL)', () {
-      final info = DataService().departureInfoForRoute('brt_b1_guediawaye_petersen', DateTime.utc(2026, 9, 28, 14, 1));
+    test('BRT B1 : fréquence documentée, aucune source historique', () {
+      final info = DataService().departureInfoForRoute(
+          'brt_b1_guediawaye_petersen', DateTime.utc(2026, 9, 28, 14, 1));
       expect(info.status, ScheduleStatus.estimated);
-      expect(info.etaSource, EtaSource.combined);
-      expect(info.etaSource, isNot(EtaSource.historical));
-      expect(_display(info), '🟢 5 min');
+      expect(info.etaSource, isNull);
+      expect(_display(info), 'Horaire indisponible');
     });
 
-    test('BRT B2 fréquence 6 → ETA', () {
-      final info = DataService().departureInfoForRoute('brt_b2_express', DateTime.utc(2026, 9, 28, 14, 1));
+    test('BRT B2 : fenêtre seule ne définit pas de phase de passage', () {
+      final info = DataService().departureInfoForRoute(
+          'brt_b2_express', DateTime.utc(2026, 9, 28, 14, 1));
       expect(info.status, ScheduleStatus.estimated);
-      expect(_display(info), '🟢 5 min');
+      expect(info.etaSource, isNull);
+      expect(_display(info), 'Horaire indisponible');
     });
 
-    test('TER fréquence 10 → ETA 5 min à 14:00', () {
-      final info = DataService().departureInfoForRoute('ter_dakar_diamniadio', DateTime.utc(2026, 9, 28, 14, 0));
+    test('TER : fréquence seule ne garantit pas un départ à 14:05', () {
+      final info = DataService().departureInfoForRoute(
+          'ter_dakar_diamniadio', DateTime.utc(2026, 9, 28, 14, 0));
       expect(info.status, ScheduleStatus.estimated);
-      expect(_display(info), '🟢 5 min');
+      expect(info.etaSource, isNull);
+      expect(_display(info), 'Horaire indisponible');
     });
 
     test('DDD sans horaire → Horaire indisponible (jamais inventé)', () {

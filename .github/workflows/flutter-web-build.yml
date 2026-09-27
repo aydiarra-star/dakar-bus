@@ -57,9 +57,7 @@ env:
   BASE_HREF: '/dakar-bus/'
 
 permissions:
-  contents: write
-  pull-requests: write
-  issues: write
+  contents: read
 
 concurrency:
   group: flutter-web-build-${{ github.ref }}
@@ -143,28 +141,6 @@ jobs:
 
       - name: flutter test
         run: flutter test --reporter expanded 2>&1 | tee "${RUNNER_TEMP}/j9-logs/test.txt"
-
-      - name: Post test failure as issue
-        if: failure()
-        continue-on-error: true
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "=== test.txt tail ===" 
-          cat "${RUNNER_TEMP}/j9-logs/test.txt" 2>/dev/null | tail -n 200 || true
-          echo "=== full grep ==="
-          cat "${RUNNER_TEMP}/j9-logs/test.txt" 2>/dev/null | grep -E "FAIL|Expected|Actual" | head -n 200 || true
-          content=$(cat "${RUNNER_TEMP}/j9-logs/test.txt" 2>/dev/null | grep -A 3 "Expected:" | head -n 100 | head -c 8000)
-          if [ -z "$content" ]; then
-            content=$(cat "${RUNNER_TEMP}/j9-logs/test.txt" 2>/dev/null | tail -n 100 | head -c 8000)
-          fi
-          body=$(printf "FAIL %s:\n\`\`\`\n%s\n\`\`\`" "${{ github.sha }}" "$content")
-          echo "$body" > /tmp/body.txt
-          cat /tmp/body.txt
-          jq -n --arg body "$(cat /tmp/body.txt)" --arg title "fail ${{ github.sha }}" '{title: $title, body: $body}' > /tmp/issue.json
-          gh api repos/${{ github.repository }}/issues --input /tmp/issue.json 2>&1 | tee /tmp/issue.out || true
-          cat /tmp/issue.out || true
-          cat /tmp/issue.out || true
 
       - name: flutter build web
         run: flutter build web --release --base-href "${BASE_HREF}" 2>&1 | tee "${RUNNER_TEMP}/j9-logs/build-web.txt"

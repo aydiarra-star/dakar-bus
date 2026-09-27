@@ -26,20 +26,18 @@ final class FoundDeparture extends DepartureSearchResult {
   }
 }
 
-/// Fréquence documentée, sans prétention d'heure exacte, ou ETA calculée
-/// à partir d'une fréquence + fenêtre/calendrier/historique.
-/// Lot 4.14 : une ETA calculée reste ESTIMATED (traçabilité) mais porte une
-/// heure via [DepartureInfo.etaAt]/[nextDepartureAt] et affiche `🟢 X min`.
+/// Fréquence documentée sans heure, ou ETA estimée réellement ancrée.
+/// Une fenêtre de fréquence seule ne renseigne ni etaAt ni nextDepartureAt.
 final class EstimatedDeparture extends DepartureSearchResult {
   final DepartureInfo info;
 
   EstimatedDeparture(this.info) {
-    if (info.status != ScheduleStatus.estimated) {
-      throw ArgumentError('Estimated exige ESTIMATED');
-    }
-    final bool hasCalculatedEta = info.etaAt != null || info.nextDepartureAt != null;
-    if (!hasCalculatedEta && (info.scheduledTime != null)) {
-      throw ArgumentError('Estimated sans ETA ne doit pas avoir scheduledTime');
+    if (info.status != ScheduleStatus.estimated ||
+        info.scheduledTime != null ||
+        (info.nextDepartureAt != null &&
+            (info.etaAt == null || info.etaSource == null ||
+                info.nextDepartureAt != info.etaAt))) {
+      throw ArgumentError('Estimated exige ESTIMATED et une ETA sourcée ou aucune heure');
     }
   }
 }

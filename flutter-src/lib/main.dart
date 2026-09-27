@@ -843,7 +843,7 @@ DataStatus departureDataStatus(ScheduleStatus status) {
 }
 
 /// Carte station — contrat Lot 4.14 : ETA universelle `🟢 X min` / `🟢 Maintenant`.
-/// Hiérarchie : REAL_TIME > SCHEDULED > ETA calculée (historique/GPS/travelTime).
+/// Hiérarchie : REAL_TIME > SCHEDULED > ETA calculée avec ancrage vérifiable.
 /// La UI ne calcule jamais d'heure, elle FORMATE l'ETA déjà calculée par le moteur.
 /// Aucune fabrication d'heure (pas de DateTime.now, pas de fréquence→heure inventée).
 String departureDisplayLabel(DepartureInfo info) {
@@ -856,7 +856,7 @@ String departureDisplayLabel(DepartureInfo info) {
     return '🟢 ${eta.minutes} min';
   }
   // Garde-fou ESTIMATED : sans ETA défendable, ne jamais afficher fréquence→heure
-  // (le moteur aurait déjà calculé via fenêtre si possible)
+  // (une fenêtre de fréquence ne garantit ni phase ni passage à cet arrêt)
   return ReliabilityLabel.scheduleUnavailable;
 }
 
