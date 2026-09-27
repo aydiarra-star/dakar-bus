@@ -3030,7 +3030,7 @@ class _TripsPageState extends State<TripsPage> {
       case ScheduleStatus.estimated:
         final int? m = info.frequencyMinutes;
         if (m == null) return ReliabilityLabel.scheduleUnavailable;
-        return '🟡 Passage estimé toutes les ${m} min';
+        return '🟡 Passage estimé toutes les $m min';
       case ScheduleStatus.unknown:
         return ReliabilityLabel.scheduleUnavailable;
     }
