@@ -239,8 +239,11 @@ void main() {
           RoutePlanner.plan(fromQuery: 'Gare TER Dakar', toQuery: 'Rufisque - Gare TER');
       expect(res.hasRoutes, isTrue);
       final String txt = AssistantReplies.itinerary(res.routes.first, 'Dakar', 'Rufisque');
-      final List<String> lignesDuree =
-          txt.split('\n').where((String l) => RegExp(r'\d+ min').hasMatch(l)).toList();
+      // L'ETA (🟢 X min) est distincte d'une durée de trajet ; seule la
+      // durée doit être qualifiée d'estimation, pas le libellé opérationnel.
+      final List<String> lignesDuree = txt.split('\n')
+          .where((String l) => l.contains('Durée') && RegExp(r'\d+ min').hasMatch(l))
+          .toList();
       expect(lignesDuree, isNotEmpty);
       for (final String l in lignesDuree) {
         expect(l.toLowerCase(), contains('estim'), reason: l);

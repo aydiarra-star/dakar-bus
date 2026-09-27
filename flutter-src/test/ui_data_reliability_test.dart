@@ -309,7 +309,7 @@ void main() {
         expect(seg.departureInfo?.frequencyMinutes, 10);
       }
       final String txt = AssistantReplies.itinerary(r, 'Dakar', 'Rufisque');
-      expect(txt, contains('Passage non communiqué'));
+      expect(txt, contains('🟢 5 min')); // Dakar 14:00 → 14:05 (05:45 + cadence 10 min)
       expect(txt, isNot(contains('🟡')));
       expect(txt, contains('estimation non vérifiée'));
       expect(kHeure.hasMatch(txt), isFalse, reason: txt);
