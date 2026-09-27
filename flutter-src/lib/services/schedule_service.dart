@@ -2,6 +2,7 @@ import '../models/departure_info.dart';
 import '../models/schedule_models.dart';
 import '../models/transport_network.dart';
 import 'data_provider.dart';
+import 'eta_calculator.dart';
 
 /// Issue discriminant séparée du statut d'une DepartureInfo.
 sealed class DepartureSearchResult {
@@ -26,15 +27,20 @@ final class FoundDeparture extends DepartureSearchResult {
   }
 }
 
-/// Fréquence documentée, sans prétention d'heure exacte.
+/// Fréquence documentée, sans prétention d'heure exacte, ou ETA calculée
+/// à partir d'une fréquence + fenêtre/calendrier/historique.
+/// Lot 4.14 : une ETA calculée reste ESTIMATED (traçabilité) mais porte une
+/// heure via [DepartureInfo.etaAt]/[nextDepartureAt] et affiche `🟢 X min`.
 final class EstimatedDeparture extends DepartureSearchResult {
   final DepartureInfo info;
 
   EstimatedDeparture(this.info) {
-    if (info.status != ScheduleStatus.estimated ||
-        info.scheduledTime != null ||
-        info.nextDepartureAt != null) {
-      throw ArgumentError('Estimated exige ESTIMATED sans heure exacte');
+    if (info.status != ScheduleStatus.estimated) {
+      throw ArgumentError('Estimated exige ESTIMATED');
+    }
+    final bool hasCalculatedEta = info.etaAt != null || info.nextDepartureAt != null;
+    if (!hasCalculatedEta && (info.scheduledTime != null)) {
+      throw ArgumentError('Estimated sans ETA ne doit pas avoir scheduledTime');
     }
   }
 }

@@ -11,6 +11,7 @@ import 'models/transport_network.dart';
 import 'models/reliability.dart';
 import 'models/departure_info.dart';
 import 'services/data_service.dart';
+import 'services/eta_calculator.dart';
 
 // ============================================================
 // SERVICE GLOBAL RESEAU DAKAR — Connecté à assets/data/dakar_network.json
@@ -841,39 +842,22 @@ DataStatus departureDataStatus(ScheduleStatus status) {
   }
 }
 
-/// Carte station — contrat Lots 4.9–4.13 : présentation pure de DepartureInfo.
-/// Aucune fabrication d'heure (pas de DateTime.now, pas de fréquence→heure, pas de faux 0 min).
+/// Carte station — contrat Lot 4.14 : ETA universelle `🟢 X min` / `🟢 Maintenant`.
+/// Hiérarchie : REAL_TIME > SCHEDULED > ETA calculée (historique/GPS/travelTime).
+/// La UI ne calcule jamais d'heure, elle FORMATE l'ETA déjà calculée par le moteur.
+/// Aucune fabrication d'heure (pas de DateTime.now, pas de fréquence→heure inventée).
 String departureDisplayLabel(DepartureInfo info) {
-  switch (info.status) {
-    case ScheduleStatus.scheduled:
-      final anchor = info.calculatedAt ?? info.referenceTime;
-      final label = anchor != null ? info.remainingLabelAt(anchor) : null;
-      if (label != null) return '🟢 $label';
-      final dt = info.nextDepartureAt ?? info.scheduledTime;
-      if (dt != null) {
-        final hh = dt.toUtc().hour.toString().padLeft(2, '0');
-        final mm = dt.toUtc().minute.toString().padLeft(2, '0');
-        return '🟢 $hh:$mm';
-      }
-      return ReliabilityLabel.scheduleUnavailable;
-    case ScheduleStatus.realTime:
-      final anchor = info.calculatedAt ?? info.referenceTime;
-      final String? raw = anchor != null ? info.remainingLabelAt(anchor) : null;
-      if (raw != null) return '🟢 ${raw.replaceFirst('Départ', 'Arrivée')}';
-      final dt = info.nextDepartureAt ?? info.scheduledTime;
-      if (dt != null) {
-        final hh = dt.toUtc().hour.toString().padLeft(2, '0');
-        final mm = dt.toUtc().minute.toString().padLeft(2, '0');
-        return '🟢 $hh:$mm';
-      }
-      return ReliabilityLabel.scheduleUnavailable;
-    case ScheduleStatus.estimated:
-      final m = info.frequencyMinutes;
-      if (m == null) return ReliabilityLabel.scheduleUnavailable;
-      return '🟡 Passage estimé toutes les $m min';
-    case ScheduleStatus.unknown:
-      return ReliabilityLabel.scheduleUnavailable;
+  final DateTime? anchor = info.calculatedAt ?? info.referenceTime;
+  if (anchor == null) return ReliabilityLabel.scheduleUnavailable;
+  // Calculateur centralisé — respecte la hiérarchie et ne retourne jamais 0 min
+  final EtaResult? eta = EtaCalculator.fromDepartureInfo(info, anchor);
+  if (eta != null) {
+    if (eta.isNow) return '🟢 Maintenant';
+    return '🟢 ${eta.minutes} min';
   }
+  // Garde-fou ESTIMATED : sans ETA défendable, ne jamais afficher fréquence→heure
+  // (le moteur aurait déjà calculé via fenêtre si possible)
+  return ReliabilityLabel.scheduleUnavailable;
 }
 
 class TransitRoute {
@@ -3048,40 +3032,17 @@ class _TripsPageState extends State<TripsPage> {
   String _departureLabelForSegment(RouteSegment s) {
     final DepartureInfo? info = s.departureInfo;
     if (info == null) return ReliabilityLabel.scheduleUnavailable;
-    // Source unique : DepartureInfo via DataService. Aucune heure n'est
-    // recalculée ici, aucune fréquence→heure, aucun DateTime.now() pour
-    // fabriquer un départ. Le countdown provient de nextDepartureAt +
-    // remainingLabelAt(calculatedAt/referenceTime) fourni par le moteur.
-    switch (info.status) {
-      case ScheduleStatus.scheduled:
-        final DateTime? anchor = info.calculatedAt ?? info.referenceTime;
-        final String? label = anchor != null ? info.remainingLabelAt(anchor) : null;
-        if (label != null) return '🟢 $label';
-        final DateTime? dt = info.nextDepartureAt ?? info.scheduledTime;
-        if (dt != null) {
-          final String hh = dt.toUtc().hour.toString().padLeft(2, '0');
-          final String mm = dt.toUtc().minute.toString().padLeft(2, '0');
-          return '🟢 $hh:$mm';
-        }
-        return ReliabilityLabel.scheduleUnavailable;
-      case ScheduleStatus.realTime:
-        final DateTime? anchor = info.calculatedAt ?? info.referenceTime;
-        final String? raw = anchor != null ? info.remainingLabelAt(anchor) : null;
-        if (raw != null) return '🟢 ${raw.replaceFirst('Départ', 'Arrivée')}';
-        final DateTime? dt = info.nextDepartureAt ?? info.scheduledTime;
-        if (dt != null) {
-          final String hh = dt.toUtc().hour.toString().padLeft(2, '0');
-          final String mm = dt.toUtc().minute.toString().padLeft(2, '0');
-          return '🟢 $hh:$mm';
-        }
-        return ReliabilityLabel.scheduleUnavailable;
-      case ScheduleStatus.estimated:
-        final int? m = info.frequencyMinutes;
-        if (m == null) return ReliabilityLabel.scheduleUnavailable;
-        return '🟡 Passage estimé toutes les $m min';
-      case ScheduleStatus.unknown:
-        return ReliabilityLabel.scheduleUnavailable;
+    // Lot 4.14 : ETA universelle `🟢 X min` / `🟢 Maintenant`
+    // Source unique : DepartureInfo via DataService + EtaCalculator.
+    // Aucune fréquence→heure inventée, aucun DateTime.now().
+    final DateTime? anchor = info.calculatedAt ?? info.referenceTime;
+    if (anchor == null) return ReliabilityLabel.scheduleUnavailable;
+    final EtaResult? eta = EtaCalculator.fromDepartureInfo(info, anchor);
+    if (eta != null) {
+      if (eta.isNow) return '🟢 Maintenant';
+      return '🟢 ${eta.minutes} min';
     }
+    return ReliabilityLabel.scheduleUnavailable;
   }
 
   Widget _buildRouteCard(PlannedRoute r, bool dark) {

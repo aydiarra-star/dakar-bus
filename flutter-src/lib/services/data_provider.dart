@@ -1,6 +1,7 @@
 import '../models/departure_info.dart';
 import '../models/schedule_models.dart';
 import '../models/transport_network.dart';
+import 'eta_calculator.dart';
 
 /// Provider de fréquences publiées, indépendant du ScheduleProvider.
 ///
@@ -181,17 +182,87 @@ class FrequencyProvider {
       );
     }
 
+    // Lot 4.14 — hiérarchie : chercher d'abord une fenêtre applicable,
+    // puis si elle n'existe pas, chercher la prochaine fenêtre du jour.
+    FrequencyWindow? applicable;
     for (final window in source.frequencies) {
       if (window.appliesAt(dakarTime, isPublicHoliday: isPublicHoliday)) {
-        return DepartureInfo.fromFrequency(
-          source,
-          window,
-          dakarTime,
-          stopId: stopId,
-          serviceDate: serviceDate,
-          isPublicHoliday: isPublicHoliday,
-        );
+        applicable = window;
+        break;
       }
+    }
+    if (applicable != null) {
+      // Niveau 3 : tenter de calculer une ETA défendable à partir de la fenêtre
+      final DateTime? etaAt = EtaCalculator.estimatedEtaFromWindow(
+        window: applicable,
+        nowUtc: dakarTime,
+        isPublicHoliday: isPublicHoliday,
+      );
+      if (etaAt != null) {
+        // Vérifier que l'ETA n'est pas dans le passé (sécurité)
+        if (!etaAt.isBefore(dakarTime)) {
+          return DepartureInfo.estimatedWithEta(
+            source: source,
+            window: applicable,
+            requestedAt: dakarTime,
+            etaAt: etaAt,
+            etaSource: EtaSource.combined,
+            calculationMethod: 'FREQUENCY_WINDOW',
+            stopId: stopId,
+            serviceDate: serviceDate,
+            isPublicHoliday: isPublicHoliday,
+          );
+        }
+      }
+      // Si on ne peut pas calculer d'ETA défendable, on retourne l'estimation
+      // sans heure (l'UI affichera Horaire indisponible, jamais 6 min inventé)
+      return DepartureInfo.fromFrequency(
+        source,
+        applicable,
+        dakarTime,
+        stopId: stopId,
+        serviceDate: serviceDate,
+        isPublicHoliday: isPublicHoliday,
+      );
+    }
+
+    // Aucune fenêtre applicable maintenant : chercher la prochaine fenêtre du jour
+    // (ex. avant ouverture). Si elle existe, l'ETA est le début de cette fenêtre.
+    // Cela respecte la règle "ne pas transformer fréquence seule en 6 min" :
+    // on utilise la fenêtre + calendrier, pas la fréquence isolée.
+    DateTime? nextEta;
+    FrequencyWindow? nextWindow;
+    for (final window in source.frequencies) {
+      // Vérifier si now est avant la fenêtre mais même jour
+      final int nowMin = dakarTime.hour * 60 + dakarTime.minute;
+      if (nowMin < window.startMinute &&
+          window.weekdays.contains(dakarTime.weekday)) {
+        if (isPublicHoliday && !window.appliesOnPublicHoliday) continue;
+        final DateTime candidate = DateTime.utc(
+          dakarTime.year,
+          dakarTime.month,
+          dakarTime.day,
+          window.startMinute ~/ 60,
+          window.startMinute % 60,
+        );
+        if (nextEta == null || candidate.isBefore(nextEta)) {
+          nextEta = candidate;
+          nextWindow = window;
+        }
+      }
+    }
+    if (nextEta != null && nextWindow != null) {
+      return DepartureInfo.estimatedWithEta(
+        source: source,
+        window: nextWindow,
+        requestedAt: dakarTime,
+        etaAt: nextEta,
+        etaSource: EtaSource.combined,
+        calculationMethod: 'FREQUENCY_WINDOW_NEXT',
+        stopId: stopId,
+        serviceDate: serviceDate,
+        isPublicHoliday: isPublicHoliday,
+      );
     }
 
     return DepartureInfo.unknown(

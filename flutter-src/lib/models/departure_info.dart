@@ -1,6 +1,18 @@
 import 'schedule_models.dart';
 import 'transport_network.dart';
 
+/// Source tracée d'une ETA — conservée même quand l'UI n'affiche que `🟢 X min`.
+/// La distinction REAL_TIME / SCHEDULED / ESTIMATED reste dans [DepartureInfo.status],
+/// mais [EtaSource] précise le calcul effectif (historique, GPS, etc.).
+enum EtaSource {
+  schedule,
+  realTime,
+  gps,
+  historical,
+  travelTimeModel,
+  combined,
+}
+
 /// Période pendant laquelle une fréquence publiée est applicable.
 ///
 /// Cette structure décrit uniquement une fréquence ; elle ne contient aucun
@@ -110,6 +122,12 @@ class DepartureInfo {
   final String? direction;
   final ScheduleProvenance? provenance;
 
+  // --- Lot 4.14 : ETA universelle ---
+  final EtaSource? etaSource;
+  final DateTime? etaAt;
+  final double? etaConfidence;
+  final String? calculationMethod;
+
   DepartureInfo._({
     required this.status,
     required this.operator,
@@ -137,6 +155,10 @@ class DepartureInfo {
     this.operatingHours,
     this.direction,
     this.provenance,
+    this.etaSource,
+    this.etaAt,
+    this.etaConfidence,
+    this.calculationMethod,
   });
 
   /// Aucun départ exact n'est connu. Les éventuelles métadonnées de source ne
@@ -258,6 +280,10 @@ class DepartureInfo {
       operatingHours: null,
       direction: trip.headsign,
       provenance: provenance,
+      etaSource: EtaSource.schedule,
+      etaAt: departureAt,
+      etaConfidence: provenance.confidence,
+      calculationMethod: 'SCHEDULE',
     );
   }
 
@@ -341,6 +367,10 @@ class DepartureInfo {
       operatingHours: null,
       direction: trip.headsign,
       provenance: prediction.provenance,
+      etaSource: EtaSource.realTime,
+      etaAt: prediction.predictedDepartureAt,
+      etaConfidence: prediction.provenance.confidence,
+      calculationMethod: 'REAL_TIME',
     );
   }
 
@@ -399,6 +429,109 @@ class DepartureInfo {
       nextDepartureAt: null,
       observedAt: null,
       provenance: null,
+      etaSource: null,
+      etaAt: null,
+      etaConfidence: null,
+      calculationMethod: null,
+    );
+  }
+
+  /// Lot 4.14 — ETA calculée pour une fréquence lorsque des données suffisantes
+  /// existent (fenêtre, calendrier, historique, temps de parcours, GPS).
+  /// Le statut reste ESTIMATED pour conserver la traçabilité, mais l'ETA est
+  /// fournie via [etaAt]/[etaSource] et permet l'affichage `🟢 X min`.
+  factory DepartureInfo.estimatedWithEta({
+    required FrequencySource source,
+    required FrequencyWindow window,
+    required DateTime requestedAt,
+    required DateTime etaAt,
+    required EtaSource etaSource,
+    String? calculationMethod,
+    double? etaConfidence,
+    String? stopId,
+    int? directionId,
+    ServiceDate? serviceDate,
+    bool isPublicHoliday = false,
+  }) {
+    if (source.status != ScheduleStatus.estimated) {
+      throw ArgumentError('Une fréquence ne peut produire que ESTIMATED');
+    }
+    final DateTime dakarInstant = requestedAt.toUtc();
+    final DateTime etaUtc = etaAt.toUtc();
+    if (etaUtc.isBefore(dakarInstant)) {
+      throw ArgumentError('L’ETA calculée ne peut pas être dans le passé');
+    }
+    return DepartureInfo._(
+      status: ScheduleStatus.estimated,
+      operator: source.operator,
+      routeId: source.routeId,
+      stopId: stopId,
+      directionId: directionId,
+      serviceDate: serviceDate ?? ServiceDate.fromInstant(dakarInstant),
+      referenceTime: dakarInstant,
+      calculatedAt: dakarInstant,
+      estimatedWaitFrom: 0,
+      estimatedWaitTo: window.frequencyMinutes,
+      source: source.source,
+      sourceType: source.sourceType,
+      dateSource: source.dateSource,
+      dateVerified: source.dateVerified,
+      validFrom: source.validFrom,
+      validTo: source.validTo,
+      confidence: source.confidence,
+      frequencyMinutes: window.frequencyMinutes,
+      operatingHours: window.operatingHours,
+      direction: window.direction,
+      scheduledTime: null,
+      nextDepartureAt: etaUtc, // permet remainingLabelAt uniforme
+      observedAt: null,
+      provenance: null,
+      etaSource: etaSource,
+      etaAt: etaUtc,
+      etaConfidence: etaConfidence ?? source.confidence,
+      calculationMethod: calculationMethod ?? etaSource.name,
+    );
+  }
+
+  /// Copie avec ETA calculée — utilisée par EtaCalculator sans dupliquer le moteur.
+  DepartureInfo withCalculatedEta({
+    required DateTime etaAt,
+    required EtaSource etaSource,
+    String? calculationMethod,
+    double? etaConfidence,
+  }) {
+    final DateTime etaUtc = etaAt.toUtc();
+    return DepartureInfo._(
+      status: status,
+      operator: operator,
+      routeId: routeId,
+      stopId: stopId,
+      stopSequence: stopSequence,
+      tripId: tripId,
+      directionId: directionId,
+      serviceDate: serviceDate,
+      referenceTime: referenceTime,
+      calculatedAt: calculatedAt,
+      estimatedWaitFrom: estimatedWaitFrom,
+      estimatedWaitTo: estimatedWaitTo,
+      scheduledTime: scheduledTime,
+      nextDepartureAt: etaUtc,
+      observedAt: observedAt,
+      source: source,
+      sourceType: sourceType,
+      dateSource: dateSource,
+      dateVerified: dateVerified,
+      validFrom: validFrom,
+      validTo: validTo,
+      confidence: confidence,
+      frequencyMinutes: frequencyMinutes,
+      operatingHours: operatingHours,
+      direction: direction,
+      provenance: provenance,
+      etaSource: etaSource,
+      etaAt: etaUtc,
+      etaConfidence: etaConfidence ?? confidence,
+      calculationMethod: calculationMethod ?? etaSource.name,
     );
   }
 
@@ -434,6 +567,38 @@ class DepartureInfo {
     if (seconds < Duration.secondsPerMinute) return 'Départ dans $seconds s';
     return 'Départ dans ${remainingMinutesAt(now)} min';
   }
+
+  // --- Lot 4.14 : ETA universelle ---
+  /// ETA cible : prioritairement etaAt/nextDepartureAt, sinon scheduledTime.
+  DateTime? get _etaTarget => etaAt ?? nextDepartureAt ?? scheduledTime;
+
+  int? etaRemainingSecondsAt(DateTime now) {
+    final DateTime? target = _etaTarget;
+    if (target == null) return null;
+    final int micros = target.toUtc().difference(now.toUtc()).inMicroseconds;
+    if (micros < 0) return null;
+    if (micros == 0) return 0;
+    return (micros + Duration.microsecondsPerSecond - 1) ~/ Duration.microsecondsPerSecond;
+  }
+
+  int? etaMinutesAt(DateTime now) {
+    final int? seconds = etaRemainingSecondsAt(now);
+    if (seconds == null) return null;
+    if (seconds == 0) return 0;
+    return (seconds + 59) ~/ 60;
+  }
+
+  /// Libellé universel `X min` / `Maintenant` — utilisé par l'UI Lot 4.14.
+  /// Retourne null si aucune ETA défendable.
+  String? etaLabelAt(DateTime now) {
+    final int? minutes = etaMinutesAt(now);
+    if (minutes == null) return null;
+    if (minutes == 0) return 'Maintenant';
+    return '$minutes min';
+  }
+
+  /// Vrai si une ETA chiffrée est disponible et non passée.
+  bool get hasEta => _etaTarget != null;
 
   String get label {
     if (status == ScheduleStatus.estimated) {
