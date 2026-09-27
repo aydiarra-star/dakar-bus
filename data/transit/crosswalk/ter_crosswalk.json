@@ -1,0 +1,862 @@
+{
+  "generated_at": "2026-09-27",
+  "lot": "4.5",
+  "network": "TER",
+  "total": 15,
+  "by_match_type": {
+    "STRUCTURAL": 13,
+    "DOCUMENTED": 2
+  },
+  "by_confidence": {
+    "HIGH": 15
+  },
+  "by_status": {
+    "CONFIRMED": 15
+  },
+  "match_type_rules": {
+    "EXACT": "même identité explicitement démontrée par une source fiable",
+    "DOCUMENTED": "la source documente explicitement la correspondance",
+    "STRUCTURAL": "correspondance fortement corroborée par plusieurs éléments indépendants, sans déclaration explicite",
+    "NAME_ONLY": "même nom ou nom très proche uniquement — ne promeut jamais une ligne",
+    "COORDINATE_ONLY": "correspondance fondée seulement sur la géographie — n'établit jamais une identité officielle",
+    "UNCONFIRMED": "preuves insuffisantes"
+  },
+  "policy": {
+    "NUMBER_ONLY": "ne suffit jamais",
+    "COORDINATE_ONLY": "ne suffit pas pour identifier une ligne",
+    "NAME_ONLY": "ne suffit pas pour identifier une ligne",
+    "OSM_ALONE": "ne suffit pas à établir l'identité officielle d'une ligne",
+    "PASSBI_ALONE": "une donnée PassBi ancienne ne prouve pas à elle seule une identité",
+    "PROXIMITY_ALONE": "ne justifie ni une identité, ni une fusion, ni une correspondance",
+    "NO_DELETED_STATUS": "aucune ligne non retrouvée ne reçoit DELETED, DISCONTINUED ou INACTIVE"
+  },
+  "stations_confirmed": 13,
+  "order_preserved": true,
+  "station_order": [
+    "Dakar - Gare ferroviaire",
+    "Colobane",
+    "Hann",
+    "Dalifort",
+    "Baux Maraîchers",
+    "Pikine",
+    "Thiaroye",
+    "Yeumbeul",
+    "Keur Mbaye Fall",
+    "PNR Rufisque",
+    "Rufisque",
+    "Bargny",
+    "Diamniadio"
+  ],
+  "coordinate_check": {
+    "matched": 13,
+    "total": 13,
+    "mean_deviation_m": 85,
+    "max_deviation_m": 221,
+    "max_deviation_stop": "Colobane",
+    "min_deviation_m": 9,
+    "crossed_pairing": false,
+    "note": "Chaque gare PassBi s'apparie à un arrêt distinct du projet, au même rang de séquence."
+  },
+  "not_added_without_proof": [
+    {
+      "name": "AIBD",
+      "status": "PROVISIONAL",
+      "reason": "Mise en service annoncée au 28/09/2026 ; non confirmée par l'opérateur à la date d'audit. Aucune entrée de crosswalk créée."
+    },
+    {
+      "name": "Sébikotane",
+      "status": "UNKNOWN",
+      "reason": "Aucune source actuelle trouvée. Aucune entrée créée."
+    },
+    {
+      "name": "Keur Moussa",
+      "status": "UNKNOWN",
+      "reason": "Commune traversée par la phase 2 (EESS BAD 2016), jamais documentée comme gare. Une commune traversée n'est pas une gare."
+    }
+  ],
+  "identifiers_policy": "Les UUID PassBi sont conservés comme crosswalk historique. Ils ne sont pas des identifiants officiels actuels.",
+  "entries": [
+    {
+      "crosswalk_id": "CW0001",
+      "network": "TER",
+      "source": "passbi",
+      "source_id": "544a27a5-c6c6-4b70-b217-9c15d9b4278a",
+      "source_name": "Dakar - Gare ferroviaire",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_dakar_ter",
+      "target_name": "Gare TER Dakar",
+      "public_route_id": null,
+      "operator": "SETER",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "même nom de gare",
+          "source_url": "https://senego.com/services/horaires-brt-ter",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-09-27",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "même rang de séquence (numérotation 1 à 13)",
+          "source_url": "https://senego.com/services/horaires-brt-ter",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-09-27",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "gare desservie actuellement",
+          "source_url": "https://ter-senegal.sn/gares/",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-05-14",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 54 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "CONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Aucune source ne déclare explicitement l'équivalence des deux identifiants : la correspondance repose sur la convergence de quatre éléments indépendants (nom, rang, position, source actuelle). D'où STRUCTURAL et non EXACT."
+    },
+    {
+      "crosswalk_id": "CW0002",
+      "network": "TER",
+      "source": "passbi",
+      "source_id": "c70477e7-8391-4388-9a1f-8929a18dc14e",
+      "source_name": "Colobane",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_colobane",
+      "target_name": "Colobane - Marché & Gare TER",
+      "public_route_id": null,
+      "operator": "SETER",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "même nom de gare",
+          "source_url": "https://senego.com/services/horaires-brt-ter",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-09-27",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "même rang de séquence (numérotation 1 à 13)",
+          "source_url": "https://senego.com/services/horaires-brt-ter",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-09-27",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "gare desservie actuellement",
+          "source_url": "https://ter-senegal.sn/gares/",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-05-14",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 221 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "CONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Aucune source ne déclare explicitement l'équivalence des deux identifiants : la correspondance repose sur la convergence de quatre éléments indépendants (nom, rang, position, source actuelle). D'où STRUCTURAL et non EXACT."
+    },
+    {
+      "crosswalk_id": "CW0003",
+      "network": "TER",
+      "source": "passbi",
+      "source_id": "f405b86e-9eb3-4c36-ac95-be40a86d80af",
+      "source_name": "Hann",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_hann",
+      "target_name": "Hann - Maristes / TER",
+      "public_route_id": null,
+      "operator": "SETER",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "même nom de gare",
+          "source_url": "https://senego.com/services/horaires-brt-ter",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-09-27",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "même rang de séquence (numérotation 1 à 13)",
+          "source_url": "https://senego.com/services/horaires-brt-ter",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-09-27",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "gare desservie actuellement",
+          "source_url": "https://ter-senegal.sn/gares/",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-05-14",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 64 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "CONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Aucune source ne déclare explicitement l'équivalence des deux identifiants : la correspondance repose sur la convergence de quatre éléments indépendants (nom, rang, position, source actuelle). D'où STRUCTURAL et non EXACT."
+    },
+    {
+      "crosswalk_id": "CW0004",
+      "network": "TER",
+      "source": "passbi",
+      "source_id": "61d82f6f-1ba9-4d4e-8f39-d50329992647",
+      "source_name": "Dalifort",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_dalifort_ter",
+      "target_name": "Dalifort - Gare TER",
+      "public_route_id": null,
+      "operator": "SETER",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "même nom de gare",
+          "source_url": "https://senego.com/services/horaires-brt-ter",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-09-27",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "même rang de séquence (numérotation 1 à 13)",
+          "source_url": "https://senego.com/services/horaires-brt-ter",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-09-27",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "gare desservie actuellement",
+          "source_url": "https://ter-senegal.sn/gares/",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-05-14",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 69 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "CONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Aucune source ne déclare explicitement l'équivalence des deux identifiants : la correspondance repose sur la convergence de quatre éléments indépendants (nom, rang, position, source actuelle). D'où STRUCTURAL et non EXACT."
+    },
+    {
+      "crosswalk_id": "CW0005",
+      "network": "TER",
+      "source": "passbi",
+      "source_id": "d802c3ec-2be9-47b8-b7f4-f8f68af520c6",
+      "source_name": "Baux Maraîchers",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_baux_maraichers",
+      "target_name": "Baux Maraîchers - TER",
+      "public_route_id": null,
+      "operator": "SETER",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "même nom de gare",
+          "source_url": "https://senego.com/services/horaires-brt-ter",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-09-27",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "même rang de séquence (numérotation 1 à 13)",
+          "source_url": "https://senego.com/services/horaires-brt-ter",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-09-27",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "gare desservie actuellement",
+          "source_url": "https://ter-senegal.sn/gares/",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-05-14",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 172 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "CONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Aucune source ne déclare explicitement l'équivalence des deux identifiants : la correspondance repose sur la convergence de quatre éléments indépendants (nom, rang, position, source actuelle). D'où STRUCTURAL et non EXACT."
+    },
+    {
+      "crosswalk_id": "CW0006",
+      "network": "TER",
+      "source": "passbi",
+      "source_id": "650b288f-cce1-4671-a60b-ace229206958",
+      "source_name": "Pikine",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_pikine",
+      "target_name": "Pikine - Marché Zinc / TER",
+      "public_route_id": null,
+      "operator": "SETER",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "même nom de gare",
+          "source_url": "https://senego.com/services/horaires-brt-ter",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-09-27",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "même rang de séquence (numérotation 1 à 13)",
+          "source_url": "https://senego.com/services/horaires-brt-ter",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-09-27",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "gare desservie actuellement",
+          "source_url": "https://ter-senegal.sn/gares/",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-05-14",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 114 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "CONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Aucune source ne déclare explicitement l'équivalence des deux identifiants : la correspondance repose sur la convergence de quatre éléments indépendants (nom, rang, position, source actuelle). D'où STRUCTURAL et non EXACT."
+    },
+    {
+      "crosswalk_id": "CW0007",
+      "network": "TER",
+      "source": "passbi",
+      "source_id": "956bedfd-e112-472e-895a-48d69ece821d",
+      "source_name": "Thiaroye",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_thiaroye",
+      "target_name": "Thiaroye - Gare TER",
+      "public_route_id": null,
+      "operator": "SETER",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "même nom de gare",
+          "source_url": "https://senego.com/services/horaires-brt-ter",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-09-27",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "même rang de séquence (numérotation 1 à 13)",
+          "source_url": "https://senego.com/services/horaires-brt-ter",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-09-27",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "gare desservie actuellement",
+          "source_url": "https://ter-senegal.sn/gares/",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-05-14",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 74 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "CONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Aucune source ne déclare explicitement l'équivalence des deux identifiants : la correspondance repose sur la convergence de quatre éléments indépendants (nom, rang, position, source actuelle). D'où STRUCTURAL et non EXACT."
+    },
+    {
+      "crosswalk_id": "CW0008",
+      "network": "TER",
+      "source": "passbi",
+      "source_id": "f8ec6c04-478a-40e1-842c-5c9ca5030109",
+      "source_name": "Yeumbeul",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_yeumbeul",
+      "target_name": "Yeumbeul - Station TER",
+      "public_route_id": null,
+      "operator": "SETER",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "même nom de gare",
+          "source_url": "https://senego.com/services/horaires-brt-ter",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-09-27",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "même rang de séquence (numérotation 1 à 13)",
+          "source_url": "https://senego.com/services/horaires-brt-ter",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-09-27",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "gare desservie actuellement",
+          "source_url": "https://ter-senegal.sn/gares/",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-05-14",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 68 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "CONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Aucune source ne déclare explicitement l'équivalence des deux identifiants : la correspondance repose sur la convergence de quatre éléments indépendants (nom, rang, position, source actuelle). D'où STRUCTURAL et non EXACT."
+    },
+    {
+      "crosswalk_id": "CW0009",
+      "network": "TER",
+      "source": "passbi",
+      "source_id": "41016cdb-2f7f-4453-a774-ad1b74a9b876",
+      "source_name": "Keur Mbaye Fall",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_keur_mbaye_fall",
+      "target_name": "Keur Mbaye Fall - Correspondance TER",
+      "public_route_id": null,
+      "operator": "SETER",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "même nom de gare",
+          "source_url": "https://senego.com/services/horaires-brt-ter",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-09-27",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "même rang de séquence (numérotation 1 à 13)",
+          "source_url": "https://senego.com/services/horaires-brt-ter",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-09-27",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "gare desservie actuellement",
+          "source_url": "https://ter-senegal.sn/gares/",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-05-14",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 9 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "CONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Aucune source ne déclare explicitement l'équivalence des deux identifiants : la correspondance repose sur la convergence de quatre éléments indépendants (nom, rang, position, source actuelle). D'où STRUCTURAL et non EXACT."
+    },
+    {
+      "crosswalk_id": "CW0010",
+      "network": "TER",
+      "source": "passbi",
+      "source_id": "90110d84-209c-48ac-a866-df568477f21d",
+      "source_name": "PNR Rufisque",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_pnr",
+      "target_name": "PNR - Station TER",
+      "public_route_id": null,
+      "operator": "SETER",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "même nom de gare",
+          "source_url": "https://senego.com/services/horaires-brt-ter",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-09-27",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "même rang de séquence (numérotation 1 à 13)",
+          "source_url": "https://senego.com/services/horaires-brt-ter",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-09-27",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "gare desservie actuellement",
+          "source_url": "https://ter-senegal.sn/gares/",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-05-14",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 64 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "CONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Aucune source ne déclare explicitement l'équivalence des deux identifiants : la correspondance repose sur la convergence de quatre éléments indépendants (nom, rang, position, source actuelle). D'où STRUCTURAL et non EXACT."
+    },
+    {
+      "crosswalk_id": "CW0011",
+      "network": "TER",
+      "source": "passbi",
+      "source_id": "1d859f92-c798-4291-9631-262ed863698a",
+      "source_name": "Rufisque",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_rufisque",
+      "target_name": "Rufisque - Gare TER",
+      "public_route_id": null,
+      "operator": "SETER",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "même nom de gare",
+          "source_url": "https://senego.com/services/horaires-brt-ter",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-09-27",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "même rang de séquence (numérotation 1 à 13)",
+          "source_url": "https://senego.com/services/horaires-brt-ter",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-09-27",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "gare desservie actuellement",
+          "source_url": "https://ter-senegal.sn/gares/",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-05-14",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 59 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "CONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Aucune source ne déclare explicitement l'équivalence des deux identifiants : la correspondance repose sur la convergence de quatre éléments indépendants (nom, rang, position, source actuelle). D'où STRUCTURAL et non EXACT."
+    },
+    {
+      "crosswalk_id": "CW0012",
+      "network": "TER",
+      "source": "passbi",
+      "source_id": "d30b03f2-46c1-4faf-b53e-dfc6310b916a",
+      "source_name": "Bargny",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_bargny",
+      "target_name": "Bargny - TER",
+      "public_route_id": null,
+      "operator": "SETER",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "même nom de gare",
+          "source_url": "https://senego.com/services/horaires-brt-ter",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-09-27",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "même rang de séquence (numérotation 1 à 13)",
+          "source_url": "https://senego.com/services/horaires-brt-ter",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-09-27",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "gare desservie actuellement",
+          "source_url": "https://ter-senegal.sn/gares/",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-05-14",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 74 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "CONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Aucune source ne déclare explicitement l'équivalence des deux identifiants : la correspondance repose sur la convergence de quatre éléments indépendants (nom, rang, position, source actuelle). D'où STRUCTURAL et non EXACT."
+    },
+    {
+      "crosswalk_id": "CW0013",
+      "network": "TER",
+      "source": "passbi",
+      "source_id": "4445e51b-971b-4f1a-a94a-1ca0c9bef411",
+      "source_name": "Diamniadio",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_diamniadio",
+      "target_name": "Diamniadio - Gare TER Terminus",
+      "public_route_id": null,
+      "operator": "SETER",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "même nom de gare",
+          "source_url": "https://senego.com/services/horaires-brt-ter",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-09-27",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "même rang de séquence (numérotation 1 à 13)",
+          "source_url": "https://senego.com/services/horaires-brt-ter",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-09-27",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "gare desservie actuellement",
+          "source_url": "https://ter-senegal.sn/gares/",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-05-14",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 68 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "CONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Aucune source ne déclare explicitement l'équivalence des deux identifiants : la correspondance repose sur la convergence de quatre éléments indépendants (nom, rang, position, source actuelle). D'où STRUCTURAL et non EXACT."
+    },
+    {
+      "crosswalk_id": "CW0014",
+      "network": "TER",
+      "source": "passbi",
+      "source_id": "544a27a5-c6c6-4b70-b217-9c15d9b4278a-4445e51b-971b-4f1a-a94a-1ca0c9bef411",
+      "source_name": "10001",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "ter_dakar_diamniadio",
+      "target_name": "Dakar ↔ Diamniadio",
+      "public_route_id": null,
+      "operator": "SETER",
+      "origin": "Dakar",
+      "destination": "Diamniadio",
+      "direction": null,
+      "match_type": "DOCUMENTED",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie une ligne Dakar ↔ Diamniadio de 13 gares",
+          "source_url": "https://www.terdakar.sn/acceder-au-plan-de-la-ligne/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "les 13 gares et leur ordre sont reproduits par une source 2026",
+          "source_url": "https://senego.com/services/horaires-brt-ter",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-09-27",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "CONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "L'identité de la relation est documentée par l'opérateur ; direction_id 0."
+    },
+    {
+      "crosswalk_id": "CW0015",
+      "network": "TER",
+      "source": "passbi",
+      "source_id": "4445e51b-971b-4f1a-a94a-1ca0c9bef411-544a27a5-c6c6-4b70-b217-9c15d9b4278a",
+      "source_name": "20001",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "ter_dakar_diamniadio",
+      "target_name": "Dakar ↔ Diamniadio",
+      "public_route_id": null,
+      "operator": "SETER",
+      "origin": "Diamniadio",
+      "destination": "Dakar",
+      "direction": null,
+      "match_type": "DOCUMENTED",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie une ligne Dakar ↔ Diamniadio de 13 gares",
+          "source_url": "https://www.terdakar.sn/acceder-au-plan-de-la-ligne/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "les 13 gares et leur ordre sont reproduits par une source 2026",
+          "source_url": "https://senego.com/services/horaires-brt-ter",
+          "source_type": "INSTITUTIONAL",
+          "date_source": "2026-09-27",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "CONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "L'identité de la relation est documentée par l'opérateur ; direction_id 1."
+    }
+  ]
+}

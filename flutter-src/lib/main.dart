@@ -3007,6 +3007,35 @@ class _TripsPageState extends State<TripsPage> {
     );
   }
 
+  String _departureLabelForSegment(RouteSegment s) {
+    final DepartureInfo? info = s.departureInfo;
+    if (info == null) return ReliabilityLabel.scheduleUnavailable;
+    // Source unique : DepartureInfo via DataService. Aucune heure n'est
+    // recalculée ici, aucune fréquence→heure, aucun DateTime.now() pour
+    // fabriquer un départ. Le countdown provient de nextDepartureAt +
+    // remainingLabelAt(calculatedAt/referenceTime) fourni par le moteur.
+    switch (info.status) {
+      case ScheduleStatus.scheduled:
+      case ScheduleStatus.realTime:
+        final DateTime? anchor = info.calculatedAt ?? info.referenceTime;
+        final String? label = anchor != null ? info.remainingLabelAt(anchor) : null;
+        if (label != null) return '🟢 $label';
+        final DateTime? dt = info.nextDepartureAt ?? info.scheduledTime;
+        if (dt != null) {
+          final String hh = dt.toUtc().hour.toString().padLeft(2, '0');
+          final String mm = dt.toUtc().minute.toString().padLeft(2, '0');
+          return '🟢 $hh:$mm';
+        }
+        return ReliabilityLabel.scheduleUnavailable;
+      case ScheduleStatus.estimated:
+        final int? m = info.frequencyMinutes;
+        if (m == null) return ReliabilityLabel.scheduleUnavailable;
+        return '🟡 Passage estimé toutes les ${m} min';
+      case ScheduleStatus.unknown:
+        return ReliabilityLabel.scheduleUnavailable;
+    }
+  }
+
   Widget _buildRouteCard(PlannedRoute r, bool dark) {
     return Card(
       margin: const EdgeInsets.only(bottom: 14),
@@ -3049,7 +3078,7 @@ class _TripsPageState extends State<TripsPage> {
                       child: Padding(
                         padding: EdgeInsets.only(bottom: isLast ? 0 : 16),
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Row(children: [Icon(s.icon, size: 14, color: s.color), const SizedBox(width: 6), Text(s.modeLabel, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: s.color)), const Spacer(), Text(s.departureTime ?? ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))]),
+                          Row(children: [Icon(s.icon, size: 14, color: s.color), const SizedBox(width: 6), Text(s.modeLabel, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: s.color)), const Spacer(), Text(s.departureInfo != null ? _departureLabelForSegment(s) : (s.departureTime ?? ReliabilityLabel.scheduleUnavailable), style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))]),
                           const SizedBox(height: 4),
                           Text('${s.from} - ${s.to}', style: TextStyle(fontSize: 12, color: AppColors.textPrimary(dark))),
                           const SizedBox(height: 2),

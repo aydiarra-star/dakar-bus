@@ -1,0 +1,2 @@
+agency_id,agency_name,agency_url,agency_timezone,agency_phone,agency_lang
+AFTU,Association de Financement des Professionnels du transport Urbain,https://aftu-senegal.org/,Africa/Dakar,00221 33 859 02 88,fr

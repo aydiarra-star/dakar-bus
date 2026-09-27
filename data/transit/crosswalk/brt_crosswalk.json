@@ -1,0 +1,1299 @@
+{
+  "generated_at": "2026-09-27",
+  "lot": "4.5",
+  "network": "BRT",
+  "total": 32,
+  "by_match_type": {
+    "STRUCTURAL": 21,
+    "DOCUMENTED": 2,
+    "UNCONFIRMED": 8,
+    "COORDINATE_ONLY": 1
+  },
+  "by_confidence": {
+    "HIGH": 23,
+    "MEDIUM": 1,
+    "LOW": 8
+  },
+  "by_status": {
+    "PERSISTENT": 22,
+    "CONFIRMED": 1,
+    "NEW": 8,
+    "UNCONFIRMED": 1
+  },
+  "match_type_rules": {
+    "EXACT": "même identité explicitement démontrée par une source fiable",
+    "DOCUMENTED": "la source documente explicitement la correspondance",
+    "STRUCTURAL": "correspondance fortement corroborée par plusieurs éléments indépendants, sans déclaration explicite",
+    "NAME_ONLY": "même nom ou nom très proche uniquement — ne promeut jamais une ligne",
+    "COORDINATE_ONLY": "correspondance fondée seulement sur la géographie — n'établit jamais une identité officielle",
+    "UNCONFIRMED": "preuves insuffisantes"
+  },
+  "policy": {
+    "NUMBER_ONLY": "ne suffit jamais",
+    "COORDINATE_ONLY": "ne suffit pas pour identifier une ligne",
+    "NAME_ONLY": "ne suffit pas pour identifier une ligne",
+    "OSM_ALONE": "ne suffit pas à établir l'identité officielle d'une ligne",
+    "PASSBI_ALONE": "une donnée PassBi ancienne ne prouve pas à elle seule une identité",
+    "PROXIMITY_ALONE": "ne justifie ni une identité, ni une fusion, ni une correspondance",
+    "NO_DELETED_STATUS": "aucune ligne non retrouvée ne reçoit DELETED, DISCONTINUED ou INACTIVE"
+  },
+  "routes_kept_distinct": [
+    "B1",
+    "B2",
+    "B3"
+  ],
+  "b1": {
+    "passbi_stations": 21,
+    "current_documented_stations": 23,
+    "identity_status": "CONFIRMED",
+    "structure_status": "PERSISTENT",
+    "rule": "PassBi structure = 21, structure actuelle documentée = 23. Les deux niveaux sont conservés ; PassBi n'est pas porté à 23."
+  },
+  "b2": {
+    "passbi_stations": 7,
+    "current_documented_stations": 7,
+    "identity_status": "CONFIRMED",
+    "structure_status": "CONFIRMED",
+    "order_identical": true
+  },
+  "b3": {
+    "identity_status": "NEW",
+    "structure_status": "UNCONFIRMED",
+    "in_passbi": false,
+    "rule": "Jamais rapprochée de B1 ou B2. Aucune reconstruction par proximité."
+  },
+  "physical_stop_model": {
+    "principle": "1 station physique + N routes = N stop_times",
+    "shared_stations": [
+      "DALAL JAM",
+      "GRAND DAKAR",
+      "GRAND MEDINE",
+      "GUEDIAWAYE",
+      "PETERSEN",
+      "PLACE DE LA NATION",
+      "SACRÉ-CŒUR"
+    ],
+    "physical_stations": 21,
+    "unmerged_duplicates": 1,
+    "rule": "Une station physique peut appartenir à plusieurs lignes. Aucune station n'est dupliquée du fait de cette appartenance. Les routes restent séparées et les stop_sequence propres à chaque trip/route."
+  },
+  "entries": [
+    {
+      "crosswalk_id": "CW0016",
+      "network": "BRT",
+      "source": "passbi",
+      "source_id": "1:GDW",
+      "source_name": "GUEDIAWAYE",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_brt_23_guediawaye",
+      "target_name": "Préfecture Guédiawaye - PEM BRT",
+      "public_route_id": null,
+      "operator": "SunuBRT",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "station du corridor BRT actuellement en service",
+          "source_url": "https://www.sunubrt.sn/mon-trajet-en-brt/guide-du-voyageur/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 73 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Station physique unique : partagée par B1 et B2 sans duplication. STRUCTURAL car aucune source ne déclare l'équivalence des identifiants."
+    },
+    {
+      "crosswalk_id": "CW0017",
+      "network": "BRT",
+      "source": "passbi",
+      "source_id": "1:GNO",
+      "source_name": "GOLF NORD",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_brt_21_golf_nord",
+      "target_name": "Golf Nord - BRT",
+      "public_route_id": null,
+      "operator": "SunuBRT",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "station du corridor BRT actuellement en service",
+          "source_url": "https://www.sunubrt.sn/mon-trajet-en-brt/guide-du-voyageur/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 1 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Station physique unique : partagée par B1 et B2 sans duplication. STRUCTURAL car aucune source ne déclare l'équivalence des identifiants."
+    },
+    {
+      "crosswalk_id": "CW0018",
+      "network": "BRT",
+      "source": "passbi",
+      "source_id": "1:HDJ",
+      "source_name": "DALAL JAM",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_brt_19_dalal_jamm",
+      "target_name": "Hôpital Dalal Jamm - BRT",
+      "public_route_id": null,
+      "operator": "SunuBRT",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "station du corridor BRT actuellement en service",
+          "source_url": "https://www.sunubrt.sn/mon-trajet-en-brt/guide-du-voyageur/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 211 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Station physique unique : partagée par B1 et B2 sans duplication. STRUCTURAL car aucune source ne déclare l'équivalence des identifiants."
+    },
+    {
+      "crosswalk_id": "CW0019",
+      "network": "BRT",
+      "source": "passbi",
+      "source_id": "1:GSU",
+      "source_name": "GOLF SUD",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_brt_18_golf_sud",
+      "target_name": "Golf Sud - BRT",
+      "public_route_id": null,
+      "operator": "SunuBRT",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "station du corridor BRT actuellement en service",
+          "source_url": "https://www.sunubrt.sn/mon-trajet-en-brt/guide-du-voyageur/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 39 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Station physique unique : partagée par B1 et B2 sans duplication. STRUCTURAL car aucune source ne déclare l'équivalence des identifiants."
+    },
+    {
+      "crosswalk_id": "CW0020",
+      "network": "BRT",
+      "source": "passbi",
+      "source_id": "1:NDI",
+      "source_name": "NDINGALA",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_brt_17_ndingala",
+      "target_name": "Ndingala - Golf Sud - BRT",
+      "public_route_id": null,
+      "operator": "SunuBRT",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "station du corridor BRT actuellement en service",
+          "source_url": "https://www.sunubrt.sn/mon-trajet-en-brt/guide-du-voyageur/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 43 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Station physique unique : partagée par B1 et B2 sans duplication. STRUCTURAL car aucune source ne déclare l'équivalence des identifiants."
+    },
+    {
+      "crosswalk_id": "CW0021",
+      "network": "BRT",
+      "source": "passbi",
+      "source_id": "1:PAR",
+      "source_name": "PARCELLES",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_brt_16_parcelles_assainies",
+      "target_name": "Parcelles Assainies - BRT",
+      "public_route_id": null,
+      "operator": "SunuBRT",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "station du corridor BRT actuellement en service",
+          "source_url": "https://www.sunubrt.sn/mon-trajet-en-brt/guide-du-voyageur/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 49 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Station physique unique : partagée par B1 et B2 sans duplication. STRUCTURAL car aucune source ne déclare l'équivalence des identifiants."
+    },
+    {
+      "crosswalk_id": "CW0022",
+      "network": "BRT",
+      "source": "passbi",
+      "source_id": "1:C22",
+      "source_name": "CROISEMENT 22",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_brt_15_croisement_22",
+      "target_name": "Croisement 22 - BRT",
+      "public_route_id": null,
+      "operator": "SunuBRT",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "station du corridor BRT actuellement en service",
+          "source_url": "https://www.sunubrt.sn/mon-trajet-en-brt/guide-du-voyageur/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 203 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Station physique unique : partagée par B1 et B2 sans duplication. STRUCTURAL car aucune source ne déclare l'équivalence des identifiants."
+    },
+    {
+      "crosswalk_id": "CW0023",
+      "network": "BRT",
+      "source": "passbi",
+      "source_id": "1:PPA",
+      "source_name": "POLICE DES PARCELLES",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_brt_14_police_parcelles",
+      "target_name": "Police des Parcelles - BRT",
+      "public_route_id": null,
+      "operator": "SunuBRT",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "station du corridor BRT actuellement en service",
+          "source_url": "https://www.sunubrt.sn/mon-trajet-en-brt/guide-du-voyageur/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 49 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Station physique unique : partagée par B1 et B2 sans duplication. STRUCTURAL car aucune source ne déclare l'équivalence des identifiants."
+    },
+    {
+      "crosswalk_id": "CW0024",
+      "network": "BRT",
+      "source": "passbi",
+      "source_id": "1:GME",
+      "source_name": "GRAND MEDINE",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_brt_13_grand_medine",
+      "target_name": "Grand Médine - PEM BRT",
+      "public_route_id": null,
+      "operator": "SunuBRT",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "station du corridor BRT actuellement en service",
+          "source_url": "https://www.sunubrt.sn/mon-trajet-en-brt/guide-du-voyageur/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 267 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Station physique unique : partagée par B1 et B2 sans duplication. STRUCTURAL car aucune source ne déclare l'équivalence des identifiants."
+    },
+    {
+      "crosswalk_id": "CW0025",
+      "network": "BRT",
+      "source": "passbi",
+      "source_id": "1:CHT",
+      "source_name": "CARDINAL HYACINT",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_brt_12_thiandoum",
+      "target_name": "Cardinal Hyacinthe Thiandoum - BRT",
+      "public_route_id": null,
+      "operator": "SunuBRT",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "station du corridor BRT actuellement en service",
+          "source_url": "https://www.sunubrt.sn/mon-trajet-en-brt/guide-du-voyageur/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 49 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Station physique unique : partagée par B1 et B2 sans duplication. STRUCTURAL car aucune source ne déclare l'équivalence des identifiants."
+    },
+    {
+      "crosswalk_id": "CW0026",
+      "network": "BRT",
+      "source": "passbi",
+      "source_id": "1:SUR",
+      "source_name": "SCAT URBAM",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_brt_11_scat_urbam",
+      "target_name": "Scat Urbam - BRT",
+      "public_route_id": null,
+      "operator": "SunuBRT",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "station du corridor BRT actuellement en service",
+          "source_url": "https://www.sunubrt.sn/mon-trajet-en-brt/guide-du-voyageur/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 15 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Station physique unique : partagée par B1 et B2 sans duplication. STRUCTURAL car aucune source ne déclare l'équivalence des identifiants."
+    },
+    {
+      "crosswalk_id": "CW0027",
+      "network": "BRT",
+      "source": "passbi",
+      "source_id": "1:KYA",
+      "source_name": "KHAR YALLA",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_brt_10_khar_yallah",
+      "target_name": "Khar Yallah - BRT",
+      "public_route_id": null,
+      "operator": "SunuBRT",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "station du corridor BRT actuellement en service",
+          "source_url": "https://www.sunubrt.sn/mon-trajet-en-brt/guide-du-voyageur/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 148 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Station physique unique : partagée par B1 et B2 sans duplication. STRUCTURAL car aucune source ne déclare l'équivalence des identifiants."
+    },
+    {
+      "crosswalk_id": "CW0028",
+      "network": "BRT",
+      "source": "passbi",
+      "source_id": "1:LI6",
+      "source_name": "LIBERTE 6",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_brt_09_liberte_6",
+      "target_name": "Liberté 6 - BRT Correspondance",
+      "public_route_id": null,
+      "operator": "SunuBRT",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "station du corridor BRT actuellement en service",
+          "source_url": "https://www.sunubrt.sn/mon-trajet-en-brt/guide-du-voyageur/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 44 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Station physique unique : partagée par B1 et B2 sans duplication. STRUCTURAL car aucune source ne déclare l'équivalence des identifiants."
+    },
+    {
+      "crosswalk_id": "CW0029",
+      "network": "BRT",
+      "source": "passbi",
+      "source_id": "1:LI5",
+      "source_name": "LIBERTE 5",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_brt_08_liberte_5",
+      "target_name": "Liberté 5 - BRT",
+      "public_route_id": null,
+      "operator": "SunuBRT",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "station du corridor BRT actuellement en service",
+          "source_url": "https://www.sunubrt.sn/mon-trajet-en-brt/guide-du-voyageur/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 41 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Station physique unique : partagée par B1 et B2 sans duplication. STRUCTURAL car aucune source ne déclare l'équivalence des identifiants."
+    },
+    {
+      "crosswalk_id": "CW0030",
+      "network": "BRT",
+      "source": "passbi",
+      "source_id": "1:SAC",
+      "source_name": "SACRÉ-CŒUR",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_brt_07_sacre_coeur",
+      "target_name": "Sacré-Cœur - BRT",
+      "public_route_id": null,
+      "operator": "SunuBRT",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "station du corridor BRT actuellement en service",
+          "source_url": "https://www.sunubrt.sn/mon-trajet-en-brt/guide-du-voyageur/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 326 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Station physique unique : partagée par B1 et B2 sans duplication. STRUCTURAL car aucune source ne déclare l'équivalence des identifiants."
+    },
+    {
+      "crosswalk_id": "CW0031",
+      "network": "BRT",
+      "source": "passbi",
+      "source_id": "1:LI1",
+      "source_name": "LIBERTE 1",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_brt_06_liberte_1",
+      "target_name": "Liberté 1 - BRT",
+      "public_route_id": null,
+      "operator": "SunuBRT",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "station du corridor BRT actuellement en service",
+          "source_url": "https://www.sunubrt.sn/mon-trajet-en-brt/guide-du-voyageur/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 46 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Station physique unique : partagée par B1 et B2 sans duplication. STRUCTURAL car aucune source ne déclare l'équivalence des identifiants."
+    },
+    {
+      "crosswalk_id": "CW0032",
+      "network": "BRT",
+      "source": "passbi",
+      "source_id": "1:GDA",
+      "source_name": "GRAND DAKAR",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_brt_05_grand_dakar",
+      "target_name": "Grand Dakar - BRT",
+      "public_route_id": null,
+      "operator": "SunuBRT",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "station du corridor BRT actuellement en service",
+          "source_url": "https://www.sunubrt.sn/mon-trajet-en-brt/guide-du-voyageur/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 60 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Station physique unique : partagée par B1 et B2 sans duplication. STRUCTURAL car aucune source ne déclare l'équivalence des identifiants."
+    },
+    {
+      "crosswalk_id": "CW0033",
+      "network": "BRT",
+      "source": "passbi",
+      "source_id": "1:DDI",
+      "source_name": "DIAL DIOP",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_brt_04_dial_diop",
+      "target_name": "Dial Diop - BRT",
+      "public_route_id": null,
+      "operator": "SunuBRT",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "station du corridor BRT actuellement en service",
+          "source_url": "https://www.sunubrt.sn/mon-trajet-en-brt/guide-du-voyageur/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 106 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Station physique unique : partagée par B1 et B2 sans duplication. STRUCTURAL car aucune source ne déclare l'équivalence des identifiants."
+    },
+    {
+      "crosswalk_id": "CW0034",
+      "network": "BRT",
+      "source": "passbi",
+      "source_id": "1:PLN",
+      "source_name": "PLACE DE LA NATION",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_brt_03_obelisque",
+      "target_name": "Place de la Nation - Obélisque - BRT",
+      "public_route_id": null,
+      "operator": "SunuBRT",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "station du corridor BRT actuellement en service",
+          "source_url": "https://www.sunubrt.sn/mon-trajet-en-brt/guide-du-voyageur/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 283 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Station physique unique : partagée par B1 et B2 sans duplication. STRUCTURAL car aucune source ne déclare l'équivalence des identifiants."
+    },
+    {
+      "crosswalk_id": "CW0035",
+      "network": "BRT",
+      "source": "passbi",
+      "source_id": "1:GMO",
+      "source_name": "GRANDE MOSQUÉE",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_brt_02_mosquee",
+      "target_name": "Grande Mosquée - BRT",
+      "public_route_id": null,
+      "operator": "SunuBRT",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "station du corridor BRT actuellement en service",
+          "source_url": "https://www.sunubrt.sn/mon-trajet-en-brt/guide-du-voyageur/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 519 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Station physique unique : partagée par B1 et B2 sans duplication. STRUCTURAL car aucune source ne déclare l'équivalence des identifiants."
+    },
+    {
+      "crosswalk_id": "CW0036",
+      "network": "BRT",
+      "source": "passbi",
+      "source_id": "1:PGF",
+      "source_name": "PETERSEN",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_brt_01_petersen",
+      "target_name": "Papa Gueye Fall - PEM Petersen BRT",
+      "public_route_id": null,
+      "operator": "SunuBRT",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "station du corridor BRT actuellement en service",
+          "source_url": "https://www.sunubrt.sn/mon-trajet-en-brt/guide-du-voyageur/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "coordonnées concordantes à 184 m",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Station physique unique : partagée par B1 et B2 sans duplication. STRUCTURAL car aucune source ne déclare l'équivalence des identifiants."
+    },
+    {
+      "crosswalk_id": "CW0037",
+      "network": "BRT",
+      "source": "passbi",
+      "source_id": "B1",
+      "source_name": "BRT B1",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "brt_b1",
+      "target_name": "Préfecture de Guédiawaye ↔ Papa Gueye Fall (Petersen)",
+      "public_route_id": null,
+      "operator": "SunuBRT",
+      "origin": "Préfecture de Guédiawaye",
+      "destination": "Papa Gueye Fall (Petersen)",
+      "direction": null,
+      "match_type": "DOCUMENTED",
+      "evidence": [
+        {
+          "claim": "l'opérateur documente la ligne B1 : PassBi dessert 21 stations ; le réseau actuel en compte 23. Gadaye et Fith Mith figurent dans le stops.txt PassBi mais n'y sont desservies par aucune course.",
+          "source_url": "https://www.sunubrt.sn/mon-trajet-en-brt/guide-du-voyageur/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "21 stations, ordre identique",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "B1 : 21 stations PassBi, 23 stations actuelles. Les deux niveaux sont conservés, PassBi n'est pas rétroactivement porté à 23."
+    },
+    {
+      "crosswalk_id": "CW0038",
+      "network": "BRT",
+      "source": "passbi",
+      "source_id": "B2",
+      "source_name": "BRT B2",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "brt_b2",
+      "target_name": "Papa Gueye Fall (Petersen) ↔ Préfecture de Guédiawaye",
+      "public_route_id": null,
+      "operator": "SunuBRT",
+      "origin": "Papa Gueye Fall (Petersen)",
+      "destination": "Préfecture de Guédiawaye",
+      "direction": null,
+      "match_type": "DOCUMENTED",
+      "evidence": [
+        {
+          "claim": "l'opérateur documente la ligne B2 : Aucune. 7 stations, même ordre, même fréquence (6 min), lundi-samedi.",
+          "source_url": "https://www.sunubrt.sn/mon-trajet-en-brt/guide-du-voyageur/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "7 stations, ordre identique",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "CONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "B2 : 7 stations PassBi, 7 stations actuelles. Les deux niveaux sont conservés, PassBi n'est pas rétroactivement porté à 23."
+    },
+    {
+      "crosswalk_id": "CW0039",
+      "network": "BRT",
+      "source": "passbi",
+      "source_id": null,
+      "source_name": null,
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "brt_b3",
+      "target_name": "Préfecture de Guédiawaye ↔ Gueule Tapée",
+      "public_route_id": null,
+      "operator": "SunuBRT",
+      "origin": "Préfecture de Guédiawaye",
+      "destination": "Papa Gueye Fall",
+      "direction": null,
+      "match_type": "UNCONFIRMED",
+      "evidence": [
+        {
+          "claim": "ligne B3 semi-express en service depuis octobre 2025",
+          "source_url": "https://www.sunubrt.sn/brt-3-semi-express/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-24",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "MEDIUM",
+      "status": "NEW",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Aucune contrepartie PassBi : la B3 est apparue après les données PassBi. Aucune correspondance avec B1 ou B2 n'est recherchée ni établie."
+    },
+    {
+      "crosswalk_id": "CW0040",
+      "network": "BRT",
+      "source": "operator",
+      "source_id": "brt_b3:Préfecture de Guédiawaye",
+      "source_name": "Préfecture de Guédiawaye",
+      "source_type": "OFFICIAL_OPERATOR",
+      "source_url": "https://www.sunubrt.sn/brt-3-semi-express/",
+      "source_route_id": null,
+      "target": "passbi",
+      "target_id": null,
+      "target_name": null,
+      "public_route_id": null,
+      "operator": "SunuBRT",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "UNCONFIRMED",
+      "evidence": [
+        {
+          "claim": "station officielle de la B3",
+          "source_url": "https://www.sunubrt.sn/brt-3-semi-express/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-24",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "LOW",
+      "status": "NEW",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Station B3 sans contrepartie PassBi établie. Aucun stop_id attribué."
+    },
+    {
+      "crosswalk_id": "CW0041",
+      "network": "BRT",
+      "source": "operator",
+      "source_id": "brt_b3:Gueule Tapée",
+      "source_name": "Gueule Tapée",
+      "source_type": "OFFICIAL_OPERATOR",
+      "source_url": "https://www.sunubrt.sn/brt-3-semi-express/",
+      "source_route_id": null,
+      "target": "passbi",
+      "target_id": null,
+      "target_name": null,
+      "public_route_id": null,
+      "operator": "SunuBRT",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "UNCONFIRMED",
+      "evidence": [
+        {
+          "claim": "station officielle de la B3",
+          "source_url": "https://www.sunubrt.sn/brt-3-semi-express/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-24",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "LOW",
+      "status": "NEW",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Station B3 sans contrepartie PassBi établie. Aucun stop_id attribué."
+    },
+    {
+      "crosswalk_id": "CW0042",
+      "network": "BRT",
+      "source": "operator",
+      "source_id": "brt_b3:Parcelles",
+      "source_name": "Parcelles",
+      "source_type": "OFFICIAL_OPERATOR",
+      "source_url": "https://www.sunubrt.sn/brt-3-semi-express/",
+      "source_route_id": null,
+      "target": "passbi",
+      "target_id": null,
+      "target_name": null,
+      "public_route_id": null,
+      "operator": "SunuBRT",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "UNCONFIRMED",
+      "evidence": [
+        {
+          "claim": "station officielle de la B3",
+          "source_url": "https://www.sunubrt.sn/brt-3-semi-express/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-24",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "LOW",
+      "status": "NEW",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Station B3 sans contrepartie PassBi établie. Aucun stop_id attribué."
+    },
+    {
+      "crosswalk_id": "CW0043",
+      "network": "BRT",
+      "source": "operator",
+      "source_id": "brt_b3:Croisement 22",
+      "source_name": "Croisement 22",
+      "source_type": "OFFICIAL_OPERATOR",
+      "source_url": "https://www.sunubrt.sn/brt-3-semi-express/",
+      "source_route_id": null,
+      "target": "passbi",
+      "target_id": null,
+      "target_name": null,
+      "public_route_id": null,
+      "operator": "SunuBRT",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "UNCONFIRMED",
+      "evidence": [
+        {
+          "claim": "station officielle de la B3",
+          "source_url": "https://www.sunubrt.sn/brt-3-semi-express/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-24",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "LOW",
+      "status": "NEW",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Station B3 sans contrepartie PassBi établie. Aucun stop_id attribué."
+    },
+    {
+      "crosswalk_id": "CW0044",
+      "network": "BRT",
+      "source": "operator",
+      "source_id": "brt_b3:Khar Yalla",
+      "source_name": "Khar Yalla",
+      "source_type": "OFFICIAL_OPERATOR",
+      "source_url": "https://www.sunubrt.sn/brt-3-semi-express/",
+      "source_route_id": null,
+      "target": "passbi",
+      "target_id": null,
+      "target_name": null,
+      "public_route_id": null,
+      "operator": "SunuBRT",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "UNCONFIRMED",
+      "evidence": [
+        {
+          "claim": "station officielle de la B3",
+          "source_url": "https://www.sunubrt.sn/brt-3-semi-express/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-24",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "LOW",
+      "status": "NEW",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Station B3 sans contrepartie PassBi établie. Aucun stop_id attribué."
+    },
+    {
+      "crosswalk_id": "CW0045",
+      "network": "BRT",
+      "source": "operator",
+      "source_id": "brt_b3:Place de la Nation",
+      "source_name": "Place de la Nation",
+      "source_type": "OFFICIAL_OPERATOR",
+      "source_url": "https://www.sunubrt.sn/brt-3-semi-express/",
+      "source_route_id": null,
+      "target": "passbi",
+      "target_id": null,
+      "target_name": null,
+      "public_route_id": null,
+      "operator": "SunuBRT",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "UNCONFIRMED",
+      "evidence": [
+        {
+          "claim": "station officielle de la B3",
+          "source_url": "https://www.sunubrt.sn/brt-3-semi-express/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-24",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "LOW",
+      "status": "NEW",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Station B3 sans contrepartie PassBi établie. Aucun stop_id attribué."
+    },
+    {
+      "crosswalk_id": "CW0046",
+      "network": "BRT",
+      "source": "operator",
+      "source_id": "brt_b3:Papa Gueye Fall",
+      "source_name": "Papa Gueye Fall",
+      "source_type": "OFFICIAL_OPERATOR",
+      "source_url": "https://www.sunubrt.sn/brt-3-semi-express/",
+      "source_route_id": null,
+      "target": "passbi",
+      "target_id": null,
+      "target_name": null,
+      "public_route_id": null,
+      "operator": "SunuBRT",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "UNCONFIRMED",
+      "evidence": [
+        {
+          "claim": "station officielle de la B3",
+          "source_url": "https://www.sunubrt.sn/brt-3-semi-express/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-24",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "LOW",
+      "status": "NEW",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Station B3 sans contrepartie PassBi établie. Aucun stop_id attribué."
+    },
+    {
+      "crosswalk_id": "CW0047",
+      "network": "BRT",
+      "source": "passbi",
+      "source_id": "1:QPEM",
+      "source_name": "POLE GRAND MEDINE",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "dakar_bus",
+      "target_id": "stop_brt_13_grand_medine",
+      "target_name": "GRAND MEDINE",
+      "public_route_id": null,
+      "operator": "SunuBRT",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "COORDINATE_ONLY",
+      "evidence": [
+        {
+          "claim": "se résout sur le même arrêt par proximité (238 m)",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "LOW",
+      "status": "UNCONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "NON fusionnée. COORDINATE_ONLY ne suffit jamais à établir qu'il s'agit d'une seule station physique."
+    }
+  ]
+}

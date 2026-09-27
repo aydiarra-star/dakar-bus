@@ -1,0 +1,3527 @@
+{
+  "generated_at": "2026-09-27",
+  "lot": "4.5",
+  "network": "DDD",
+  "total": 65,
+  "by_match_type": {
+    "STRUCTURAL": 44,
+    "UNCONFIRMED": 21
+  },
+  "by_confidence": {
+    "HIGH": 34,
+    "LOW": 22,
+    "MEDIUM": 9
+  },
+  "by_status": {
+    "PERSISTENT": 43,
+    "PARTIALLY_CONFIRMED": 1,
+    "UNCONFIRMED": 19,
+    "UNKNOWN": 2
+  },
+  "match_type_rules": {
+    "EXACT": "même identité explicitement démontrée par une source fiable",
+    "DOCUMENTED": "la source documente explicitement la correspondance",
+    "STRUCTURAL": "correspondance fortement corroborée par plusieurs éléments indépendants, sans déclaration explicite",
+    "NAME_ONLY": "même nom ou nom très proche uniquement — ne promeut jamais une ligne",
+    "COORDINATE_ONLY": "correspondance fondée seulement sur la géographie — n'établit jamais une identité officielle",
+    "UNCONFIRMED": "preuves insuffisantes"
+  },
+  "policy": {
+    "NUMBER_ONLY": "ne suffit jamais",
+    "COORDINATE_ONLY": "ne suffit pas pour identifier une ligne",
+    "NAME_ONLY": "ne suffit pas pour identifier une ligne",
+    "OSM_ALONE": "ne suffit pas à établir l'identité officielle d'une ligne",
+    "PASSBI_ALONE": "une donnée PassBi ancienne ne prouve pas à elle seule une identité",
+    "PROXIMITY_ALONE": "ne justifie ni une identité, ni une fusion, ni une correspondance",
+    "NO_DELETED_STATUS": "aucune ligne non retrouvée ne reçoit DELETED, DISCONTINUED ou INACTIVE"
+  },
+  "passbi_routes": 53,
+  "persistent": 34,
+  "not_found": 19,
+  "new_current": 0,
+  "persistent_rule": "identity = PERSISTENT, structure = UNKNOWN, schedule = UNKNOWN, realtime = UNKNOWN. Volontaire : identité ≠ structure ≠ horaire.",
+  "not_found_rule": "status = UNCONFIRMED. Aucun statut DELETED, DISCONTINUED ou INACTIVE sans preuve explicite de suppression.",
+  "example_documented": {
+    "passbi_code": "D501GP",
+    "operator": "LIGNE 501",
+    "termini": "GARE DE DAKAR ↔ PALAIS 2",
+    "evidence": "l'opérateur publie LIGNE 501 : GARE DE DAKAR ↔ PALAIS 2 ; le code PassBi encode G+P",
+    "source_url": "https://demdikk.sn/info-voyageurs/"
+  },
+  "no_stops_invented": "Aucun trips.txt, stop_times.txt ni shapes.txt n'est créé pour les 34 lignes persistantes.",
+  "entries": [
+    {
+      "crosswalk_id": "CW0048",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_01",
+      "source_name": "D1LP",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_01",
+      "target": "operator_current",
+      "target_id": "LIGNE 1",
+      "target_name": "PARCELLES ASSAINIES ↔ PLACE LECLERC",
+      "public_route_id": "DDD 1",
+      "operator": "Dakar Dem Dikk",
+      "origin": "PARCELLES ASSAINIES",
+      "destination": "PLACE LECLERC",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 1 : PARCELLES ASSAINIES ↔ PLACE LECLERC",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D1LP encode le numéro 1 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur. Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0049",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_01",
+      "source_name": "D1LP",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_01",
+      "target": "dakar_bus",
+      "target_id": "ddd_1",
+      "target_name": "DDD 1",
+      "public_route_id": null,
+      "operator": "Dakar Dem Dikk",
+      "origin": "PARCELLES ASSAINIES",
+      "destination": "PLACE LECLERC",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 1 : PARCELLES ASSAINIES ↔ PLACE LECLERC",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le projet expose une ligne DDD 1",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "INSTITUTIONAL",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "LOW",
+      "status": "PARTIALLY_CONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Pour ddd_1, l'itinéraire interne du projet est déjà marqué CONFLICTING par l'audit du 2026-09-24 : la correspondance d'identité est établie, celle du parcours ne l'est pas."
+    },
+    {
+      "crosswalk_id": "CW0050",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_02",
+      "source_name": "D2DL",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_02",
+      "target": "operator_current",
+      "target_id": "LIGNE 2",
+      "target_name": "DAROUKHANE ↔ PLACE LECLERC",
+      "public_route_id": "DDD 2",
+      "operator": "Dakar Dem Dikk",
+      "origin": "DAROUKHANE",
+      "destination": "PLACE LECLERC",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 2 : DAROUKHANE ↔ PLACE LECLERC",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D2DL encode le numéro 2 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur. Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0051",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_04",
+      "source_name": "D4DL",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_04",
+      "target": "operator_current",
+      "target_id": "LIGNE 4",
+      "target_name": "LIBERTÉ 5 ↔ PLACE LECLERC",
+      "public_route_id": "DDD 4",
+      "operator": "Dakar Dem Dikk",
+      "origin": "LIBERTÉ 5",
+      "destination": "PLACE LECLERC",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 4 : LIBERTÉ 5 ↔ PLACE LECLERC",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D4DL encode le numéro 4 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur. Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0052",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_05",
+      "source_name": "D5GP",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_05",
+      "target": "operator_current",
+      "target_id": "LIGNE 5",
+      "target_name": "GUÉDIAWAYE ↔ PALAIS 1",
+      "public_route_id": "DDD 5",
+      "operator": "Dakar Dem Dikk",
+      "origin": "GUÉDIAWAYE",
+      "destination": "PALAIS 1",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 5 : GUÉDIAWAYE ↔ PALAIS 1",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D5GP encode le numéro 5 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur. Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0053",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_06",
+      "source_name": "D6CP",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_06",
+      "target": "operator_current",
+      "target_id": "LIGNE 6",
+      "target_name": "CAMBÉRÈNE 2 ↔ PALAIS 2",
+      "public_route_id": "DDD 6",
+      "operator": "Dakar Dem Dikk",
+      "origin": "CAMBÉRÈNE 2",
+      "destination": "PALAIS 2",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 6 : CAMBÉRÈNE 2 ↔ PALAIS 2",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D6CP encode le numéro 6 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur. Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0054",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_07",
+      "source_name": "D7OP",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_07",
+      "target": "operator_current",
+      "target_id": "LIGNE 7",
+      "target_name": "OUAKAM ↔ PALAIS 2",
+      "public_route_id": "DDD 7",
+      "operator": "Dakar Dem Dikk",
+      "origin": "OUAKAM",
+      "destination": "PALAIS 2",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 7 : OUAKAM ↔ PALAIS 2",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D7OP encode le numéro 7 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur. Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0055",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_07",
+      "source_name": "D7OP",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_07",
+      "target": "dakar_bus",
+      "target_id": "ddd_7",
+      "target_name": "DDD 7",
+      "public_route_id": null,
+      "operator": "Dakar Dem Dikk",
+      "origin": "OUAKAM",
+      "destination": "PALAIS 2",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 7 : OUAKAM ↔ PALAIS 2",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le projet expose une ligne DDD 7",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "INSTITUTIONAL",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "MEDIUM",
+      "status": "PERSISTENT",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Correspondance au projet établie par numéro + terminus publiés par l'opérateur."
+    },
+    {
+      "crosswalk_id": "CW0056",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_08",
+      "source_name": "D8PL",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_08",
+      "target": "operator_current",
+      "target_id": "LIGNE 8",
+      "target_name": "AÉROPORT LSS ↔ PALAIS 2",
+      "public_route_id": "DDD 8",
+      "operator": "Dakar Dem Dikk",
+      "origin": "AÉROPORT LSS",
+      "destination": "PALAIS 2",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 8 : AÉROPORT LSS ↔ PALAIS 2",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D8PL encode le numéro 8 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur. Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0057",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_08",
+      "source_name": "D8PL",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_08",
+      "target": "dakar_bus",
+      "target_id": "ddd_8",
+      "target_name": "DDD 8",
+      "public_route_id": null,
+      "operator": "Dakar Dem Dikk",
+      "origin": "AÉROPORT LSS",
+      "destination": "PALAIS 2",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 8 : AÉROPORT LSS ↔ PALAIS 2",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le projet expose une ligne DDD 8",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "INSTITUTIONAL",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "MEDIUM",
+      "status": "PERSISTENT",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Correspondance au projet établie par numéro + terminus publiés par l'opérateur."
+    },
+    {
+      "crosswalk_id": "CW0058",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_09",
+      "source_name": "D9P0",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_09",
+      "target": "operator_current",
+      "target_id": "LIGNE 9",
+      "target_name": "LIBERTÉ 6 ↔ PALAIS 2",
+      "public_route_id": "DDD 9",
+      "operator": "Dakar Dem Dikk",
+      "origin": "LIBERTÉ 6",
+      "destination": "PALAIS 2",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 9 : LIBERTÉ 6 ↔ PALAIS 2",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D9P0 encode le numéro 9 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur. Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0059",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_09",
+      "source_name": "D9P0",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_09",
+      "target": "dakar_bus",
+      "target_id": "ddd_9",
+      "target_name": "DDD 9",
+      "public_route_id": null,
+      "operator": "Dakar Dem Dikk",
+      "origin": "LIBERTÉ 6",
+      "destination": "PALAIS 2",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 9 : LIBERTÉ 6 ↔ PALAIS 2",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le projet expose une ligne DDD 9",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "INSTITUTIONAL",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "MEDIUM",
+      "status": "PERSISTENT",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Correspondance au projet établie par numéro + terminus publiés par l'opérateur."
+    },
+    {
+      "crosswalk_id": "CW0060",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_10",
+      "source_name": "D10LP",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_10",
+      "target": "operator_current",
+      "target_id": "LIGNE 10",
+      "target_name": "LIBERTÉ 5 ↔ PALAIS 2",
+      "public_route_id": "DDD 10",
+      "operator": "Dakar Dem Dikk",
+      "origin": "LIBERTÉ 5",
+      "destination": "PALAIS 2",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 10 : LIBERTÉ 5 ↔ PALAIS 2",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D10LP encode le numéro 10 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur. Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0061",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_10",
+      "source_name": "D10LP",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_10",
+      "target": "dakar_bus",
+      "target_id": "ddd_10",
+      "target_name": "DDD 10",
+      "public_route_id": null,
+      "operator": "Dakar Dem Dikk",
+      "origin": "LIBERTÉ 5",
+      "destination": "PALAIS 2",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 10 : LIBERTÉ 5 ↔ PALAIS 2",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le projet expose une ligne DDD 10",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "INSTITUTIONAL",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "MEDIUM",
+      "status": "PERSISTENT",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Correspondance au projet établie par numéro + terminus publiés par l'opérateur."
+    },
+    {
+      "crosswalk_id": "CW0062",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_11",
+      "source_name": "D11KL",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_11",
+      "target": "operator_current",
+      "target_id": "LIGNE 11",
+      "target_name": "KEUR MASSAR ↔ LAT DIOR",
+      "public_route_id": "DDD 11",
+      "operator": "Dakar Dem Dikk",
+      "origin": "KEUR MASSAR",
+      "destination": "LAT DIOR",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 11 : KEUR MASSAR ↔ LAT DIOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D11KL encode le numéro 11 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur. Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0063",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_11",
+      "source_name": "D11KL",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_11",
+      "target": "dakar_bus",
+      "target_id": "ddd_11",
+      "target_name": "DDD 11",
+      "public_route_id": null,
+      "operator": "Dakar Dem Dikk",
+      "origin": "KEUR MASSAR",
+      "destination": "LAT DIOR",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 11 : KEUR MASSAR ↔ LAT DIOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le projet expose une ligne DDD 11",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "INSTITUTIONAL",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "MEDIUM",
+      "status": "PERSISTENT",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Correspondance au projet établie par numéro + terminus publiés par l'opérateur."
+    },
+    {
+      "crosswalk_id": "CW0064",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_12",
+      "source_name": "D12GP",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_12",
+      "target": "operator_current",
+      "target_id": "LIGNE 12",
+      "target_name": "GUÉDIAWAYE ↔ PALAIS 1",
+      "public_route_id": "DDD 12",
+      "operator": "Dakar Dem Dikk",
+      "origin": "GUÉDIAWAYE",
+      "destination": "PALAIS 1",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 12 : GUÉDIAWAYE ↔ PALAIS 1",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D12GP encode le numéro 12 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur. Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0065",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_12",
+      "source_name": "D12GP",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_12",
+      "target": "dakar_bus",
+      "target_id": "ddd_12",
+      "target_name": "DDD 12",
+      "public_route_id": null,
+      "operator": "Dakar Dem Dikk",
+      "origin": "GUÉDIAWAYE",
+      "destination": "PALAIS 1",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 12 : GUÉDIAWAYE ↔ PALAIS 1",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le projet expose une ligne DDD 12",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "INSTITUTIONAL",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "MEDIUM",
+      "status": "PERSISTENT",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Correspondance au projet établie par numéro + terminus publiés par l'opérateur."
+    },
+    {
+      "crosswalk_id": "CW0066",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_13",
+      "source_name": "D13T0",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_13",
+      "target": "operator_current",
+      "target_id": "LIGNE 13",
+      "target_name": "LIBERTÉ 5 ↔ PALAIS 2",
+      "public_route_id": "DDD 13",
+      "operator": "Dakar Dem Dikk",
+      "origin": "LIBERTÉ 5",
+      "destination": "PALAIS 2",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 13 : LIBERTÉ 5 ↔ PALAIS 2",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D13T0 encode le numéro 13 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur. Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0067",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_15",
+      "source_name": "D15PR",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_15",
+      "target": "operator_current",
+      "target_id": "LIGNE 15",
+      "target_name": "RUFISQUE ↔ PALAIS 1",
+      "public_route_id": "DDD 15",
+      "operator": "Dakar Dem Dikk",
+      "origin": "RUFISQUE",
+      "destination": "PALAIS 1 (15A/15B)",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 15 : RUFISQUE ↔ PALAIS 1",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D15PR encode le numéro 15 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur (variantes 15A / 15B : le rattachement à A ou B n'est pas établi, mais l'identité de la ligne 15 persiste). Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0068",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_15",
+      "source_name": "D15PR",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_15",
+      "target": "dakar_bus",
+      "target_id": "ddd_15",
+      "target_name": "DDD 15",
+      "public_route_id": null,
+      "operator": "Dakar Dem Dikk",
+      "origin": "RUFISQUE",
+      "destination": "PALAIS 1 (15A/15B)",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 15 : RUFISQUE ↔ PALAIS 1",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le projet expose une ligne DDD 15",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "INSTITUTIONAL",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "MEDIUM",
+      "status": "PERSISTENT",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Correspondance au projet établie par numéro + terminus publiés par l'opérateur."
+    },
+    {
+      "crosswalk_id": "CW0069",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_16",
+      "source_name": "D16MP",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_16",
+      "target": "operator_current",
+      "target_id": "LIGNE 16",
+      "target_name": "MALIKA ↔ PALAIS 1",
+      "public_route_id": "DDD 16",
+      "operator": "Dakar Dem Dikk",
+      "origin": "MALIKA",
+      "destination": "PALAIS 1 (16A/16B)",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 16 : MALIKA ↔ PALAIS 1",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D16MP encode le numéro 16 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur (variantes 16A / 16B : le rattachement à A ou B n'est pas établi, mais l'identité de la ligne 16 persiste). Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0070",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_18",
+      "source_name": "D18D",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_18",
+      "target": "operator_current",
+      "target_id": "LIGNE 18",
+      "target_name": "DIEUPPEUL ↔ DIEUPPEUL",
+      "public_route_id": "DDD 18",
+      "operator": "Dakar Dem Dikk",
+      "origin": "DIEUPPEUL",
+      "destination": "CENTRE-VILLE",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 18 : DIEUPPEUL ↔ CENTRE-VILLE ↔ DIEUPPEUL",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D18D encode le numéro 18 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur. Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0071",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_20",
+      "source_name": "D20D",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_20",
+      "target": "operator_current",
+      "target_id": "LIGNE 20",
+      "target_name": "DIEUPPEUL ↔ DIEUPPEUL",
+      "public_route_id": "DDD 20",
+      "operator": "Dakar Dem Dikk",
+      "origin": "DIEUPPEUL",
+      "destination": "CENTRE-VILLE",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 20 : DIEUPPEUL ↔ CENTRE-VILLE ↔ DIEUPPEUL",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D20D encode le numéro 20 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur. Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0072",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_20",
+      "source_name": "D20D",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_20",
+      "target": "dakar_bus",
+      "target_id": "ddd_20",
+      "target_name": "DDD 20",
+      "public_route_id": null,
+      "operator": "Dakar Dem Dikk",
+      "origin": "DIEUPPEUL",
+      "destination": "CENTRE-VILLE",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 20 : DIEUPPEUL ↔ CENTRE-VILLE ↔ DIEUPPEUL",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le projet expose une ligne DDD 20",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "INSTITUTIONAL",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "MEDIUM",
+      "status": "PERSISTENT",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Correspondance au projet établie par numéro + terminus publiés par l'opérateur."
+    },
+    {
+      "crosswalk_id": "CW0073",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_23",
+      "source_name": "D23P2",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_23",
+      "target": "operator_current",
+      "target_id": "LIGNE 23",
+      "target_name": "PARCELLES ASSAINIES ↔ PALAIS 1",
+      "public_route_id": "DDD 23",
+      "operator": "Dakar Dem Dikk",
+      "origin": "PARCELLES ASSAINIES",
+      "destination": "PALAIS 1",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 23 : PARCELLES ASSAINIES ↔ PALAIS 1",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D23P2 encode le numéro 23 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur. Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0074",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_23",
+      "source_name": "D23P2",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_23",
+      "target": "dakar_bus",
+      "target_id": "ddd_23",
+      "target_name": "DDD 23",
+      "public_route_id": null,
+      "operator": "Dakar Dem Dikk",
+      "origin": "PARCELLES ASSAINIES",
+      "destination": "PALAIS 1",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 23 : PARCELLES ASSAINIES ↔ PALAIS 1",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le projet expose une ligne DDD 23",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "INSTITUTIONAL",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "MEDIUM",
+      "status": "PERSISTENT",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Correspondance au projet établie par numéro + terminus publiés par l'opérateur."
+    },
+    {
+      "crosswalk_id": "CW0075",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_121",
+      "source_name": "D121LS",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_121",
+      "target": "operator_current",
+      "target_id": "LIGNE 121",
+      "target_name": "SCAT URBAM ↔ LECLERC",
+      "public_route_id": "DDD 121",
+      "operator": "Dakar Dem Dikk",
+      "origin": "SCAT URBAM",
+      "destination": "LECLERC",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 121 : SCAT URBAM ↔ LECLERC",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D121LS encode le numéro 121 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur. Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0076",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_208",
+      "source_name": "D208BR",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_208",
+      "target": "operator_current",
+      "target_id": "LIGNE 208",
+      "target_name": "BAYAKH ↔ RUFISQUE",
+      "public_route_id": "DDD 208",
+      "operator": "Dakar Dem Dikk",
+      "origin": "BAYAKH",
+      "destination": "RUFISQUE",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 208 : BAYAKH ↔ RUFISQUE",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D208BR encode le numéro 208 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur. Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0077",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_213",
+      "source_name": "D213DR",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_213",
+      "target": "operator_current",
+      "target_id": "LIGNE 213",
+      "target_name": "RUFISQUE ↔ DIEUPPEUL",
+      "public_route_id": "DDD 213",
+      "operator": "Dakar Dem Dikk",
+      "origin": "RUFISQUE",
+      "destination": "DIEUPPEUL",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 213 : RUFISQUE ↔ DIEUPPEUL",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D213DR encode le numéro 213 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur. Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0078",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_217",
+      "source_name": "D217OT",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_217",
+      "target": "operator_current",
+      "target_id": "LIGNE 217",
+      "target_name": "THIAROYE ↔ OUAKAM",
+      "public_route_id": "DDD 217",
+      "operator": "Dakar Dem Dikk",
+      "origin": "THIAROYE",
+      "destination": "OUAKAM",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 217 : THIAROYE ↔ OUAKAM",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D217OT encode le numéro 217 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur. Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0079",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_218",
+      "source_name": "D218AT",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_218",
+      "target": "operator_current",
+      "target_id": "LIGNE 218",
+      "target_name": "THIAROYE ↔ AÉROPORT LSS",
+      "public_route_id": "DDD 218",
+      "operator": "Dakar Dem Dikk",
+      "origin": "THIAROYE",
+      "destination": "AÉROPORT LSS",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 218 : THIAROYE ↔ AÉROPORT LSS",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D218AT encode le numéro 218 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur. Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0080",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_219",
+      "source_name": "D219DO",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_219",
+      "target": "operator_current",
+      "target_id": "LIGNE 219",
+      "target_name": "DAROUKHANE ↔ OUAKAM",
+      "public_route_id": "DDD 219",
+      "operator": "Dakar Dem Dikk",
+      "origin": "DAROUKHANE",
+      "destination": "OUAKAM",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 219 : DAROUKHANE ↔ OUAKAM",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D219DO encode le numéro 219 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur. Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0081",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_220",
+      "source_name": "D220DR",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_220",
+      "target": "operator_current",
+      "target_id": "LIGNE 220",
+      "target_name": "RUFISQUE ↔ GUÉDIAWAYE",
+      "public_route_id": "DDD 220",
+      "operator": "Dakar Dem Dikk",
+      "origin": "RUFISQUE",
+      "destination": "GUÉDIAWAYE",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 220 : RUFISQUE ↔ GUÉDIAWAYE",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D220DR encode le numéro 220 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur. Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0082",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_221",
+      "source_name": "D221AG",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_221",
+      "target": "operator_current",
+      "target_id": "LIGNE 221",
+      "target_name": "GADAYE ↔ ALMADIES",
+      "public_route_id": "DDD 221",
+      "operator": "Dakar Dem Dikk",
+      "origin": "GADAYE",
+      "destination": "ALMADIES",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 221 : GADAYE ↔ ALMADIES",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D221AG encode le numéro 221 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur. Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0083",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_227",
+      "source_name": "D227TM",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_227",
+      "target": "operator_current",
+      "target_id": "LIGNE 227",
+      "target_name": "TERMINUS KEUR MASSAR ↔ TERMINUS PARCELLES",
+      "public_route_id": "DDD 227",
+      "operator": "Dakar Dem Dikk",
+      "origin": "KEUR MASSAR",
+      "destination": "PARCELLES",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 227 : TERMINUS KEUR MASSAR ↔ TERMINUS PARCELLES",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D227TM encode le numéro 227 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur. Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0084",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_228",
+      "source_name": "D228RY",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_228",
+      "target": "operator_current",
+      "target_id": "LIGNE 228",
+      "target_name": "TERMINUS RUFISQUE ↔ YENNE",
+      "public_route_id": "DDD 228",
+      "operator": "Dakar Dem Dikk",
+      "origin": "RUFISQUE",
+      "destination": "YENNE",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 228 : TERMINUS RUFISQUE ↔ YENNE",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D228RY encode le numéro 228 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur. Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0085",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_232",
+      "source_name": "D232AB",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_232",
+      "target": "operator_current",
+      "target_id": "LIGNE 232",
+      "target_name": "BAUX MARAICHERS ↔ AÉROPORT LSS",
+      "public_route_id": "DDD 232",
+      "operator": "Dakar Dem Dikk",
+      "origin": "BAUX MARAICHERS",
+      "destination": "AÉROPORT LSS",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 232 : BAUX MARAICHERS ↔ AÉROPORT LSS",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D232AB encode le numéro 232 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur. Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0086",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_233",
+      "source_name": "D233 M",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_233",
+      "target": "operator_current",
+      "target_id": "LIGNE 233",
+      "target_name": "BAUX MARAICHERS ↔ PALAIS 1",
+      "public_route_id": "DDD 233",
+      "operator": "Dakar Dem Dikk",
+      "origin": "BAUX MARAICHERS",
+      "destination": "PALAIS 1",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 233 : BAUX MARAICHERS ↔ PALAIS 1",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D233 M encode le numéro 233 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur. Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0087",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_234",
+      "source_name": "D234JL",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_234",
+      "target": "operator_current",
+      "target_id": "LIGNE 234",
+      "target_name": "JAXAAY ↔ LECLERC",
+      "public_route_id": "DDD 234",
+      "operator": "Dakar Dem Dikk",
+      "origin": "JAXAAY",
+      "destination": "LECLERC",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 234 : JAXAAY ↔ LECLERC",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D234JL encode le numéro 234 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur. Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0088",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_501",
+      "source_name": "D501GP",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_501",
+      "target": "operator_current",
+      "target_id": "LIGNE 501",
+      "target_name": "GARE DE DAKAR ↔ PALAIS 2",
+      "public_route_id": "DDD 501",
+      "operator": "Dakar Dem Dikk",
+      "origin": "GARE DE DAKAR",
+      "destination": "PALAIS 2",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 501 : GARE DE DAKAR ↔ PALAIS 2",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D501GP encode le numéro 501 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur. Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0089",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_502",
+      "source_name": "D502CU",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_502",
+      "target": "operator_current",
+      "target_id": "LIGNE 502",
+      "target_name": "COLOBANE ↔ UCAD",
+      "public_route_id": "DDD 502",
+      "operator": "Dakar Dem Dikk",
+      "origin": "COLOBANE",
+      "destination": "UCAD / ABASS NDAO (502A/502B)",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 502 : COLOBANE ↔ UCAD",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D502CU encode le numéro 502 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur (variantes 502A / 502B : le rattachement à A ou B n'est pas établi, mais l'identité de la ligne 502 persiste). Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0090",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_503",
+      "source_name": "D503CB",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_503",
+      "target": "operator_current",
+      "target_id": "LIGNE 503",
+      "target_name": "COLOBANE ↔ MOLE 8",
+      "public_route_id": "DDD 503",
+      "operator": "Dakar Dem Dikk",
+      "origin": "COLOBANE",
+      "destination": "MOLE 8 / HYDROCARBURE (503A/503B)",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 503 : COLOBANE ↔ MOLE 8",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D503CB encode le numéro 503 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur (variantes 503A / 503B : le rattachement à A ou B n'est pas établi, mais l'identité de la ligne 503 persiste). Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0091",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_504",
+      "source_name": "D504DS",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": "DDD_504",
+      "target": "operator_current",
+      "target_id": "LIGNE 504",
+      "target_name": "GARE DIAMNIADIO ↔ SPHERE MINISTERIEL",
+      "public_route_id": "DDD 504",
+      "operator": "Dakar Dem Dikk",
+      "origin": "GARE DIAMNIADIO",
+      "destination": "SPHERE MINISTERIEL (504A/504B)",
+      "direction": null,
+      "match_type": "STRUCTURAL",
+      "evidence": [
+        {
+          "claim": "l'opérateur publie LIGNE 504 : GARE DIAMNIADIO ↔ SPHERE MINISTERIEL",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": "2026-09-02",
+          "date_verified": "2026-09-27"
+        },
+        {
+          "claim": "le code PassBi D504DS encode le numéro 504 et les initiales des mêmes terminus",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "HIGH",
+      "status": "PERSISTENT",
+      "provenance_by_field": {
+        "route_number": {
+          "source": "demdikk.sn",
+          "source_type": "OFFICIAL_OPERATOR",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "origin_destination": {
+          "source": "demdikk.sn (terminus publiés) confrontés à PassBi",
+          "source_type": "HYBRID",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "date_verified": "2026-09-27",
+          "status": "CONFIRMED"
+        },
+        "stops": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN",
+          "note": "aucun arrêt actuel vérifié"
+        },
+        "schedule": {
+          "source": "UNKNOWN",
+          "source_type": "UNKNOWN",
+          "source_url": null,
+          "date_verified": "2026-09-27",
+          "status": "UNKNOWN"
+        }
+      },
+      "verified_at": "2026-09-27",
+      "verification_note": "Identité persistante par numéro + terminus publiés par l'opérateur (variantes 504A / 504B : le rattachement à A ou B n'est pas établi, mais l'identité de la ligne 504 persiste). Cela ne prouve ni le parcours complet, ni les arrêts actuels, ni les horaires : structure = UNKNOWN, horaire = UNKNOWN."
+    },
+    {
+      "crosswalk_id": "CW0092",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_102",
+      "source_name": "D102CC",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "operator_current",
+      "target_id": null,
+      "target_name": null,
+      "public_route_id": null,
+      "operator": "Dakar Dem Dikk",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "UNCONFIRMED",
+      "evidence": [
+        {
+          "claim": "absente de la liste publiée par l'opérateur",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "LOW",
+      "status": "UNCONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Non retrouvée dans les sources actuelles consultées ; absence de preuve de suppression. Aucun statut DELETED, DISCONTINUED ou INACTIVE."
+    },
+    {
+      "crosswalk_id": "CW0093",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_103",
+      "source_name": "D103AC",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "operator_current",
+      "target_id": null,
+      "target_name": null,
+      "public_route_id": null,
+      "operator": "Dakar Dem Dikk",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "UNCONFIRMED",
+      "evidence": [
+        {
+          "claim": "absente de la liste publiée par l'opérateur",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "LOW",
+      "status": "UNCONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Non retrouvée dans les sources actuelles consultées ; absence de preuve de suppression. Aucun statut DELETED, DISCONTINUED ou INACTIVE."
+    },
+    {
+      "crosswalk_id": "CW0094",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_105",
+      "source_name": "D105CP",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "operator_current",
+      "target_id": null,
+      "target_name": null,
+      "public_route_id": null,
+      "operator": "Dakar Dem Dikk",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "UNCONFIRMED",
+      "evidence": [
+        {
+          "claim": "absente de la liste publiée par l'opérateur",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "LOW",
+      "status": "UNCONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Non retrouvée dans les sources actuelles consultées ; absence de preuve de suppression. Aucun statut DELETED, DISCONTINUED ou INACTIVE."
+    },
+    {
+      "crosswalk_id": "CW0095",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_111",
+      "source_name": "D111LY",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "operator_current",
+      "target_id": null,
+      "target_name": null,
+      "public_route_id": null,
+      "operator": "Dakar Dem Dikk",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "UNCONFIRMED",
+      "evidence": [
+        {
+          "claim": "absente de la liste publiée par l'opérateur",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "LOW",
+      "status": "UNCONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Non retrouvée dans les sources actuelles consultées ; absence de preuve de suppression. Aucun statut DELETED, DISCONTINUED ou INACTIVE."
+    },
+    {
+      "crosswalk_id": "CW0096",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_210",
+      "source_name": "D210TM",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "operator_current",
+      "target_id": null,
+      "target_name": null,
+      "public_route_id": null,
+      "operator": "Dakar Dem Dikk",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "UNCONFIRMED",
+      "evidence": [
+        {
+          "claim": "absente de la liste publiée par l'opérateur",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "LOW",
+      "status": "UNCONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Non retrouvée dans les sources actuelles consultées ; absence de preuve de suppression. Aucun statut DELETED, DISCONTINUED ou INACTIVE."
+    },
+    {
+      "crosswalk_id": "CW0097",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_223",
+      "source_name": "D223DP",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "operator_current",
+      "target_id": null,
+      "target_name": null,
+      "public_route_id": null,
+      "operator": "Dakar Dem Dikk",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "UNCONFIRMED",
+      "evidence": [
+        {
+          "claim": "absente de la liste publiée par l'opérateur",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "LOW",
+      "status": "UNCONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Non retrouvée dans les sources actuelles consultées ; absence de preuve de suppression. Aucun statut DELETED, DISCONTINUED ou INACTIVE."
+    },
+    {
+      "crosswalk_id": "CW0098",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_231",
+      "source_name": "D231BJ",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "operator_current",
+      "target_id": null,
+      "target_name": null,
+      "public_route_id": null,
+      "operator": "Dakar Dem Dikk",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "UNCONFIRMED",
+      "evidence": [
+        {
+          "claim": "absente de la liste publiée par l'opérateur",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "LOW",
+      "status": "UNCONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Non retrouvée dans les sources actuelles consultées ; absence de preuve de suppression. Aucun statut DELETED, DISCONTINUED ou INACTIVE."
+    },
+    {
+      "crosswalk_id": "CW0099",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_301",
+      "source_name": "D301MP",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "operator_current",
+      "target_id": null,
+      "target_name": null,
+      "public_route_id": null,
+      "operator": "Dakar Dem Dikk",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "UNCONFIRMED",
+      "evidence": [
+        {
+          "claim": "absente de la liste publiée par l'opérateur",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "LOW",
+      "status": "UNCONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Non retrouvée dans les sources actuelles consultées ; absence de preuve de suppression. Aucun statut DELETED, DISCONTINUED ou INACTIVE."
+    },
+    {
+      "crosswalk_id": "CW0100",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_305",
+      "source_name": "D305PY",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "operator_current",
+      "target_id": null,
+      "target_name": null,
+      "public_route_id": null,
+      "operator": "Dakar Dem Dikk",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "UNCONFIRMED",
+      "evidence": [
+        {
+          "claim": "absente de la liste publiée par l'opérateur",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "LOW",
+      "status": "UNCONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Non retrouvée dans les sources actuelles consultées ; absence de preuve de suppression. Aucun statut DELETED, DISCONTINUED ou INACTIVE."
+    },
+    {
+      "crosswalk_id": "CW0101",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_308",
+      "source_name": "D308OP",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "operator_current",
+      "target_id": null,
+      "target_name": null,
+      "public_route_id": null,
+      "operator": "Dakar Dem Dikk",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "UNCONFIRMED",
+      "evidence": [
+        {
+          "claim": "absente de la liste publiée par l'opérateur",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "LOW",
+      "status": "UNCONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Non retrouvée dans les sources actuelles consultées ; absence de preuve de suppression. Aucun statut DELETED, DISCONTINUED ou INACTIVE."
+    },
+    {
+      "crosswalk_id": "CW0102",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_311",
+      "source_name": "D311TT",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "operator_current",
+      "target_id": null,
+      "target_name": null,
+      "public_route_id": null,
+      "operator": "Dakar Dem Dikk",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "UNCONFIRMED",
+      "evidence": [
+        {
+          "claim": "absente de la liste publiée par l'opérateur",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "LOW",
+      "status": "UNCONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Non retrouvée dans les sources actuelles consultées ; absence de preuve de suppression. Aucun statut DELETED, DISCONTINUED ou INACTIVE."
+    },
+    {
+      "crosswalk_id": "CW0103",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_315",
+      "source_name": "D315RY",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "operator_current",
+      "target_id": null,
+      "target_name": null,
+      "public_route_id": null,
+      "operator": "Dakar Dem Dikk",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "UNCONFIRMED",
+      "evidence": [
+        {
+          "claim": "absente de la liste publiée par l'opérateur",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "LOW",
+      "status": "UNCONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Non retrouvée dans les sources actuelles consultées ; absence de preuve de suppression. Aucun statut DELETED, DISCONTINUED ou INACTIVE."
+    },
+    {
+      "crosswalk_id": "CW0104",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_319",
+      "source_name": "D319SL",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "operator_current",
+      "target_id": null,
+      "target_name": null,
+      "public_route_id": null,
+      "operator": "Dakar Dem Dikk",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "UNCONFIRMED",
+      "evidence": [
+        {
+          "claim": "absente de la liste publiée par l'opérateur",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "LOW",
+      "status": "UNCONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Non retrouvée dans les sources actuelles consultées ; absence de preuve de suppression. Aucun statut DELETED, DISCONTINUED ou INACTIVE."
+    },
+    {
+      "crosswalk_id": "CW0105",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_323",
+      "source_name": "D323PT",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "operator_current",
+      "target_id": null,
+      "target_name": null,
+      "public_route_id": null,
+      "operator": "Dakar Dem Dikk",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "UNCONFIRMED",
+      "evidence": [
+        {
+          "claim": "absente de la liste publiée par l'opérateur",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "LOW",
+      "status": "UNCONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Non retrouvée dans les sources actuelles consultées ; absence de preuve de suppression. Aucun statut DELETED, DISCONTINUED ou INACTIVE."
+    },
+    {
+      "crosswalk_id": "CW0106",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_401",
+      "source_name": "D401AO",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "operator_current",
+      "target_id": null,
+      "target_name": null,
+      "public_route_id": null,
+      "operator": "Dakar Dem Dikk",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "UNCONFIRMED",
+      "evidence": [
+        {
+          "claim": "absente de la liste publiée par l'opérateur",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "LOW",
+      "status": "UNCONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Non retrouvée dans les sources actuelles consultées ; absence de preuve de suppression. Aucun statut DELETED, DISCONTINUED ou INACTIVE."
+    },
+    {
+      "crosswalk_id": "CW0107",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_402",
+      "source_name": "D402AT",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "operator_current",
+      "target_id": null,
+      "target_name": null,
+      "public_route_id": null,
+      "operator": "Dakar Dem Dikk",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "UNCONFIRMED",
+      "evidence": [
+        {
+          "claim": "absente de la liste publiée par l'opérateur",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "LOW",
+      "status": "UNCONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Non retrouvée dans les sources actuelles consultées ; absence de preuve de suppression. Aucun statut DELETED, DISCONTINUED ou INACTIVE."
+    },
+    {
+      "crosswalk_id": "CW0108",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_403",
+      "source_name": "D403AP",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "operator_current",
+      "target_id": null,
+      "target_name": null,
+      "public_route_id": null,
+      "operator": "Dakar Dem Dikk",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "UNCONFIRMED",
+      "evidence": [
+        {
+          "claim": "absente de la liste publiée par l'opérateur",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "LOW",
+      "status": "UNCONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Non retrouvée dans les sources actuelles consultées ; absence de preuve de suppression. Aucun statut DELETED, DISCONTINUED ou INACTIVE."
+    },
+    {
+      "crosswalk_id": "CW0109",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_404",
+      "source_name": "D404AL",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "operator_current",
+      "target_id": null,
+      "target_name": null,
+      "public_route_id": null,
+      "operator": "Dakar Dem Dikk",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "UNCONFIRMED",
+      "evidence": [
+        {
+          "claim": "absente de la liste publiée par l'opérateur",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "LOW",
+      "status": "UNCONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Non retrouvée dans les sources actuelles consultées ; absence de preuve de suppression. Aucun statut DELETED, DISCONTINUED ou INACTIVE."
+    },
+    {
+      "crosswalk_id": "CW0110",
+      "network": "DDD",
+      "source": "passbi",
+      "source_id": "DDD_405",
+      "source_name": "D405AD",
+      "source_type": "PASSBI",
+      "source_url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_route_id": null,
+      "target": "operator_current",
+      "target_id": null,
+      "target_name": null,
+      "public_route_id": null,
+      "operator": "Dakar Dem Dikk",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "UNCONFIRMED",
+      "evidence": [
+        {
+          "claim": "absente de la liste publiée par l'opérateur",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "LOW",
+      "status": "UNCONFIRMED",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Non retrouvée dans les sources actuelles consultées ; absence de preuve de suppression. Aucun statut DELETED, DISCONTINUED ou INACTIVE."
+    },
+    {
+      "crosswalk_id": "CW0111",
+      "network": "DDD",
+      "source": "dakar_bus",
+      "source_id": "ddd_3",
+      "source_name": "DDD 3",
+      "source_type": "INSTITUTIONAL",
+      "source_url": null,
+      "source_route_id": null,
+      "target": "operator_current",
+      "target_id": null,
+      "target_name": null,
+      "public_route_id": null,
+      "operator": "Dakar Dem Dikk",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "UNCONFIRMED",
+      "evidence": [
+        {
+          "claim": "absente de PassBi et de la liste opérateur actuelle",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "LOW",
+      "status": "UNKNOWN",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Ligne du projet sans contrepartie dans PassBi ni chez l'opérateur."
+    },
+    {
+      "crosswalk_id": "CW0112",
+      "network": "DDD",
+      "source": "dakar_bus",
+      "source_id": "ddd_14",
+      "source_name": "DDD 14",
+      "source_type": "INSTITUTIONAL",
+      "source_url": null,
+      "source_route_id": null,
+      "target": "operator_current",
+      "target_id": null,
+      "target_name": null,
+      "public_route_id": null,
+      "operator": "Dakar Dem Dikk",
+      "origin": null,
+      "destination": null,
+      "direction": null,
+      "match_type": "UNCONFIRMED",
+      "evidence": [
+        {
+          "claim": "absente de PassBi et de la liste opérateur actuelle",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "confidence": "LOW",
+      "status": "UNKNOWN",
+      "provenance_by_field": null,
+      "verified_at": "2026-09-27",
+      "verification_note": "Ligne du projet sans contrepartie dans PassBi ni chez l'opérateur."
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+stop_id,stop_name,stop_lat,stop_lon
+stop_dakar_ter,Dakar - Gare ferroviaire,14.675703,-17.433114
+stop_colobane,Colobane,14.698372,-17.441419
+stop_hann,Hann,14.721544,-17.431881
+stop_dalifort_ter,Dalifort,14.734095,-17.419619
+stop_baux_maraichers,Baux Maraîchers,14.740186,-17.402088
+stop_pikine,Pikine,14.750504,-17.390862
+stop_thiaroye,Thiaroye,14.759071,-17.379683
+stop_yeumbeul,Yeumbeul,14.765005,-17.355873
+stop_keur_mbaye_fall,Keur Mbaye Fall,14.744155,-17.313916
+stop_pnr,PNR Rufisque,14.722859,-17.283444
+stop_rufisque,Rufisque,14.716293,-17.270426
+stop_bargny,Bargny,14.697979,-17.229851
+stop_diamniadio,Diamniadio,14.716527,-17.198862

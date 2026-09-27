@@ -1,0 +1,49 @@
+{
+  "generated_at": "2026-09-27",
+  "files_written": 38,
+  "ter": {
+    "routes": 1,
+    "directions": 2,
+    "stops": 13,
+    "trips_level2": 48,
+    "stop_times_level2": 624,
+    "passbi_trips_level1": 572,
+    "sunday_confirmed": 48,
+    "sunday_passbi_only": [
+      "18:03",
+      "19:50"
+    ],
+    "official_missing": [],
+    "timepoint_column": true
+  },
+  "brt": {
+    "routes": 3,
+    "routes_in_gtfs": 0,
+    "physical_stations": 21,
+    "unmerged_passbi_duplicates": 1,
+    "b1_stations": 21,
+    "b2_stations": 7,
+    "shared_stations": 7,
+    "unserved_passbi_stations": 6
+  },
+  "ddd": {
+    "passbi_routes": 53,
+    "persistent": 34,
+    "not_found": 19,
+    "new_current": 0,
+    "passbi_stops_level1": 1277,
+    "current_verified_stops": 0
+  },
+  "aftu": {
+    "passbi_routes": 73,
+    "identity_confirmed": 0,
+    "passbi_stops_level1": 2401
+  },
+  "crosswalks": 186,
+  "crosswalk_by_match_type": {
+    "DOCUMENTED": 87,
+    "NAME_ONLY": 1,
+    "UNCONFIRMED": 98
+  },
+  "route_status_rows": 130
+}

@@ -1,0 +1,11 @@
+fare_id,price,currency_type,payment_method,transfers,transfer_duration
+aftu_section_1,100,XOF,0,0,
+aftu_section_2,150,XOF,0,0,
+aftu_section_3,200,XOF,0,0,
+aftu_section_4,250,XOF,0,0,
+aftu_section_5,300,XOF,0,0,
+aftu_section_6,350,XOF,0,0,
+aftu_section_7,400,XOF,0,0,
+aftu_section_8,450,XOF,0,0,
+aftu_section_9,500,XOF,0,0,
+aftu_section_10,550,XOF,0,0,
