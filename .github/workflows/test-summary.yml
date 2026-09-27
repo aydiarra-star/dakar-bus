@@ -40,11 +40,24 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          echo "=== test.txt exists? ===" 
+          ls -lh /tmp/test.txt || true
+          echo "=== tail ==="
+          tail -n 50 /tmp/test.txt || true
+          echo "=== grep ==="
+          grep -E "FAIL|Expected|Actual" /tmp/test.txt | head -n 20 || true
           content=$(cat /tmp/test.txt 2>/dev/null | grep -E "FAIL|Expected|Actual" | head -n 100 | head -c 6000)
           if [ -z "$content" ]; then
             content=$(cat /tmp/test.txt 2>/dev/null | tail -n 50 | head -c 6000)
           fi
+          echo "=== content ==="
+          echo "$content" | head -n 20
           body=$(printf "TEST LOG for %s:\n\`\`\`\n%s\n\`\`\`" "${{ github.sha }}" "$content")
-          jq -n --arg body "$body" --arg title "test log ${{ github.sha }}" '{title: $title, body: $body}' > /tmp/issue.json
+          echo "$body" > /tmp/body.txt
+          cat /tmp/body.txt | head -n 30
+          jq -n --arg body "$(cat /tmp/body.txt)" --arg title "test log ${{ github.sha }}" '{title: $title, body: $body}' > /tmp/issue.json
+          cat /tmp/issue.json | head -n 20
           gh api repos/${{ github.repository }}/issues --input /tmp/issue.json 2>&1 | tee /tmp/issue.out || true
           cat /tmp/issue.out || true
+          echo "=== done ===" >> $GITHUB_STEP_SUMMARY
+          cat /tmp/issue.out >> $GITHUB_STEP_SUMMARY || true
