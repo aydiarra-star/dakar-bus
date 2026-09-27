@@ -27,9 +27,11 @@ jobs:
           fi
 
           changed="$(git diff --name-only --no-renames "${PR_BASE_SHA}...${PR_HEAD_SHA}")"
-          # Inputs to validate:data plus files exercised by npm test in this workflow.
-          # Flutter assets/code and this workflow itself are not validator inputs.
-          scope_pattern='^(package\.json|tests/.*\.test\.js|scripts/check-arrets\.js|scripts/lib/(transit-validation|pages-audit)\.js|data/transit/reference-policy\.json|data/gtfs/(stops|trips|stop_times)\.txt|index\.html)$'
+          # Inputs to validate:data + la suite de tests du validateur elle-même.
+          # Les suites de tests AJOUTÉES qui n'exercent pas ce validateur
+          # (ex. tests PassBi) ne modifient ni le gate ni ses inputs : hors
+          # périmètre. Flutter assets/code et ce workflow restent exclus.
+          scope_pattern='^(package\.json|tests/transit-validation\.test\.js|scripts/check-arrets\.js|scripts/lib/(transit-validation|pages-audit)\.js|data/transit/reference-policy\.json|data/gtfs/(stops|trips|stop_times)\.txt|index\.html)$'
 
           if printf '%s\n' "${changed}" | grep -Eq "${scope_pattern}"; then
             echo "required=true" >> "${GITHUB_OUTPUT}"
