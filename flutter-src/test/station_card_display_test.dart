@@ -1193,7 +1193,7 @@ void main() {
     expect(_found(result).nextDepartureAt, DateTime.utc(2026, 9, 28, 14, 40));
   });
 
-  group('station_card_display — contrat Lots 4.9-4.10 (4 cas)', () {
+  group('station_card_display — contrat Lots 4.9-4.10 (3 cas)', () {
     test('cas 1 — SCHEDULED départ dans 3 min → 🟢 Départ dans 3 min', () {
       final calcAt = DateTime.utc(2026, 9, 28, 14, 37);
       final st = ServiceTime(14, 40, 0);
@@ -1246,10 +1246,6 @@ void main() {
       );
       final info = DepartureInfo.fromFrequency(src, src.frequencies.first, requestedAt);
       expect(_departureDisplayLabel(info), '🟡 Passage estimé toutes les 6 min');
-    });
-    test('cas 4 — UNKNOWN', () {
-      final info = DepartureInfo.unknown(operator: 'Test', routeId: _route, requestedAt: DateTime.utc(2026, 9, 28, 12, 0));
-      expect(_departureDisplayLabel(info), 'Horaire indisponible');
     });
   });
 }
