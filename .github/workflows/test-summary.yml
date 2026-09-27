@@ -34,3 +34,17 @@ jobs:
           cat /tmp/test.txt | tail -n 200 >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           cat /tmp/test.txt | grep -E "FAILED|Expected|Actual" | head -n 100 >> $GITHUB_STEP_SUMMARY || true
+      - name: Create issue with test log
+        if: always()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          content=$(cat /tmp/test.txt 2>/dev/null | grep -E "FAIL|Expected|Actual" | head -n 100 | head -c 6000)
+          if [ -z "$content" ]; then
+            content=$(cat /tmp/test.txt 2>/dev/null | tail -n 50 | head -c 6000)
+          fi
+          body=$(printf "TEST LOG for %s:\n\`\`\`\n%s\n\`\`\`" "${{ github.sha }}" "$content")
+          jq -n --arg body "$body" --arg title "test log ${{ github.sha }}" '{title: $title, body: $body}' > /tmp/issue.json
+          gh api repos/${{ github.repository }}/issues --input /tmp/issue.json 2>&1 | tee /tmp/issue.out || true
+          cat /tmp/issue.out || true
