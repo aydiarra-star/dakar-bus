@@ -150,13 +150,18 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          content=$(cat "${RUNNER_TEMP}/j9-logs/test.txt" 2>/dev/null | grep -A 5 "FAILED\|Expected\|Actual\|Test failed" | head -n 500)
+          echo "=== test.txt tail ===" 
+          cat "${RUNNER_TEMP}/j9-logs/test.txt" 2>/dev/null | tail -n 100 || true
+          echo "=== grep FAILED ==="
+          cat "${RUNNER_TEMP}/j9-logs/test.txt" 2>/dev/null | grep -E "FAILED|failed|Expected|Actual" | head -n 100 || true
+          content=$(cat "${RUNNER_TEMP}/j9-logs/test.txt" 2>/dev/null | grep -E "FAILED|Expected|Actual" | head -n 50 | head -c 4000)
           if [ -z "$content" ]; then
-            content=$(cat "${RUNNER_TEMP}/j9-logs/test.txt" 2>/dev/null | tail -n 500)
+            content=$(cat "${RUNNER_TEMP}/j9-logs/test.txt" 2>/dev/null | tail -n 20 | head -c 4000)
           fi
-          content=$(echo "$content" | head -c 50000)
-          body=$(printf "TEST FAILURE for %s (4 failures):\n\`\`\`\n%s\n\`\`\`" "${{ github.sha }}" "$content")
-          jq -n --arg body "$body" --arg title "test failure 4 for ${{ github.sha }}" '{title: $title, body: $body}' > /tmp/issue.json
+          body=$(printf "FAIL %s:\n\`\`\`\n%s\n\`\`\`" "${{ github.sha }}" "$content")
+          echo "$body" > /tmp/body.txt
+          cat /tmp/body.txt
+          jq -n --arg body "$(cat /tmp/body.txt)" --arg title "fail ${{ github.sha }}" '{title: $title, body: $body}' > /tmp/issue.json
           gh api repos/${{ github.repository }}/issues --input /tmp/issue.json 2>&1 | tee /tmp/issue.out || true
           cat /tmp/issue.out || true
           cat /tmp/issue.out || true
