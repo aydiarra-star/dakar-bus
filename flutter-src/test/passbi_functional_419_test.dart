@@ -11,7 +11,7 @@
 // Aucun mock : seuls les assets réels flutter-src/assets/data/passbi/.
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:dakar_bus/models/departure_info.dart';
+import 'package:dakar_bus/models/transport_network.dart';
 import 'package:dakar_bus/services/gtfs/passbi_source.dart';
 import 'package:dakar_bus/services/gtfs/routing_engine.dart';
 import 'package:dakar_bus/services/schedule_provider.dart';

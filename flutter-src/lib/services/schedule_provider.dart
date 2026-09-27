@@ -86,6 +86,12 @@ class ScheduleProvider {
         validFrom: net.meta['valid_from'],
         validTo: net.meta['valid_to'],
         confidence: 0.8,
+        // Paramètres requis par DepartureInfo : aucune fréquence ni sens
+        // n'est attaché à un départ programmé (null = non déterminé ici,
+        // exactement comme DepartureInfo.unknown).
+        frequencyMinutes: null,
+        operatingHours: null,
+        direction: null,
       );
     }
 
@@ -109,6 +115,12 @@ class ScheduleProvider {
       validFrom: net.meta['valid_from'],
       validTo: net.meta['valid_to'],
       confidence: 0.8,
+      // Paramètres requis par DepartureInfo : aucune fréquence ni sens
+      // n'est attaché à un départ programmé (null = non déterminé ici,
+      // exactement comme DepartureInfo.unknown).
+      frequencyMinutes: null,
+      operatingHours: null,
+      direction: null,
     );
   }
 

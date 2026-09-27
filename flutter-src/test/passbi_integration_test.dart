@@ -32,7 +32,7 @@ void main() {
   final DateTime lundi14 = DateTime.utc(2026, 9, 28, 14, 0);
   final DateTime lundi10 = DateTime.utc(2026, 9, 28, 10, 0);
   final DateTime dimanche12 = DateTime.utc(2026, 10, 4, 12, 0); // 43671 s
-  final String colobanePb =
+  const String colobanePb =
       'TER:c70477e7-8391-4388-9a1f-8929a18dc14e-00000000-0000-0000-0000-000000000000';
   const String diamniadioPb =
       'TER:4445e51b-971b-4f1a-a94a-1ca0c9bef411-00000000-0000-0000-0000-000000000000';
@@ -390,7 +390,7 @@ void main() {
     test('ACTIVE, PUBLIC_GTFS, dates d origine intactes', () {
       for (final key in ['TER', 'BRT', 'DDD', 'AFTU']) {
         final meta = src.network(key)!.meta;
-        expect(String(meta['source']).startsWith('PassBi'), isTrue);
+        expect(meta['source'], startsWith('PassBi'));
         expect(meta['source_type'], 'PUBLIC_GTFS');
         expect(meta['status'], 'ACTIVE');
         expect(meta['date_source'], '2026-02-10');
@@ -400,7 +400,7 @@ void main() {
         expect(meta['valid_to'], isNotNull);
       }
       final cwMeta = src.crosswalkMeta!;
-      expect(String(cwMeta['source']).startsWith('PassBi'), isTrue);
+      expect(cwMeta['source'], startsWith('PassBi'));
       expect(cwMeta['source_type'], 'PUBLIC_GTFS');
       expect(cwMeta['status'], 'ACTIVE');
       // Chaîne complète : DepartureInfo porte la provenance.
