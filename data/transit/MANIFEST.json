@@ -1,0 +1,187 @@
+{
+  "generated_at": "2026-09-27",
+  "generator": "data/transit/tools/build_transit_layer.py",
+  "origin": "https://github.com/impactsolutionsas/passbi_core (branche dev)",
+  "refetch": "gh api repos/impactsolutionsas/passbi_core/git/blobs/{git_blob} --jq .content | base64 -d > {file}",
+  "licence_warning": "Aucun fichier LICENSE dans le dépôt PassBi et aucune licence sur les données. Toute republication externe est BLOQUÉE tant que la licence n'est pas clarifiée.",
+  "feeds": {
+    "ter": {
+      "archive": "gtfs_TER.zip",
+      "sha256": "09cb31f4291b28aae072b9b053dc31d06154a7eeb8c212b4bc08825823197408",
+      "git_blob": "0ea1bfb2929b8498e0c07830541a0ebd685a9427",
+      "agency": "SETER",
+      "agency_url": "https://www.seter.sn/",
+      "agency_timezone": "UTC",
+      "files_in_archive": [
+        "agency.txt",
+        "calendar.txt",
+        "routes.txt",
+        "stop_times.txt",
+        "stops.txt",
+        "trips.txt"
+      ],
+      "row_counts": {
+        "agency.txt": 1,
+        "calendar.txt": 12,
+        "routes.txt": 6,
+        "stop_times.txt": 7332,
+        "stops.txt": 26,
+        "trips.txt": 572
+      },
+      "copied_to_level1": [
+        "agency.txt",
+        "routes.txt",
+        "stops.txt",
+        "calendar.txt"
+      ],
+      "copied_bytes": 6169,
+      "skipped_by_size_guard": [],
+      "excluded_from_git": [
+        "stop_times.txt",
+        "trips.txt"
+      ],
+      "exclusion_reason": "volume (stop_times / trips / shapes / fare_rules) — re-téléchargeable via git_blob"
+    },
+    "brt": {
+      "archive": "gtfs_BRT.zip",
+      "sha256": "f5e27b7ee446d52a6c32961db3684637cb0ebb319bb80883c82bcc47104e46c4",
+      "git_blob": "22e9f4cff94f213040dfa6e61250e1a04c0802e5",
+      "agency": "BRT",
+      "agency_url": "",
+      "agency_timezone": "Africa/Dakar",
+      "files_in_archive": [
+        "agency.txt",
+        "calendar.txt",
+        "calendar_dates.txt",
+        "routes.txt",
+        "shapes.txt",
+        "stop_times.txt",
+        "stops.txt",
+        "transfers.txt",
+        "trips.txt"
+      ],
+      "row_counts": {
+        "agency.txt": 1,
+        "calendar.txt": 0,
+        "calendar_dates.txt": 69,
+        "routes.txt": 2,
+        "shapes.txt": 6785,
+        "stop_times.txt": 58674,
+        "stops.txt": 79,
+        "transfers.txt": 0,
+        "trips.txt": 4036
+      },
+      "copied_to_level1": [
+        "agency.txt",
+        "routes.txt",
+        "stops.txt",
+        "calendar_dates.txt",
+        "transfers.txt"
+      ],
+      "copied_bytes": 5716,
+      "skipped_by_size_guard": [],
+      "excluded_from_git": [
+        "calendar.txt",
+        "shapes.txt",
+        "stop_times.txt",
+        "trips.txt"
+      ],
+      "exclusion_reason": "volume (stop_times / trips / shapes / fare_rules) — re-téléchargeable via git_blob"
+    },
+    "ddd": {
+      "archive": "gtfs_Dem_Dikk.zip",
+      "sha256": "578323c9fa4375313d57c4120071da3d0da499eb9216e5a4a22a28ffae707159",
+      "git_blob": "0d719ed5704a99cca60bac8e0ed038681c5fc5b3",
+      "agency": "Dakar Dem Dikk",
+      "agency_url": "https://demdikk.sn/dakar-et-banlieue/",
+      "agency_timezone": "Africa/Dakar",
+      "files_in_archive": [
+        "agency.txt",
+        "calendar.txt",
+        "calendar_dates.txt",
+        "fare_attributes.txt",
+        "routes.txt",
+        "shapes.txt",
+        "stop_times.txt",
+        "stops.txt",
+        "trips.txt"
+      ],
+      "row_counts": {
+        "agency.txt": 1,
+        "calendar.txt": 4,
+        "calendar_dates.txt": 40,
+        "fare_attributes.txt": 6,
+        "routes.txt": 53,
+        "shapes.txt": 3500,
+        "stop_times.txt": 314029,
+        "stops.txt": 1277,
+        "trips.txt": 9529
+      },
+      "copied_to_level1": [
+        "agency.txt",
+        "routes.txt",
+        "stops.txt",
+        "calendar.txt",
+        "calendar_dates.txt",
+        "fare_attributes.txt"
+      ],
+      "copied_bytes": 108842,
+      "skipped_by_size_guard": [],
+      "excluded_from_git": [
+        "shapes.txt",
+        "stop_times.txt",
+        "trips.txt"
+      ],
+      "exclusion_reason": "volume (stop_times / trips / shapes / fare_rules) — re-téléchargeable via git_blob"
+    },
+    "aftu": {
+      "archive": "gtfs_AFTU.zip",
+      "sha256": "7fae6b438de6177ff1d777546684e83c8882927b67efa4645dbecca3d77af428",
+      "git_blob": "2cb0fff80857d8b0a3591c58956cffc75d77071a",
+      "agency": "Association de Financement des Professionnels du transport Urbain",
+      "agency_url": "https://aftu-senegal.org/",
+      "agency_timezone": "Africa/Dakar",
+      "files_in_archive": [
+        "agency.txt",
+        "calendar.txt",
+        "calendar_dates.txt",
+        "fare_attributes.txt",
+        "fare_rules.txt",
+        "routes.txt",
+        "shapes.txt",
+        "stop_times.txt",
+        "stops.txt",
+        "trips.txt"
+      ],
+      "row_counts": {
+        "agency.txt": 1,
+        "calendar.txt": 4,
+        "calendar_dates.txt": 40,
+        "fare_attributes.txt": 10,
+        "fare_rules.txt": 1196602,
+        "routes.txt": 73,
+        "shapes.txt": 9498,
+        "stop_times.txt": 677918,
+        "stops.txt": 2401,
+        "trips.txt": 11077
+      },
+      "copied_to_level1": [
+        "agency.txt",
+        "routes.txt",
+        "stops.txt",
+        "calendar.txt",
+        "calendar_dates.txt",
+        "fare_attributes.txt"
+      ],
+      "copied_bytes": 216827,
+      "skipped_by_size_guard": [],
+      "excluded_from_git": [
+        "fare_rules.txt",
+        "shapes.txt",
+        "stop_times.txt",
+        "trips.txt"
+      ],
+      "exclusion_reason": "volume (stop_times / trips / shapes / fare_rules) — re-téléchargeable via git_blob"
+    }
+  }
+}

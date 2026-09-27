@@ -1,0 +1,682 @@
+{
+  "level": 2,
+  "network": "BRT",
+  "generated_at": "2026-09-27",
+  "anti_duplicate_display_rule": {
+    "principle": "1 station physique + plusieurs routes = plusieurs stop_times",
+    "implementation": "Les stations partagées par B1 et B2 portent le MÊME dakar_bus_stop_id. B1 et B2 restent deux route_id distincts avec leur propre direction_id et leur propre stop_sequence. Aucune station n'est dupliquée par ligne.",
+    "shared_stations": [
+      "DALAL JAM",
+      "GRAND DAKAR",
+      "GRAND MEDINE",
+      "GUEDIAWAYE",
+      "PETERSEN",
+      "PLACE DE LA NATION",
+      "SACRÉ-CŒUR"
+    ],
+    "routes_kept_distinct": [
+      "B1",
+      "B2",
+      "B3"
+    ],
+    "never_merged": "B1 et B2 ne sont pas fusionnés : partager des stations ne fait pas une seule route."
+  },
+  "physical_stations": [
+    {
+      "passbi_stop_id": "1:CHT",
+      "stop_name": "CARDINAL HYACINT",
+      "dakar_bus_stop_id": "stop_brt_12_thiandoum",
+      "dakar_bus_stop_name": "Cardinal Hyacinthe Thiandoum - BRT",
+      "latitude": 14.741291,
+      "longitude": -17.451675,
+      "coordinate_deviation_m": 49,
+      "status": "PERSISTENT"
+    },
+    {
+      "passbi_stop_id": "1:C22",
+      "stop_name": "CROISEMENT 22",
+      "dakar_bus_stop_id": "stop_brt_15_croisement_22",
+      "dakar_bus_stop_name": "Croisement 22 - BRT",
+      "latitude": 14.753642,
+      "longitude": -17.433701,
+      "coordinate_deviation_m": 203,
+      "status": "PERSISTENT"
+    },
+    {
+      "passbi_stop_id": "1:HDJ",
+      "stop_name": "DALAL JAM",
+      "dakar_bus_stop_id": "stop_brt_19_dalal_jamm",
+      "dakar_bus_stop_name": "Hôpital Dalal Jamm - BRT",
+      "latitude": 14.771603,
+      "longitude": -17.408331,
+      "coordinate_deviation_m": 211,
+      "status": "PERSISTENT"
+    },
+    {
+      "passbi_stop_id": "1:DDI",
+      "stop_name": "DIAL DIOP",
+      "dakar_bus_stop_id": "stop_brt_04_dial_diop",
+      "dakar_bus_stop_name": "Dial Diop - BRT",
+      "latitude": 14.698815,
+      "longitude": -17.453049,
+      "coordinate_deviation_m": 106,
+      "status": "PERSISTENT"
+    },
+    {
+      "passbi_stop_id": "1:GNO",
+      "stop_name": "GOLF NORD",
+      "dakar_bus_stop_id": "stop_brt_21_golf_nord",
+      "dakar_bus_stop_name": "Golf Nord - BRT",
+      "latitude": 14.776188,
+      "longitude": -17.3988,
+      "coordinate_deviation_m": 1,
+      "status": "PERSISTENT"
+    },
+    {
+      "passbi_stop_id": "1:GSU",
+      "stop_name": "GOLF SUD",
+      "dakar_bus_stop_id": "stop_brt_18_golf_sud",
+      "dakar_bus_stop_name": "Golf Sud - BRT",
+      "latitude": 14.76728,
+      "longitude": -17.413774,
+      "coordinate_deviation_m": 39,
+      "status": "PERSISTENT"
+    },
+    {
+      "passbi_stop_id": "1:GDA",
+      "stop_name": "GRAND DAKAR",
+      "dakar_bus_stop_id": "stop_brt_05_grand_dakar",
+      "dakar_bus_stop_name": "Grand Dakar - BRT",
+      "latitude": 14.704714,
+      "longitude": -17.458041,
+      "coordinate_deviation_m": 60,
+      "status": "PERSISTENT"
+    },
+    {
+      "passbi_stop_id": "1:GME",
+      "stop_name": "GRAND MEDINE",
+      "dakar_bus_stop_id": "stop_brt_13_grand_medine",
+      "dakar_bus_stop_name": "Grand Médine - PEM BRT",
+      "latitude": 14.747853,
+      "longitude": -17.444667,
+      "coordinate_deviation_m": 267,
+      "status": "PERSISTENT"
+    },
+    {
+      "passbi_stop_id": "1:GMO",
+      "stop_name": "GRANDE MOSQUÉE",
+      "dakar_bus_stop_id": "stop_brt_02_mosquee",
+      "dakar_bus_stop_name": "Grande Mosquée - BRT",
+      "latitude": 14.682438,
+      "longitude": -17.444249,
+      "coordinate_deviation_m": 519,
+      "status": "UNCONFIRMED"
+    },
+    {
+      "passbi_stop_id": "1:GDW",
+      "stop_name": "GUEDIAWAYE",
+      "dakar_bus_stop_id": "stop_brt_23_guediawaye",
+      "dakar_bus_stop_name": "Préfecture Guédiawaye - PEM BRT",
+      "latitude": 14.772156,
+      "longitude": -17.387235,
+      "coordinate_deviation_m": 73,
+      "status": "PERSISTENT"
+    },
+    {
+      "passbi_stop_id": "1:KYA",
+      "stop_name": "KHAR YALLA",
+      "dakar_bus_stop_id": "stop_brt_10_khar_yallah",
+      "dakar_bus_stop_name": "Khar Yallah - BRT",
+      "latitude": 14.732795,
+      "longitude": -17.456316,
+      "coordinate_deviation_m": 148,
+      "status": "PERSISTENT"
+    },
+    {
+      "passbi_stop_id": "1:LI1",
+      "stop_name": "LIBERTE 1",
+      "dakar_bus_stop_id": "stop_brt_06_liberte_1",
+      "dakar_bus_stop_name": "Liberté 1 - BRT",
+      "latitude": 14.709644,
+      "longitude": -17.462194,
+      "coordinate_deviation_m": 46,
+      "status": "PERSISTENT"
+    },
+    {
+      "passbi_stop_id": "1:LI5",
+      "stop_name": "LIBERTE 5",
+      "dakar_bus_stop_id": "stop_brt_08_liberte_5",
+      "dakar_bus_stop_name": "Liberté 5 - BRT",
+      "latitude": 14.720762,
+      "longitude": -17.464257,
+      "coordinate_deviation_m": 41,
+      "status": "PERSISTENT"
+    },
+    {
+      "passbi_stop_id": "1:LI6",
+      "stop_name": "LIBERTE 6",
+      "dakar_bus_stop_id": "stop_brt_09_liberte_6",
+      "dakar_bus_stop_name": "Liberté 6 - BRT Correspondance",
+      "latitude": 14.725992,
+      "longitude": -17.459439,
+      "coordinate_deviation_m": 44,
+      "status": "PERSISTENT"
+    },
+    {
+      "passbi_stop_id": "1:NDI",
+      "stop_name": "NDINGALA",
+      "dakar_bus_stop_id": "stop_brt_17_ndingala",
+      "dakar_bus_stop_name": "Ndingala - Golf Sud - BRT",
+      "latitude": 14.764465,
+      "longitude": -17.42006,
+      "coordinate_deviation_m": 43,
+      "status": "PERSISTENT"
+    },
+    {
+      "passbi_stop_id": "1:PAR",
+      "stop_name": "PARCELLES",
+      "dakar_bus_stop_id": "stop_brt_16_parcelles_assainies",
+      "dakar_bus_stop_name": "Parcelles Assainies - BRT",
+      "latitude": 14.762401,
+      "longitude": -17.424656,
+      "coordinate_deviation_m": 49,
+      "status": "PERSISTENT"
+    },
+    {
+      "passbi_stop_id": "1:PGF",
+      "stop_name": "PETERSEN",
+      "dakar_bus_stop_id": "stop_brt_01_petersen",
+      "dakar_bus_stop_name": "Papa Gueye Fall - PEM Petersen BRT",
+      "latitude": 14.676988,
+      "longitude": -17.440857,
+      "coordinate_deviation_m": 184,
+      "status": "PERSISTENT"
+    },
+    {
+      "passbi_stop_id": "1:PLN",
+      "stop_name": "PLACE DE LA NATION",
+      "dakar_bus_stop_id": "stop_brt_03_obelisque",
+      "dakar_bus_stop_name": "Place de la Nation - Obélisque - BRT",
+      "latitude": 14.695846,
+      "longitude": -17.450352,
+      "coordinate_deviation_m": 283,
+      "status": "PERSISTENT"
+    },
+    {
+      "passbi_stop_id": "1:PPA",
+      "stop_name": "POLICE DES PARCELLES",
+      "dakar_bus_stop_id": "stop_brt_14_police_parcelles",
+      "dakar_bus_stop_name": "Police des Parcelles - BRT",
+      "latitude": 14.750903,
+      "longitude": -17.439166,
+      "coordinate_deviation_m": 49,
+      "status": "PERSISTENT"
+    },
+    {
+      "passbi_stop_id": "1:SAC",
+      "stop_name": "SACRÉ-CŒUR",
+      "dakar_bus_stop_id": "stop_brt_07_sacre_coeur",
+      "dakar_bus_stop_name": "Sacré-Cœur - BRT",
+      "latitude": 14.71696,
+      "longitude": -17.466512,
+      "coordinate_deviation_m": 326,
+      "status": "PERSISTENT"
+    },
+    {
+      "passbi_stop_id": "1:SUR",
+      "stop_name": "SCAT URBAM",
+      "dakar_bus_stop_id": "stop_brt_11_scat_urbam",
+      "dakar_bus_stop_name": "Scat Urbam - BRT",
+      "latitude": 14.73691,
+      "longitude": -17.455216,
+      "coordinate_deviation_m": 15,
+      "status": "PERSISTENT"
+    }
+  ],
+  "unmerged_passbi_duplicates": [
+    {
+      "passbi_stop_id": "1:QPEM",
+      "stop_name": "POLE GRAND MEDINE",
+      "resolves_to_same_as": "GRAND MEDINE",
+      "dakar_bus_stop_id": "stop_brt_13_grand_medine",
+      "coordinate_deviation_m": 238,
+      "status": "UNCONFIRMED",
+      "merged": false,
+      "note": "Se résout sur le même arrêt du projet par proximité, mais n'est PAS fusionnée. Une preuve opérateur serait nécessaire pour trancher."
+    }
+  ],
+  "unmerged_rule": "Deux stations PassBi peuvent se résoudre sur le même arrêt du projet par proximité. Elles ne sont PAS fusionnées : la proximité géographique seule ne suffit pas à établir qu'il s'agit d'une seule station physique. Elles restent listées séparément, en statut UNCONFIRMED, en attente d'une preuve opérateur.",
+  "routes": [
+    {
+      "route_id": "brt_b1",
+      "passbi_route_id": "B1",
+      "identity_status": "CONFIRMED",
+      "structure_status": "PERSISTENT",
+      "schedule_status": "UNCONFIRMED",
+      "origin": "Préfecture de Guédiawaye",
+      "destination": "Papa Gueye Fall (Petersen)",
+      "passbi_stations": 21,
+      "passbi_trips": 1022,
+      "current_stations": 23,
+      "direction_id_0": [
+        {
+          "stop_sequence": 1,
+          "passbi_stop_id": "1:GDW",
+          "stop_name": "GUEDIAWAYE",
+          "dakar_bus_stop_id": "stop_brt_23_guediawaye"
+        },
+        {
+          "stop_sequence": 2,
+          "passbi_stop_id": "1:GNO",
+          "stop_name": "GOLF NORD",
+          "dakar_bus_stop_id": "stop_brt_21_golf_nord"
+        },
+        {
+          "stop_sequence": 3,
+          "passbi_stop_id": "1:HDJ",
+          "stop_name": "DALAL JAM",
+          "dakar_bus_stop_id": "stop_brt_19_dalal_jamm"
+        },
+        {
+          "stop_sequence": 4,
+          "passbi_stop_id": "1:GSU",
+          "stop_name": "GOLF SUD",
+          "dakar_bus_stop_id": "stop_brt_18_golf_sud"
+        },
+        {
+          "stop_sequence": 5,
+          "passbi_stop_id": "1:NDI",
+          "stop_name": "NDINGALA",
+          "dakar_bus_stop_id": "stop_brt_17_ndingala"
+        },
+        {
+          "stop_sequence": 6,
+          "passbi_stop_id": "1:PAR",
+          "stop_name": "PARCELLES",
+          "dakar_bus_stop_id": "stop_brt_16_parcelles_assainies"
+        },
+        {
+          "stop_sequence": 7,
+          "passbi_stop_id": "1:C22",
+          "stop_name": "CROISEMENT 22",
+          "dakar_bus_stop_id": "stop_brt_15_croisement_22"
+        },
+        {
+          "stop_sequence": 8,
+          "passbi_stop_id": "1:PPA",
+          "stop_name": "POLICE DES PARCELLES",
+          "dakar_bus_stop_id": "stop_brt_14_police_parcelles"
+        },
+        {
+          "stop_sequence": 9,
+          "passbi_stop_id": "1:GME",
+          "stop_name": "GRAND MEDINE",
+          "dakar_bus_stop_id": "stop_brt_13_grand_medine"
+        },
+        {
+          "stop_sequence": 10,
+          "passbi_stop_id": "1:CHT",
+          "stop_name": "CARDINAL HYACINT",
+          "dakar_bus_stop_id": "stop_brt_12_thiandoum"
+        },
+        {
+          "stop_sequence": 11,
+          "passbi_stop_id": "1:SUR",
+          "stop_name": "SCAT URBAM",
+          "dakar_bus_stop_id": "stop_brt_11_scat_urbam"
+        },
+        {
+          "stop_sequence": 12,
+          "passbi_stop_id": "1:KYA",
+          "stop_name": "KHAR YALLA",
+          "dakar_bus_stop_id": "stop_brt_10_khar_yallah"
+        },
+        {
+          "stop_sequence": 13,
+          "passbi_stop_id": "1:LI6",
+          "stop_name": "LIBERTE 6",
+          "dakar_bus_stop_id": "stop_brt_09_liberte_6"
+        },
+        {
+          "stop_sequence": 14,
+          "passbi_stop_id": "1:LI5",
+          "stop_name": "LIBERTE 5",
+          "dakar_bus_stop_id": "stop_brt_08_liberte_5"
+        },
+        {
+          "stop_sequence": 15,
+          "passbi_stop_id": "1:SAC",
+          "stop_name": "SACRÉ-CŒUR",
+          "dakar_bus_stop_id": "stop_brt_07_sacre_coeur"
+        },
+        {
+          "stop_sequence": 16,
+          "passbi_stop_id": "1:LI1",
+          "stop_name": "LIBERTE 1",
+          "dakar_bus_stop_id": "stop_brt_06_liberte_1"
+        },
+        {
+          "stop_sequence": 17,
+          "passbi_stop_id": "1:GDA",
+          "stop_name": "GRAND DAKAR",
+          "dakar_bus_stop_id": "stop_brt_05_grand_dakar"
+        },
+        {
+          "stop_sequence": 18,
+          "passbi_stop_id": "1:DDI",
+          "stop_name": "DIAL DIOP",
+          "dakar_bus_stop_id": "stop_brt_04_dial_diop"
+        },
+        {
+          "stop_sequence": 19,
+          "passbi_stop_id": "1:PLN",
+          "stop_name": "PLACE DE LA NATION",
+          "dakar_bus_stop_id": "stop_brt_03_obelisque"
+        },
+        {
+          "stop_sequence": 20,
+          "passbi_stop_id": "1:GMO",
+          "stop_name": "GRANDE MOSQUÉE",
+          "dakar_bus_stop_id": "stop_brt_02_mosquee"
+        },
+        {
+          "stop_sequence": 21,
+          "passbi_stop_id": "1:PGF",
+          "stop_name": "PETERSEN",
+          "dakar_bus_stop_id": "stop_brt_01_petersen"
+        }
+      ],
+      "direction_id_1": [
+        {
+          "stop_sequence": 1,
+          "passbi_stop_id": "1:PGF",
+          "stop_name": "PETERSEN",
+          "dakar_bus_stop_id": "stop_brt_01_petersen"
+        },
+        {
+          "stop_sequence": 2,
+          "passbi_stop_id": "1:GMO",
+          "stop_name": "GRANDE MOSQUÉE",
+          "dakar_bus_stop_id": "stop_brt_02_mosquee"
+        },
+        {
+          "stop_sequence": 3,
+          "passbi_stop_id": "1:PLN",
+          "stop_name": "PLACE DE LA NATION",
+          "dakar_bus_stop_id": "stop_brt_03_obelisque"
+        },
+        {
+          "stop_sequence": 4,
+          "passbi_stop_id": "1:DDI",
+          "stop_name": "DIAL DIOP",
+          "dakar_bus_stop_id": "stop_brt_04_dial_diop"
+        },
+        {
+          "stop_sequence": 5,
+          "passbi_stop_id": "1:GDA",
+          "stop_name": "GRAND DAKAR",
+          "dakar_bus_stop_id": "stop_brt_05_grand_dakar"
+        },
+        {
+          "stop_sequence": 6,
+          "passbi_stop_id": "1:LI1",
+          "stop_name": "LIBERTE 1",
+          "dakar_bus_stop_id": "stop_brt_06_liberte_1"
+        },
+        {
+          "stop_sequence": 7,
+          "passbi_stop_id": "1:SAC",
+          "stop_name": "SACRÉ-CŒUR",
+          "dakar_bus_stop_id": "stop_brt_07_sacre_coeur"
+        },
+        {
+          "stop_sequence": 8,
+          "passbi_stop_id": "1:LI5",
+          "stop_name": "LIBERTE 5",
+          "dakar_bus_stop_id": "stop_brt_08_liberte_5"
+        },
+        {
+          "stop_sequence": 9,
+          "passbi_stop_id": "1:LI6",
+          "stop_name": "LIBERTE 6",
+          "dakar_bus_stop_id": "stop_brt_09_liberte_6"
+        },
+        {
+          "stop_sequence": 10,
+          "passbi_stop_id": "1:KYA",
+          "stop_name": "KHAR YALLA",
+          "dakar_bus_stop_id": "stop_brt_10_khar_yallah"
+        },
+        {
+          "stop_sequence": 11,
+          "passbi_stop_id": "1:SUR",
+          "stop_name": "SCAT URBAM",
+          "dakar_bus_stop_id": "stop_brt_11_scat_urbam"
+        },
+        {
+          "stop_sequence": 12,
+          "passbi_stop_id": "1:CHT",
+          "stop_name": "CARDINAL HYACINT",
+          "dakar_bus_stop_id": "stop_brt_12_thiandoum"
+        },
+        {
+          "stop_sequence": 13,
+          "passbi_stop_id": "1:GME",
+          "stop_name": "GRAND MEDINE",
+          "dakar_bus_stop_id": "stop_brt_13_grand_medine"
+        },
+        {
+          "stop_sequence": 14,
+          "passbi_stop_id": "1:PPA",
+          "stop_name": "POLICE DES PARCELLES",
+          "dakar_bus_stop_id": "stop_brt_14_police_parcelles"
+        },
+        {
+          "stop_sequence": 15,
+          "passbi_stop_id": "1:C22",
+          "stop_name": "CROISEMENT 22",
+          "dakar_bus_stop_id": "stop_brt_15_croisement_22"
+        },
+        {
+          "stop_sequence": 16,
+          "passbi_stop_id": "1:PAR",
+          "stop_name": "PARCELLES",
+          "dakar_bus_stop_id": "stop_brt_16_parcelles_assainies"
+        },
+        {
+          "stop_sequence": 17,
+          "passbi_stop_id": "1:NDI",
+          "stop_name": "NDINGALA",
+          "dakar_bus_stop_id": "stop_brt_17_ndingala"
+        },
+        {
+          "stop_sequence": 18,
+          "passbi_stop_id": "1:GSU",
+          "stop_name": "GOLF SUD",
+          "dakar_bus_stop_id": "stop_brt_18_golf_sud"
+        },
+        {
+          "stop_sequence": 19,
+          "passbi_stop_id": "1:HDJ",
+          "stop_name": "DALAL JAM",
+          "dakar_bus_stop_id": "stop_brt_19_dalal_jamm"
+        },
+        {
+          "stop_sequence": 20,
+          "passbi_stop_id": "1:GNO",
+          "stop_name": "GOLF NORD",
+          "dakar_bus_stop_id": "stop_brt_21_golf_nord"
+        },
+        {
+          "stop_sequence": 21,
+          "passbi_stop_id": "1:GDW",
+          "stop_name": "GUEDIAWAYE",
+          "dakar_bus_stop_id": "stop_brt_23_guediawaye"
+        }
+      ],
+      "shape_id": null,
+      "shape_note": "6 785 points de shape existent en LEVEL 1 ; non validés actuellement.",
+      "difference_documented": "PassBi dessert 21 stations ; le réseau actuel en compte 23. Gadaye et Fith Mith figurent dans le stops.txt PassBi mais n'y sont desservies par aucune course.",
+      "source": "PassBi + sunubrt.sn + dakar_network.json",
+      "source_type": "HYBRID",
+      "date_verified": "2026-09-27",
+      "confidence": "HIGH"
+    },
+    {
+      "route_id": "brt_b2",
+      "passbi_route_id": "B2",
+      "identity_status": "CONFIRMED",
+      "structure_status": "CONFIRMED",
+      "schedule_status": "UNCONFIRMED",
+      "origin": "Papa Gueye Fall (Petersen)",
+      "destination": "Préfecture de Guédiawaye",
+      "passbi_stations": 7,
+      "passbi_trips": 894,
+      "current_stations": 7,
+      "direction_id_0": [
+        {
+          "stop_sequence": 1,
+          "passbi_stop_id": "1:PGF",
+          "stop_name": "PETERSEN",
+          "dakar_bus_stop_id": "stop_brt_01_petersen"
+        },
+        {
+          "stop_sequence": 2,
+          "passbi_stop_id": "1:PLN",
+          "stop_name": "PLACE DE LA NATION",
+          "dakar_bus_stop_id": "stop_brt_03_obelisque"
+        },
+        {
+          "stop_sequence": 3,
+          "passbi_stop_id": "1:GDA",
+          "stop_name": "GRAND DAKAR",
+          "dakar_bus_stop_id": "stop_brt_05_grand_dakar"
+        },
+        {
+          "stop_sequence": 4,
+          "passbi_stop_id": "1:SAC",
+          "stop_name": "SACRÉ-CŒUR",
+          "dakar_bus_stop_id": "stop_brt_07_sacre_coeur"
+        },
+        {
+          "stop_sequence": 5,
+          "passbi_stop_id": "1:GME",
+          "stop_name": "GRAND MEDINE",
+          "dakar_bus_stop_id": "stop_brt_13_grand_medine"
+        },
+        {
+          "stop_sequence": 6,
+          "passbi_stop_id": "1:HDJ",
+          "stop_name": "DALAL JAM",
+          "dakar_bus_stop_id": "stop_brt_19_dalal_jamm"
+        },
+        {
+          "stop_sequence": 7,
+          "passbi_stop_id": "1:GDW",
+          "stop_name": "GUEDIAWAYE",
+          "dakar_bus_stop_id": "stop_brt_23_guediawaye"
+        }
+      ],
+      "direction_id_1": [
+        {
+          "stop_sequence": 1,
+          "passbi_stop_id": "1:GDW",
+          "stop_name": "GUEDIAWAYE",
+          "dakar_bus_stop_id": "stop_brt_23_guediawaye"
+        },
+        {
+          "stop_sequence": 2,
+          "passbi_stop_id": "1:HDJ",
+          "stop_name": "DALAL JAM",
+          "dakar_bus_stop_id": "stop_brt_19_dalal_jamm"
+        },
+        {
+          "stop_sequence": 3,
+          "passbi_stop_id": "1:GME",
+          "stop_name": "GRAND MEDINE",
+          "dakar_bus_stop_id": "stop_brt_13_grand_medine"
+        },
+        {
+          "stop_sequence": 4,
+          "passbi_stop_id": "1:SAC",
+          "stop_name": "SACRÉ-CŒUR",
+          "dakar_bus_stop_id": "stop_brt_07_sacre_coeur"
+        },
+        {
+          "stop_sequence": 5,
+          "passbi_stop_id": "1:GDA",
+          "stop_name": "GRAND DAKAR",
+          "dakar_bus_stop_id": "stop_brt_05_grand_dakar"
+        },
+        {
+          "stop_sequence": 6,
+          "passbi_stop_id": "1:PLN",
+          "stop_name": "PLACE DE LA NATION",
+          "dakar_bus_stop_id": "stop_brt_03_obelisque"
+        },
+        {
+          "stop_sequence": 7,
+          "passbi_stop_id": "1:PGF",
+          "stop_name": "PETERSEN",
+          "dakar_bus_stop_id": "stop_brt_01_petersen"
+        }
+      ],
+      "shape_id": null,
+      "difference_documented": "Aucune. 7 stations, même ordre, même fréquence (6 min), lundi-samedi.",
+      "source": "PassBi + sunubrt.sn",
+      "source_type": "HYBRID",
+      "date_verified": "2026-09-27",
+      "confidence": "HIGH"
+    }
+  ],
+  "b3_identity_only": {
+    "route_id": "brt_b3",
+    "identity_status": "NEW",
+    "structure_status": "UNCONFIRMED",
+    "schedule_status": "UNKNOWN",
+    "realtime_status": "UNKNOWN",
+    "source": "https://www.sunubrt.sn/brt-3-semi-express/",
+    "source_type": "OFFICIAL_OPERATOR",
+    "date_verified": "2026-09-24",
+    "official_station_names": [
+      "Préfecture de Guédiawaye",
+      "Gueule Tapée",
+      "Parcelles",
+      "Croisement 22",
+      "Khar Yalla",
+      "Place de la Nation",
+      "Papa Gueye Fall"
+    ],
+    "in_passbi": false,
+    "excluded_from_gtfs": true,
+    "exclusion_reason": "Identité confirmée, structure non validée. Aucun stop_id ni coordonnée n'est attribué : le parcours n'est PAS reconstruit par proximité géographique. La ligne reste hors GTFS tant que l'opérateur n'a pas publié sa liste de stations rattachable.",
+    "note": "Le stops.txt PassBi contient GUEULE TAPEE (1:GTA), non desservie par B1 ni B2, et Gueule Tapée figure parmi les stations officielles de la B3. Ce rapprochement est NAME_ONLY et n'est PAS utilisé pour construire la ligne."
+  },
+  "passbi_stations_not_served": [
+    "FITH MITH",
+    "GADAYE",
+    "GUEULE TAPEE",
+    "P.E DE GRAND-MEDINE",
+    "P.E DE PETERSEN",
+    "P.E. DE GUEDIAWAYE"
+  ],
+  "not_served_note": "GADAYE, FITH MITH et GUEULE TAPEE sont des stations réelles du réseau actuel, présentes dans le référentiel PassBi mais non exploitées. Les 4 autres sont des doublons de pôles d'échange. Aucun doublon n'est fusionné : la proximité géographique seule ne suffit pas.",
+  "frequency": {
+    "value_min": 6,
+    "status": "CONFIRMED",
+    "source": "https://www.sunubrt.sn/mon-trajet-en-brt/guide-du-voyageur/",
+    "source_type": "OFFICIAL_OPERATOR",
+    "date_verified": "2026-09-27",
+    "note": "Fréquence confirmée. Ne devient jamais un horaire exact."
+  },
+  "peak_reinforcement": {
+    "segment": "Petersen ↔ Grand Médine",
+    "status": "PERSISTENT",
+    "confidence": "MEDIUM",
+    "passbi_observed": "258 courses, 6h-9h et 17h-20h, variante 14 stations",
+    "current_documented": "matin sens Petersen 6h-10h, soir sens Grand-Médine 16h-20h",
+    "source": "https://www.sunubrt.sn/mon-trajet-en-brt/guide-du-voyageur/",
+    "source_type": "OFFICIAL_OPERATOR",
+    "date_verified": "2026-09-27"
+  }
+}

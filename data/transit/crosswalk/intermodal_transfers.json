@@ -1,0 +1,271 @@
+{
+  "generated_at": "2026-09-27",
+  "lot": "4.5",
+  "scope": "Registre de DONNEES. Le moteur de correspondances n'est PAS modifié par ce lot.",
+  "justification_levels": {
+    "DOCUMENTED": "l'opérateur déclare explicitement la desserte",
+    "SHARED_STOP_ID": "identifiant de station commun",
+    "COORDINATE_ONLY": "proximité seule — insuffisant pour une correspondance officielle"
+  },
+  "total": 5,
+  "by_match_type": {
+    "DOCUMENTED": 4,
+    "COORDINATE_ONLY": 1
+  },
+  "documented": [
+    {
+      "transfer_id": "TX001",
+      "networks": [
+        "TER",
+        "DDD"
+      ],
+      "ter_stop": "Gare de Dakar",
+      "other_line": "DDD LIGNE 501",
+      "other_line_passbi_code": "D501GP",
+      "match_type": "DOCUMENTED",
+      "confidence": "HIGH",
+      "status": "CONFIRMED",
+      "justification": "L'opérateur classe explicitement la LIGNE 501 sous la rubrique « Dessertes Gares du TER ».",
+      "evidence": [
+        {
+          "claim": "rubrique « Dessertes Gares du TER » de l'opérateur",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "verified_at": "2026-09-27",
+      "note": "Correspondance documentaire, pas une simple proximité géographique."
+    },
+    {
+      "transfer_id": "TX002",
+      "networks": [
+        "TER",
+        "DDD"
+      ],
+      "ter_stop": "Colobane",
+      "other_line": "DDD LIGNE 502",
+      "other_line_passbi_code": "D502CU",
+      "match_type": "DOCUMENTED",
+      "confidence": "HIGH",
+      "status": "CONFIRMED",
+      "justification": "L'opérateur classe explicitement la LIGNE 502 sous la rubrique « Dessertes Gares du TER ».",
+      "evidence": [
+        {
+          "claim": "rubrique « Dessertes Gares du TER » de l'opérateur",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "verified_at": "2026-09-27",
+      "note": "Correspondance documentaire, pas une simple proximité géographique."
+    },
+    {
+      "transfer_id": "TX003",
+      "networks": [
+        "TER",
+        "DDD"
+      ],
+      "ter_stop": "Colobane",
+      "other_line": "DDD LIGNE 503",
+      "other_line_passbi_code": "D503CB",
+      "match_type": "DOCUMENTED",
+      "confidence": "HIGH",
+      "status": "CONFIRMED",
+      "justification": "L'opérateur classe explicitement la LIGNE 503 sous la rubrique « Dessertes Gares du TER ».",
+      "evidence": [
+        {
+          "claim": "rubrique « Dessertes Gares du TER » de l'opérateur",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "verified_at": "2026-09-27",
+      "note": "Correspondance documentaire, pas une simple proximité géographique."
+    },
+    {
+      "transfer_id": "TX004",
+      "networks": [
+        "TER",
+        "DDD"
+      ],
+      "ter_stop": "Diamniadio",
+      "other_line": "DDD LIGNE 504",
+      "other_line_passbi_code": "D504DS",
+      "match_type": "DOCUMENTED",
+      "confidence": "HIGH",
+      "status": "CONFIRMED",
+      "justification": "L'opérateur classe explicitement la LIGNE 504 sous la rubrique « Dessertes Gares du TER ».",
+      "evidence": [
+        {
+          "claim": "rubrique « Dessertes Gares du TER » de l'opérateur",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "verified_at": "2026-09-27",
+      "note": "Correspondance documentaire, pas une simple proximité géographique."
+    }
+  ],
+  "coordinate_only": [
+    {
+      "transfer_id": "TX005",
+      "networks": [
+        "TER",
+        "BRT"
+      ],
+      "ter_stop": "Dakar - Gare ferroviaire",
+      "other_line": "BRT PETERSEN",
+      "match_type": "COORDINATE_ONLY",
+      "confidence": "LOW",
+      "status": "UNCONFIRMED",
+      "distance_m": 845,
+      "justification": "proximité géographique mesurée (845 m)",
+      "evidence": [
+        {
+          "claim": "coordonnées PassBi",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "verified_at": "2026-09-27",
+      "note": "COORDINATE_ONLY : ne suffit pas à déclarer une correspondance officielle. Registre de travail, non exploité par le moteur."
+    }
+  ],
+  "entries": [
+    {
+      "transfer_id": "TX001",
+      "networks": [
+        "TER",
+        "DDD"
+      ],
+      "ter_stop": "Gare de Dakar",
+      "other_line": "DDD LIGNE 501",
+      "other_line_passbi_code": "D501GP",
+      "match_type": "DOCUMENTED",
+      "confidence": "HIGH",
+      "status": "CONFIRMED",
+      "justification": "L'opérateur classe explicitement la LIGNE 501 sous la rubrique « Dessertes Gares du TER ».",
+      "evidence": [
+        {
+          "claim": "rubrique « Dessertes Gares du TER » de l'opérateur",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "verified_at": "2026-09-27",
+      "note": "Correspondance documentaire, pas une simple proximité géographique."
+    },
+    {
+      "transfer_id": "TX002",
+      "networks": [
+        "TER",
+        "DDD"
+      ],
+      "ter_stop": "Colobane",
+      "other_line": "DDD LIGNE 502",
+      "other_line_passbi_code": "D502CU",
+      "match_type": "DOCUMENTED",
+      "confidence": "HIGH",
+      "status": "CONFIRMED",
+      "justification": "L'opérateur classe explicitement la LIGNE 502 sous la rubrique « Dessertes Gares du TER ».",
+      "evidence": [
+        {
+          "claim": "rubrique « Dessertes Gares du TER » de l'opérateur",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "verified_at": "2026-09-27",
+      "note": "Correspondance documentaire, pas une simple proximité géographique."
+    },
+    {
+      "transfer_id": "TX003",
+      "networks": [
+        "TER",
+        "DDD"
+      ],
+      "ter_stop": "Colobane",
+      "other_line": "DDD LIGNE 503",
+      "other_line_passbi_code": "D503CB",
+      "match_type": "DOCUMENTED",
+      "confidence": "HIGH",
+      "status": "CONFIRMED",
+      "justification": "L'opérateur classe explicitement la LIGNE 503 sous la rubrique « Dessertes Gares du TER ».",
+      "evidence": [
+        {
+          "claim": "rubrique « Dessertes Gares du TER » de l'opérateur",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "verified_at": "2026-09-27",
+      "note": "Correspondance documentaire, pas une simple proximité géographique."
+    },
+    {
+      "transfer_id": "TX004",
+      "networks": [
+        "TER",
+        "DDD"
+      ],
+      "ter_stop": "Diamniadio",
+      "other_line": "DDD LIGNE 504",
+      "other_line_passbi_code": "D504DS",
+      "match_type": "DOCUMENTED",
+      "confidence": "HIGH",
+      "status": "CONFIRMED",
+      "justification": "L'opérateur classe explicitement la LIGNE 504 sous la rubrique « Dessertes Gares du TER ».",
+      "evidence": [
+        {
+          "claim": "rubrique « Dessertes Gares du TER » de l'opérateur",
+          "source_url": "https://demdikk.sn/info-voyageurs/",
+          "source_type": "OFFICIAL_OPERATOR",
+          "date_source": null,
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "verified_at": "2026-09-27",
+      "note": "Correspondance documentaire, pas une simple proximité géographique."
+    },
+    {
+      "transfer_id": "TX005",
+      "networks": [
+        "TER",
+        "BRT"
+      ],
+      "ter_stop": "Dakar - Gare ferroviaire",
+      "other_line": "BRT PETERSEN",
+      "match_type": "COORDINATE_ONLY",
+      "confidence": "LOW",
+      "status": "UNCONFIRMED",
+      "distance_m": 845,
+      "justification": "proximité géographique mesurée (845 m)",
+      "evidence": [
+        {
+          "claim": "coordonnées PassBi",
+          "source_url": "https://github.com/impactsolutionsas/passbi_core",
+          "source_type": "PASSBI",
+          "date_source": "2025-08-31",
+          "date_verified": "2026-09-27"
+        }
+      ],
+      "verified_at": "2026-09-27",
+      "note": "COORDINATE_ONLY : ne suffit pas à déclarer une correspondance officielle. Registre de travail, non exploité par le moteur."
+    }
+  ]
+}

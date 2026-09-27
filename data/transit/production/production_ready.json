@@ -1,0 +1,107 @@
+{
+  "generated_at": "2026-09-27",
+  "level": 3,
+  "definition": "Données suffisamment documentées pour alimenter l'expérience utilisateur.",
+  "ready": [
+    {
+      "entity": "TER — 13 gares (identité, ordre, coordonnées)",
+      "status": "CONFIRMED",
+      "confidence": "HIGH",
+      "location": "data/transit/validated/structure/ter_stop_mapping.json",
+      "usable_for": [
+        "liste des gares",
+        "plan de ligne",
+        "distances",
+        "correspondances"
+      ],
+      "not_usable_for": [
+        "horaires affichés comme certifiés",
+        "temps réel"
+      ]
+    },
+    {
+      "entity": "BRT B2 — 7 stations et leur ordre",
+      "status": "CONFIRMED",
+      "confidence": "HIGH",
+      "location": "data/transit/validated/structure/brt_route_structure.json",
+      "usable_for": [
+        "liste des stations",
+        "ordre de desserte"
+      ],
+      "not_usable_for": [
+        "horaires"
+      ]
+    },
+    {
+      "entity": "BRT B1 — identité et ses 21 stations PassBi",
+      "status": "PERSISTENT",
+      "confidence": "HIGH",
+      "location": "data/transit/validated/structure/brt_route_structure.json",
+      "usable_for": [
+        "structure de la ligne"
+      ],
+      "not_usable_for": [
+        "horaires",
+        "liste exhaustive des stations actuelles (23)"
+      ]
+    },
+    {
+      "entity": "Fréquences opérateur (TER 10 min semaine / 20 min dimanche ; BRT 6 min)",
+      "status": "CONFIRMED",
+      "confidence": "HIGH",
+      "location": "data/transit/validated/structure/ter_schedule.json",
+      "resulting_display_status": "ESTIMATED",
+      "usable_for": [
+        "mention d'une fréquence (« un train toutes les 10 min »)",
+        "amplitude de service (premier / dernier départ)",
+        "information voyageur non horodatée"
+      ],
+      "not_usable_for": [
+        "SCHEDULED",
+        "heure exacte par station",
+        "prochain départ calculé",
+        "REAL_TIME"
+      ]
+    }
+  ],
+  "not_ready": [
+    {
+      "entity": "Horaires TER semaine",
+      "status": "CONTRADICTED",
+      "reason": "12 min PassBi vs 10 min opérateur ; premier départ 05:30 vs 05:45."
+    },
+    {
+      "entity": "Horaires TER dimanche (heures intermédiaires)",
+      "status": "PARTIALLY_CONFIRMED",
+      "reason": "Départs de Dakar confirmés 48/48 ; heures par station intermédiaire non validées."
+    },
+    {
+      "entity": "Horaires BRT / DDD / AFTU",
+      "status": "UNCONFIRMED",
+      "reason": "Aucune source horaire actuelle pour ces trois réseaux."
+    },
+    {
+      "entity": "Structure des 34 lignes DDD persistantes",
+      "status": "UNKNOWN",
+      "reason": "Identité confirmée, parcours et arrêts non validés."
+    },
+    {
+      "entity": "Identités AFTU (73 lignes)",
+      "status": "UNCONFIRMED",
+      "reason": "Numérotation incompatible avec celle du projet."
+    },
+    {
+      "entity": "Temps réel, tous réseaux",
+      "status": "UNKNOWN",
+      "reason": "Aucun flux GTFS-RT ou SAE actif identifié."
+    },
+    {
+      "entity": "Republication externe des données PassBi",
+      "status": "BLOCKED",
+      "reason": "Aucune licence sur les données PassBi."
+    }
+  ],
+  "real_time": "NON — aucun feed ne peut être déclaré REAL_TIME dans ce lot.",
+  "counts_ready": 4,
+  "counts_not_ready": 7
+}

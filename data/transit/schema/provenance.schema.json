@@ -1,0 +1,108 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Dakar Bus Transit Data Layer — modèle de provenance",
+  "description": "Modèle de métadonnées compatible GTFS. Toute entité importante de la couche peut porter ce bloc. Il est volontairement séparé des fichiers .txt GTFS, qui restent syntaxiquement standards.",
+  "type": "object",
+  "required": [
+    "source",
+    "source_type",
+    "status",
+    "confidence"
+  ],
+  "properties": {
+    "source": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "source_type": {
+      "enum": [
+        "OFFICIAL_OPERATOR",
+        "INSTITUTIONAL",
+        "PASSBI",
+        "OSM",
+        "HYBRID",
+        null
+      ]
+    },
+    "source_url": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "date_source": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "date de la donnée d'origine"
+    },
+    "date_verified": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "date de la dernière vérification"
+    },
+    "valid_from": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "valid_to": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "confidence": {
+      "enum": [
+        "HIGH",
+        "MEDIUM",
+        "LOW",
+        "UNKNOWN"
+      ]
+    },
+    "status": {
+      "enum": [
+        "CONFIRMED",
+        "PERSISTENT",
+        "PARTIALLY_CONFIRMED",
+        "UNCONFIRMED",
+        "CONTRADICTED",
+        "NEW",
+        "UNKNOWN",
+        "NOT_FOUND"
+      ],
+      "description": "NOT_FOUND est admis pour l'absence d'identité dans les sources actuelles (section 9 du lot). Il ne signifie jamais « supprimée » et ne doit jamais être remplacé par un statut de type DISCONTINUED."
+    },
+    "verification_note": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "rules": {
+    "no_implicit_promotion": "PASSBI ne devient jamais OFFICIAL_OPERATOR au motif que PassBi revendique l'usage de données CETUD.",
+    "field_level_provenance": "Quand plusieurs sources alimentent une même entité, la provenance est portée au niveau du champ (source_structure / source_schedule / source_coordinates), jamais réduite à 'source = PassBi'.",
+    "four_independent_dimensions": [
+      "identity",
+      "structure",
+      "schedule",
+      "realtime"
+    ]
+  },
+  "status_definitions": {
+    "CONFIRMED": "Source actuelle fiable confirmant explicitement la donnée.",
+    "PERSISTENT": "Donnée PassBi ancienne retrouvée dans une source actuelle, sans contradiction.",
+    "PARTIALLY_CONFIRMED": "Une partie de la donnée est confirmée mais pas l'ensemble.",
+    "UNCONFIRMED": "Donnée conservée comme référence mais aucune validation actuelle suffisante.",
+    "CONTRADICTED": "Une source actuelle fournit une information différente.",
+    "NEW": "Donnée apparue après PassBi et confirmée par une source actuelle.",
+    "UNKNOWN": "Impossible de déterminer l'état actuel."
+  }
+}

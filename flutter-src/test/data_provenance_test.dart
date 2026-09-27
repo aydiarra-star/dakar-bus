@@ -278,7 +278,7 @@ void main() {
 
     test('ScheduleStatus : ESTIMATED jamais « temps réel », UNKNOWN → « Horaire indisponible »', () {
       expect(ScheduleStatus.estimated.displayLabel().toLowerCase(), isNot(contains('temps réel')));
-      expect(ScheduleStatus.unknown.displayLabel(), 'Horaire indisponible');
+      expect(ScheduleStatus.unknown.displayLabel(), 'Passage non communiqué');
       expect(ScheduleStatusLabel.fromString(null), ScheduleStatus.unknown);
     });
 

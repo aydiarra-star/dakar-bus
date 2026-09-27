@@ -1,0 +1,139 @@
+{
+  "level": 2,
+  "network": "TER",
+  "generated_at": "2026-09-27",
+  "two_level_separation": {
+    "historical_passbi_schedule": {
+      "location": "data/transit/passbi/ter/ (stop_times non versionnés, voir MANIFEST.json)",
+      "feed_period": "20250818-20250831",
+      "weekday": {
+        "frequency_min": 12,
+        "first_departure_dakar": "05:30",
+        "last_departure": "22:06",
+        "departures": 81,
+        "status": "CONTRADICTED",
+        "contradicted_by": "https://www.terdakar.sn/les_horaires_des_trains/",
+        "current_operator_value": {
+          "frequency_min": 10,
+          "first_departure_dakar": "05:45",
+          "last_departure": "22:05"
+        },
+        "usage": "référence historique uniquement — NE PAS afficher comme actuel"
+      },
+      "sunday": {
+        "frequency_min": 20,
+        "first_departure_dakar": "06:25",
+        "last_departure": "22:05",
+        "departures": 50,
+        "status": "PARTIALLY_CONFIRMED"
+      }
+    },
+    "current_operator_schedule": {
+      "source": "https://www.terdakar.sn/les_horaires_des_trains/",
+      "source_type": "OFFICIAL_OPERATOR",
+      "date_verified": "2026-09-27",
+      "weekday": {
+        "frequency_min": 10,
+        "first_departure_dakar": "05:45",
+        "evening_frequency_min": 20,
+        "evening_from": "21:05",
+        "last_departure": "22:05",
+        "status": "CONFIRMED",
+        "exact_stop_times_published": false,
+        "resulting_status": "ESTIMATED",
+        "note": "L'opérateur publie une FRÉQUENCE, pas une heure par station. Une fréquence ne devient jamais un horaire exact."
+      },
+      "sunday": {
+        "frequency_min": 20,
+        "first_departure_dakar": "06:25",
+        "last_departure": "22:05",
+        "status": "CONFIRMED",
+        "exact_stop_times_published": false,
+        "resulting_status": "ESTIMATED"
+      }
+    }
+  },
+  "sunday_reconciliation": {
+    "official_series_departures": 48,
+    "passbi_series_departures": 50,
+    "passbi_found_in_official": 48,
+    "official_missing_from_passbi": [],
+    "passbi_only_departures": [
+      "18:03",
+      "19:50"
+    ],
+    "conclusion": "Aucun départ officiel actuel n'est absent de PassBi. Les départs supplémentaires PassBi sont conservés en LEVEL 1 uniquement."
+  },
+  "promoted_to_level2": {
+    "trips": 48,
+    "basis": "les 48 départs correspondant exactement à la série officielle actuelle",
+    "schedule_status": "PARTIALLY_CONFIRMED",
+    "departure_times_dakar": [
+      "06:25:00",
+      "06:45:00",
+      "07:05:00",
+      "07:25:00",
+      "07:45:00",
+      "08:05:00",
+      "08:25:00",
+      "08:45:00",
+      "09:05:00",
+      "09:25:00",
+      "09:45:00",
+      "10:05:00",
+      "10:25:00",
+      "10:45:00",
+      "11:05:00",
+      "11:25:00",
+      "11:45:00",
+      "12:05:00",
+      "12:25:00",
+      "12:45:00",
+      "13:05:00",
+      "13:25:00",
+      "13:45:00",
+      "14:05:00",
+      "14:25:00",
+      "14:45:00",
+      "15:05:00",
+      "15:25:00",
+      "15:45:00",
+      "16:05:00",
+      "16:25:00",
+      "16:45:00",
+      "17:05:00",
+      "17:25:00",
+      "17:45:00",
+      "18:05:00",
+      "18:25:00",
+      "18:45:00",
+      "19:05:00",
+      "19:25:00",
+      "19:45:00",
+      "20:05:00",
+      "20:25:00",
+      "20:45:00",
+      "21:05:00",
+      "21:25:00",
+      "21:45:00",
+      "22:05:00"
+    ],
+    "excluded": [
+      "18:03",
+      "19:50"
+    ],
+    "exclusion_reason": "départs PassBi sans correspondance dans la grille actuelle"
+  },
+  "gtfs_time_convention": {
+    "rule": "Convention GTFS conservée : les heures >= 24:00 (25:xx, 26:xx) sont écrites telles quelles et ne sont JAMAIS converties en heure civile du jour suivant.",
+    "times_rewritten": 0,
+    "note": "Les heures du LEVEL 2 sont copiées caractère pour caractère depuis le feed PassBi. Le test tests/transit-data-layer.test.js le vérifie."
+  },
+  "calendar_note": "La fenêtre GTFS est volontairement réduite à la seule date d'audit (2026-09-27). Aucune période de validité opérateur n'est publiée : cette fenêtre est un garde-fou, pas une validation de validité.",
+  "field_level_status": {
+    "origin_departure_time": "PARTIALLY_CONFIRMED",
+    "intermediate_stop_times": "UNCONFIRMED",
+    "timepoint_column_present": true,
+    "timepoint_note": "Le flag timepoint existe dans le feed PassBi mais est DÉTRUIT à l'import par PassBi (aucune colonne timepoint dans son schéma ni dans ses 9 migrations — lot 4.2B). La distinction heure exacte / heure approximative n'est donc pas fiable en aval."
+  }
+}

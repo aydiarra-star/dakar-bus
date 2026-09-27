@@ -11,6 +11,7 @@ import 'models/transport_network.dart';
 import 'models/reliability.dart';
 import 'models/departure_info.dart';
 import 'services/data_service.dart';
+import 'services/departure_presentation.dart';
 
 // ============================================================
 // SERVICE GLOBAL RESEAU DAKAR — Connecté à assets/data/dakar_network.json
@@ -717,6 +718,32 @@ class Stop {
   /// un élément de [departureMinutesFromMidnight] : elle reste dans le provider.
   final String? scheduleRouteId;
 
+  /// Associations de routes vérifiées par l'asset pour une station physique.
+  /// L'affichage garde un seul Stop ; scheduleRouteId reste sa route primaire.
+  /// Une station B1/B2 partagée peut ainsi être interrogée pour chaque route
+  /// sans emprunter l'ETA de l'autre.
+  final Set<String> servedRouteIds;
+
+  bool servesRoute(String routeId) =>
+      scheduleRouteId == routeId || servedRouteIds.contains(routeId);
+
+  DepartureInfo departureInfoForRouteAt(
+    String routeId, {
+    DateTime? at,
+    bool isPublicHoliday = false,
+  }) {
+    if (!servesRoute(routeId) || stopId == null) {
+      return DepartureInfo.unknown(
+        operator: modeLabel, routeId: routeId, stopId: stopId,
+        requestedAt: at,
+      );
+    }
+    return appDataService.departureFor(
+      network: modeLabel, routeId: routeId, stopId: stopId,
+      at: at, isPublicHoliday: isPublicHoliday,
+    );
+  }
+
   DepartureInfo get departureInfo => departureInfoAt();
 
   DepartureInfo departureInfoAt({
@@ -738,6 +765,7 @@ class Stop {
     DataStatus status = DataStatus.scheduled,
     this.source = DataSourceInfo.demo, this.stopType = StopType.departure,
     this.stopId, this.scheduleRouteId,
+    this.servedRouteIds = const <String>{},
   }) : _legacyStatus = status;
 
   Stop copyWith({
@@ -745,7 +773,7 @@ class Stop {
     List<int>? departureMinutesFromMidnight, IconData? icon, Color? color,
     LatLng? location, DataStatus? status, String? modeLabel,
     DataSourceInfo? source, StopType? stopType, String? stopId,
-    String? scheduleRouteId,
+    String? scheduleRouteId, Set<String>? servedRouteIds,
   }) => Stop(
     name: name ?? this.name,
     direction: direction ?? this.direction,
@@ -760,6 +788,7 @@ class Stop {
     stopType: stopType ?? this.stopType,
     stopId: stopId ?? this.stopId,
     scheduleRouteId: scheduleRouteId ?? this.scheduleRouteId,
+    servedRouteIds: servedRouteIds ?? this.servedRouteIds,
   );
 
   // AUDIT DONNÉES 2026-09-24 — horaires.
@@ -809,11 +838,9 @@ class Stop {
   }
 
   String? nextDepartureLabel() {
-    if (scheduleRouteId != null) return departureInfo.label;
-    final d = nextDepartureMinutes();
-    if (d == null) return ReliabilityLabel.scheduleUnavailable;
-    final normalized = d % (24 * 60);
-    return '${(normalized ~/ 60).toString().padLeft(2, '0')} h ${(normalized % 60).toString().padLeft(2, '0')}';
+    if (scheduleRouteId == null) return null;
+    final label = departureDisplayLabel(departureInfo);
+    return label.isEmpty ? null : label;
   }
 
   int? departureAfter(int minFromMidnight) {
@@ -838,6 +865,46 @@ DataStatus departureDataStatus(ScheduleStatus status) {
       return DataStatus.estimated;
     case ScheduleStatus.unknown:
       return DataStatus.unknown;
+  }
+}
+
+/// Affichage commun aux cartes, trajets et réponses de l'assistant.
+/// L'instant est celui du DepartureInfo résolu (ou celui fourni par l'appelant).
+DeparturePresentation departurePresentation(DepartureInfo? info, {DateTime? at}) {
+  final instant = at ?? info?.calculatedAt ?? info?.referenceTime ??
+      DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+  return DeparturePresentation.at(info, instant);
+}
+
+String departureDisplayLabel(DepartureInfo info, {DateTime? at}) =>
+    departurePresentation(info, at: at).label;
+
+/// Même chaîne ETA que les cartes, mais avec les identifiants exacts de la
+/// route et de l'arrêt de DetailedRoute (y compris un terminus TER). Sans
+/// instant injecté, DataService interroge son horloge ; aucune heure de départ
+/// n'est construite par la vue.
+DeparturePresentation departurePresentationForRouteStop({
+  required String routeId,
+  required String stopId,
+  required String network,
+  DateTime? at,
+}) {
+  final info = appDataService.departureFor(
+    routeId: routeId, stopId: stopId, network: network, at: at,
+  );
+  return departurePresentation(info, at: at);
+}
+
+Color departureDisplayColor(DeparturePresentation display, bool dark) {
+  switch (display.operationalStatus) {
+    case OperationalStatus.normal:
+      return Colors.green.shade700;
+    case OperationalStatus.delayed:
+      return Colors.amber.shade800;
+    case OperationalStatus.unavailable:
+      return Colors.red.shade700;
+    case null:
+      return AppColors.textSecondary(dark);
   }
 }
 
@@ -1381,10 +1448,24 @@ void _integrateNetworkData() {
       // l'ancien générateur TER/BRT a été supprimé (audit 2026-09-24).
       const List<int> schedule = <int>[];
 
+      // Un seul marqueur/Stop par station physique, mais B1 et B2 restent
+      // interrogeables séparément lorsque l'asset lie leurs routes au même ID.
+      // Aucune relation de sens ni aucun horaire n'est inféré ici.
+      final Set<String> servedRouteIds =
+          route.id == 'brt_b1_guediawaye_petersen' || route.id == 'brt_b2_express'
+              ? Set<String>.unmodifiable(appDataService.routes
+                  .where((r) =>
+                      (r.id == 'brt_b1_guediawaye_petersen' ||
+                          r.id == 'brt_b2_express') &&
+                      r.stopIds.contains(busStop.id))
+                  .map((r) => r.id))
+              : <String>{route.id};
+
       final stop = Stop(
         name: busStop.name,
         stopId: busStop.id,
         scheduleRouteId: route.id,
+        servedRouteIds: servedRouteIds,
         direction: i == stopIds.length - 1
             ? 'Terminus ${busStop.name} (Arrivée)'
             : 'Dir. ${appDataService.stops.lastWhere((s) => s.id == stopIds.last, orElse: () => busStop).name}',
@@ -2754,29 +2835,16 @@ class StopCard extends StatelessWidget {
         const String crowd = ReliabilityLabel.crowdUnavailable;
         Widget timeWidget;
 
-        // AUDIT DONNÉES 2026-09-24.
-        // AVANT : « Fermé » déduit de l'heure (5 h–22 h 30 supposés),
-        //         « Bientôt », « Imminent » et un compte à rebours vert calculé
-        //         sur des départs générés — lu comme du temps réel.
-        // APRÈS : sans horaire fourni → « Horaire indisponible » ; avec un
-        //         horaire fourni → « Prévu HH h MM » (programmé, pas de
-        //         compte à rebours). Aucun flux temps réel n'existe.
-        if (stop.scheduleRouteId != null) {
-          final info = stop.departureInfo;
-          timeWidget = Text(info.label, style: TextStyle(
-            fontSize: info.status == ScheduleStatus.scheduled ? 13 : 11,
-            fontWeight: FontWeight.bold,
-            color: info.status == ScheduleStatus.scheduled
-                ? stop.color
-                : AppColors.textSecondary(dark),
-          ));
-        } else if (stop.scheduleStatus == ScheduleStatus.unknown) {
-          timeWidget = Text(ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary(dark)));
-        } else if (stop.nextDepartureMinutes() == null) {
-          timeWidget = Text('Aucun départ programmé', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary(dark)));
-        } else {
-          timeWidget = Text('Prévu ${stop.nextDepartureLabel()}', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: stop.color));
-        }
+        final display = departurePresentation(
+          stop.scheduleRouteId == null ? null : stop.departureInfo,
+        );
+        timeWidget = display.hasDisplay
+            ? Text(display.label, style: TextStyle(
+                fontSize: display.eta == null ? 11 : 13,
+                fontWeight: FontWeight.bold,
+                color: departureDisplayColor(display, dark),
+              ))
+            : const SizedBox.shrink();
 
         return GestureDetector(
           onLongPress: () {
@@ -2811,7 +2879,7 @@ class StopCard extends StatelessWidget {
                   children: [
                     Text(stop.direction, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textSecondary(dark))),
                     const SizedBox(height: 2),
-                    Text('${DistanceHelper.format(distanceMeters)} • ${stop.modeLabel} (${stop.source.badgeEmoji}) • $crowd', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
+                    Text('${DistanceHelper.format(distanceMeters)} • ${stop.modeLabel} (${stop.source.label}) • $crowd', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
                   ],
                 ),
               ),
@@ -3007,6 +3075,9 @@ class _TripsPageState extends State<TripsPage> {
     );
   }
 
+  String _departureLabelForSegment(RouteSegment s) =>
+      departurePresentation(s.departureInfo).label;
+
   Widget _buildRouteCard(PlannedRoute r, bool dark) {
     return Card(
       margin: const EdgeInsets.only(bottom: 14),
@@ -3039,6 +3110,7 @@ class _TripsPageState extends State<TripsPage> {
             ...r.segments.asMap().entries.map((entry) {
               final s = entry.value;
               final isLast = entry.key == r.segments.length - 1;
+              final departureLabel = _departureLabelForSegment(s);
               return IntrinsicHeight(
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -3049,7 +3121,15 @@ class _TripsPageState extends State<TripsPage> {
                       child: Padding(
                         padding: EdgeInsets.only(bottom: isLast ? 0 : 16),
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Row(children: [Icon(s.icon, size: 14, color: s.color), const SizedBox(width: 6), Text(s.modeLabel, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: s.color)), const Spacer(), Text(s.departureTime ?? ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))]),
+                          Row(children: [
+                            Icon(s.icon, size: 14, color: s.color),
+                            const SizedBox(width: 6),
+                            Text(s.modeLabel, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: s.color)),
+                            if (departureLabel.isNotEmpty) ...[
+                              const Spacer(),
+                              Text(departureLabel, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: departureDisplayColor(departurePresentation(s.departureInfo), dark))),
+                            ],
+                          ]),
                           const SizedBox(height: 4),
                           Text('${s.from} - ${s.to}', style: TextStyle(fontSize: 12, color: AppColors.textPrimary(dark))),
                           const SizedBox(height: 2),
@@ -3555,13 +3635,8 @@ class AssistantReplies {
     for (int i = 0; i < r.segments.length; i++) {
       final s = r.segments[i];
       buf.writeln('${i + 1}. ${s.modeLabel} : ${s.from} → ${s.to}');
-      if (s.status == DataStatus.scheduled && s.departureTime != null && s.arrivalTime != null) {
-        buf.writeln('   🕒 Horaire programmé : ${s.departureTime} → ${s.arrivalTime}');
-      } else if (s.status == DataStatus.estimated && s.departureInfo != null) {
-        buf.writeln('   🕒 ${s.departureInfo!.label} — estimation non garantie');
-      } else {
-        buf.writeln('   🕒 ${ReliabilityLabel.noVerifiedSchedule}');
-      }
+      final display = departurePresentation(s.departureInfo);
+      if (display.hasDisplay) buf.writeln('   🕒 ${display.label}');
       buf.writeln('   Durée estimée : ~${s.durationMinutes} min (estimation non vérifiée)');
     }
     return buf.toString();
@@ -3847,7 +3922,9 @@ class _AIChatPageState extends State<AIChatPage> {
 // ============================================================
 class DetailedRoutePage extends StatelessWidget {
   final DetailedRoute route;
-  const DetailedRoutePage({super.key, required this.route});
+  /// Instant de consultation injectable en test ; sans valeur, horloge courante.
+  final DateTime? at;
+  const DetailedRoutePage({super.key, required this.route, this.at});
 
   @override
   Widget build(BuildContext context) {
@@ -3896,6 +3973,10 @@ class DetailedRoutePage extends StatelessWidget {
               const SizedBox(height: 12),
               ...route.stops.asMap().entries.map((entry) {
                 final idx = entry.key; final stop = entry.value; final isLast = idx == route.stops.length - 1;
+                final display = departurePresentationForRouteStop(
+                  routeId: route.routeId, stopId: stop.stopId,
+                  network: route.operator, at: at,
+                );
                 return IntrinsicHeight(
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -3918,21 +3999,20 @@ class DetailedRoutePage extends StatelessWidget {
                                   Expanded(child: Text(stop.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary(dark)))),
                                   // Audit 2026-09-24 — AVANT : « [OFFICIEL] » sur TOUS les arrêts,
                                   // quel que soit le statut. APRÈS : badge dérivé du statut le moins
-                                  // sûr (ligne, arrêt) ; vert seulement si CONFIRMED.
+                                  // sûr (ligne, arrêt) ; le badge de provenance reste neutre.
                                   Builder(builder: (context) {
                                     final ProvenanceStatus st = route.statusOf(stop);
-                                    final Color c = ReliabilityLabel.canShowOfficial(st) ? AppColors.success : AppColors.warning;
+                                    final Color c = AppColors.textSecondary(dark); // provenance neutre, pas état opérationnel
                                     return Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: c.withOpacity(0.1), borderRadius: BorderRadius.circular(4)), child: Text('[${ReliabilityLabel.badge(st)}]', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: c)));
                                   }),
                                 ]),
                                 const SizedBox(height: 4),
                                 Row(children: [
-                                  Icon(Icons.access_time, size: 12, color: route.color),
-                                  const SizedBox(width: 4),
-                                  // Audit 2026-09-24 — AVANT : « Heure : ~N min » (N = rang × 3,
-                                  // hypothèse non sourcée) lu comme une heure. Aucun horaire n'existe
-                                  // dans les données : `estimatedTime` reste dans le modèle, non affiché.
-                                  Text(ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textPrimary(dark))),
+                                  if (display.hasDisplay) ...[
+                                    Icon(Icons.access_time, size: 12, color: route.color),
+                                    const SizedBox(width: 4),
+                                    Text(display.label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: departureDisplayColor(display, dark))),
+                                  ],
                                   const Spacer(),
                                   Text('📍 ${stop.distanceFromStart}', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
                                 ]),
@@ -4053,6 +4133,9 @@ class SingleStopView extends StatelessWidget {
       builder: (context, _) {
         final dark = globalState.darkMode;
         final isFav = globalState.isFavorite(stop.name);
+        final display = departurePresentation(
+          stop.scheduleRouteId == null ? null : stop.departureInfo,
+        );
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
@@ -4092,20 +4175,21 @@ class SingleStopView extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Prochain départ programmé', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
-                            const SizedBox(height: 2),
-                            Text(
-                              stop.nextDepartureLabel() ?? ReliabilityLabel.scheduleUnavailable,
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: stop.color),
-                              softWrap: true,
-                            ),
-                          ],
+                      if (display.hasDisplay)
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Prochain passage', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
+                              const SizedBox(height: 2),
+                              Text(display.label, style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: departureDisplayColor(display, dark),
+                              ), softWrap: true),
+                            ],
+                          ),
                         ),
-                      ),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [

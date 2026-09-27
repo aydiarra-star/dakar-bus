@@ -1,0 +1,1204 @@
+{
+  "generated_at": "2026-09-27",
+  "four_independent_dimensions": [
+    "identity",
+    "structure",
+    "schedule",
+    "realtime"
+  ],
+  "rule": "Aucune dimension n'est déduite automatiquement d'une autre.",
+  "counts": {
+    "identity": {
+      "CONFIRMED": 3,
+      "NEW": 1,
+      "PERSISTENT": 34,
+      "UNCONFIRMED": 92
+    },
+    "structure": {
+      "CONFIRMED": 2,
+      "PERSISTENT": 1,
+      "UNCONFIRMED": 1,
+      "UNKNOWN": 126
+    },
+    "schedule": {
+      "PARTIALLY_CONFIRMED": 1,
+      "UNCONFIRMED": 2,
+      "UNKNOWN": 127
+    },
+    "realtime": {
+      "UNKNOWN": 130
+    }
+  },
+  "routes": [
+    {
+      "route_id": "ter_dakar_diamniadio",
+      "network": "TER",
+      "route_identity_status": "CONFIRMED",
+      "route_structure_status": "CONFIRMED",
+      "route_schedule_status": "PARTIALLY_CONFIRMED",
+      "route_realtime_status": "UNKNOWN",
+      "note": "13/13 gares confirmées. Grille dimanche confirmée (48/48) ; grille semaine CONTRADICTED (12 min PassBi vs 10 min opérateur) et exclue du LEVEL 2. Aucun temps réel."
+    },
+    {
+      "route_id": "brt_b1",
+      "network": "BRT",
+      "route_identity_status": "CONFIRMED",
+      "route_structure_status": "PERSISTENT",
+      "route_schedule_status": "UNCONFIRMED",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité et 21 stations confirmées ; réseau actuel passé à 23 stations."
+    },
+    {
+      "route_id": "brt_b2",
+      "network": "BRT",
+      "route_identity_status": "CONFIRMED",
+      "route_structure_status": "CONFIRMED",
+      "route_schedule_status": "UNCONFIRMED",
+      "route_realtime_status": "UNKNOWN",
+      "note": "7/7 stations, même ordre, fréquence 6 min confirmée. Aucun horaire validé."
+    },
+    {
+      "route_id": "brt_b3",
+      "network": "BRT",
+      "route_identity_status": "NEW",
+      "route_structure_status": "UNCONFIRMED",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Apparue en octobre 2025, absente de PassBi. Hors GTFS : structure non validée."
+    },
+    {
+      "route_id": "ddd_1",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D1LP. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "ddd_2",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D2DL. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "ddd_4",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D4DL. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "ddd_5",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D5GP. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "ddd_6",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D6CP. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "ddd_7",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D7OP. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "ddd_8",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D8PL. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "ddd_9",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D9P0. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "ddd_10",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D10LP. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "ddd_11",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D11KL. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "ddd_12",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D12GP. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "ddd_13",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D13T0. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "ddd_15",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D15PR. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "ddd_16",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D16MP. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "ddd_18",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D18D. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "ddd_20",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D20D. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "ddd_23",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D23P2. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "ddd_121",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D121LS. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "ddd_208",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D208BR. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "ddd_213",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D213DR. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "ddd_217",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D217OT. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "ddd_218",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D218AT. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "ddd_219",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D219DO. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "ddd_220",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D220DR. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "ddd_221",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D221AG. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "ddd_227",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D227TM. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "ddd_228",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D228RY. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "ddd_232",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D232AB. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "ddd_233",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D233 M. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "ddd_234",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D234JL. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "ddd_501",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D501GP. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "ddd_502",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D502CU. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "ddd_503",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D503CB. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "ddd_504",
+      "network": "DDD",
+      "route_identity_status": "PERSISTENT",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "PassBi D504DS. Identité par numéro + terminus uniquement."
+    },
+    {
+      "route_id": "passbi:D102CC",
+      "network": "DDD",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "NOT_FOUND — non supprimée."
+    },
+    {
+      "route_id": "passbi:D103AC",
+      "network": "DDD",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "NOT_FOUND — non supprimée."
+    },
+    {
+      "route_id": "passbi:D105CP",
+      "network": "DDD",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "NOT_FOUND — non supprimée."
+    },
+    {
+      "route_id": "passbi:D111LY",
+      "network": "DDD",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "NOT_FOUND — non supprimée."
+    },
+    {
+      "route_id": "passbi:D210TM",
+      "network": "DDD",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "NOT_FOUND — non supprimée."
+    },
+    {
+      "route_id": "passbi:D223DP",
+      "network": "DDD",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "NOT_FOUND — non supprimée."
+    },
+    {
+      "route_id": "passbi:D231BJ",
+      "network": "DDD",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "NOT_FOUND — non supprimée."
+    },
+    {
+      "route_id": "passbi:D301MP",
+      "network": "DDD",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "NOT_FOUND — non supprimée."
+    },
+    {
+      "route_id": "passbi:D305PY",
+      "network": "DDD",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "NOT_FOUND — non supprimée."
+    },
+    {
+      "route_id": "passbi:D308OP",
+      "network": "DDD",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "NOT_FOUND — non supprimée."
+    },
+    {
+      "route_id": "passbi:D311TT",
+      "network": "DDD",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "NOT_FOUND — non supprimée."
+    },
+    {
+      "route_id": "passbi:D315RY",
+      "network": "DDD",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "NOT_FOUND — non supprimée."
+    },
+    {
+      "route_id": "passbi:D319SL",
+      "network": "DDD",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "NOT_FOUND — non supprimée."
+    },
+    {
+      "route_id": "passbi:D323PT",
+      "network": "DDD",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "NOT_FOUND — non supprimée."
+    },
+    {
+      "route_id": "passbi:D401AO",
+      "network": "DDD",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "NOT_FOUND — non supprimée."
+    },
+    {
+      "route_id": "passbi:D402AT",
+      "network": "DDD",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "NOT_FOUND — non supprimée."
+    },
+    {
+      "route_id": "passbi:D403AP",
+      "network": "DDD",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "NOT_FOUND — non supprimée."
+    },
+    {
+      "route_id": "passbi:D404AL",
+      "network": "DDD",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "NOT_FOUND — non supprimée."
+    },
+    {
+      "route_id": "passbi:D405AD",
+      "network": "DDD",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "NOT_FOUND — non supprimée."
+    },
+    {
+      "route_id": "passbi:A1HL",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A2PP",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A3PY",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A4PY",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A5PP",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A24NU",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A25PP",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A26PP",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A27GP",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A28HP",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A29MP",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A30CG",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A31ST",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A32DS",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A33CD",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A34LN",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A35NP",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A36DN",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A37AU",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A38GS",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A39DL",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A40MP",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A41GP",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A42GO",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A43CO",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A44MO",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A45kP",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A46GL",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A47LA",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A48LR",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A49GN",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A50MP",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A51BJ",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A52BJ",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A53KS",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A54MU",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A55PR",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A56JP",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A57LR",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A58CS",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A59cD",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A60bC",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A61Km",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A62gy",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A63SR",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A64dg",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A65Ck",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A66gY",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A67Ot",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A68st",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A69Dn",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A70dd",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A71cK",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A72ks",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A73LP",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A74bS",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A75CM",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A76AS",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A77CL",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A78DL",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A79Cg",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A80DD",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A81BT",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A82CL",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A83AZ",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A84JU",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A85LL",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A86TT",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A87BM",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A88KL",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A89bT",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A90TD",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    },
+    {
+      "route_id": "passbi:A91AD",
+      "network": "AFTU",
+      "route_identity_status": "UNCONFIRMED",
+      "route_structure_status": "UNKNOWN",
+      "route_schedule_status": "UNKNOWN",
+      "route_realtime_status": "UNKNOWN",
+      "note": "Identité non établie (numérotation incompatible)."
+    }
+  ]
+}

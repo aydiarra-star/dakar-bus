@@ -210,10 +210,38 @@ void main() {
   group('4 — UNKNOWN ne devient jamais REAL_TIME', () {
     test('règle : aucune liste de départs ne produit REAL_TIME', () {
       expect(ReliabilityLabel.scheduleStatusOf(const <int>[]), ScheduleStatus.unknown);
-      expect(ReliabilityLabel.scheduleStatusOf(const <int>[600]), ScheduleStatus.scheduled);
+      expect(
+        ReliabilityLabel.scheduleStatusOf(const <int>[600]),
+        ScheduleStatus.unknown,
+        reason: 'une liste de minutes sans provenance ne prouve pas un horaire',
+      );
       expect(ReliabilityLabel.guardRealtime(ScheduleStatus.realTime), ScheduleStatus.unknown);
       expect(ReliabilityLabel.guardRealtime(ScheduleStatus.unknown), ScheduleStatus.unknown);
-      expect(ScheduleStatus.unknown.displayLabel(), 'Horaire indisponible');
+      expect(ScheduleStatus.unknown.displayLabel(), 'Passage non communiqué');
+    });
+
+    test('contrat legacy : aucune liste de minutes sans provenance ne vaut SCHEDULED', () {
+      // Vide ou non, la liste ne prouve ni l'origine, ni la validité, ni le
+      // calendrier : le verdict est UNKNOWN dans tous les cas, au niveau du
+      // module comme au niveau de l'arrêt exposé à l'interface.
+      for (final List<int> departures in const <List<int>>[
+        <int>[],
+        <int>[0],
+        <int>[600],
+        <int>[23 * 60 + 59],
+        <int>[5 * 60, 12 * 60, 23 * 60 + 59],
+      ]) {
+        expect(
+          ReliabilityLabel.scheduleStatusOf(departures),
+          ScheduleStatus.unknown,
+          reason: 'liste $departures',
+        );
+        expect(
+          _stop('Arrêt legacy', departures: departures).scheduleStatus,
+          ScheduleStatus.unknown,
+          reason: 'liste $departures',
+        );
+      }
     });
 
     test('données : aucune route du JSON n\'est REAL_TIME', () {
@@ -222,13 +250,13 @@ void main() {
       }
     });
 
-    test('arrêt sans horaire : « Horaire indisponible », aucune heure calculée', () {
+    test('arrêt sans horaire : aucun passage affiché, aucune heure calculée', () {
       final Stop s = _stop('Arrêt sans horaire');
       expect(s.scheduleStatus, ScheduleStatus.unknown);
       expect(s.nextDepartureMinutes(), isNull);
       expect(s.remainingMinutes(), isNull);
       expect(s.departureAfter(0), isNull);
-      expect(s.nextDepartureLabel(), 'Horaire indisponible');
+      expect(s.nextDepartureLabel(), isNull);
     });
 
     test('les fréquences estimées ne créent aucun horaire fabriqué', () {
@@ -247,9 +275,14 @@ void main() {
       }
     });
 
-    test('horaire fourni : présenté comme programmé, jamais comme temps réel', () {
+    test('horaire legacy sans provenance : ni programmé, ni temps réel', () {
       final Stop s = _stop('Arrêt programmé', departures: const <int>[23 * 60 + 59]);
-      expect(s.scheduleStatus, ScheduleStatus.scheduled);
+      expect(
+        s.scheduleStatus,
+        ScheduleStatus.unknown,
+        reason: 'une liste de minutes sans provenance ne prouve pas un horaire',
+      );
+      expect(s.scheduleStatus, isNot(ScheduleStatus.scheduled));
       expect(s.scheduleStatus, isNot(ScheduleStatus.realTime));
     });
   });
@@ -276,8 +309,9 @@ void main() {
         expect(seg.departureInfo?.frequencyMinutes, 10);
       }
       final String txt = AssistantReplies.itinerary(r, 'Dakar', 'Rufisque');
-      expect(txt, contains('Passage estimé dans 0–10 min'));
-      expect(txt, contains('estimation non garantie'));
+      expect(txt, contains('🟢 5 min')); // Dakar 14:00 → 14:05 (05:45 + cadence 10 min)
+      expect(txt, isNot(contains('🟡')));
+      expect(txt, contains('estimation non vérifiée'));
       expect(kHeure.hasMatch(txt), isFalse, reason: txt);
       expect(kTempsReel.hasMatch(txt), isFalse, reason: txt);
       expect(txt, isNot(contains('Direct')));
@@ -332,25 +366,28 @@ void main() {
   // Garde-fou rendu — page Alertes : la carte DDD n'affirme plus rien de
   // non vérifié (3 cartes conservées, cf. groupe 6).
   // ==================================================================
-  testWidgets('RENDU : la carte DDD ne revendique ni officiel ni horaires', (WidgetTester tester) async {
-    tester.view.physicalSize = const Size(1080, 2600);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-    await tester.pumpWidget(const MaterialApp(home: AlertsPage()));
-    await tester.pumpAndSettle();
+  testWidgets(
+    'RENDU : la carte DDD ne revendique ni officiel ni horaires',
+    (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1080, 2600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(const MaterialApp(home: AlertsPage()));
+      await tester.pumpAndSettle();
 
-    final List<String> textes = tester
-        .widgetList<Text>(find.byType(Text))
-        .map((Text t) => t.data ?? '')
-        .where((String s) => s.isNotEmpty)
-        .toList();
-    expect(textes, contains('Données non vérifiées'));
-    for (final String t in textes) {
-      expect(t, isNot(contains('horaires habituels')));
-      expect(t, isNot(contains('Direction DDD')));
-      expect(t, isNot(contains('Réseau actif')));
-      expect(t, isNot(contains('certifiées')));
-    }
-  });
+      final List<String> textes = tester
+          .widgetList<Text>(find.byType(Text))
+          .map((Text t) => t.data ?? '')
+          .where((String s) => s.isNotEmpty)
+          .toList();
+      expect(textes, contains('Données non vérifiées'));
+      for (final String t in textes) {
+        expect(t, isNot(contains('horaires habituels')));
+        expect(t, isNot(contains('Direction DDD')));
+        expect(t, isNot(contains('Réseau actif')));
+        expect(t, isNot(contains('certifiées')));
+      }
+    },
+  );
 }

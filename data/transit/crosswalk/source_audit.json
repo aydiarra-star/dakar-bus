@@ -1,0 +1,100 @@
+{
+  "generated_at": "2026-09-27",
+  "lot": "4.5",
+  "principle": "Chaque relation du crosswalk est traçable jusqu'à sa preuve. Aucune copie de contenu : uniquement URL, type, dates et note.",
+  "source_levels": {
+    "1": "opérateur / institutionnel",
+    "2": "source publique documentée (dont PassBi)",
+    "3": "OSM — peut corroborer existence, position, nom, continuité ; NE SUFFIT PAS à établir l'identité officielle d'une ligne"
+  },
+  "sources": [
+    {
+      "id": "S_TER_OP",
+      "url": "https://www.terdakar.sn/les_horaires_des_trains/",
+      "source_type": "OFFICIAL_OPERATOR",
+      "level": 1,
+      "date_source": "2026-03-30",
+      "date_verified": "2026-09-27",
+      "verification_note": "Fréquences et amplitudes TER. Page vivante, actualités jusqu'au 30/03/2026."
+    },
+    {
+      "id": "S_TER_PLAN",
+      "url": "https://www.terdakar.sn/acceder-au-plan-de-la-ligne/",
+      "source_type": "OFFICIAL_OPERATOR",
+      "level": 1,
+      "date_source": null,
+      "date_verified": "2026-09-27",
+      "verification_note": "Plan de la ligne TER (13 gares)."
+    },
+    {
+      "id": "S_DDD_OP",
+      "url": "https://demdikk.sn/info-voyageurs/",
+      "source_type": "OFFICIAL_OPERATOR",
+      "level": 1,
+      "date_source": null,
+      "date_verified": "2026-09-27",
+      "verification_note": "Liste officielle des lignes DDD urbaines, banlieue et dessertes TER. Complétée par l'actualité demdikk.sn du 02/09/2026."
+    },
+    {
+      "id": "S_BRT_OP",
+      "url": "https://www.sunubrt.sn/mon-trajet-en-brt/guide-du-voyageur/",
+      "source_type": "OFFICIAL_OPERATOR",
+      "level": 1,
+      "date_source": null,
+      "date_verified": "2026-09-27",
+      "verification_note": "Offre de service B1/B2, fréquence 6 min, renfort de pointe."
+    },
+    {
+      "id": "S_BRT3_OP",
+      "url": "https://www.sunubrt.sn/brt-3-semi-express/",
+      "source_type": "OFFICIAL_OPERATOR",
+      "level": 1,
+      "date_source": "2026-09-24",
+      "date_verified": "2026-09-27",
+      "verification_note": "Ligne B3 semi-express, 7 stations officielles."
+    },
+    {
+      "id": "S_AFTU_OP",
+      "url": "https://aftu-senegal.org/infos-pratiques/",
+      "source_type": "OFFICIAL_OPERATOR",
+      "level": 1,
+      "date_source": "2026-07-14",
+      "date_verified": "2026-09-27",
+      "verification_note": "Liste officielle des lignes AFTU avec numéros et terminus. 72 lignes : 1-5 puis 24-89 et 91. Apport décisif du lot 4.5."
+    },
+    {
+      "id": "S_SENEGO",
+      "url": "https://senego.com/services/horaires-brt-ter",
+      "source_type": "INSTITUTIONAL",
+      "level": 2,
+      "date_source": "2026-07-27",
+      "date_verified": "2026-09-27",
+      "verification_note": "13 gares TER numérotées et kilométrées (Dakar 0 km -> Diamniadio 36 km)."
+    },
+    {
+      "id": "S_TERSEN",
+      "url": "https://ter-senegal.sn/gares/",
+      "source_type": "INSTITUTIONAL",
+      "level": 2,
+      "date_source": "2026-05-14",
+      "date_verified": "2026-09-27",
+      "verification_note": "Gares TER desservies. Source tierce, corroboration only."
+    },
+    {
+      "id": "S_PASSBI",
+      "url": "https://github.com/impactsolutionsas/passbi_core",
+      "source_type": "PASSBI",
+      "level": 2,
+      "date_source": "2025-08-31",
+      "date_verified": "2026-09-27",
+      "verification_note": "Flux GTFS historiques. Aucune licence sur les données. Ne promeut jamais une identité à lui seul."
+    }
+  ],
+  "osm_usage": "OSM n'a pas été utilisé dans ce lot pour établir une identité. Rappel de politique : OSM seul ne suffit pas.",
+  "not_used": [
+    "proximité géographique seule",
+    "continuité numérique",
+    "ressemblance de nom seule",
+    "origine/destination supposée"
+  ]
+}

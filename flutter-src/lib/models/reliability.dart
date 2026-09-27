@@ -12,7 +12,7 @@ import 'transport_network.dart';
 ///    et jamais de temps réel (aucun flux n'existe dans le projet).
 class ReliabilityLabel {
 
-  static const String scheduleUnavailable = 'Horaire indisponible';
+  static const String scheduleUnavailable = 'Passage non communiqué';
   /// Phrase imposée, mot pour mot, quand aucun horaire vérifié n'existe.
   static const String noVerifiedSchedule =
       "Je ne dispose pas d'un horaire vérifié pour ce trajet.";
@@ -69,11 +69,16 @@ class ReliabilityLabel {
     }
   }
 
-  /// Statut d'horaire d'une liste de départs. Liste vide → UNKNOWN.
-  /// Une liste fournie est au mieux SCHEDULED : ce module ne produit JAMAIS
-  /// REAL_TIME (aucun flux officiel ni opérateur n'est disponible).
+  /// Adaptateur legacy pour les listes de minutes sans provenance.
+  ///
+  /// Une liste ne prouve ni l'origine, ni la validité, ni le calendrier : vide
+  /// ou non, elle ne permet jamais de conclure SCHEDULED. Les horaires
+  /// exploitables passent par les factories validées de DepartureInfo.
+  ///
+  /// [departures] est conservé dans la signature parce que l'appelant legacy ne
+  /// fournit que cette liste ; sa valeur ne change pas le verdict.
   static ScheduleStatus scheduleStatusOf(List<int> departures) =>
-      departures.isEmpty ? ScheduleStatus.unknown : ScheduleStatus.scheduled;
+      ScheduleStatus.unknown;
 
   /// Garde-fou : un statut d'horaire ne peut pas « monter » vers REAL_TIME
   /// sans flux réel. [hasRealtimeFeed] est `false` dans tout le projet.
