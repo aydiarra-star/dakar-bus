@@ -168,10 +168,11 @@ void main() {
       // Nombre de LIGNES calendar_dates (service, date) — vérifié brut :
       // BRT 69, DDD 40, AFTU 40 ; la map produit est indexée par service
       // (7 clés BRT), sa longueur ne mesure pas le nombre de lignes.
-      int datedRows(net) => net.exceptions.values.fold<int>(0, (a, m) => a + m.length);
-      expect(datedRows(brt), 69);
-      expect(datedRows(ddd), 40);
-      expect(datedRows(src.network('AFTU')!), 40);
+      int datedRows(Map<String, Map<String, int>> exceptions) =>
+          exceptions.values.fold<int>(0, (a, m) => a + m.length);
+      expect(datedRows(brt.exceptions), 69);
+      expect(datedRows(ddd.exceptions), 40);
+      expect(datedRows(src.network('AFTU')!.exceptions), 40);
       expect(src.network('TER')!.exceptions.length, 0);
 
       // Lundi de Pâques 2022-04-04 : LAV retiré par exception type 2.
