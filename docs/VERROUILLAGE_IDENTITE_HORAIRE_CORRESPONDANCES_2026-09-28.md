@@ -1,7 +1,7 @@
 # Lot 4.21 (suite) — Verrouillage : identité publique ≠ horaire ≠ correspondances
 
 **Date :** 2026-09-28  
-**Branche :** `arena/01a0e820-dakar-bus` (session Arena — poursuite du Lot 4.21 de `arena/01a0e53c-dakar-bus`, PR #38)  
+**Branche :** `arena/01a0e820-dakar-bus` (session Arena — poursuite du Lot 4.21 de `arena/01a0e53c-dakar-bus`, PR #38) · **PR vers `main` :** #39 · **SHA validé :** `9699f62`  
 **Périmètre :** TATA, DDD, AFTU, routing engine, identité vs horaire, horaires, tests.  
 **Interdits respectés :** TER, BRT B1/B2, GPS, cartographie, UI validée et PR #31 non modifiés ; aucune donnée de transport créée ; aucune hypothèse transformée en identité confirmée.
 
@@ -90,7 +90,7 @@ Verrous ajoutés :
 
 * **Node / npm test :** 95/95 (82 préexistants + 13 nouveaux) — `node --test tests/*.test.js`.
 * **Audit PassBi :** `node scripts/audit-passbi-ddd-aftu.mjs` — 3 identités confirmées (preuve documentaire), 2 hypothèses non confirmées (aftu_8/aftu_11≈AFTU_3), 0 fusion, 0 transfert TATA.
-* **Flutter (analyze / test / build web) :** à exécuter en CI (`flutter-verify` + `flutter-web-build`, branche `arena/01a0e820-dakar-bus` ajoutée aux déclencheurs) — SDK indisponible localement (storage.googleapis.com/pub.dev bloqués, comme documenté dans `flutter-verify.yml`). Le push/PR et les runs CI étaient bloqués à la rédaction par une déconnexion GitHub (token invalide) ; résultats complétés une fois la connexion rétablie.
+* **Flutter (CI — `flutter-verify` + `flutter-web-build`, Flutter 3.24.5), SHA `9699f62` :** ✅ `flutter analyze` **0 issue** · ✅ `flutter test` **503/503** (481 préexistants + 22 verrouillage) · ✅ `flutter build web` · ✅ `TER BRT data validation`. Premier run (`e99dc81`) : +481/-1, 8 erreurs — import manquant `models/transport_network.dart` (`ScheduleStatus`) dans le test de verrouillage, corrigé dans `9699f62` (uniquement le test, aucun code métier touché).
 
 ## 9. Non-régressions
 
