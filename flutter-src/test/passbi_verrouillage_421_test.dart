@@ -17,6 +17,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:dakar_bus/main.dart' as app;
 import 'package:dakar_bus/models/departure_info.dart';
+import 'package:dakar_bus/models/transport_network.dart';
 import 'package:dakar_bus/services/eta_calculator.dart';
 import 'package:dakar_bus/services/gtfs/passbi_source.dart';
 import 'package:dakar_bus/services/gtfs/routing_engine.dart';
