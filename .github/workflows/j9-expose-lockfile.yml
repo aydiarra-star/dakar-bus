@@ -20,6 +20,9 @@ on:
   push:
     branches:
       - arena/01a0ca19-dakar-bus
+      # DIAGNOSTIC TEMPORAIRE — Lot 4.21 : lecture du journal d'analyze de la
+      # branche de session. Ce déclencheur est retiré juste après.
+      - arena/01a0e53c-dakar-bus
     paths:
       - '.github/workflows/j9-expose-lockfile.yml'
   workflow_dispatch:
@@ -47,11 +50,11 @@ on:
 
 env:
   # Entrée manuelle si présente, sinon le run validé du 2026-09-22.
-  RUN_ID: ${{ inputs.run_id || '35782638226' }}
+  RUN_ID: ${{ inputs.run_id || '36361356463' }}
   # Généralisation lecture seule (diagnostic) : exposer n'importe quel fichier
   # d'artefact (ex. test.txt de l'artefact j9-logs) sans le modifier.
-  ARTIFACT_NAME: ${{ inputs.artifact_name || 'pubspec.lock' }}
-  FILE_PATH: ${{ inputs.file_path || 'pubspec.lock' }}
+  ARTIFACT_NAME: ${{ inputs.artifact_name || 'j9-logs-848d8bf3b06e49353cfbe81a3b5f7af281e19d48' }}
+  FILE_PATH: ${{ inputs.file_path || 'analyze.txt' }}
 
 permissions:
   contents: read
