@@ -397,14 +397,20 @@ class PassBiSource {
     final net = networks[networkKey];
     if (net == null) return const <PassBiRouteSummary>[];
 
-    final trips = net.routes.map((_) => 0).toList();
-    final stopTimes = net.routes.map((_) => 0).toList();
-    final boardable = net.routes.map((_) => 0).toList();
-    final served = net.routes.map(() => <int>{}).toList();
-    final services = net.routes.map(() => <String>{}).toList();
-    final directions = net.routes.map(() => <String>{}).toList();
-    final first = net.routes.map(() => null as int?).toList();
-    final last = net.routes.map(() => null as int?).toList();
+    // Accumulateurs indexés par route (aucune fermeture à zéro argument :
+    // la liste est construite typée, sans cast inutile).
+    final int routeCount = net.routes.length;
+    final List<int> trips = List<int>.filled(routeCount, 0);
+    final List<int> stopTimes = List<int>.filled(routeCount, 0);
+    final List<int> boardable = List<int>.filled(routeCount, 0);
+    final List<Set<int>> served =
+        List<Set<int>>.generate(routeCount, (_) => <int>{});
+    final List<Set<String>> services =
+        List<Set<String>>.generate(routeCount, (_) => <String>{});
+    final List<Set<String>> directions =
+        List<Set<String>>.generate(routeCount, (_) => <String>{});
+    final List<int?> first = List<int?>.filled(routeCount, null);
+    final List<int?> last = List<int?>.filled(routeCount, null);
 
     for (int ti = 0; ti < net.trips.length; ti++) {
       final trip = net.trips[ti];

@@ -458,8 +458,8 @@ void main() {
   group('I — horizon d\'embarquement', () {
     test('l\'horizon borne l\'embarquement, pas l\'arrivée', () {
       const int horizonSec = 6 * 3600;
-      final departSec = 23 * 3600 + 59 * 60;
-      final borne = departSec + horizonSec;
+      const int departSec = 23 * 3600 + 59 * 60;
+      const int borne = departSec + horizonSec;
 
       // Extrémités réelles d\'une même ligne DDD : le premier véhicule du
       // lendemain (05:50) est dans l\'horizon de 6 h (05:59) — l\'embarquement

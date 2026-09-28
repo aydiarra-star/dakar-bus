@@ -13,6 +13,7 @@
 library;
 
 import '../models/departure_info.dart';
+import '../models/transport_network.dart';
 import 'data_provider.dart';
 import 'schedule_provider.dart';
 
