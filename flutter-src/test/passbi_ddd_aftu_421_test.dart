@@ -33,10 +33,16 @@ void main() {
     if (!app.appDataService.isLoaded) {
       await app.appDataService.loadNetworkData();
     }
+    // Référentiel dakar (117 arrêts) : nécessaire pour vérifier que les filtres
+    // autres que DDD/AFTU restent strictement dessus, et que TATA n'y reçoit
+    // aucun arrêt natif.
+    app.integrateNetworkDataForTest();
     await app.appDataService.loadPassBiSchedules();
     expect(app.appDataService.passBiActive, isTrue,
         reason: 'PassBi est la source opérationnelle');
     app.integratePassBiNativeStopsForTest();
+    expect(app.allStops, hasLength(117),
+        reason: 'référentiel dakar intact (aucune pollution par les arrêts natifs)');
   });
 
   /// Garde-fous communs : jamais REAL_TIME, jamais 0 min, jamais une fréquence
@@ -594,9 +600,13 @@ void main() {
         ),
         same(app.allStops),
       );
-      final tataStops =
-          app.allStops.where((s) => s.color == app.AppColors.tata).take(5).toList();
-      expect(tataStops, isNotEmpty);
+      final tataStops = app.allStops
+          .where((s) => s.color == app.AppColors.tata)
+          .take(5)
+          .toList();
+      expect(tataStops, isNotEmpty,
+          reason: 'les arrêts des lignes TATA du référentiel dakar sont '
+              'affichés (aucun n\'est retiré par le lot)');
       for (final s in tataStops) {
         final info = s.departureInfoAt(at: lundi12);
         expect(info.status, ScheduleStatus.unknown, reason: s.name);
