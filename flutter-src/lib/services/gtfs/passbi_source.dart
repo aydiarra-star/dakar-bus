@@ -10,7 +10,125 @@ import 'dart:convert';
 
 import 'package:flutter/services.dart';
 
+import '../../models/departure_info.dart';
 import 'gtfs_source.dart';
+
+/// Lot 4.21 §1 — Fiche d'audit d'une route PassBi, calculée à partir du feed
+/// réellement intégré (aucune donnée téléchargée, aucune valeur recopiée).
+///
+/// Elle distingue explicitement ce que le lot impose de séparer :
+///  * [scheduleAvailable] — la donnée permet-elle de calculer un prochain
+///    départ (trips + stop_times + service actif + arrêt embarquable) ;
+///  * [identityStatus] — l'identité publique de la ligne est-elle confirmée
+///    (crosswalk) ; `unconfirmed` n'empêche PAS [scheduleAvailable].
+class PassBiRouteSummary {
+  final String network; // TER | BRT | DDD | AFTU
+  final String routeId; // route_id PassBi exact
+  final String shortName; // short_name PassBi exact
+  final String longName; // long_name PassBi exact
+  final int routeType; // route_type GTFS exact
+  final int trips;
+  final int servedStops;
+  final int stopTimes;
+
+  /// `stop_times` dont le trip continue après l'arrêt → montée possible.
+  final int boardableStopTimes;
+  final List<String> serviceIds;
+  final List<String> directions; // direction_id réels du feed ('' = absent)
+  final int? firstDepartureSec;
+  final int? lastDepartureSec;
+
+  /// Disponibilité horaire : un prochain départ est calculable.
+  final bool scheduleAvailable;
+
+  /// Identité publique (§3) — champ DISTINCT de [scheduleAvailable].
+  final IdentityStatus identityStatus;
+
+  /// Identités du référentiel dakar rattachées par le crosswalk (vides si
+  /// identité non confirmée : aucun rattachement n'est alors deviné).
+  final List<String> dakarRouteIds;
+
+  /// Raison documentaire ([UnresolvedReason] ou `HORAIRES_CALCULABLES`).
+  final String reason;
+
+  const PassBiRouteSummary({
+    required this.network,
+    required this.routeId,
+    required this.shortName,
+    required this.longName,
+    required this.routeType,
+    required this.trips,
+    required this.servedStops,
+    required this.stopTimes,
+    required this.boardableStopTimes,
+    required this.serviceIds,
+    required this.directions,
+    required this.firstDepartureSec,
+    required this.lastDepartureSec,
+    required this.scheduleAvailable,
+    required this.identityStatus,
+    required this.dakarRouteIds,
+    required this.reason,
+  });
+
+  /// Ligne du tableau d'audit (§1) :
+  /// `network | route_id | short | long | trips | stop_times |
+  ///  schedule_available | UI_mapping | reason`.
+  String get auditRow => <String>[
+        network,
+        routeId,
+        shortName,
+        longName,
+        '$trips',
+        '$stopTimes',
+        scheduleAvailable ? 'YES' : 'NO',
+        identityStatus.code,
+        reason,
+      ].join(' | ');
+}
+
+/// Lot 4.21 §2 — Arrêt PassBi natif : identifiant, nom et coordonnées EXACTS
+/// du feed, plus le nombre de lignes qui l'appellent réellement.
+class PassBiStopRef {
+  final String network;
+  final String stopId;
+  final String name;
+  final double lat;
+  final double lon;
+  final int routeCount;
+
+  const PassBiStopRef({
+    required this.network,
+    required this.stopId,
+    required this.name,
+    required this.lat,
+    required this.lon,
+    required this.routeCount,
+  });
+
+  /// Clé composite du moteur (`NET:id`), identique au crosswalk.
+  String get compositeKey => '$network:$stopId';
+}
+
+/// Lot 4.21 §6 — Disponibilité d'un réseau comme feed GTFS PassBi autonome.
+enum PassBiNetworkAvailability {
+  /// Feed présent et exploitable (TER, BRT, DDD, AFTU).
+  available,
+
+  /// Feed présent mais sans aucun horaire calculable.
+  presentWithoutSchedules,
+
+  /// Aucun feed PassBi : le réseau n'existe pas comme donnée GTFS PassBi
+  /// autonome. Aucune route n'est alors fabriquée (TATA — §6).
+  absentFromFeed;
+
+  String get code => switch (this) {
+        PassBiNetworkAvailability.available => 'AVAILABLE',
+        PassBiNetworkAvailability.presentWithoutSchedules =>
+          'PRESENT_WITHOUT_SCHEDULES',
+        PassBiNetworkAvailability.absentFromFeed => 'ABSENT_FROM_FEED',
+      };
+}
 
 class RouteMapping {
   final String dakarRouteId;
@@ -221,6 +339,329 @@ class PassBiSource {
       }
     }
     return null;
+  }
+
+  // ======================================================================
+  // LOT 4.21 — CHEMIN NATIF PASSBI (identité publique ≠ exploitation horaire)
+  // ======================================================================
+  //
+  // CONSTAT (audit §1) : les feeds DDD et AFTU contiennent des routes, trips,
+  // stops, stop_times et services actifs — 52 routes DDD et 71 routes AFTU
+  // permettent de calculer un prochain départ. Or le crosswalk n'a confirmé
+  // l'identité publique d'AUCUNE route DDD et de 2 routes AFTU seulement
+  // (`IDENTITE_NON_CONFIRMEE` partout ailleurs). Le chemin unique existant
+  // (`ScheduleProvider.departureAt`) exigeait un mapping de route MAPPED :
+  // l'identité non résolue bloquait donc l'exploitation d'horaires
+  // techniquement valides — exactement la confusion que le §2 interdit.
+  //
+  // Le chemin natif ci-dessous lit les métadonnées PassBi RÉELLES (route_id,
+  // short_name, long_name, direction_id, noms d'arrêts) sans rien inventer :
+  // aucun nom commercial, aucune origine/destination, aucune identité déduite
+  // d'un numéro.
+
+  final Map<String, List<PassBiRouteSummary>> _summaryCache =
+      <String, List<PassBiRouteSummary>>{};
+  final Map<String, List<PassBiStopRef>> _nativeStopCache =
+      <String, List<PassBiStopRef>>{};
+
+  /// Identités du référentiel dakar dont le crosswalk rattache cette route
+  /// PassBi (statut MAPPED uniquement). Vide = identité publique non
+  /// confirmée (et NON « absence d'horaire »).
+  List<String> dakarRouteIdsFor(String networkKey, String pbRouteId) {
+    final mappings = _routeMappings;
+    if (mappings == null) return const <String>[];
+    final out = <String>[];
+    mappings.forEach((dakarRouteId, m) {
+      if (m.status == 'MAPPED' &&
+          m.network == networkKey &&
+          m.pbRouteIds.contains(pbRouteId)) {
+        out.add(dakarRouteId);
+      }
+    });
+    return out;
+  }
+
+  /// §3 — Identité publique d'une route PassBi : CONFIRMED seulement si le
+  /// crosswalk la rattache à une identité du référentiel dakar (identité
+  /// officielle TER/BRT ou concordance de terminus). Sinon UNCONFIRMED.
+  IdentityStatus identityStatusOf(String networkKey, String pbRouteId) =>
+      dakarRouteIdsFor(networkKey, pbRouteId).isNotEmpty
+          ? IdentityStatus.confirmed
+          : IdentityStatus.unconfirmed;
+
+  /// §1 — Audit complet d'un feed : une fiche par route, calculée depuis les
+  /// données réellement intégrées.
+  List<PassBiRouteSummary> routeSummaries(String networkKey) {
+    final cached = _summaryCache[networkKey];
+    if (cached != null) return cached;
+    final net = networks[networkKey];
+    if (net == null) return const <PassBiRouteSummary>[];
+
+    final trips = net.routes.map((_) => 0).toList();
+    final stopTimes = net.routes.map((_) => 0).toList();
+    final boardable = net.routes.map((_) => 0).toList();
+    final served = net.routes.map(() => <int>{}).toList();
+    final services = net.routes.map(() => <String>{}).toList();
+    final directions = net.routes.map(() => <String>{}).toList();
+    final first = net.routes.map(() => null as int?).toList();
+    final last = net.routes.map(() => null as int?).toList();
+
+    for (int ti = 0; ti < net.trips.length; ti++) {
+      final trip = net.trips[ti];
+      if (trip.routeIndex < 0 || trip.routeIndex >= trips.length) continue;
+      trips[trip.routeIndex]++;
+      if (trip.serviceIndex >= 0 && trip.serviceIndex < net.services.length) {
+        services[trip.routeIndex].add(net.services[trip.serviceIndex].id);
+      }
+      if (trip.direction.isNotEmpty) {
+        directions[trip.routeIndex].add(trip.direction);
+      }
+      for (final st in (net.stopTimesByTrip[ti] ?? const <GtfsStopTime>[])) {
+        stopTimes[trip.routeIndex]++;
+        served[trip.routeIndex].add(st.stopIndex);
+        final dep = st.departureSec;
+        if (first[trip.routeIndex] == null || dep < first[trip.routeIndex]!) {
+          first[trip.routeIndex] = dep;
+        }
+        if (last[trip.routeIndex] == null || dep > last[trip.routeIndex]!) {
+          last[trip.routeIndex] = dep;
+        }
+        // Embarquable : le trip continue après cet arrêt (Lot 4.19 A).
+        final rows = net.stopTimesByTrip[ti];
+        if (rows != null && rows.isNotEmpty && st.sequence < rows.last.sequence) {
+          boardable[trip.routeIndex]++;
+        }
+      }
+    }
+
+    final out = <PassBiRouteSummary>[];
+    for (int ri = 0; ri < net.routes.length; ri++) {
+      final r = net.routes[ri];
+      final bool available = boardable[ri] > 0;
+      final String reason;
+      if (available) {
+        reason = 'HORAIRES_CALCULABLES';
+      } else if (trips[ri] == 0) {
+        reason = UnresolvedReason.noComputableDeparture; // aucun trip
+      } else if (stopTimes[ri] == 0) {
+        reason = UnresolvedReason.noStopTimesInFeed;
+      } else {
+        reason = UnresolvedReason.noComputableDeparture;
+      }
+      out.add(PassBiRouteSummary(
+        network: networkKey,
+        routeId: r.id,
+        shortName: r.short,
+        longName: r.long,
+        routeType: r.type,
+        trips: trips[ri],
+        servedStops: served[ri].length,
+        stopTimes: stopTimes[ri],
+        boardableStopTimes: boardable[ri],
+        serviceIds: services[ri].toList()..sort(),
+        directions: directions[ri].toList()..sort(),
+        firstDepartureSec: first[ri],
+        lastDepartureSec: last[ri],
+        scheduleAvailable: available,
+        identityStatus: identityStatusOf(networkKey, r.id),
+        dakarRouteIds: dakarRouteIdsFor(networkKey, r.id),
+        reason: reason,
+      ));
+    }
+    _summaryCache[networkKey] = List<PassBiRouteSummary>.unmodifiable(out);
+    return _summaryCache[networkKey]!;
+  }
+
+  PassBiRouteSummary? routeSummary(String networkKey, String pbRouteId) {
+    for (final s in routeSummaries(networkKey)) {
+      if (s.routeId == pbRouteId) return s;
+    }
+    return null;
+  }
+
+  /// Nombre de routes du feed dont un prochain départ est calculable.
+  int schedulableRouteCount(String networkKey) =>
+      routeSummaries(networkKey).where((s) => s.scheduleAvailable).length;
+
+  /// §6 — Disponibilité d'un réseau comme feed GTFS PassBi autonome.
+  ///
+  /// TATA : `assetFiles` ne contient AUCUN feed TATA et aucune donnée PassBi
+  /// (route, mode, vehicle_type, network, agency) ne permet d'établir une
+  /// mobilité TATA indépendante → [PassBiNetworkAvailability.absentFromFeed].
+  /// Aucune route TATA n'est fabriquée.
+  PassBiNetworkAvailability networkAvailability(String networkKey) {
+    final net = networks[networkKey];
+    if (net == null) return PassBiNetworkAvailability.absentFromFeed;
+    final summaries = routeSummaries(networkKey);
+    if (summaries.isEmpty) {
+      return PassBiNetworkAvailability.presentWithoutSchedules;
+    }
+    return summaries.any((s) => s.scheduleAvailable)
+        ? PassBiNetworkAvailability.available
+        : PassBiNetworkAvailability.presentWithoutSchedules;
+  }
+
+  /// §6 — Preuve vérifiable : occurrence du mot « tata » (insensible à la
+  /// casse) dans les métadonnées PassBi réellement chargées — agency, meta,
+  /// route_id/short_name/long_name, noms d'arrêts, trip_id, direction_id,
+  /// headsign. Aucun autre champ n'existe dans le format compact.
+  List<String> tataMentions() {
+    final out = <String>[];
+    networks.forEach((key, net) {
+      bool hit(String? value) =>
+          value != null && value.toLowerCase().contains('tata');
+      if (hit(net.agency)) out.add('$key:agency=${net.agency}');
+      net.meta.forEach((k, v) {
+        if (hit(v)) out.add('$key:meta.$k=$v');
+      });
+      for (final r in net.routes) {
+        if (hit(r.id) || hit(r.short) || hit(r.long)) {
+          out.add('$key:route=${r.id}');
+        }
+      }
+      for (final s in net.stops) {
+        if (hit(s.name)) out.add('$key:stop=${s.id}');
+      }
+      for (final t in net.trips) {
+        if (hit(t.id) || hit(t.direction) || hit(t.headsign)) {
+          out.add('$key:trip=${t.id}');
+        }
+      }
+    });
+    return out;
+  }
+
+  /// §2/§7 — Arrêts PassBi natifs d'un réseau : réellement appelés par au
+  /// moins une ligne (dérivé des `stop_times`), nom et coordonnées du feed.
+  List<PassBiStopRef> nativeStops(String networkKey) {
+    final cached = _nativeStopCache[networkKey];
+    if (cached != null) return cached;
+    final net = networks[networkKey];
+    if (net == null) return const <PassBiStopRef>[];
+    final out = <PassBiStopRef>[];
+    for (int si = 0; si < net.stops.length; si++) {
+      final routes = net.routeIndexesCalling(si);
+      if (routes.isEmpty) continue; // arrêt jamais appelé : non exposé
+      final s = net.stops[si];
+      out.add(PassBiStopRef(
+        network: networkKey,
+        stopId: s.id,
+        name: s.name,
+        lat: s.lat,
+        lon: s.lon,
+        routeCount: routes.length,
+      ));
+    }
+    final result = List<PassBiStopRef>.unmodifiable(out);
+    _nativeStopCache[networkKey] = result;
+    return result;
+  }
+
+  /// Repliement d'accents (le SDK Dart n'expose pas de normalisation Unicode) :
+  /// couvre les caractères réellement présents dans les noms d'arrêts PassBi
+  /// et du référentiel dakar. Aucun autre caractère n'est transformé.
+  static const Map<String, String> _accentFolds = <String, String>{
+    'à': 'a', 'á': 'a', 'â': 'a', 'ã': 'a', 'ä': 'a', 'å': 'a',
+    'è': 'e', 'é': 'e', 'ê': 'e', 'ë': 'e',
+    'ì': 'i', 'í': 'i', 'î': 'i', 'ï': 'i',
+    'ò': 'o', 'ó': 'o', 'ô': 'o', 'õ': 'o', 'ö': 'o',
+    'ù': 'u', 'ú': 'u', 'û': 'u', 'ü': 'u',
+    'ç': 'c', 'ñ': 'n', 'ÿ': 'y', 'æ': 'ae', 'œ': 'oe', 'ß': 'ss',
+    'À': 'a', 'Á': 'a', 'Â': 'a', 'Ã': 'a', 'Ä': 'a', 'Å': 'a',
+    'È': 'e', 'É': 'e', 'Ê': 'e', 'Ë': 'e',
+    'Ì': 'i', 'Í': 'i', 'Î': 'i', 'Ï': 'i',
+    'Ò': 'o', 'Ó': 'o', 'Ô': 'o', 'Õ': 'o', 'Ö': 'o',
+    'Ù': 'u', 'Ú': 'u', 'Û': 'u', 'Ü': 'u',
+    'Ç': 'c', 'Ñ': 'n',
+  };
+
+  /// Normalisation de nom (accentuation, casse, ponctuation) — même intention
+  /// que celle du générateur de crosswalk, pour une recherche reproductible.
+  static String normalizeName(String value) {
+    final buf = StringBuffer();
+    for (int i = 0; i < value.length; i++) {
+      final String raw = value[i];
+      final String c = _accentFolds[raw] ?? raw;
+      final int code = c.codeUnitAt(0);
+      final bool alnum = (code >= 0x30 && code <= 0x39) ||
+          (code >= 0x61 && code <= 0x7a) ||
+          (code >= 0x41 && code <= 0x5a);
+      buf.write(alnum ? c.toLowerCase() : ' ');
+    }
+    return buf.toString().replaceAll(RegExp(r' +'), ' ').trim();
+  }
+
+  /// §8 — Recherche d'arrêts PassBi natifs par nom réel (saisie utilisateur).
+  ///
+  /// Règle STRICTE (aucune correspondance devinée) : le nom PassBi normalisé
+  /// doit CONTENIR la requête normalisée entière. L'inverse (la requête
+  /// contient un fragment de nom) n'est pas accepté : « Rufisque - Gare TER »
+  /// ne doit pas résoudre vers un arrêt PassBi nommé « Rufisque ».
+  List<PassBiStopRef> searchNativeStops(String query,
+      {Set<String>? networksFilter, int limit = 8}) {
+    final q = normalizeName(query);
+    if (q.length < 3) return const <PassBiStopRef>[];
+    final out = <PassBiStopRef>[];
+    for (final key in (networksFilter ?? assetFiles.keys)) {
+      if (!assetFiles.containsKey(key)) continue; // TATA : aucun feed
+      for (final s in nativeStops(key)) {
+        if (normalizeName(s.name).contains(q)) {
+          out.add(s);
+          if (out.length >= limit) return out;
+        }
+      }
+    }
+    return out;
+  }
+
+  /// §4/§5 — Prochain départ natif : le plus tôt parmi les lignes PassBi qui
+  /// appellent RÉELLEMENT l'arrêt (plateformes sœurs du crosswalk incluses,
+  /// même réseau, Lot 4.19 A). Retourne la route gagnante afin que l'affichage
+  /// utilise ses métadonnées PassBi réelles.
+  ({int sec, String routeId, String tripId, int dayOffset})? nextNativeDeparture({
+    required String networkKey,
+    required String pbStopId,
+    required DateTime at,
+    String? onlyRouteId,
+  }) {
+    final net = networks[networkKey];
+    if (net == null) return null;
+    final stopIndex = net.stopIndexById[pbStopId];
+    if (stopIndex == null) return null;
+
+    final routeIndexes = <int>{};
+    final candidates = <String>[pbStopId, ...siblingStops(networkKey, pbStopId)];
+    for (final candidate in candidates) {
+      final ci = net.stopIndexById[candidate];
+      if (ci == null) continue;
+      routeIndexes.addAll(net.routeIndexesCalling(ci));
+    }
+    if (onlyRouteId != null) {
+      final wanted = net.routeIndexById[onlyRouteId];
+      if (wanted == null) return null;
+      routeIndexes.retainAll(<int>{wanted});
+    }
+    if (routeIndexes.isEmpty) return null;
+
+    ({int sec, int routeIndex, int tripIndex, int dayOffset})? best;
+    for (final candidate in candidates) {
+      final ci = net.stopIndexById[candidate];
+      if (ci == null) continue;
+      final found = net.nextDepartureAmong(
+        routeIndexes: routeIndexes,
+        stopIndex: ci,
+        at: at,
+      );
+      if (found == null) continue;
+      if (best == null || found.sec < best.sec) best = found;
+    }
+    if (best == null) return null;
+    return (
+      sec: best.sec,
+      routeId: net.routes[best.routeIndex].id,
+      tripId: net.trips[best.tripIndex].id,
+      dayOffset: best.dayOffset,
+    );
   }
 }
 

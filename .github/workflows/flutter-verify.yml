@@ -31,7 +31,10 @@ name: Flutter verify (Step 4B)
 
 on:
   push:
-    branches: [ arena/01a0e370-dakar-bus ]
+    branches:
+      - arena/01a0e370-dakar-bus
+      # Lot 4.21 — exploitation PassBi DDD/AFTU (vérification analyze + test).
+      - arena/01a0e53c-dakar-bus
   workflow_dispatch:
 
 permissions:

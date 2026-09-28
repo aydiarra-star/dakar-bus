@@ -49,14 +49,30 @@ class EtaCalculator {
       if (scheduled != null) return scheduled;
     }
 
+    // Lot 4.21 §15 — un UNKNOWN restant porte sa raison précise. Le repli
+    // legacy ci-dessous ne connaît pas le crosswalk : la raison est résolue
+    // ici, une seule fois, depuis la source PassBi.
+    final String? reason = routeId == null
+        ? null
+        : scheduleProvider.unresolvedReasonFor(
+            routeId: routeId,
+            stopId: stopId,
+          );
+
     // 3. ESTIMATED — fréquences officielles legacy (routes sans mappage).
     if (routeId != null) {
-      return frequencyProvider.departureInfoForRoute(
+      final estimated = frequencyProvider.departureInfoForRoute(
         routeId,
         at,
         isPublicHoliday: isPublicHoliday,
         operatorName: operatorName,
       );
+      if (reason != null &&
+          estimated.status == ScheduleStatus.unknown &&
+          estimated.unresolvedReason == null) {
+        return estimated.withUnresolvedReason(reason);
+      }
+      return estimated;
     }
 
     // 4. UNKNOWN.
@@ -64,8 +80,30 @@ class EtaCalculator {
       operator: operatorName ?? 'Inconnu',
       routeId: 'unknown',
       requestedAt: at,
+      unresolvedReason: reason ?? UnresolvedReason.stopNotMatched,
     );
   }
+
+  /// Lot 4.21 §4/§5 — chemin NATIF PassBi (DDD / AFTU).
+  ///
+  /// La donnée PassBi (route + trip + stop + stop_time + service actif) suffit
+  /// à calculer un prochain départ SCHEDULED, indépendamment de la résolution
+  /// documentaire de l'identité publique (§2). Aucun repli fréquence n'existe
+  /// sur ce chemin : sans départ calculable → UNKNOWN et sa raison.
+  DepartureInfo computePassBi({
+    required String networkKey,
+    required String pbStopId,
+    required DateTime at,
+    String? pbRouteId,
+    bool isPublicHoliday = false,
+  }) =>
+      scheduleProvider.departureAtPassBiStop(
+        networkKey: networkKey,
+        pbStopId: pbStopId,
+        requestedAt: at,
+        pbRouteId: pbRouteId,
+        isPublicHoliday: isPublicHoliday,
+      );
 
   /// Aucun chemin ne produit REAL_TIME : garde-fou explicite (les tests
   /// d'absence de faux temps réel s'appuient dessus).

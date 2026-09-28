@@ -13,6 +13,7 @@ import 'models/departure_info.dart';
 import 'services/data_service.dart';
 import 'services/gtfs/passbi_source.dart';
 import 'services/gtfs/routing_engine.dart';
+import 'services/schedule_provider.dart';
 
 // ============================================================
 // SERVICE GLOBAL RESEAU DAKAR — Connecté à assets/data/dakar_network.json
@@ -38,6 +39,9 @@ Future<void> main() async {
     // PUBLIC_GTFS). Chargement séparé : un échec laisse l'app en mode
     // legacy sans bloquer le démarrage. Aucune donnée n'est embarquée ici.
     await appDataService.loadPassBiSchedules();
+    // Lot 4.21 : référentiel natif PassBi (DDD/AFTU) — arrêts réellement
+    // desservis, horaires SCHEDULED calculables, identité publique distincte.
+    _integratePassBiNativeStops();
   } catch (e, st) {
     debugPrint('⚠️ DataService init failed: $e');
     debugPrint('$st');
@@ -351,6 +355,12 @@ class DataSourceInfo {
   /// Donnée dont la provenance n'est pas CONFIRMED (UNVERIFIED / CONFLICTING).
   static const unverified = DataSourceInfo(origin: DataOrigin.indicative, label: 'Donnée non vérifiée', badgeEmoji: '🟡');
   static const demo = DataSourceInfo(origin: DataOrigin.indicative, label: 'Donnée Indicative (~)', badgeEmoji: '🟡');
+
+  /// Lot 4.21 — Arrêt/route PassBi exploitables dont l'horaire est un GTFS
+  /// public SCHEDULED, mais dont l'IDENTITÉ PUBLIQUE reste à confirmer
+  /// (`identity_status` UNCONFIRMED). Pastille 🔵 : ni le vert « officiel »
+  /// (SETER/SunuBRT confirmés) ni le jaune « observation terrain ».
+  static const passbiGtfs = DataSourceInfo(origin: DataOrigin.verified, label: 'PassBi GTFS (identité à confirmer)', badgeEmoji: '🔵');
 }
 
 // ============================================================
@@ -494,6 +504,10 @@ class DetailedRoute {
   /// [reverse] produit la direction inverse par INVERSION de l'ordre courant du
   /// JSON (§6 pour le TER, §7 pour le BRT). Aucune seconde liste n'est créée.
   static DetailedRoute? fromStop(Stop stop, {bool reverse = false}) {
+    // Lot 4.21 — un arrêt NATIF PassBi n'appartient pas au référentiel dakar :
+    // aucune identité de ligne dakar ne lui est attribuée. La fiche de ligne
+    // reste donc indisponible (jamais une fiche empruntée à une autre ligne).
+    if (stop.passBiStopKey != null) return null;
     final BusStop? json = _resolveJsonStop(stop);
     if (json == null) return null;
 
@@ -723,19 +737,38 @@ class Stop {
   /// un élément de [departureMinutesFromMidnight] : elle reste dans le provider.
   final String? scheduleRouteId;
 
+  /// Lot 4.21 §2 — Clé composite PassBi (« DDD:D_217 ») d'un arrêt NATIF du
+  /// référentiel PassBi. Non nul uniquement pour les arrêts issus des feeds
+  /// DDD/AFTU (voir [passBiNativeStops]) : leur prochain départ est calculé
+  /// sur les lignes qui les desservent réellement, sans aucun mapping
+  /// d'identité publique. `null` pour tous les arrêts du référentiel dakar.
+  final String? passBiStopKey;
+
   DepartureInfo get departureInfo => departureInfoAt();
 
   DepartureInfo departureInfoAt({
     DateTime? at,
     bool isPublicHoliday = false,
-  }) =>
-      appDataService.departureFor(
-        network: modeLabel,
-        routeId: scheduleRouteId,
-        stopId: stopId,
+  }) {
+    // Lot 4.21 — chemin NATIF PassBi : route + trip + stop + stop_time +
+    // service actif suffisent (§2). Aucun repli fréquence, aucune identité
+    // publique requise pour l'affichage horaire.
+    final String? key = passBiStopKey;
+    if (key != null) {
+      return appDataService.passBiDepartureForCompositeStop(
+        compositeStopId: key,
         at: at,
         isPublicHoliday: isPublicHoliday,
       );
+    }
+    return appDataService.departureFor(
+      network: modeLabel,
+      routeId: scheduleRouteId,
+      stopId: stopId,
+      at: at,
+      isPublicHoliday: isPublicHoliday,
+    );
+  }
 
   const Stop({
     required this.name, required this.direction, required this.distanceMeters,
@@ -743,7 +776,7 @@ class Stop {
     required this.location, required this.modeLabel,
     DataStatus status = DataStatus.scheduled,
     this.source = DataSourceInfo.demo, this.stopType = StopType.departure,
-    this.stopId, this.scheduleRouteId,
+    this.stopId, this.scheduleRouteId, this.passBiStopKey,
   }) : _legacyStatus = status;
 
   Stop copyWith({
@@ -751,7 +784,7 @@ class Stop {
     List<int>? departureMinutesFromMidnight, IconData? icon, Color? color,
     LatLng? location, DataStatus? status, String? modeLabel,
     DataSourceInfo? source, StopType? stopType, String? stopId,
-    String? scheduleRouteId,
+    String? scheduleRouteId, String? passBiStopKey,
   }) => Stop(
     name: name ?? this.name,
     direction: direction ?? this.direction,
@@ -766,6 +799,7 @@ class Stop {
     stopType: stopType ?? this.stopType,
     stopId: stopId ?? this.stopId,
     scheduleRouteId: scheduleRouteId ?? this.scheduleRouteId,
+    passBiStopKey: passBiStopKey ?? this.passBiStopKey,
   );
 
   // AUDIT DONNÉES 2026-09-24 — horaires.
@@ -1465,6 +1499,135 @@ void _integrateNetworkData() {
 }
 
 // ============================================================
+// LOT 4.21 — RÉFÉRENTIEL NATIF PASSBI (DDD / AFTU)
+// ============================================================
+//
+// POURQUOI UNE LISTE SÉPARÉE (et non `allStops`) :
+//  * `allStops` est le référentiel dakar (117 arrêts de `dakar_network.json`) ;
+//    un test de non-régression impose que TOUT arrêt de `allStops` porte un
+//    `stopId` existant dans ce JSON, et la couche marqueurs en dépend
+//    (36 officiels TER/BRT + 20 de proximité). Y verser 3 423 arrêts PassBi
+//    changerait le rendu de la carte et des listes — interdit par le §13
+//    (« ne pas refaire l'interface »).
+//  * Les feeds DDD et AFTU décrivent en revanche 1 186 et 2 237 arrêts RÉELS
+//    (nom + coordonnées du feed) avec des horaires calculables. Ils sont donc
+//    exposés dans leur propre référentiel, alimentant le SEUL filtre DDD/AFTU
+//    de l'Explorer (§7) et la recherche d'itinéraire (§8).
+//
+// AUCUNE IDENTITÉ N'EST INVENTÉE : le nom, les coordonnées et l'identité de
+// ligne affichée proviennent exclusivement du feed PassBi. L'identité publique
+// vis-à-vis du référentiel dakar reste `IdentityStatus.unconfirmed` (§3).
+
+/// Arrêts natifs PassBi (DDD / AFTU), construits depuis les feeds.
+final List<Stop> passBiNativeStops = <Stop>[];
+
+/// Couture de test : même intégration que [main], sans passer par `main()`.
+@visibleForTesting
+void integratePassBiNativeStopsForTest() => _integratePassBiNativeStops();
+
+/// Réseaux dont les horaires PassBi sont exploitables alors que leur identité
+/// publique reste à confirmer : c'est exactement la situation que le §2 décrit
+/// (donnée disponible ≠ identité résolue). TER et BRT sont exclus : leurs
+/// identités sont confirmées et leurs arrêts déjà intégrés par le crosswalk.
+List<String> passBiNativeNetworkKeys() {
+  if (!appDataService.passBiActive) return const <String>[];
+  final out = <String>[];
+  for (final key in PassBiSource.assetFiles.keys) {
+    final summaries = appDataService.passBiRouteSummaries(key);
+    if (summaries.isEmpty) continue;
+    final bool anySchedulable = summaries.any((s) => s.scheduleAvailable);
+    final bool anyUnconfirmed =
+        summaries.any((s) => s.identityStatus == IdentityStatus.unconfirmed);
+    if (anySchedulable && anyUnconfirmed) out.add(key);
+  }
+  return out;
+}
+
+/// Construit [passBiNativeStops] depuis les feeds PassBi déjà chargés.
+/// Idempotent : un second appel ne duplique rien.
+void _integratePassBiNativeStops() {
+  if (!appDataService.passBiActive) return;
+  if (passBiNativeStops.isNotEmpty) return;
+
+  // Référence d'ORDONNANCEMENT (jamais une position utilisateur) : même point
+  // que `explorerVisibleStops` hors zone. Sert de repli à `Stop.distanceMeters`
+  // — repli préexistant du modèle (constat F7), ici renseigné par une distance
+  // géographique réellement calculée.
+  const LatLng dakarOrderCenter = LatLng(14.7167, -17.4677);
+  final existingKeys = <String>{
+    for (final Stop s in allStops)
+      '${s.name}_${s.location.latitude}_${s.location.longitude}',
+  };
+
+  for (final netKey in passBiNativeNetworkKeys()) {
+    final Color color = netKey == 'DDD' ? AppColors.ddd : AppColors.aftu;
+    final IconData icon = netKey == 'DDD'
+        ? Icons.directions_bus_filled_rounded
+        : Icons.directions_bus_outlined;
+    int added = 0;
+    for (final ref in appDataService.passBiNativeStops(netKey)) {
+      final int n = ref.routeCount;
+      final Stop stop = Stop(
+        name: ref.name,
+        // Aucun `stopId` dakar : cet arrêt n'appartient pas au référentiel
+        // `dakar_network.json` et ne doit jamais y être résolu (aucune
+        // identité de ligne dakar ne lui est attribuée).
+        stopId: null,
+        passBiStopKey: ref.compositeKey,
+        // Le libellé de carte lit `scheduleRouteId != null` : la clé composite
+        // n'est PAS un identifiant de ligne dakar, elle branche uniquement le
+        // chemin natif de [Stop.departureInfoAt].
+        scheduleRouteId: ref.compositeKey,
+        direction: n == 1
+            ? '1 ligne PassBi $netKey'
+            : '$n lignes PassBi $netKey',
+        distanceMeters: DistanceHelper.haversineMeters(
+          dakarOrderCenter,
+          LatLng(ref.lat, ref.lon),
+        ),
+        departureMinutesFromMidnight: const <int>[],
+        icon: icon,
+        color: color,
+        location: LatLng(ref.lat, ref.lon),
+        modeLabel: netKey,
+        source: DataSourceInfo.passbiGtfs,
+        // Type inconnu dans le référentiel natif : jamais promu terminus ni
+        // embarquement sur la seule position dans la ligne.
+        stopType: StopType.intermediate,
+      );
+      final String key =
+          '${stop.name}_${stop.location.latitude}_${stop.location.longitude}';
+      if (existingKeys.contains(key)) continue;
+      existingKeys.add(key);
+      passBiNativeStops.add(stop);
+      added++;
+    }
+    debugPrint('✅ PassBi natif $netKey : $added arrêts exploitables '
+        '(identité publique UNCONFIRMED, horaires SCHEDULED calculables)');
+  }
+}
+
+/// Source des arrêts consultables dans l'Explorer pour un filtre donné.
+///
+/// Comportement INCHANGÉ pour tous les filtres existants ; seuls « DDD » et
+/// « AFTU » reçoivent en plus les arrêts natifs PassBi réellement desservis, de
+/// sorte que le filtre renvoie des données exploitables (§7) au lieu d'un
+/// réseau dont l'identité dakar n'est pas résolue.
+List<Stop> explorerStopSource({
+  required String selectedFilter,
+  required List<Stop> dakarStops,
+  required List<Stop> passBiStops,
+}) {
+  switch (selectedFilter) {
+    case 'DDD':
+    case 'AFTU':
+      return <Stop>[...dakarStops, ...passBiStops];
+    default:
+      return dakarStops;
+  }
+}
+
+// ============================================================
 // TRACES DES ROUTES — POLYLIGNES DE LA CARTE EXPLORER
 // ============================================================
 /// Tracés de lignes dessinés sur la carte Explorer.
@@ -1551,6 +1714,7 @@ class RoutePlanner {
     // Les segments portent heures, ETA et identité de ligne issues de
     // route → trip → service → stop → stop_sequence → horaire.
     List<PassBiJourney> journeys = const <PassBiJourney>[];
+    bool nativeJourneys = false;
     if (appDataService.passBiActive) {
       journeys = appDataService.planPassBiJourneys(
         fromPassBiKeys:
@@ -1559,8 +1723,23 @@ class RoutePlanner {
             appDataService.passBiStopKeysForDakarStop(toStop.stopId ?? ''),
         at: now,
       );
+      if (journeys.isEmpty) {
+        // Lot 4.21 §8 — SECOND ESSAI, sur le RÉFÉRENTIEL NATIF PassBi.
+        //
+        // Le premier essai ne dispose que des arrêts reliés par le crosswalk
+        // (identités publiques confirmées : TER, BRT, 2 lignes AFTU). Pour les
+        // feeds DDD et AFTU, l'identité publique reste à confirmer : la
+        // recherche est alors faite directement sur les NOMS D'ARRÊTS RÉELS du
+        // feed (§2 « utiliser les métadonnées PassBi réellement présentes »).
+        // Aucun nom de ligne n'est deviné, aucune correspondance par proximité
+        // n'est créée : le moteur n'utilise que les trips, stop_times et
+        // correspondances réellement documentés.
+        journeys = _planNativePassBi(fromQuery, toQuery, now);
+        nativeJourneys = journeys.isNotEmpty;
+      }
       for (final journey in journeys) {
-        candidates.add(_plannedFromPassBi(journey, fromStop, toStop, now));
+        candidates.add(_plannedFromPassBi(journey, fromStop, toStop, now,
+            useFeedNames: nativeJourneys));
       }
     }
 
@@ -1592,6 +1771,29 @@ class RoutePlanner {
 
     candidates.sort((a, b) => a.totalMinutes.compareTo(b.totalMinutes));
     return RouteSearchResult(routes: candidates);
+  }
+
+  /// Lot 4.21 §8/§10 — Itinéraire sur le référentiel natif PassBi.
+  ///
+  /// Les requêtes saisies sont résolues vers les arrêts PassBi dont le NOM
+  /// RÉEL contient la requête entière ([PassBiSource.searchNativeStops] :
+  /// aucun appariement approché, aucune proximité). Le moteur explore ensuite
+  /// route → trip → service → stop_sequence → horaire, correspondances
+  /// documentées du crosswalk incluses (DDD ↔ AFTU : 746 liens de nom vérifié).
+  static List<PassBiJourney> _planNativePassBi(
+    String fromQuery,
+    String toQuery,
+    DateTime at,
+  ) {
+    final fromRefs = appDataService.passBiStopSearch(fromQuery);
+    if (fromRefs.isEmpty) return const <PassBiJourney>[];
+    final toRefs = appDataService.passBiStopSearch(toQuery);
+    if (toRefs.isEmpty) return const <PassBiJourney>[];
+    return appDataService.planPassBiJourneys(
+      fromPassBiKeys: fromRefs.map((r) => r.compositeKey).toSet(),
+      toPassBiKeys: toRefs.map((r) => r.compositeKey).toSet(),
+      at: at,
+    );
   }
 
   static Stop? _findNearestStop(String query) {
@@ -1728,8 +1930,9 @@ class RoutePlanner {
     PassBiJourney journey,
     Stop from,
     Stop to,
-    DateTime at,
-  ) {
+    DateTime at, {
+    bool useFeedNames = false,
+  }) {
     final segments = <RouteSegment>[];
     final DateTime day0 = DateTime.utc(at.year, at.month, at.day);
     final int nowSinceDay0 = at.difference(day0).inSeconds;
@@ -1741,6 +1944,11 @@ class RoutePlanner {
       final Map<String, String> meta =
           appDataService.passBiSource.network(leg.network)?.meta ??
               const <String, String>{};
+      // Lot 4.21 §2/§3 : l'identité d'affichage et le statut d'identité
+      // viennent du feed (route_id, short_name) et du crosswalk. Une identité
+      // UNCONFIRMED n'empêche pas le tronçon d'être SCHEDULED.
+      final IdentityStatus identity = appDataService.passBiSource
+          .identityStatusOf(leg.network, leg.routeId);
       final DepartureInfo info = DepartureInfo(
         status: ScheduleStatus.scheduled,
         operator: style.$1,
@@ -1759,6 +1967,19 @@ class RoutePlanner {
         frequencyMinutes: null,
         operatingHours: null,
         direction: tripDirectionOf(leg),
+        identityStatus: identity,
+        identityNote: identity == IdentityStatus.confirmed
+            ? 'Identité publique confirmée par le crosswalk PassBi.'
+            : 'Identité publique UNCONFIRMED ; horaire PassBi calculé sur un '
+                'trip/stop_time réel. Affichage : métadonnées PassBi réelles.',
+        lineLabel: ScheduleProvider.identityLabelFor(
+          leg.network,
+          leg.routeId,
+          identity,
+          shortName: appDataService.passBiSource
+              .routeSummary(leg.network, leg.routeId)
+              ?.shortName,
+        ),
       );
       segments.add(RouteSegment(
         modeLabel: passBiLineLabel(leg.network, leg.routeId),
@@ -1774,8 +1995,15 @@ class RoutePlanner {
       ));
     }
     return PlannedRoute(
-      fromName: from.name,
-      toName: to.name,
+      // Chemin natif : les extrémités affichées sont les arrêts RÉELS du feed
+      // (le libellé dakar résolu peut être un repli sans rapport avec la
+      // requête PassBi). Chemin crosswalk : comportement inchangé.
+      fromName: useFeedNames
+          ? (journey.legs.isEmpty ? from.name : journey.legs.first.fromStopName)
+          : from.name,
+      toName: useFeedNames
+          ? (journey.legs.isEmpty ? to.name : journey.legs.last.toStopName)
+          : to.name,
       totalMinutes: journey.totalMinutes,
       transferCount: journey.transferCount,
       status: DataStatus.scheduled,
@@ -2488,7 +2716,15 @@ class _ExplorerPageState extends State<ExplorerPage> {
           base: explorerBaseStopsForFilter(
             selectedFilter: _selectedFilter,
             favoriteStopNames: globalState.favoriteStopNames,
-            source: allStops,
+            // Lot 4.21 §7 : les filtres DDD et AFTU reçoivent en plus les
+            // arrêts natifs PassBi réellement desservis (horaires
+            // calculables). Tous les autres filtres restent strictement sur
+            // le référentiel dakar : aucun rendu existant n'est modifié.
+            source: explorerStopSource(
+              selectedFilter: _selectedFilter,
+              dakarStops: allStops,
+              passBiStops: passBiNativeStops,
+            ),
           ),
           userPosition: widget.userPosition,
         );
@@ -2546,7 +2782,15 @@ class _ExplorerPageState extends State<ExplorerPage> {
   List<Stop> get _searchResults {
     final q = _searchCtrl.text.trim().toLowerCase();
     if (q.isEmpty) return [];
-    return allStops.where((s) => (s.name.toLowerCase().contains(q) || s.direction.toLowerCase().contains(q)) && DakarBounds.isValid(s.location)).take(8).toList();
+    // Le référentiel dakar garde la PRIORITÉ (comportement existant préservé :
+    // toute requête qui trouvait un arrêt dakar trouve le même arrêt, dans le
+    // même ordre). Lot 4.21 §7 : les arrêts PassBi DDD/AFTU réellement
+    // desservis complètent la liste quand le référentiel dakar ne suffit pas.
+    final dakar = allStops.where((s) => (s.name.toLowerCase().contains(q) || s.direction.toLowerCase().contains(q)) && DakarBounds.isValid(s.location));
+    if (dakar.length >= 8) return dakar.take(8).toList();
+    final natifs = passBiNativeStops.where((s) =>
+        s.name.toLowerCase().contains(q) && DakarBounds.isValid(s.location));
+    return <Stop>[...dakar, ...natifs].take(8).toList();
   }
 
   void _centerOnStop(Stop s) {
@@ -2906,8 +3150,16 @@ class StopCard extends StatelessWidget {
         // APRÈS : sans horaire fourni → « Horaire indisponible » ; avec un
         //         horaire fourni → « Prévu HH h MM » (programmé, pas de
         //         compte à rebours). Aucun flux temps réel n'existe.
-        if (stop.scheduleRouteId != null) {
-          final info = stop.departureInfo;
+        //
+        // Lot 4.21 : le départ lié à l'arrêt est calculé UNE fois ici ; son
+        // éventuel libellé d'identité PassBi (`lineLabel`, ex. « Ligne PassBi
+        // DDD_217 ») remplace alors le texte de direction statique. Pour tous
+        // les arrêts du référentiel dakar, `lineLabel` est `null` : le rendu
+        // existant est strictement inchangé.
+        final DepartureInfo? boundInfo =
+            stop.scheduleRouteId != null ? stop.departureInfo : null;
+        if (boundInfo != null) {
+          final info = boundInfo;
           timeWidget = Text(info.label, style: TextStyle(
             fontSize: info.status == ScheduleStatus.scheduled ? 13 : 11,
             fontWeight: FontWeight.bold,
@@ -2954,7 +3206,7 @@ class StopCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(stop.direction, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textSecondary(dark))),
+                    Text(boundInfo?.lineLabel ?? stop.direction, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textSecondary(dark))),
                     const SizedBox(height: 2),
                     Text('${DistanceHelper.format(distanceMeters)} • ${stop.modeLabel} (${stop.source.badgeEmoji}) • $crowd', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
                   ],

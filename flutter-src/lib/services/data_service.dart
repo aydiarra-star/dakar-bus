@@ -63,6 +63,79 @@ class DataService {
   Set<String> passBiStopKeysForDakarStop(String dakarStopId) =>
       passBiSource.compositeStopsForDakarStop(dakarStopId);
 
+  // ======================================================================
+  // LOT 4.21 — PASSBI NATIF (DDD / AFTU) : identité ≠ exploitation horaire
+  // ======================================================================
+
+  /// §1 — Fiches d'audit du feed d'un réseau (routes, horaires calculables,
+  /// identité publique). Sert aux tests, à la documentation et aux surfaces
+  /// existantes ; aucune donnée n'est recopiée ni inventée.
+  List<PassBiRouteSummary> passBiRouteSummaries(String networkKey) =>
+      passBiSource.routeSummaries(networkKey);
+
+  /// Liste plate de toutes les fiches d'audit, tous feeds confondus.
+  List<PassBiRouteSummary> passBiAudit() => <PassBiRouteSummary>[
+        for (final key in PassBiSource.assetFiles.keys)
+          ...passBiSource.routeSummaries(key),
+      ];
+
+  /// §2/§7 — Arrêts PassBi natifs d'un réseau (réellement appelés).
+  List<PassBiStopRef> passBiNativeStops(String networkKey) =>
+      passBiSource.nativeStops(networkKey);
+
+  /// §6 — Disponibilité d'un réseau comme feed GTFS PassBi autonome.
+  /// TATA → `absentFromFeed` : aucune route n'est fabriquée.
+  PassBiNetworkAvailability passBiNetworkAvailability(String networkKey) =>
+      passBiSource.networkAvailability(networkKey);
+
+  /// §6 — Preuve d'absence : occurrences de « tata » dans les métadonnées
+  /// PassBi réellement chargées (vide attendu).
+  List<String> passBiTataMentions() => passBiSource.tataMentions();
+
+  /// §8 — Recherche d'arrêts PassBi natifs par nom réel (saisie utilisateur).
+  List<PassBiStopRef> passBiStopSearch(String query, {Set<String>? networks}) =>
+      passBiSource.searchNativeStops(query, networksFilter: networks);
+
+  /// §4/§5/§9 — Prochain départ sur le référentiel natif PassBi.
+  /// SCHEDULED (départ réel d'un trip/stop_time) ou UNKNOWN motivé.
+  DepartureInfo passBiDepartureFor({
+    required String networkKey,
+    required String pbStopId,
+    DateTime? at,
+    String? pbRouteId,
+    bool isPublicHoliday = false,
+  }) =>
+      etaCalculator.computePassBi(
+        networkKey: networkKey,
+        pbStopId: pbStopId,
+        at: at ?? DateTime.now(),
+        pbRouteId: pbRouteId,
+        isPublicHoliday: isPublicHoliday,
+      );
+
+  /// Variante par clé composite « NET:id » (utilisée par les arrêts natifs).
+  DepartureInfo passBiDepartureForCompositeStop({
+    required String compositeStopId,
+    DateTime? at,
+    bool isPublicHoliday = false,
+  }) {
+    final parts = PassBiSource.splitComposite(compositeStopId);
+    if (parts == null) {
+      return DepartureInfo.unknown(
+        operator: 'PassBi',
+        routeId: compositeStopId,
+        requestedAt: at,
+        unresolvedReason: UnresolvedReason.stopNotMatched,
+      );
+    }
+    return passBiDepartureFor(
+      networkKey: parts[0],
+      pbStopId: parts[1],
+      at: at,
+      isPublicHoliday: isPublicHoliday,
+    );
+  }
+
   /// Résout une fréquence officielle en ESTIMATED uniquement lorsqu'elle
   /// s'applique à la date/heure demandée. Aucun horaire station par station
   /// n'est construit ; les lignes sans source restent UNKNOWN.

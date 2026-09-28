@@ -93,6 +93,12 @@ class GtfsNetwork {
   /// routeIndex → index des trips.
   final Map<int, List<int>> tripsByRoute;
 
+  /// Lot 4.21 — stopIndex → ensemble des index de routes qui appellent
+  /// RÉELLEMENT cet arrêt (dérivé des `stop_times`, jamais d'une proximité ni
+  /// d'un numéro). Sert au chemin natif PassBi : le prochain départ d'un arrêt
+  /// est cherché parmi les lignes qui le desservent effectivement.
+  final Map<int, Set<int>> routeIndexesByStop;
+
   const GtfsNetwork._({
     required this.key,
     required this.meta,
@@ -109,6 +115,7 @@ class GtfsNetwork {
     required this.stopTimesByStop,
     required this.stopTimesByTrip,
     required this.tripsByRoute,
+    required this.routeIndexesByStop,
   });
 
   factory GtfsNetwork.fromJson(String key, String jsonString) {
@@ -188,6 +195,7 @@ class GtfsNetwork {
     final stopTimes = <GtfsStopTime>[];
     final stopTimesByStop = <int, List<GtfsStopTime>>{};
     final stopTimesByTrip = <int, List<GtfsStopTime>>{};
+    final routeIndexesByStop = <int, Set<int>>{};
     for (final st in (root['stop_times'] as List<dynamic>)) {
       final l = st as List<dynamic>;
       final item = GtfsStopTime(
@@ -200,6 +208,10 @@ class GtfsNetwork {
       stopTimes.add(item);
       (stopTimesByStop[item.stopIndex] ??= <GtfsStopTime>[]).add(item);
       (stopTimesByTrip[item.tripIndex] ??= <GtfsStopTime>[]).add(item);
+      // Lot 4.21 : desserte réelle de l'arrêt (une seule passe, aucun coût
+      // supplémentaire au chargement).
+      (routeIndexesByStop[item.stopIndex] ??= <int>{})
+          .add(trips[item.tripIndex].routeIndex);
     }
     for (final list in stopTimesByStop.values) {
       list.sort((a, b) => a.departureSec.compareTo(b.departureSec));
@@ -224,6 +236,7 @@ class GtfsNetwork {
       stopTimesByStop: stopTimesByStop,
       stopTimesByTrip: stopTimesByTrip,
       tripsByRoute: tripsByRoute,
+      routeIndexesByStop: routeIndexesByStop,
     );
   }
 
@@ -305,6 +318,62 @@ class GtfsNetwork {
     if (rows == null || rows.isEmpty) return false;
     return st.sequence < rows.last.sequence;
   }
+
+  /// Lot 4.21 — Prochain départ EMBARQUABLE parmi un ENSEMBLE de routes, en
+  /// une seule passe sur les `stop_times` de l'arrêt.
+  ///
+  /// [nextDepartureSec] (Lot 4.19) est conservé strictement inchangé pour ses
+  /// appels existants ; cette variante ajoute ce dont le chemin natif
+  /// DDD/AFTU a besoin : l'index de la route qui part EFFECTIVEMENT, afin que
+  /// l'affichage utilise les métadonnées PassBi réelles de cette ligne (§2 du
+  /// lot) et jamais une ligne déduite d'un numéro ou d'une proximité.
+  ///
+  /// Mêmes garde-fous que [nextDepartureSec] :
+  ///  * départ embarquable uniquement (le trip continue après l'arrêt) ;
+  ///  * service actif évalué par jour (calendar + calendar_dates) ;
+  ///  * 7 jours glissants (passage 23:59 → 00:00, jours sans service) ;
+  ///  * `null` si aucun départ n'est calculable — jamais une fréquence,
+  ///    jamais un horaire inventé, jamais REAL_TIME.
+  ///
+  /// `sec` est absolu depuis minuit du jour demandé (> 86400 = J+1..J+6).
+  ({int sec, int routeIndex, int tripIndex, int dayOffset})? nextDepartureAmong({
+    required Set<int> routeIndexes,
+    required int stopIndex,
+    required DateTime at,
+  }) {
+    if (routeIndexes.isEmpty) return null;
+    final list = stopTimesByStop[stopIndex];
+    if (list == null) return null;
+    final since = at.isUtc ? at : at.toUtc();
+    final day0 = _dakarDay(since);
+    final minOfDay0 = since.difference(day0).inSeconds;
+    for (int d = 0; d < 7; d++) {
+      final day = DateTime.utc(day0.year, day0.month, day0.day + d);
+      final minOfDay = d == 0 ? minOfDay0 : 0;
+      // `list` est triée par heure de départ croissante : la première ligne
+      // qui passe tous les filtres EST le minimum du jour (aucun `best`
+      // nécessaire, aucune passe supplémentaire).
+      for (final st in list) {
+        if (st.departureSec < minOfDay) continue;
+        final trip = trips[st.tripIndex];
+        if (!routeIndexes.contains(trip.routeIndex)) continue;
+        if (!serviceActiveOn(trip.serviceIndex, day)) continue;
+        if (!_tripContinuesPast(st)) continue;
+        return (
+          sec: st.departureSec + d * 86400,
+          routeIndex: trip.routeIndex,
+          tripIndex: st.tripIndex,
+          dayOffset: d,
+        );
+      }
+    }
+    return null;
+  }
+
+  /// Lot 4.21 — Index des routes appelant réellement un arrêt (dérivé des
+  /// `stop_times` au chargement). Ensemble vide si l'arrêt n'est pas appelé.
+  Set<int> routeIndexesCalling(int stopIndex) =>
+      routeIndexesByStop[stopIndex] ?? const <int>{};
 
   /// Tous les départs actifs d'une route à un arrêt pour une date donnée.
   List<int> departuresSecOn({
