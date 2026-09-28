@@ -52,25 +52,54 @@ export function normalizeName(value) {
 
 export const NETWORK_KEYS = ['TER', 'BRT', 'DDD', 'AFTU'];
 
-/// §3 — Identité publique : CONFIRMED seulement si le crosswalk MAPPED rattache
-/// explicitement cette route PassBi.
+/// §3 — Identité publique : CONFIRMED seulement avec une PREUVE DOCUMENTAIRE
+/// (méthode IDENTITY_OFFICIELLE — verrouillage Lot 4.21). Un MAPPED obtenu par
+/// termini/numéro/nom/proximité ne confirme jamais : TERMINI_MATCH reste une
+/// hypothèse non confirmée.
+export const DOCUMENTED_IDENTITY_METHODS = ['IDENTITY_OFFICIELLE'];
+
+export function isDocumentedIdentity(m) {
+  return m.status === 'MAPPED'
+    && (m.pbRouteIds ?? []).length > 0
+    && DOCUMENTED_IDENTITY_METHODS.includes(m.method);
+}
+
 export function identityStatusOf(cw, networkKey, pbRouteId) {
-  for (const [, m] of Object.entries(cw.routes)) {
-    if (m.status === 'MAPPED' && m.network === networkKey && (m.pbRouteIds ?? []).includes(pbRouteId)) {
-      return IDENTITY.CONFIRMED;
-    }
-  }
-  return IDENTITY.UNCONFIRMED;
+  return dakarRouteIdsFor(cw, networkKey, pbRouteId).length > 0
+    ? IDENTITY.CONFIRMED
+    : IDENTITY.UNCONFIRMED;
 }
 
 export function dakarRouteIdsFor(cw, networkKey, pbRouteId) {
   const out = [];
   for (const [dakarId, m] of Object.entries(cw.routes)) {
-    if (m.status === 'MAPPED' && m.network === networkKey && (m.pbRouteIds ?? []).includes(pbRouteId)) {
+    if (isDocumentedIdentity(m) && m.network === networkKey && (m.pbRouteIds ?? []).includes(pbRouteId)) {
       out.push(dakarId);
     }
   }
   return out;
+}
+
+/// Verrouillage Lot 4.21 — correspondances : seuls les liens DOCUMENTÉS
+/// (nom vérifié + distance bornée, réseaux des feeds) sont recevables. Une
+/// proximité seule, un lien sans nom vérifié ou un réseau hors feeds (TATA)
+/// ne produit JAMAIS de correspondance.
+export const DOCUMENTED_TRANSFER_METHODS = ['NOM_IDENTIQUE_PROXIMITE', 'INCLUSION_NOM_PROXIMITE'];
+export const FEED_NETWORKS = ['TER', 'BRT', 'DDD', 'AFTU'];
+
+export function isDocumentedTransfer(t) {
+  const netOf = (key) => splitComposite(key)?.[0] ?? null;
+  const netFrom = netOf(t.from);
+  const netTo = netOf(t.to);
+  return DOCUMENTED_TRANSFER_METHODS.includes(t.method)
+    && typeof t.name === 'string' && t.name.trim() !== ''
+    && Number.isFinite(t.meters) && t.meters >= 0 && t.meters <= 500
+    && t.from !== t.to
+    && FEED_NETWORKS.includes(netFrom) && FEED_NETWORKS.includes(netTo);
+}
+
+export function documentedTransfers(cw) {
+  return (cw.transfers ?? []).filter(isDocumentedTransfer);
 }
 
 /// §1 — Fiche d'audit par route, calculée sur le feed réel.

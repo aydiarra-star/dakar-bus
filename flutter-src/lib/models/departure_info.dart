@@ -17,8 +17,10 @@ import 'transport_network.dart';
 /// techniquement calculable (§2 et §15 du lot) ; à l'inverse, une identité
 /// [confirmed] ne garantit aucun départ.
 enum IdentityStatus {
-  /// Identité publique documentée (identité officielle TER/BRT, ou concordance
-  /// de terminus `TERMINI_MATCH` du crosswalk).
+  /// Identité publique documentée : PREUVE DOCUMENTAIRE uniquement (identité
+  /// officielle TER/BRT — `IDENTITY_OFFICIELLE`). Un numéro similaire, des
+  /// terminus proches (`TERMINI_MATCH`), un route_id, un nom ou OSM ne
+  /// confirment jamais une identité (verrouillage Lot 4.21).
   confirmed,
 
   /// Identité publique non résolue / à confirmer. N'implique AUCUNE absence de

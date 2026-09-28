@@ -25,6 +25,7 @@ import { loadAll, nextDepartureAbs, planJourneys, splitComposite } from './helpe
 import {
   IDENTITY,
   REASON,
+  dakarRouteIdsFor,
   departureAtPassBiStop,
   identityStatusOf,
   nativeNetworkKeys,
@@ -112,6 +113,10 @@ test('B. AFTU — prochain départ PassBi réellement calculable (SCHEDULED)', (
     10 * 3600,
   );
   assert.equal(res.depAbs, independant);
+  // Verrouillage : l'horaire est calculable alors que l'identité publique
+  // reste NON confirmée (aftu_8/aftu_11 ne fusionnent jamais sur AFTU_3).
+  assert.equal(res.identityStatus, IDENTITY.UNCONFIRMED);
+  assert.match(res.lineLabel, /^Ligne PassBi AFTU_3/);
 });
 
 test('B bis. AFTU — 71 des 73 routes du feed ont des horaires calculables', () => {
@@ -333,10 +338,24 @@ test('J. aucune identité inventée : le crosswalk ne rattache QUE ce qu\'il a p
     }
   }
   assert.equal(DDD.filter((s) => s.identityStatus === IDENTITY.CONFIRMED).length, 0);
-  // 2) AFTU : seules les routes réellement rattachées par le crosswalk.
+  // 2) AFTU : AUCUNE identité confirmée hors preuve documentaire. Les anciens
+  //    mappings TERMINI_MATCH (aftu_8, aftu_11 → AFTU_3) sont déclassés en
+  //    hypothèses NON confirmées : des terminus proches ne confirment jamais,
+  //    et deux lignes publiques distinctes ne fusionnent jamais sur un même
+  //    identifiant PassBi.
   const aftuConfirmed = AFTU.filter((s) => s.identityStatus === IDENTITY.CONFIRMED);
-  assert.deepEqual(aftuConfirmed.map((s) => s.routeId).sort(), ['AFTU_3']);
-  assert.deepEqual(aftuConfirmed[0].dakarRouteIds.sort(), ['aftu_11', 'aftu_8']);
+  assert.deepEqual(aftuConfirmed.map((s) => s.routeId), [],
+    'aucune route AFTU confirmée sans preuve documentaire');
+  for (const id of ['aftu_8', 'aftu_11']) {
+    const m = ALL.cw.routes[id];
+    assert.equal(m.status, 'UNMAPPED', id);
+    assert.equal(m.method, 'IDENTITE_NON_CONFIRMEE', id);
+    assert.deepEqual(m.pbRouteIds ?? [], [], `${id} : aucun rattachement fabriqué`);
+    assert.equal(m.hypothesis?.pbRouteId, 'AFTU_3', `${id} : hypothèse de termini conservée pour l'audit`);
+    assert.match(m.note, /Aucune fusion automatique/, `${id} : anti-fusion documenté`);
+  }
+  assert.deepEqual(dakarRouteIdsFor(ALL.cw, 'AFTU', 'AFTU_3'), [],
+    'AFTU_3 ne devient l identité publique d aucune ligne sans preuve');
   // 3) L'identité affichée vient du feed (route_id / short_name), jamais d'un
   //    nom commercial ni d'un numéro déduit.
   const ref15 = firstStopOf('DDD', 'DDD_15');

@@ -364,27 +364,45 @@ function buildCrosswalk(allProcessed, rawStops) {
         note: `${id} : réseau non couvert par les feeds PassBi — AUCUNE donnée, statut UNKNOWN.` };
     }
     const proc = allProcessed[net].processed;
-    // 1) concordance des termini sur l'ensemble des routes PassBi du réseau
+    // Observation de termini — HYPOTHÈSE UNIQUEMENT (verrouillage identité /
+    // horaire / correspondance, suite Lot 4.21) :
+    //  * une identité publique n'est JAMAIS confirmée par un numéro, un
+    //    route_id, un nom similaire, OSM, une proximité ou des terminus
+    //    proches — seule une PREUVE DOCUMENTAIRE (IDENTITY_OFFICIELLE) la
+    //    confirme (TER/BRT) ;
+    //  * le score de termini reste enregistré comme observation NON confirmée
+    //    (IDENTITE_NON_CONFIRMEE), sans jamais produire de rattachement ;
+    //  * aucune route PassBi n'est fabriquée, aucun horaire n'est rattaché à
+    //    une identité non confirmée — les données PassBi restent exploitables
+    //    sous leurs propres identifiants (statut horaire ≠ statut identité).
     let best = null;
     for (const r of proc.routes) {
       const sc = terminiScore(r.long, endpoints);
       if (!best || sc > best.sc) best = { id: r.id, sc };
     }
-    if (best && best.sc >= 0.7) {
-      return { network: net, pbRouteIds: [best.id], status: 'MAPPED', method: 'TERMINI_MATCH',
-        score: Number(best.sc.toFixed(3)),
-        note: `Termini concordants (« ${dRoute.long_name} » ↔ « ${best.id} »), score ${best.sc.toFixed(2)}.` };
-    }
-    // 2) sinon : identité non documentée — aucun rapprochement par numéro seul
+    const hypothesis = best && best.sc >= 0.7
+      ? { pbRouteId: best.id, score: Number(best.sc.toFixed(3)), method: 'TERMINI_MATCH' }
+      : null;
     const n = id.split('_')[1];
     const numeric = net === 'DDD' ? `DDD_${String(n).padStart(2, '0')}` : `AFTU_${n}`;
     const numericExists = proc.routes.some((r) => r.id === numeric);
-    return { network: net, pbRouteIds: [], status: 'UNMAPPED', method: 'IDENTITE_NON_CONFIRMEE',
-      note: `Identité non confirmée pour ${id} : termini non concordants avec ${numeric}` +
+    const hypotheseNote = hypothesis
+      ? `Hypothèse de termini NON confirmée (« ${dRoute.long_name} » ↔ « ${hypothesis.pbRouteId} », ` +
+        `score ${hypothesis.score.toFixed(2)}) : des terminus proches ne confirment jamais une identité. `
+      : `Termini non concordants avec ${numeric}` +
         (numericExists ? ' (même numéro, autre ligne)' : ' (route absente)') +
-        ` ni avec aucune autre route PassBi ${net}. Les numéros divergent entre référentiels : ` +
-        'aucun horaire n’est rattaché à cette ligne (UNKNOWN) ; les données PassBi restent ' +
-        'exploitables côté moteur sous leurs propres identifiants PassBi.' };
+        ` ni avec aucune autre route PassBi ${net}. `;
+    return {
+      network: net,
+      pbRouteIds: [],
+      status: 'UNMAPPED',
+      method: 'IDENTITE_NON_CONFIRMEE',
+      ...(hypothesis ? { hypothesis } : {}),
+      note: `Identité non confirmée pour ${id} : ${hypotheseNote}` +
+        'Seule une preuve documentaire confirme une identité publique ; les numéros ' +
+        'divergent entre référentiels. Aucun horaire n’est rattaché à cette ligne (UNKNOWN) ; ' +
+        'les données PassBi restent exploitables côté moteur sous leurs propres identifiants PassBi.',
+    };
   }
 
   const routesMap = {};
@@ -481,6 +499,51 @@ function buildCrosswalk(allProcessed, rawStops) {
     stopsMap[dRoute.id] = entry;
   }
 
+  // Verrouillage anti-fusion (suite Lot 4.21) : si plusieurs identités
+  // publiques DISTINCTES pointent vers une même route PassBi — en mapping ou
+  // en simple hypothèse — elles ne sont JAMAIS fusionnées automatiquement.
+  // Un mapping réellement en conflit est DÉCLASSÉ (IDENTITE_NON_CONFIRMEE) ;
+  // les hypothèses conflictuelles restent non confirmées et annotées. La
+  // preuve du conflit est gardée dans les notes : c'est le signe que
+  // l'hypothèse d'identité est ambiguë, donc irrecevable comme confirmation.
+  {
+    const realClaims = new Map(); // pbRouteId → [dakarRouteId, …]
+    const hypClaims = new Map();
+    for (const [dId, m] of Object.entries(routesMap)) {
+      for (const pbId of m.pbRouteIds ?? []) {
+        if (!realClaims.has(pbId)) realClaims.set(pbId, []);
+        realClaims.get(pbId).push(dId);
+      }
+      const hyp = m.hypothesis?.pbRouteId;
+      if (hyp) {
+        if (!hypClaims.has(hyp)) hypClaims.set(hyp, []);
+        hypClaims.get(hyp).push(dId);
+      }
+    }
+    for (const [pbId, ids] of realClaims) {
+      if (ids.length < 2) continue;
+      for (const dId of ids) {
+        const m = routesMap[dId];
+        m.pbRouteIds = [];
+        m.status = 'UNMAPPED';
+        m.method = 'IDENTITE_NON_CONFIRMEE';
+        m.note += ` Déclassé : ${ids.length} identités publiques distinctes (${ids.join(', ')}) ` +
+          `pointent vers la même route PassBi « ${pbId} » — aucune fusion automatique, ` +
+          'identité non confirmée.';
+      }
+    }
+    for (const [pbId, ids] of hypClaims) {
+      if (ids.length < 2) continue;
+      for (const dId of ids) {
+        const m = routesMap[dId];
+        if (m.status === 'MAPPED') continue;
+        m.note += ` Aucune fusion automatique : ${ids.length} identités publiques ` +
+          `distinctes (${ids.join(', ')}) pointent vers la même route PassBi « ${pbId} » — ` +
+          'elles restent séparées et non confirmées.';
+      }
+    }
+  }
+
   // Transferts inter-réseaux : même nom normalisé, distance ≤ 500 m, ids distincts
   const allStops = [];
   for (const [netKey, { processed }] of Object.entries(allProcessed)) {
@@ -556,10 +619,11 @@ function buildCrosswalk(allProcessed, rawStops) {
       status: 'ACTIVE',
       reference_target: 'flutter-src/assets/data/dakar_network.json',
       rules: [
-        'routes : identité officielle (TER/BRT) ou concordance des extrémités TERMINI_MATCH ≥ 0,7 sur les terminus (DDD/AFTU) — aucun appariement par numéro seul ; sinon UNMAPPED (IDENTITE_NON_CONFIRMEE) ou RESEAU_ABSENT.',
-        'arrêts : score de nom (égalité / inclusion / F1 ≥ 0,55) dans le périmètre des routes mappées, arrêts réellement appelés uniquement ; repli coordonnée ≥ 3 décimales à ≤ 150 m dans ce même périmètre ; sinon non mappé.',
-        'transferts : même nom normalisé à ≤ 500 m, ou inclusion de nom inter-réseaux à ≤ 250 m — aucune correspondance par proximité seule.',
-        'tout arrêt/route sans correspondance documentée reste UNKNOWN (jamais deviné).',
+        'routes : seule une PREUVE DOCUMENTAIRE (IDENTITY_OFFICIELLE) confirme une identité publique (TER/BRT) ; une concordance de terminus TERMINI_MATCH ≥ 0,7 reste une hypothèse NON confirmée (IDENTITE_NON_CONFIRMEE) ; aucun appariement par numéro, route_id, nom similaire, OSM ou proximité seule ; sinon RESEAU_ABSENT.',
+        'anti-fusion : si plusieurs identités publiques distinctes pointent (mapping ou hypothèse) vers une même route PassBi, elles ne sont jamais fusionnées automatiquement — aucune n’est confirmée.',
+        'arrêts : score de nom (égalité / inclusion / F1 ≥ 0,55) dans le périmètre des routes MAPPED à identité documentée, arrêts réellement appelés uniquement ; repli coordonnée ≥ 3 décimales à ≤ 150 m dans ce même périmètre ; sinon non mappé. Une identité non confirmée ne rattache aucun arrêt.',
+        'transferts : même nom normalisé à ≤ 500 m, ou inclusion de nom inter-réseaux à ≤ 250 m — AUCUNE correspondance par proximité seule : le nom doit être vérifié ; arrêts réellement desservis uniquement ; aucun réseau hors feeds (TATA : zéro correspondance).',
+        'tout arrêt/route sans correspondance documentée reste UNKNOWN (jamais deviné) ; statut identité et statut horaire restent strictement séparés.',
       ],
     },
     routes: routesMap,

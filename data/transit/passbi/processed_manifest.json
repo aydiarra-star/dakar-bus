@@ -41,15 +41,15 @@
       "bytes": 18469790
     },
     "crosswalk.json": {
-      "sha256": "4d91f20e7292e5d743edd21a9c7d0640b80d88f04fb5a035defdfafaf396cdcd",
-      "bytes": 359713
+      "sha256": "b5a32628cc2f53b481a9968e624fea752a6806b13ae8cf7632bc33d13a722fd6",
+      "bytes": 373035
     }
   },
   "crosswalk_stats": {
-    "routes_mapped": 5,
+    "routes_mapped": 3,
     "routes_total": 105,
-    "stops_mapped": 44,
-    "stops_total": 51,
+    "stops_mapped": 41,
+    "stops_total": 43,
     "transfers": 1505
   }
 }

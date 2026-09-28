@@ -107,6 +107,7 @@ if (!md) {
   // Désalignement référentiel dakar ↔ feed PassBi (documentaire, non bloquant).
   const cw = JSON.parse(readFileSync(`${BASE}/crosswalk.json`, 'utf8'));
   console.log('\n=== Crosswalk (identités du référentiel dakar) ===');
+  const DOCUMENTED = ['IDENTITY_OFFICIELLE'];
   const parReseau = {};
   for (const [, m] of Object.entries(cw.routes)) {
     const k = m.network ?? 'null';
@@ -118,7 +119,22 @@ if (!md) {
     console.log(`  ${k} : ${v.mapped}/${v.total} identités MAPPED`);
   }
   const mappedList = Object.entries(cw.routes).filter(([, m]) => m.status === 'MAPPED');
-  console.log('  identités confirmées : ' + mappedList.map(([id, m]) => `${id}→${m.pbRouteIds.join('+')} (${m.method})`).join(' | '));
+  console.log('  identités confirmées (preuve documentaire UNIQUEMENT) : '
+    + mappedList.map(([id, m]) => `${id}→${m.pbRouteIds.join('+')} (${m.method})`).join(' | '));
+  const hypotheses = Object.entries(cw.routes).filter(([, m]) => m.hypothesis);
+  console.log('  hypothèses NON confirmées (TERMINI_MATCH, aucun rattachement) : '
+    + hypotheses.map(([id, m]) => `${id}≈${m.hypothesis.pbRouteId} (${m.hypothesis.score})`).join(' | '));
+  console.log('  règle : numéro / route_id / nom / OSM / terminus proches ne confirment JAMAIS.');
+  // Anti-fusion : aucun identifiant PassBi porté par 2 identités confirmées.
+  const claims = {};
+  for (const [id, m] of mappedList) {
+    for (const pbId of m.pbRouteIds) (claims[pbId] ??= []).push(id);
+  }
+  const fusions = Object.entries(claims).filter(([, ids]) => ids.length > 1);
+  console.log('  fusions automatiques : ' + (fusions.length === 0 ? 'AUCUNE' : JSON.stringify(fusions)));
+  const tataTransfers = cw.transfers.filter((t) =>
+    `${t.from}|${t.to}`.toUpperCase().includes('TATA'));
+  console.log('  transferts impliquant TATA : ' + tataTransfers.length + ' (0 attendu)');
   console.log('\n  transferts documentés (méthode + nom vérifiés) :');
   const paires = {};
   for (const t of cw.transfers) {

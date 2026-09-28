@@ -326,9 +326,11 @@ test('17. provenance PassBi : ACTIVE, PUBLIC_GTFS, dates d origine intactes', ()
   assert.equal(manifest.operational_status, 'ACTIVE');
   assert.ok(String(manifest.source).startsWith('PassBi'));
   assert.equal(manifest.source_type, 'PUBLIC_GTFS');
-  // Chiffres publiés : 5/105 routes mappées, 44/51 arrêts.
-  assert.equal(manifest.crosswalk_stats.routes_mapped, 5);
-  assert.equal(manifest.crosswalk_stats.stops_mapped, 44);
+  // Chiffres publiés (verrouillage Lot 4.21) : 3/105 routes mappées — seules
+  // les identités à PREUVE DOCUMENTAIRE (TER corridor, BRT B1, BRT B2) ;
+  // 41/43 arrêts dans le périmètre de ces identités documentées.
+  assert.equal(manifest.crosswalk_stats.routes_mapped, 3);
+  assert.equal(manifest.crosswalk_stats.stops_mapped, 41);
   assert.equal(manifest.crosswalk_stats.transfers, crosswalk.transfers.length);
 });
 
@@ -345,8 +347,10 @@ test('18. absence de données : mappage non confirmé → UNKNOWN (rien d invent
   const gadayeListed = JSON.stringify(crosswalk.unmapped.stops)
     .toLowerCase().includes('gadaye');
   assert.equal(gadayeListed, true);
-  // Compteur : 100 routes sans identité confirmée (dont 18 réseaux absents).
-  assert.equal(crosswalk.unmapped.routes.length, 100);
+  // Compteur (verrouillage Lot 4.21) : 102 routes sans identité confirmée —
+  // dont les 2 anciens mappings TERMINI_MATCH (aftu_8, aftu_11) déclassés en
+  // hypothèses non confirmées, et 18 réseaux absents (TATA, communes…).
+  assert.equal(crosswalk.unmapped.routes.length, 102);
   // Un départ introuvable reste null — jamais une fréquence.
   // PGFB (quai d'arrivée) : aucun départ embarquable, même sur 2 jours.
   const night = nextDepartureSec(brt, ['B1'], '0:PGFB', SUN, 23 * 3600 + 59 * 60);

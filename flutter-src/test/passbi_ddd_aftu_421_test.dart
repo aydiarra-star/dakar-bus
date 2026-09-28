@@ -175,7 +175,7 @@ void main() {
 
   // ==================================================================== B
   group('B — AFTU : prochain départ PassBi calculable', () {
-    test('route AFTU_3 : SCHEDULED, identité CONFIRMED (crosswalk)', () {
+    test('route AFTU_3 : SCHEDULED, identité UNCONFIRMED (verrouillage)', () {
       final stopId = firstStopOf('AFTU', 'AFTU_3');
       final info = app.appDataService.passBiDepartureFor(
         networkKey: 'AFTU',
@@ -187,9 +187,12 @@ void main() {
       expect(info.status, ScheduleStatus.scheduled);
       expect(info.routeId, 'AFTU_3');
       expect(info.sourceType, SourceType.publicGtfs);
-      // AFTU_3 est rattachée par le crosswalk (aftu_8, aftu_11).
-      expect(info.identityStatus, IdentityStatus.confirmed);
-      expect(info.lineLabel, 'AFTU_3');
+      // Suite Lot 4.21 : les anciens mappings TERMINI_MATCH (aftu_8, aftu_11)
+      // sont des HYPOTHÈSES non confirmées — des terminus proches ne
+      // confirment jamais une identité, et deux lignes publiques distinctes ne
+      // fusionnent jamais sur un même identifiant PassBi.
+      expect(info.identityStatus, IdentityStatus.unconfirmed);
+      expect(info.lineLabel, startsWith('Ligne PassBi AFTU_3'));
     });
 
     test('audit §1 : 73 routes AFTU, 71 avec horaires calculables', () {
@@ -199,10 +202,11 @@ void main() {
       final sans = summaries.where((s) => !s.scheduleAvailable).toList();
       expect(sans.map((s) => s.routeId).toList()..sort(),
           <String>['AFTU_47', 'AFTU_52']);
+      // Aucune identité AFTU confirmée sans preuve documentaire (Lot 4.21).
       final confirmes =
           summaries.where((s) => s.identityStatus == IdentityStatus.confirmed).toList();
-      expect(confirmes.map((s) => s.routeId), <String>['AFTU_3']);
-      expect(confirmes.single.dakarRouteIds.toSet(), <String>{'aftu_8', 'aftu_11'});
+      expect(confirmes, isEmpty,
+          reason: 'TERMINI_MATCH ne confirme jamais une identité publique');
     });
 
     test('§7 : le filtre AFTU expose les arrêts PassBi AFTU réels', () {
@@ -752,11 +756,13 @@ void main() {
               isNot(app.DataStatus.live));
           expect(seg.departureTime, isNotNull);
           expect(seg.arrivalTime, isNotNull);
-          // L'identité de ligne reste un identifiant PassBi réel.
-          expect(seg.modeLabel, matches(RegExp(r'^(DDD|AFTU|TER|BRT)(_|$)')));
+          // L'identité de ligne reste un identifiant PassBi réel, EXPLICITEMENT
+          // marqué « PassBi » tant que l'identité publique n'est pas confirmée
+          // (verrouillage : jamais présenté comme un numéro public).
+          expect(seg.modeLabel, matches(RegExp(r'^PassBi (DDD|AFTU)(_|$)')));
         }
-        expect(r.segments.first.modeLabel, startsWith('DDD'));
-        expect(r.segments.last.modeLabel, startsWith('AFTU'));
+        expect(r.segments.first.modeLabel, startsWith('PassBi DDD'));
+        expect(r.segments.last.modeLabel, startsWith('PassBi AFTU'));
       } finally {
         app.allStops
           ..clear()

@@ -319,14 +319,17 @@ class ScheduleProvider {
   /// §2 — Identité d'affichage d'une ligne PassBi, construite UNIQUEMENT à
   /// partir des métadonnées réellement présentes dans le feed.
   ///
-  ///  * identité confirmée  → l'identité publique du crosswalk (ex. « BRT B1 »,
-  ///    « AFTU_3 ») ;
+  ///  * identité confirmée (preuve documentaire du crosswalk UNIQUEMENT :
+  ///    [RouteMapping.isMapped]) → l'identité publique documentée (ex. « BRT B1 ») ;
   ///  * identité non confirmée → « Ligne PassBi <route_id> » ; si le feed
   ///    fournit un `short_name` distinct du `route_id`, il est ajouté tel quel
   ///    (ex. « Ligne PassBi DDD_217 · D217OT »).
   ///
-  /// Aucun nom commercial inventé, aucune origine/destination déduite du
-  /// numéro, aucune identité fabriquée.
+  /// Un identifiant PassBi n'est JAMAIS présenté comme un numéro public
+  /// confirmé : « DDD_217 / D217OT » reste une ligne PassBi tant qu'aucune
+  /// preuve documentaire ne l'établit comme identité publique DDD. Aucun nom
+  /// commercial inventé, aucune origine/destination déduite du numéro, aucune
+  /// identité fabriquée.
   static String identityLabelFor(
     String networkKey,
     String pbRouteId,

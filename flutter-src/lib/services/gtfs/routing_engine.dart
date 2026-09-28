@@ -3,11 +3,17 @@
 /// Structure utilisée : route → trip → service → stop → stop_sequence →
 /// horaire → correspondance.
 ///
-/// Garde-fous (Lot 4.18) :
+/// Garde-fous (Lot 4.18, verrouillés Lot 4.21) :
 ///  * un trajet n'emprunte que des `stop_sequence` réellement présents dans
 ///    les données (jamais de liaison par proximité seule) ;
-///  * une correspondance n'existe qu'au même arrêt physique ou via un lien
-///    documenté du crosswalk (nom vérifié + distance ≤ 500 m) ;
+///  * une correspondance n'existe qu'au même arrêt physique réellement
+///    desservi ou via un lien DOCUMENTÉ du crosswalk ([TransferLink.isDocumented] :
+///    nom vérifié + distance ≤ 500 m — jamais la seule proximité) ;
+///  * une identité publique — confirmée OU non — n'est JAMAIS une preuve de
+///    correspondance : les transferts relient des arrêts PassBi réels des
+///    feeds, indépendamment de tout rattachement d'identité ;
+///  * aucun réseau hors feeds (TATA) n'a de clé ni de lien : zéro
+///    correspondance tant qu'aucun feed/identité documenté n'existe ;
 ///  * les services doivent être actifs à la date demandée (mode ROLLING) ;
 ///  * aucune donnée n'est inventée : sans chemin possible → liste vide ;
 ///  * jamais de REAL_TIME (horaires programmés uniquement).
@@ -274,10 +280,16 @@ class PassBiRoutingEngine {
     return results;
   }
 
-  /// Alias de correspondance documentés : (clé, marche en secondes).
+  /// Alias de correspondance DOCUMENTÉS uniquement : (clé, marche en secondes).
+  ///
+  /// Verrouillage (Lot 4.21) : [TransferLink.isDocumented] est revérifié ici —
+  /// un lien de pure proximité, sans nom vérifié, ou impliquant un réseau hors
+  /// feeds (TATA) ne produit JAMAIS de correspondance, même s'il parvenait
+  /// dans la source. La géographie seule ne crée aucune liaison.
   Iterable<(String, int)> _linksFrom(String key) sync* {
     // marche standard : 80 m/min, minimum 1 minute.
     for (final link in source.transfers) {
+      if (!link.isDocumented) continue;
       if (link.from == key) {
         final minutes = link.meters ~/ 80 < 1 ? 1 : link.meters ~/ 80;
         yield (link.to, minutes * 60);

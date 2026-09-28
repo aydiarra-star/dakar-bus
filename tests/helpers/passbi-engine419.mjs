@@ -39,6 +39,19 @@ export function loadAll() {
     networks[key] = n;
   }
   const cw = JSON.parse(readFileSync(`${BASE}/crosswalk.json`, 'utf8'));
+  // Verrouillage Lot 4.21 — miroir du parseur Dart (CrosswalkParser) : seuls
+  // les liens de correspondance DOCUMENTÉS (nom vérifié + distance bornée,
+  // réseaux couverts par les feeds) entrent dans `cw.transfers`. Une proximité
+  // seule, un lien sans nom vérifié ou une clé hors feeds (TATA) est rejeté :
+  // le moteur ne peut pas l'utiliser comme correspondance.
+  const DOCUMENTED_TRANSFER_METHODS = ['NOM_IDENTIQUE_PROXIMITE', 'INCLUSION_NOM_PROXIMITE'];
+  const netOf = (k) => { const i = k.indexOf(':'); return i > 0 ? k.slice(0, i) : null; };
+  cw.transfers = (cw.transfers ?? []).filter((t) =>
+    DOCUMENTED_TRANSFER_METHODS.includes(t.method)
+    && typeof t.name === 'string' && t.name.trim() !== ''
+    && Number.isFinite(t.meters) && t.meters >= 0 && t.meters <= 500
+    && t.from !== t.to
+    && FILES[netOf(t.from)] !== undefined && FILES[netOf(t.to)] !== undefined);
   return { networks, cw };
 }
 

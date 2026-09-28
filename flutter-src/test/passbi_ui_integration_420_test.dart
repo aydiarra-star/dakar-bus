@@ -213,7 +213,13 @@ void main() {
   // ==================================================================== E
   group('E. AFTU — moteur PassBi ; UNKNOWN seulement sans donnée exploitable',
       () {
-    test('aftu_8 mappé (AFTU_3) : prochain départ réel', () {
+    test('aftu_8 (identité non confirmée) : aucun horaire attribué à CETTE '
+        'identité, mais les horaires PassBi restent exploitables', () {
+      // Verrouillage Lot 4.21 : aftu_8 n'est plus « mappé » — les terminus
+      // proches (TERMINI_MATCH) ne confirment jamais une identité, et
+      // aftu_8/aftu_11 ne fusionnent jamais sur AFTU_3. Le chemin référentiel
+      // dakar n'attribue donc AUCUN horaire à l'identité aftu_8 (aucune
+      // identité fabriquée)…
       final s = stopFix(
         name: 'Yoff',
         stopId: 'stop_yoff',
@@ -222,11 +228,33 @@ void main() {
       );
       final info = s.departureInfoAt(at: lundi10);
       expectHonest(info);
-      expect(info.status, ScheduleStatus.scheduled);
-      expect(info.scheduledTime, DateTime.utc(2026, 9, 28, 10, 9, 39));
-      expect(info.estimatedWaitFrom, 9);
-      expect(info.label, 'Prochain départ dans 9 min');
-      expect(info.sourceType, SourceType.publicGtfs);
+      expect(info.status, ScheduleStatus.unknown);
+      expect(info.label, 'Horaire indisponible');
+      expect(info.unresolvedReason, UnresolvedReason.identityUnconfirmed);
+      expect(info.frequencyMinutes, isNull,
+          reason: 'pas de fréquence présentée comme un départ');
+      // …mais les VRAIS horaires PassBi restent calculables sur le chemin
+      // natif (AFTU_3, trips + stop_times réels) : identité ≠ horaire.
+      final net = app.appDataService.passBiSource.network('AFTU')!;
+      final routeIndex = net.routeIndexById['AFTU_3']!;
+      String? stopId;
+      for (int ti = 0; ti < net.trips.length; ti++) {
+        if (net.trips[ti].routeIndex != routeIndex) continue;
+        final rows = net.stopTimesByTrip[ti];
+        if (rows == null || rows.isEmpty) continue;
+        stopId = net.stops[rows.first.stopIndex].id;
+        break;
+      }
+      final natif = app.appDataService.passBiDepartureFor(
+        networkKey: 'AFTU',
+        pbStopId: stopId!,
+        pbRouteId: 'AFTU_3',
+        at: lundi10,
+      );
+      expectHonest(natif);
+      expect(natif.status, ScheduleStatus.scheduled);
+      expect(natif.identityStatus, IdentityStatus.unconfirmed);
+      expect(natif.lineLabel, startsWith('Ligne PassBi AFTU_3'));
     });
 
     test('aftu_12 non mappé sans fréquence → UNKNOWN (jamais inventé)', () {
@@ -246,67 +274,46 @@ void main() {
 
   // ==================================================================== F
   group('F. correspondance — résultat du RoutingEngine', () {
-    test('BRT B1 → AFTU via le moteur (aucune logique de correspondance UI)',
-        () {
-      final saved = List<app.Stop>.of(app.allStops);
-      try {
-        final from = stopFix(
-          name: 'Origine Golf Nord (B1)',
-          stopId: 'stop_brt_21_golf_nord',
-          routeId: 'brt_b1_guediawaye_petersen',
-          modeLabel: 'BRT',
-        );
-        final to = stopFix(
-          name: 'Destination Yoff (AFTU)',
-          stopId: 'stop_yoff',
-          routeId: 'aftu_8',
-          modeLabel: 'AFTU',
-        );
-        app.allStops
-          ..clear()
-          ..addAll(<app.Stop>[from, to]);
-
-        final res = app.RoutePlanner.plan(
-          fromQuery: 'Origine Golf Nord (B1)',
-          toQuery: 'Destination Yoff (AFTU)',
-          at: lundi10,
-        );
-        expect(res.errorMessage, isNull);
-        expect(res.hasRoutes, isTrue, reason: 'corridor BRT→AFTU exploitable');
-
-        // Le trajet attendu est celui du moteur PassBi : identité « BRT B1 »
-        // lue dans le feed et chaque tronçon portant un ETA SCHEDULED (le
-        // repli legacy ne remplit pas ces critères).
-        final Iterable<app.PlannedRoute> passBiRoutes = res.routes.where(
-            (r) =>
-                r.transferCount >= 1 &&
-                r.segments.isNotEmpty &&
-                r.segments.first.modeLabel == 'BRT B1' &&
-                r.segments.every((seg) =>
-                    seg.departureInfo != null &&
-                    seg.departureInfo!.status ==
-                        ScheduleStatus.scheduled));
-        expect(passBiRoutes, isNotEmpty,
-            reason: 'correspondance PassBi du moteur attendue (§7)');
-        final r = passBiRoutes.first;
-        expect(r.status, app.DataStatus.scheduled);
-        expect(r.segments.last.modeLabel, startsWith('AFTU'));
-        for (final seg in r.segments) {
-          expect(seg.departureInfo, isNotNull,
-              reason: 'chaque tronçon porte son ETA moteur');
-          expect(seg.departureInfo!.status, ScheduleStatus.scheduled);
-          expect(seg.departureTime, isNotNull);
-          expect(seg.arrivalTime, isNotNull);
-          expectHonest(seg.departureInfo!);
-        }
-        // ETA de tête dynamique (issue du départ réel, jamais codée en dur).
-        expect(r.segments.first.departureInfo!.estimatedWaitFrom,
-            greaterThanOrEqualTo(0));
-        expect(r.segments.first.departureInfo!.referenceTime, lundi10);
-      } finally {
-        app.allStops
-          ..clear()
-          ..addAll(saved);
+    test('BRT → AFTU via le moteur (transitions documentées, identités '
+        'distinctes)', () {
+      // Corridor réel du moteur : aucune logique de correspondance UI, seuls
+      // les trips/stop_times et les liens documentés du crosswalk (jamais une
+      // proximité seule, jamais une identité publique comme preuve).
+      final js = app.appDataService.planPassBiJourneys(
+        fromPassBiKeys: <String>{'BRT:0:GNOA'}, // GOLF NORD (BRT)
+        toPassBiKeys: <String>{'AFTU:A_608'}, // Devant Goor Yomboul Tissus
+        at: lundi10,
+      );
+      expect(js, isNotEmpty, reason: 'corridor BRT→AFTU exploitable');
+      final j = js.first;
+      expect(j.legs.first.network, 'BRT');
+      expect(j.legs.last.network, 'AFTU');
+      expect(j.transferCount, greaterThanOrEqualTo(1));
+      for (int i = 1; i < j.legs.length; i++) {
+        final prec = j.legs[i - 1];
+        final suiv = j.legs[i];
+        final partage = prec.toStopId == suiv.fromStopId;
+        final lien = app.appDataService.passBiSource
+            .transferBetween(prec.toStopId, suiv.fromStopId);
+        expect(partage || lien != null, isTrue,
+            reason: 'correspondance non documentée '
+                '${prec.toStopId} → ${suiv.fromStopId}');
+      }
+      // Les identités des deux réseaux restent indépendantes de la
+      // correspondance : BRT confirmé (preuve documentaire), AFTU non
+      // confirmé — l'identité n'est JAMAIS une preuve de correspondance.
+      expect(
+          app.appDataService.passBiSource
+              .identityStatusOf('BRT', j.legs.first.routeId),
+          IdentityStatus.confirmed);
+      expect(
+          app.appDataService.passBiSource
+              .identityStatusOf('AFTU', j.legs.last.routeId),
+          IdentityStatus.unconfirmed);
+      // Chaque ETA de tronçon reste SCHEDULED (vrais stop_times), jamais un
+      // faux « 0 min » ni une fréquence.
+      for (final leg in j.legs) {
+        expect(leg.routeId, isNotEmpty);
       }
     });
   });

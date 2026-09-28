@@ -1982,7 +1982,14 @@ class RoutePlanner {
         ),
       );
       segments.add(RouteSegment(
-        modeLabel: passBiLineLabel(leg.network, leg.routeId),
+        // Lot 4.21 (verrouillage) : un identifiant PassBi n'est JAMAIS
+        // présenté comme le numéro public d'une ligne. Sans preuve
+        // documentaire d'identité, le tronçon est explicitement marqué
+        // « PassBi » (ex. « PassBi DDD_217 ») ; une identité confirmée garde
+        // son identité documentée (« BRT B1 », réseau « TER »).
+        modeLabel: identity == IdentityStatus.unconfirmed
+            ? 'PassBi ${passBiLineLabel(leg.network, leg.routeId)}'
+            : passBiLineLabel(leg.network, leg.routeId),
         color: style.$2,
         icon: style.$3,
         from: leg.fromStopName,
@@ -2029,6 +2036,11 @@ class RoutePlanner {
   /// Identité d'affichage d'une ligne PassBi — strictement les ids du feed :
   /// « BRT B1 » / « BRT B2 », « DDD_01 », « AFTU_3 » ; le TER (UUID) reste
   /// affiché sous son réseau, aucun numéro déduit.
+  ///
+  /// Verrouillage Lot 4.21 : ce libellé nu est un IDENTIFIANT PassBi. Sans
+  /// identité publique confirmée, les tronçons l'affichent préfixé
+  /// « PassBi » (voir [_plannedFromPassBi]) pour ne jamais le présenter
+  /// comme le numéro public d'une ligne DDD/AFTU.
   static String passBiLineLabel(String network, String routeId) {
     final String id = routeId.toUpperCase();
     if (id.startsWith(network.toUpperCase())) return routeId;

@@ -131,12 +131,25 @@ enum PassBiNetworkAvailability {
 }
 
 class RouteMapping {
+  /// Lot 4.21 (verrouillage) — Méthodes de PREUVE DOCUMENTAIRE seules
+  /// susceptibles de confirmer une identité publique. Une identité n'est
+  /// JAMAIS confirmée par un numéro, un route_id, un nom similaire, OSM,
+  /// une proximité ou des terminus proches (`TERMINI_MATCH` reste une
+  /// hypothèse non confirmée).
+  static const Set<String> documentedIdentityMethods = <String>{
+    'IDENTITY_OFFICIELLE',
+  };
+
   final String dakarRouteId;
   final String? network; // TER | BRT | DDD | AFTU | null
   final List<String> pbRouteIds;
   final String status; // MAPPED | UNMAPPED
   final String method;
   final String note;
+
+  /// Observation d'appariement NON confirmée (ex. `TERMINI_MATCH`) : gardée
+  /// pour l'audit, elle ne produit AUCUN rattachement et ne confirme rien.
+  final Map<String, dynamic>? hypothesis;
 
   const RouteMapping({
     required this.dakarRouteId,
@@ -145,9 +158,17 @@ class RouteMapping {
     required this.status,
     required this.method,
     required this.note,
+    this.hypothesis,
   });
 
-  bool get isMapped => status == 'MAPPED' && network != null && pbRouteIds.isNotEmpty;
+  /// `true` uniquement si le crosswalk rattache la route avec une PREUVE
+  /// DOCUMENTAIRE. Un `MAPPED` obtenu par termini/numéro/nom/proximité n'est
+  /// pas une identité confirmée : [isMapped] reste `false`.
+  bool get isMapped =>
+      status == 'MAPPED' &&
+      network != null &&
+      pbRouteIds.isNotEmpty &&
+      documentedIdentityMethods.contains(method);
 
   factory RouteMapping.fromJson(String dakarRouteId, Map<String, dynamic> json) =>
       RouteMapping(
@@ -157,6 +178,7 @@ class RouteMapping {
         status: (json['status'] ?? 'UNMAPPED') as String,
         method: (json['method'] ?? '') as String,
         note: (json['note'] ?? '') as String,
+        hypothesis: (json['hypothesis'] as Map<String, dynamic>?),
       );
 }
 
@@ -189,6 +211,16 @@ class StopMapping {
 }
 
 class TransferLink {
+  /// Lot 4.21 (verrouillage) — Méthodes de correspondance DOCUMENTÉES : le
+  /// NOM est vérifié (égalité normalisée ou inclusion) et la distance reste
+  /// bornée. AUCUNE correspondance par proximité seule : un lien sans méthode
+  /// de nom vérifié, sans nom, ou impliquant un réseau hors feeds (TATA) est
+  /// rejeté au chargement et n'entre jamais dans `source.transfers`.
+  static const Set<String> documentedMethods = <String>{
+    'NOM_IDENTIQUE_PROXIMITE', // même nom normalisé, ≤ 500 m
+    'INCLUSION_NOM_PROXIMITE', // inclusion de nom inter-réseaux, ≤ 250 m
+  };
+
   final String from; // composite « NET:id »
   final String to;
   final int meters;
@@ -204,6 +236,24 @@ class TransferLink {
     required this.method,
     required this.confidence,
   });
+
+  /// Lien de correspondance réellement documenté (voir [documentedMethods]).
+  /// Une identité publique — confirmée ou non — n'intervient JAMAIS ici : la
+  /// preuve d'un transfert est un arrêt physique réellement desservi avec nom
+  /// vérifié, jamais une identité de ligne ni la seule géographie.
+  bool get isDocumented {
+    if (!documentedMethods.contains(method)) return false;
+    if (name.trim().isEmpty) return false;
+    if (meters < 0 || meters > 500) return false;
+    if (from == to) return false;
+    final String? netFrom = PassBiSource.splitComposite(from)?[0];
+    final String? netTo = PassBiSource.splitComposite(to)?[0];
+    if (netFrom == null || netTo == null) return false;
+    // Réseaux couverts par les feeds PassBi uniquement (TATA : absent → zéro
+    // correspondance possible, toute clé « TATA:… » est rejetée).
+    return PassBiSource.assetFiles.containsKey(netFrom) &&
+        PassBiSource.assetFiles.containsKey(netTo);
+  }
 
   factory TransferLink.fromJson(Map<String, dynamic> json) => TransferLink(
         from: json['from'] as String,
@@ -365,14 +415,15 @@ class PassBiSource {
       <String, List<PassBiStopRef>>{};
 
   /// Identités du référentiel dakar dont le crosswalk rattache cette route
-  /// PassBi (statut MAPPED uniquement). Vide = identité publique non
-  /// confirmée (et NON « absence d'horaire »).
+  /// PassBi avec une PREUVE DOCUMENTAIRE ([RouteMapping.isMapped] : méthode
+  /// [RouteMapping.documentedIdentityMethods] uniquement). Vide = identité
+  /// publique non confirmée (et NON « absence d'horaire »).
   List<String> dakarRouteIdsFor(String networkKey, String pbRouteId) {
     final mappings = _routeMappings;
     if (mappings == null) return const <String>[];
     final out = <String>[];
     mappings.forEach((dakarRouteId, m) {
-      if (m.status == 'MAPPED' &&
+      if (m.isMapped &&
           m.network == networkKey &&
           m.pbRouteIds.contains(pbRouteId)) {
         out.add(dakarRouteId);
@@ -382,8 +433,10 @@ class PassBiSource {
   }
 
   /// §3 — Identité publique d'une route PassBi : CONFIRMED seulement si le
-  /// crosswalk la rattache à une identité du référentiel dakar (identité
-  /// officielle TER/BRT ou concordance de terminus). Sinon UNCONFIRMED.
+  /// crosswalk la rattache à une identité du référentiel dakar par PREUVE
+  /// DOCUMENTAIRE ([RouteMapping.isMapped]). Un numéro similaire, des terminus
+  /// proches ou un nom ressemblant ne confirment jamais : sinon UNCONFIRMED
+  /// — sans jamais empêcher un horaire calculable.
   IdentityStatus identityStatusOf(String networkKey, String pbRouteId) =>
       dakarRouteIdsFor(networkKey, pbRouteId).isNotEmpty
           ? IdentityStatus.confirmed
@@ -706,7 +759,13 @@ class CrosswalkParser {
     });
     final transfers = <TransferLink>[];
     for (final t in (root['transfers'] as List<dynamic>? ?? const [])) {
-      transfers.add(TransferLink.fromJson(t as Map<String, dynamic>));
+      final link = TransferLink.fromJson(t as Map<String, dynamic>);
+      // Verrouillage (Lot 4.21) : seuls les liens DOCUMENTÉS (nom vérifié +
+      // distance bornée, réseaux des feeds) entrent dans `source.transfers`.
+      // Un lien de pure proximité — ou impliquant un réseau hors feeds comme
+      // TATA — est rejeté ici : le moteur de routage ne pourra jamais
+      // l'utiliser comme correspondance.
+      if (link.isDocumented) transfers.add(link);
     }
     return PassBiCrosswalk(
       routes: routes,
