@@ -26,8 +26,9 @@ import 'package:latlong2/latlong.dart';
 import 'package:dakar_bus/main.dart' as app;
 import 'package:dakar_bus/models/departure_info.dart';
 import 'package:dakar_bus/models/schedule_display.dart';
-import 'package:dakar_bus/services/data_provider.dart';
+import 'package:dakar_bus/models/transport_network.dart';
 import 'package:dakar_bus/services/gtfs/passbi_source.dart';
+import 'package:dakar_bus/services/data_provider.dart';
 import 'package:dakar_bus/services/schedule_provider.dart';
 
 void main() {
