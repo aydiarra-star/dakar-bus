@@ -26,6 +26,9 @@ une absence de données.
 **Correctif :** un **chemin natif PassBi** (`PassBiSource → ScheduleProvider → DepartureInfo → UI`) exploite les
 métadonnées réelles du feed, avec un champ `identity_status` **distinct** du statut horaire (§3).
 
+**Résultat mesuré** (CI du commit `992a32d`) : `flutter analyze` → 0 issue · `flutter test` → **481/481** ·
+`flutter build web` → succès · `npm test` → **82/82** · `TER BRT data validation` → succès.
+
 | Réseau | Routes | Horaires calculables | Identité publique confirmée | Traitement Lot 4.21 |
 |---|---|---|---|---|
 | TER   | 6  | 6/6   | 6/6   | inchangé (crosswalk) |
@@ -420,10 +423,18 @@ Même matrice, plus :
 ### 7.3 Non-régression (§12)
 
 - `npm test` : **82/82** (63 tests 4.19/4.20 inchangés + 19 tests Lot 4.21), `0` échec ;
-- tests Flutter : `446` tests existants **non modifiés** + le nouveau fichier ; `flutter analyze` / `flutter
-  test` / `flutter build web` exécutés par la CI (voir §9) ;
+- Flutter (CI réelle) : **tests +481 / -0**, `flutter analyze` → **« No issues found! »**,
+  `flutter build web` → **succès** ; les 446 tests existants sont **non modifiés** ;
 - `data/gtfs/` et `scripts/check-arrets.js` : **non modifiés** ;
-- TER, BRT B1, BRT B2, GPS, cartographie, `allStops` (117 arrêts), 56 marqueurs carte, UI : inchangés.
+- TER, BRT B1, BRT B2, GPS, cartographie, `allStops` (117 arrêts, vérifié en test), 56 marqueurs carte,
+  UI : inchangés.
+
+### 7.4 Incidents CI corrigés pendant le lot
+
+| Commit | Constat CI | Correctif |
+|---|---|---|
+| `66af0ff` | `flutter analyze` : 7 issues (1 `undefined_identifier` `ScheduleStatus` non importé, 5 accumulateurs construits par des fermetures à zéro argument passées à `List.map`, 1 `prefer_const_declarations`) | import ajouté, listes typées `List.filled` / `List.generate`, `const` — **analyze 0 issue** |
+| `992a32d` | `flutter test` : 480/481 — le cas K lisait un `allStops` vide (le fichier de test n'intégrait pas le référentiel dakar) | `integrateNetworkDataForTest()` en `setUpAll` + assertion « 117 arrêts, aucune pollution » — **481/481** |
 
 ---
 
@@ -474,9 +485,25 @@ Le champ `DepartureInfo.unresolvedReason` porte désormais la raison exacte. Auc
 
 | Étape | Résultat |
 |---|---|
-| `npm test` (local) | **82/82** — 19 nouveaux tests Lot 4.21, 63 tests existants inchangés |
+| `npm test` (local, 2026-09-28) | **82/82** — 19 nouveaux tests Lot 4.21, 63 tests existants inchangés |
 | `node scripts/audit-passbi-ddd-aftu.mjs` | tableau §1 reproductible |
-| `flutter analyze` / `flutter test` / `flutter build web` | **CI GitHub Actions** (`flutter-verify.yml` + `flutter-web-build.yml`, branche de session ajoutée) — aucune revendication locale, le SDK Dart n'est pas installable dans l'environnement de travail |
-| Commit | `feat(dakar-bus): enable passbi ddd aftu schedules` |
+| `flutter analyze` (CI) | **No issues found!** (0 issue) |
+| `flutter test` (CI) | **tests +481 / -0** (`flutter-verify` + `flutter-web-build`) |
+| `flutter build web --release` (CI) | **succès** |
+| `TER BRT data validation` (CI) | **succès** |
+| Commit de référence validé par la CI | **`992a32d`** — `feat(dakar-bus): enable passbi ddd aftu schedules` (puis 2 correctifs CI `66af0ff`, `992a32d`) |
 
+Le SDK Dart n'étant pas installable dans l'environnement de travail (sortie réseau restreinte vers
+`storage.googleapis.com` et `pub.dev`), **aucun résultat Flutter n'est revendiqué sans la CI** : les valeurs
+ci-dessus proviennent des check-runs GitHub Actions des quatre workflows du dépôt.
+
+**Commits du lot**
+
+| SHA | Message |
+|---|---|
+| `848d8bf` | `feat(dakar-bus): enable passbi ddd aftu schedules` |
+| `66af0ff` | `fix(dakar-bus): corriger les 7 issues révélées par flutter analyze (CI)` |
+| `992a32d` | `fix(dakar-bus): référentiel dakar intégré dans le test 4.21 (CI 480/481)` |
+
+Pull request : **#38** (`arena/01a0e53c-dakar-bus` → `main`).
 PR #31 : **non modifiée, non fusionnée.**
