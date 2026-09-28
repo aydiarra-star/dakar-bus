@@ -799,8 +799,13 @@ void main() {
           .toList();
       expect(texts.any((t) => t.startsWith('Ligne PassBi DDD_')), isTrue,
           reason: 'identité d\'affichage PassBi (§2) : $texts');
-      expect(texts.any((t) => t.contains('Prochain départ dans')), isTrue,
-          reason: 'labels: $texts');
+      // Lot 4.22 : les prochains passages RÉELS s'affichent en minutes vertes
+      // (« 1 mn · 10 mn · 15 mn ») — plus de « Prochain départ dans… ».
+      final minutesPattern = RegExp(r'^[1-9]\d* mn( · [1-9]\d* mn)*$');
+      expect(texts.any(minutesPattern.hasMatch), isTrue,
+          reason: 'minutes vertes attendues: $texts');
+      expect(texts.any((t) => t.contains('Prochain départ dans')), isFalse,
+          reason: 'libellé interdit (Lot 4.22): $texts');
       expect(texts.any((t) => t.contains('Prochain départ dans 0 min')), isFalse);
       expect(texts.any((t) => t.toLowerCase().contains('live')), isFalse);
       expect(texts.any((t) => t == 'Horaire indisponible'), isFalse);

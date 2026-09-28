@@ -56,24 +56,27 @@ class ScheduleProvider {
     // station, liaisons crosswalk ≤ 30 m) participent à la recherche — un
     // quai d'arrivée seul rendrait le départ « introuvable » alors qu'une
     // sœur de départ est documentée à quelques mètres.
-    final candidates = <String>[parts[1], ...passBi.siblingStops(parts[0], parts[1])];
-    int? bestSec;
+    //
+    // Lot 4.22 : la recherche conserve le `tripId` réel (même moteur
+    // [PassBiSource.nextNativeDeparture] : embarquable + service actif + 7
+    // jours glissants) afin d'afficher le sens RÉEL du trip (headsign du
+    // feed) — jamais une destination déduite d'un nom, d'un numéro de ligne
+    // ou d'une proximité.
+    ({int sec, String routeId, String tripId, int dayOffset})? best;
     for (final pbRouteId in routeMapping.pbRouteIds) {
-      for (final pbStopId in candidates) {
-        final dep = passBi.nextDepartureSec(
-          networkKey: parts[0],
-          pbRouteId: pbRouteId,
-          pbStopId: pbStopId,
-          at: t,
-        );
-        if (dep != null && (bestSec == null || dep < bestSec)) bestSec = dep;
-      }
+      final found = passBi.nextNativeDeparture(
+        networkKey: parts[0],
+        pbStopId: parts[1],
+        at: t,
+        onlyRouteId: pbRouteId,
+      );
+      if (found != null && (best == null || found.sec < best.sec)) best = found;
     }
 
     final String operatorLabel = operatorName ?? _operatorFor(routeMapping.network);
     final String sourceUrl = net.meta['source_url'] ?? PassBiSource.sourceUrl;
 
-    if (bestSec == null) {
+    if (best == null) {
       // Route mappée, aucun départ calculable → UNKNOWN documenté.
       return DepartureInfo(
         status: ScheduleStatus.unknown,
@@ -101,9 +104,9 @@ class ScheduleProvider {
     }
 
     final minOfDay = t.difference(day).inSeconds;
-    final waitSec = bestSec - minOfDay;
+    final waitSec = best.sec - minOfDay;
     final waitMinutes = waitSec ~/ 60;
-    final scheduledTime = day.add(Duration(seconds: bestSec));
+    final scheduledTime = day.add(Duration(seconds: best.sec));
 
     return DepartureInfo(
       status: ScheduleStatus.scheduled,
@@ -120,12 +123,11 @@ class ScheduleProvider {
       validFrom: net.meta['valid_from'],
       validTo: net.meta['valid_to'],
       confidence: 0.8,
-      // Paramètres requis par DepartureInfo : aucune fréquence ni sens
-      // n'est attaché à un départ programmé (null = non déterminé ici,
-      // exactement comme DepartureInfo.unknown).
+      // Sens réel du trip (headsign du feed) — jamais déduit. Aucune fréquence
+      // n'est attachée à un départ programmé.
       frequencyMinutes: null,
       operatingHours: null,
-      direction: null,
+      direction: _tripDirection(net, best.tripId),
       // Lot 4.21 §3 : le crosswalk a confirmé cette identité publique.
       identityStatus: IdentityStatus.confirmed,
       identityNote: 'Identité publique confirmée par le crosswalk PassBi.',
@@ -301,6 +303,103 @@ class ScheduleProvider {
           shortName: summary?.shortName),
       unresolvedReason: null,
     );
+  }
+
+  // ======================================================================
+  // LOT 4.22 (EXPLORER) — JUSQU'À 3 PROCHAINS PASSAGES RÉELS
+  // ======================================================================
+
+  /// Jusqu'à [limit] prochains passages RÉELS sur un arrêt natif PassBi, dans
+  /// l'ordre chronologique strict, à partir de [requestedAt].
+  ///
+  /// Logique (aucune donnée inventée) :
+  ///  1. partir de l'heure actuelle ;
+  ///  2. chercher le prochain `stop_time` réel (trip + stop_time + service
+  ///      actif — [departureAtPassBiStop]) ;
+  ///  3. son horaire absolu est `scheduledTime` (secondes absolues, `dayOffset`
+  ///      du feed inclus : le passage de minuit place correctement le service
+  ///      en J+1) ;
+  ///  4. avancer d'UNE SECONDE juste après ce passage ;
+  ///  5. rechercher le suivant ;
+  ///  6. répéter jusqu'à [limit] passages (3 par défaut) ;
+  ///  7. s'arrêter dès qu'il n'y a plus de passage réel.
+  ///
+  /// JAMAIS d'avancée par fréquence : un départ ESTIMATED/fréquence ne
+  /// produit AUCUNE liste de passages (jamais « 6 mn · 12 mn · 18 mn » à
+  /// partir d'une fréquence de 6 min). Un départ déjà passé est ignoré.
+  List<DepartureInfo> nextDeparturesAtPassBiStop({
+    required String networkKey,
+    required String pbStopId,
+    required DateTime requestedAt,
+    String? pbRouteId,
+    int limit = 3,
+  }) {
+    final out = <DepartureInfo>[];
+    if (limit < 1) return out;
+    final DateTime start =
+        requestedAt.isUtc ? requestedAt : requestedAt.toUtc();
+    DateTime cursor = start;
+    while (out.length < limit) {
+      final info = departureAtPassBiStop(
+        networkKey: networkKey,
+        pbStopId: pbStopId,
+        requestedAt: cursor,
+        pbRouteId: pbRouteId,
+      );
+      if (info.status != ScheduleStatus.scheduled) break;
+      final DateTime? departureTime = info.scheduledTime;
+      if (departureTime == null) break;
+      if (departureTime.isBefore(start)) {
+        // Bord de troncature à la seconde : le passage est déjà passé → ignoré.
+        cursor = departureTime.add(const Duration(seconds: 1));
+        continue;
+      }
+      out.add(info);
+      // Juste après ce passage réel — jamais une fréquence.
+      cursor = departureTime.add(const Duration(seconds: 1));
+    }
+    return out;
+  }
+
+  /// Jusqu'à [limit] prochains passages RÉELS pour un couple (route, arrêt)
+  /// du référentiel dakar résolu par le crosswalk PassBi (TER, BRT…).
+  ///
+  /// Mêmes règles que [nextDeparturesAtPassBiStop] : uniquement de vrais
+  /// trips + stop_times ; une route non mappée ou sans départ calculable
+  /// retourne une liste vide — jamais de série issue d'une fréquence
+  /// (« 6 mn · 12 mn · 18 mn » est interdit).
+  List<DepartureInfo> nextDeparturesAt({
+    required String routeId,
+    required String? stopId,
+    required DateTime requestedAt,
+    bool isPublicHoliday = false,
+    String? operatorName,
+    int limit = 3,
+  }) {
+    final out = <DepartureInfo>[];
+    if (limit < 1) return out;
+    final DateTime start =
+        requestedAt.isUtc ? requestedAt : requestedAt.toUtc();
+    DateTime cursor = start;
+    while (out.length < limit) {
+      final info = departureAt(
+        routeId: routeId,
+        stopId: stopId,
+        requestedAt: cursor,
+        isPublicHoliday: isPublicHoliday,
+        operatorName: operatorName,
+      );
+      if (info == null || info.status != ScheduleStatus.scheduled) break;
+      final DateTime? departureTime = info.scheduledTime;
+      if (departureTime == null) break;
+      if (departureTime.isBefore(start)) {
+        cursor = departureTime.add(const Duration(seconds: 1));
+        continue;
+      }
+      out.add(info);
+      cursor = departureTime.add(const Duration(seconds: 1));
+    }
+    return out;
   }
 
   /// Sens réel d'un trip (`direction_id` du feed). `null` si le feed n'en

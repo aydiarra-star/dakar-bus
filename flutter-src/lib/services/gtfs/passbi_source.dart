@@ -722,6 +722,53 @@ class PassBiSource {
       dayOffset: best.dayOffset,
     );
   }
+
+  /// Lot 4.22 (Explorer) — Jusqu'à [limit] prochains départs natifs RÉELS,
+  /// dans l'ordre chronologique strict, à partir de [at].
+  ///
+  /// Logique (aucune donnée inventée) :
+  ///  1. partir de l'heure demandée ;
+  ///  2. trouver le prochain `stop_time` réel ([nextNativeDeparture] :
+  ///      départ embarquable + service actif + 7 jours glissants) ;
+  ///  3. son horaire absolu est `sec` (secondes depuis minuit du jour
+  ///      demandé, `dayOffset` déjà inclus : > 86400 = J+1..J+6) ;
+  ///  4. avancer d'UNE SECONDE juste après ce passage ;
+  ///  5. rechercher le suivant ;
+  ///  6. répéter jusqu'à [limit] passages (3 par défaut) ;
+  ///  7. s'arrêter dès qu'il n'y a plus de passage réel.
+  ///
+  /// JAMAIS d'avancée par fréquence : aucun départ n'est généré entre deux
+  /// stop_times réels, jamais de départ estimé, jamais REAL_TIME.
+  List<({int sec, String routeId, String tripId, int dayOffset})>
+      nextNativeDepartures({
+    required String networkKey,
+    required String pbStopId,
+    required DateTime at,
+    String? onlyRouteId,
+    int limit = 3,
+  }) {
+    final out = <({int sec, String routeId, String tripId, int dayOffset})>[];
+    if (limit < 1) return out;
+    DateTime cursor = at.isUtc ? at : at.toUtc();
+    while (out.length < limit) {
+      final DateTime cursorDay =
+          DateTime.utc(cursor.year, cursor.month, cursor.day);
+      final found = nextNativeDeparture(
+        networkKey: networkKey,
+        pbStopId: pbStopId,
+        at: cursor,
+        onlyRouteId: onlyRouteId,
+      );
+      if (found == null) break;
+      out.add(found);
+      // Horaire absolu du passage (dayOffset inclus dans `sec`), puis curseur
+      // placé une seconde APRÈS ce passage réel — jamais une fréquence.
+      final DateTime departureTime =
+          cursorDay.add(Duration(seconds: found.sec));
+      cursor = departureTime.add(const Duration(seconds: 1));
+    }
+    return out;
+  }
 }
 
 class PassBiCrosswalk {

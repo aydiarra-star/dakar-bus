@@ -136,6 +136,45 @@ class DataService {
     );
   }
 
+  /// Lot 4.22 (Explorer) — Jusqu'à [limit] prochains passages RÉELS d'un
+  /// arrêt natif PassBi (clé composite « NET:id »). Vrais trips + stop_times
+  /// uniquement ; une fréquence ne produit jamais de liste de départs.
+  List<DepartureInfo> passBiNextDeparturesForCompositeStop({
+    required String compositeStopId,
+    DateTime? at,
+    int limit = 3,
+  }) {
+    final parts = PassBiSource.splitComposite(compositeStopId);
+    if (parts == null) return const <DepartureInfo>[];
+    return scheduleProvider.nextDeparturesAtPassBiStop(
+      networkKey: parts[0],
+      pbStopId: parts[1],
+      requestedAt: at ?? DateTime.now(),
+      limit: limit,
+    );
+  }
+
+  /// Lot 4.22 (Explorer) — Jusqu'à [limit] prochains passages RÉELS d'un
+  /// couple (route, arrêt) du référentiel dakar (crosswalk PassBi). Liste
+  /// vide si aucun stop_time réel n'est calculable — jamais de faux temps.
+  List<DepartureInfo> nextDeparturesFor({
+    required String? routeId,
+    required String? stopId,
+    required String network,
+    DateTime? at,
+    bool isPublicHoliday = false,
+    int limit = 3,
+  }) {
+    if (routeId == null || stopId == null) return const <DepartureInfo>[];
+    return scheduleProvider.nextDeparturesAt(
+      routeId: routeId,
+      stopId: stopId,
+      requestedAt: at ?? DateTime.now(),
+      isPublicHoliday: isPublicHoliday,
+      limit: limit,
+    );
+  }
+
   /// Résout une fréquence officielle en ESTIMATED uniquement lorsqu'elle
   /// s'applique à la date/heure demandée. Aucun horaire station par station
   /// n'est construit ; les lignes sans source restent UNKNOWN.

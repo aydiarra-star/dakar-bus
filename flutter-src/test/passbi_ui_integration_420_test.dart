@@ -104,8 +104,18 @@ void main() {
           .widgetList<Text>(find.byType(Text))
           .map((t) => t.data ?? '')
           .toList();
-      expect(texts.any((t) => t.contains('Prochain départ dans')), isTrue,
-          reason: 'labels: $texts');
+      // Lot 4.22 : les prochains passages RÉELS s'affichent uniquement en
+      // minutes d'attente numériques (« 1 mn · 10 mn · 15 mn ») — jamais
+      // « Prochain départ dans… », « Prévu HH h MM » ni « Passage estimé… »,
+      // jamais « 0 mn » (les minutes commencent à 1).
+      final minutesPattern = RegExp(r'^[1-9]\d* mn( · [1-9]\d* mn)*$');
+      expect(texts.any(minutesPattern.hasMatch), isTrue,
+          reason: 'liste de minutes d\'attente réelles: $texts');
+      for (final t in texts) {
+        expect(t.contains('Prochain départ dans'), isFalse, reason: t);
+        expect(t.contains('Prévu'), isFalse, reason: t);
+        expect(t.contains('Passage estimé'), isFalse, reason: t);
+      }
       expect(
           texts.any((t) =>
               t.contains('Live') ||

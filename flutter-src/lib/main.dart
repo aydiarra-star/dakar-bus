@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'models/transport_network.dart';
 import 'models/reliability.dart';
 import 'models/departure_info.dart';
+import 'models/schedule_display.dart';
 import 'services/data_service.dart';
 import 'services/gtfs/passbi_source.dart';
 import 'services/gtfs/routing_engine.dart';
@@ -768,6 +769,45 @@ class Stop {
       at: at,
       isPublicHoliday: isPublicHoliday,
     );
+  }
+
+  /// Lot 4.22 (Explorer) — Jusqu'à [limit] prochains passages RÉELS de
+  /// l'arrêt (vrais trips + stop_times + services actifs PassBi).
+  ///
+  /// Une fréquence ne produit JAMAIS de liste de départs ; sans stop_time
+  /// réel applicable la liste est vide (l'UI affiche alors « Horaire
+  /// indisponible » — jamais de faux temps).
+  List<DepartureInfo> nextRealDepartures({DateTime? at, int limit = 3}) {
+    final String? key = passBiStopKey;
+    if (key != null) {
+      return appDataService.passBiNextDeparturesForCompositeStop(
+        compositeStopId: key,
+        at: at,
+        limit: limit,
+      );
+    }
+    return appDataService.nextDeparturesFor(
+      network: modeLabel,
+      routeId: scheduleRouteId,
+      stopId: stopId,
+      at: at,
+      limit: limit,
+    );
+  }
+
+  /// Lot 4.22 (Explorer) — Minutes d'attente (arrondi vers le haut, jamais 0)
+  /// des prochains passages RÉELS : `ceil(waitSeconds / 60)`. Liste vide si
+  /// aucun passage réel — un départ déjà passé est ignoré.
+  List<int> nextRealWaitingMinutes({DateTime? at, int limit = 3}) {
+    final DateTime now = at ?? DateTime.now();
+    final List<int> out = <int>[];
+    for (final DepartureInfo info in nextRealDepartures(at: now, limit: limit)) {
+      final DateTime? departureTime = info.scheduledTime;
+      if (departureTime == null) continue;
+      final int? minutes = waitingMinutesBetween(departureTime, now);
+      if (minutes != null) out.add(minutes);
+    }
+    return out;
   }
 
   const Stop({
@@ -3153,39 +3193,40 @@ class StopCard extends StatelessWidget {
         final dark = globalState.darkMode;
         final isFav = globalState.isFavorite(stop.name);
         const String crowd = ReliabilityLabel.crowdUnavailable;
-        Widget timeWidget;
 
-        // AUDIT DONNÉES 2026-09-24.
-        // AVANT : « Fermé » déduit de l'heure (5 h–22 h 30 supposés),
-        //         « Bientôt », « Imminent » et un compte à rebours vert calculé
-        //         sur des départs générés — lu comme du temps réel.
-        // APRÈS : sans horaire fourni → « Horaire indisponible » ; avec un
-        //         horaire fourni → « Prévu HH h MM » (programmé, pas de
-        //         compte à rebours). Aucun flux temps réel n'existe.
+        // Lot 4.22 — Explorer : les 3 prochains temps d'attente RÉELS,
+        // numériques, en vert, immédiatement sous l'en-tête
+        // « [Nom station] [MODE] vers [Destination] ».
         //
-        // Lot 4.21 : le départ lié à l'arrêt est calculé UNE fois ici ; son
-        // éventuel libellé d'identité PassBi (`lineLabel`, ex. « Ligne PassBi
-        // DDD_217 ») remplace alors le texte de direction statique. Pour tous
-        // les arrêts du référentiel dakar, `lineLabel` est `null` : le rendu
-        // existant est strictement inchangé.
-        final DepartureInfo? boundInfo =
-            stop.scheduleRouteId != null ? stop.departureInfo : null;
-        if (boundInfo != null) {
-          final info = boundInfo;
-          timeWidget = Text(info.label, style: TextStyle(
-            fontSize: info.status == ScheduleStatus.scheduled ? 13 : 11,
-            fontWeight: FontWeight.bold,
-            color: info.status == ScheduleStatus.scheduled
-                ? stop.color
-                : AppColors.textSecondary(dark),
-          ));
-        } else if (stop.scheduleStatus == ScheduleStatus.unknown) {
-          timeWidget = Text(ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary(dark)));
-        } else if (stop.nextDepartureMinutes() == null) {
-          timeWidget = Text('Aucun départ programmé', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary(dark)));
-        } else {
-          timeWidget = Text('Prévu ${stop.nextDepartureLabel()}', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: stop.color));
+        // AVANT : « Prévu HH h MM », « Prochain départ dans N min »,
+        //         « Passage estimé dans 0–6 min · fréquence 6 min ».
+        // APRÈS : uniquement les minutes d'attente de VRAIS trips + stop_times
+        //         (« 1 mn · 10 mn · 15 mn », arrondi vers le haut, jamais
+        //         0 mn, jamais une série issue d'une fréquence). Sans passage
+        //         réel : « Horaire indisponible » (aucun faux temps).
+        // Identité PassBi (Lot 4.21) conservée : `lineLabel` sous les minutes.
+        final DateTime now = DateTime.now();
+        final List<DepartureInfo> prochains = stop.nextRealDepartures(at: now);
+        final List<int> waits = <int>[];
+        for (final DepartureInfo info in prochains) {
+          final DateTime? departureTime = info.scheduledTime;
+          if (departureTime == null) continue;
+          final int? minutes = waitingMinutesBetween(departureTime, now);
+          if (minutes != null) waits.add(minutes);
         }
+        // Destination RÉELLE uniquement : sens du prochain trip (headsign du
+        // feed), sinon la direction référentielle explicite « Dir. X ». Sans
+        // direction réelle : aucun « vers » inventé.
+        final String? destination = prochains.isEmpty
+            ? normalizeDirectionLabel(stop.direction, requireDirPrefix: true)
+            : (normalizeDirectionLabel(prochains.first.direction) ??
+                normalizeDirectionLabel(stop.direction,
+                    requireDirPrefix: true));
+        final String header =
+            formatStopHeader(stop.name, stop.modeLabel, destination);
+        final bool hasWaits = waits.isNotEmpty;
+        final String? lineLabel =
+            prochains.isEmpty ? null : prochains.first.lineLabel;
 
         return GestureDetector(
           onLongPress: () {
@@ -3208,7 +3249,7 @@ class StopCard extends StatelessWidget {
               leading: CircleAvatar(backgroundColor: stop.color, radius: 24, child: Icon(stop.icon, color: Colors.white, size: 22)),
               title: Row(
                 children: [
-                  Expanded(child: Text(stop.name, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))),
+                  Expanded(child: Text(header, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))),
                   if (isFav) const Padding(padding: EdgeInsets.only(right: 6), child: Icon(Icons.star, size: 16, color: Colors.amber)),
                   _buildStopTypeBadge(stop.stopType),
                 ],
@@ -3218,42 +3259,32 @@ class StopCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(boundInfo?.lineLabel ?? stop.direction, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textSecondary(dark))),
+                    // Lot 4.22 : les 3 prochains temps RÉELS, numériques, en
+                    // vert, immédiatement sous l'en-tête. Sinon l'indicateur
+                    // neutre « Horaire indisponible » — jamais de faux temps.
+                    Text(
+                      hasWaits ? formatWaitingMinutes(waits) : ReliabilityLabel.scheduleUnavailable,
+                      style: TextStyle(
+                        fontSize: hasWaits ? 13 : 11,
+                        fontWeight: FontWeight.bold,
+                        color: hasWaits
+                            ? AppColors.success
+                            : AppColors.textSecondary(dark),
+                      ),
+                    ),
+                    if (lineLabel != null) ...[
+                      const SizedBox(height: 2),
+                      Text(lineLabel, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textSecondary(dark))),
+                    ],
                     const SizedBox(height: 2),
                     Text('${DistanceHelper.format(distanceMeters)} • ${stop.modeLabel} (${stop.source.badgeEmoji}) • $crowd', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
                   ],
                 ),
               ),
-              // BUG UI — LIBELLÉ DE DIRECTION REPLIÉ CARACTÈRE PAR CARACTÈRE.
-              //
-              // CAUSE : `ListTile` n'est pas un `Row` contrôlé ici ; il calcule
-              //   lui-même la largeur du titre et du sous-titre :
-              //     largeurTitre = largeurTuile − contentPadding
-              //                    − (leading + horizontalTitleGap)
-              //                    − (trailing + horizontalTitleGap)
-              //   `leading` vaut 48 px (+ 16 px de gap) et `trailing` reçoit
-              //   une largeur NON bornée : le libellé de fréquence
-              //   (« Passage estimé dans 0–6 min · fréquence 6 min », ~285 px
-              //   en 11 px gras) consommait donc presque toute la tuile. La
-              //   colonne de texte (dont `Text(stop.direction,
-              //   « Dir. Papa Gueye Fall - PEM Petersen BRT ») ne recevait plus
-              //   que quelques pixels — d'où un repli caractère par caractère
-              //   et un empilement vertical qui déformait la carte.
-              //
-              // CORRECTIF MINIMAL : borner la largeur du seul élément de droite
-              //   à une fraction de la largeur réellement disponible (contrainte
-              //   responsive issue du parent : aucune largeur fixe arbitraire),
-              //   de sorte que la colonne de texte conserve toujours la majorité
-              //   de l'espace et se replie uniquement entre les mots. Quand le
-              //   libellé tient déjà sur une ligne (écrans larges), sa largeur
-              //   naturelle est conservée : aucun changement d'affichage.
-              //   Aucun texte, couleur, icône, espacement ni style modifié.
-              trailing: LayoutBuilder(
-                builder: (context, constraints) => ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: constraints.maxWidth * 0.34),
-                  child: timeWidget,
-                ),
-              ),
+              // Lot 4.22 : l'ancienne étiquette horaire de droite (« Prévu
+              // HH h MM » / « Prochain départ dans… » / « Passage estimé
+              // dans… ») est remplacée par la liste des minutes vertes, posée
+              // sous l'en-tête — plus de zone « trailing » à borner.
             ),
           ),
         );
@@ -4506,6 +4537,11 @@ class SingleStopView extends StatelessWidget {
       builder: (context, _) {
         final dark = globalState.darkMode;
         final isFav = globalState.isFavorite(stop.name);
+        // Lot 4.22 (Explorer) : les prochains temps d'attente RÉELS
+        // (stop_times), minutes vertes ; « Horaire indisponible » sans
+        // passage réel — jamais de faux temps, jamais une fréquence.
+        final List<int> ficheWaits = stop.nextRealWaitingMinutes();
+        final bool ficheHasWaits = ficheWaits.isNotEmpty;
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
@@ -4552,8 +4588,16 @@ class SingleStopView extends StatelessWidget {
                             Text('Prochain départ programmé', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
                             const SizedBox(height: 2),
                             Text(
-                              stop.nextDepartureLabel() ?? ReliabilityLabel.scheduleUnavailable,
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: stop.color),
+                              ficheHasWaits
+                                  ? formatWaitingMinutes(ficheWaits)
+                                  : ReliabilityLabel.scheduleUnavailable,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: ficheHasWaits
+                                    ? AppColors.success
+                                    : AppColors.textSecondary(dark),
+                              ),
                               softWrap: true,
                             ),
                           ],
