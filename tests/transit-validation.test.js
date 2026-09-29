@@ -128,3 +128,12 @@ test('corrected local BRT headsigns correspond to existing trip endpoints', () =
   assert.ok(trips.includes('BRT_01,BRT_DAILY,BRT_01_001,Guédiawaye,0,'));
   assert.ok(trips.includes('BRT_01,BRT_DAILY,BRT_01_002,Petersen,1,'));
 });
+test('no stop_times row references an undeclared trip (GTFS referential integrity)', () => {
+  const fs=require('node:fs'),path=require('node:path'),root=path.join(__dirname,'..');
+  const csv=(p)=>fs.readFileSync(path.join(root,p),'utf8').trim().split(/\r?\n/).map(l=>l.split(','));
+  const trips=new Set(csv('data/gtfs/trips.txt').slice(1).map(r=>r[2]));
+  const orphans=new Set(csv('data/gtfs/stop_times.txt').slice(1).map(r=>r[0]).filter(id=>!trips.has(id)));
+  // TER_01_003 / BRT_01_003 sont désormais déclarés dans trips.txt : plus aucun
+  // stop_times ne pointe vers un trip absent (UNKNOWN_TRIP_REFERENCE).
+  assert.deepEqual([...orphans],[]);
+});
