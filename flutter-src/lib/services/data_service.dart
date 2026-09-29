@@ -109,7 +109,7 @@ class DataService {
       etaCalculator.computePassBi(
         networkKey: networkKey,
         pbStopId: pbStopId,
-        at: at ?? DateTime.now(),
+        at: at ?? DakarClock.now(),
         pbRouteId: pbRouteId,
         isPublicHoliday: isPublicHoliday,
       );
@@ -150,7 +150,7 @@ class DataService {
     return scheduleProvider.nextDeparturesAtPassBiStop(
       networkKey: parts[0],
       pbStopId: parts[1],
-      requestedAt: at ?? DateTime.now(),
+      requestedAt: at ?? DakarClock.now(),
       limit: limit,
     );
   }
@@ -170,7 +170,7 @@ class DataService {
     return scheduleProvider.nextDeparturesAt(
       routeId: routeId,
       stopId: stopId,
-      requestedAt: at ?? DateTime.now(),
+      requestedAt: at ?? DakarClock.now(),
       isPublicHoliday: isPublicHoliday,
       limit: limit,
     );
