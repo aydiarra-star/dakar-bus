@@ -987,39 +987,62 @@ class Stop {
   /// Une fréquence ne produit JAMAIS de liste de départs ; sans stop_time
   /// réel applicable la liste est vide (l'UI affiche alors « Horaire
   /// indisponible » — jamais de faux temps).
-  List<DepartureInfo> nextRealDepartures({DateTime? at, int limit = 3}) {
+  List<DepartureInfo> nextRealDepartures({DateTime? at, int limit = 3, DateTime? horizon}) {
+    final List<DepartureInfo> base;
     final String? key = passBiStopKey;
     if (key != null) {
-      return appDataService.passBiNextDeparturesForCompositeStop(
+      base = appDataService.passBiNextDeparturesForCompositeStop(
         compositeStopId: key,
         at: at,
         limit: limit,
       );
+    } else {
+      base = appDataService.nextDeparturesFor(
+        network: modeLabel,
+        routeId: scheduleRouteId,
+        stopId: stopId,
+        at: at,
+        limit: limit,
+      );
     }
-    return appDataService.nextDeparturesFor(
-      network: modeLabel,
-      routeId: scheduleRouteId,
-      stopId: stopId,
-      at: at,
-      limit: limit,
-    );
+    // Borne d'affichage : un départ du service SUIVANT (au-delà de la reprise
+    // documentée) n'est jamais présenté comme une attente du service en cours.
+    if (horizon == null) return base;
+    return base
+        .where((info) =>
+            info.scheduledTime == null || info.scheduledTime!.isBefore(horizon))
+        .toList(growable: false);
   }
 
   /// Lot 4.22 (Explorer) — Minutes d'attente (arrondi vers le haut, jamais 0)
   /// des prochains passages RÉELS : `ceil(waitSeconds / 60)`. Liste vide si
   /// aucun passage réel — un départ déjà passé est ignoré.
-  List<int> nextRealWaitingMinutes({DateTime? at, int limit = 3}) {
+  List<int> nextRealWaitingMinutes({DateTime? at, int limit = 3, DateTime? horizon}) {
     // FUSION LOT 1 (#40) : référence par défaut = heure de Dakar, jamais
     // l'heure locale du navigateur.
     final DateTime now = at == null ? DakarClock.now() : DakarClock.toDakar(at);
     final List<int> out = <int>[];
-    for (final DepartureInfo info in nextRealDepartures(at: now, limit: limit)) {
+    for (final DepartureInfo info
+        in nextRealDepartures(at: now, limit: limit, horizon: horizon)) {
       final DateTime? departureTime = info.scheduledTime;
       if (departureTime == null) continue;
       final int? minutes = waitingMinutesBetween(departureTime, now);
       if (minutes != null) out.add(minutes);
     }
     return out;
+  }
+
+  /// Repli legacy « X min » (horaire EXACT en minutes-depuis-minuit) borné par
+  /// [horizon] : un horaire du service suivant est ignoré, jamais affiché comme
+  /// une attente aberrante. Une fréquence (`estimated`) ne produit rien.
+  String? legacyRemainingWithin(DateTime? horizon, {DateTime? at}) {
+    final int? minutes = realRemainingMinutes(at: at);
+    if (minutes == null) return null;
+    final DateTime? departure = departureInfo.scheduledTime;
+    if (horizon != null && departure != null && !departure.isBefore(horizon)) {
+      return null;
+    }
+    return DepartureInfo.formatRemainingMinutes(minutes);
   }
 
   /// Lot fin de service — disponibilité du service journalier de la mobilité
@@ -3600,9 +3623,12 @@ class StopCard extends StatelessWidget {
         // (`active`), le prochain départ RÉEL documenté est affiché, même s'il
         // appartient au service de nuit (arrêt nocturne : aucune heure
         // fabriquée, uniquement le stop_time du feed).
-        final List<int> waits =
-            serviceEnded ? const <int>[] : stop.nextRealWaitingMinutes(at: now);
-        final List<DepartureInfo> prochains = stop.nextRealDepartures(at: now);
+        final List<int> waits = serviceEnded
+            ? const <int>[]
+            : stop.nextRealWaitingMinutes(
+                at: now, horizon: availability?.displayHorizonAt);
+        final List<DepartureInfo> prochains = stop.nextRealDepartures(
+            at: now, horizon: availability?.displayHorizonAt);
         // Destination RÉELLE uniquement : sens du prochain trip (headsign du
         // feed), sinon la direction référentielle explicite « Dir. X ». Sans
         // direction réelle : aucun « vers » inventé.
@@ -3626,7 +3652,8 @@ class StopCard extends StatelessWidget {
         // source opérationnelle étant PassBi) conserve son compte à rebours
         // « X min » en vert. Une fréquence (`estimated`) ne produit jamais de
         // compte à rebours : `realRemainingLabel` renvoie alors `null`.
-        final String? legacyRemaining = hasWaits ? null : stop.realRemainingLabel(at: now);
+        final String? legacyRemaining =
+            hasWaits ? null : stop.legacyRemainingWithin(availability?.displayHorizonAt, at: now);
         final String? serviceNotice = serviceNoticeFor(availability, now);
 
         return GestureDetector(
@@ -4573,8 +4600,10 @@ class AssistantReplies {
     // Après la fin de service documentée, le prochain stop_time peut relever du
     // service de nuit du lendemain : il est exclu, et la fin de service est
     // annoncée. Tant que le réseau roule, le prochain départ réel est affiché.
-    final List<int> waits =
-        serviceEnded ? const <int>[] : stop.nextRealWaitingMinutes(at: now);
+    final List<int> waits = serviceEnded
+        ? const <int>[]
+        : stop.nextRealWaitingMinutes(
+            at: now, horizon: availability?.displayHorizonAt);
     if (waits.isNotEmpty) {
       return '🚏 ${stop.name} : prochain passage ${formatWaitingMinutes(waits)} '
           '(horaire programmé, arrondi vers le haut).';
@@ -5151,8 +5180,10 @@ class SingleStopView extends StatelessWidget {
         // prochain stop_time peut relever du service de nuit du lendemain : il
         // est alors exclu de l'affichage « X min ». Tant que le réseau roule
         // (`active`), le prochain départ réel documenté est affiché.
-        final List<int> ficheWaits =
-            ficheServiceEnded ? const <int>[] : stop.nextRealWaitingMinutes();
+        final List<int> ficheWaits = ficheServiceEnded
+            ? const <int>[]
+            : stop.nextRealWaitingMinutes(
+                horizon: ficheAvailability?.displayHorizonAt);
         final bool ficheHasWaits = ficheWaits.isNotEmpty;
         final String? ficheServiceNotice = ficheHasWaits
             ? null

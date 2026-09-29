@@ -136,7 +136,7 @@ void main() {
       expect(b.dayOffset, 1);
     });
 
-    test('premier départ à minuit (service de nuit) → reprise non inventée', () {
+    test('premier départ à minuit → reprise 23:00 la veille (jamais écartée)', () {
       final GtfsNetwork net = GtfsNetwork.fromJson(
         'NIGHT',
         jsonEncode(<String, dynamic>{
@@ -168,10 +168,12 @@ void main() {
         isScheduleAvailable: (_) => true,
       );
       expect(a.status, ServiceAvailabilityStatus.serviceEnded);
-      // Premier départ à minuit : trop proche de la borne basse du feed pour
-      // étayer une heure de reprise — aucune heure n'est inventée.
-      expect(a.resumptionAt, isNull);
-      expect(a.isUpcomingService, isFalse);
+      // Premier départ à 00:00 : la reprise T-1h est 23:00 la veille — un
+      // service qui commence à minuit n'est jamais écarté (aucune heure
+      // inventée : 00:00 est le premier départ documenté du feed).
+      expect(a.firstDeparture, DateTime.utc(2026, 9, 29, 0, 0));
+      expect(a.resumptionAt, DateTime.utc(2026, 9, 28, 23, 0));
+      expect(a.isUpcomingService, isTrue);
     });
 
     test('réseau absent / horaires non documentés → inconnu', () {

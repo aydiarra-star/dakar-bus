@@ -346,29 +346,71 @@ class GtfsNetwork {
   ///   * [NetworkServiceBounds.firstSec] — premier départ documenté (brut, peut
   ///     valoir 0 pour un service de nuit type DDD) ;
   ///   * [NetworkServiceBounds.daySec] — borne du feed entier ;
-  ///   * [NetworkServiceBounds.dayOffset] — 1 si aucun service n'est actif ce
-  ///     jour-là mais que le jour suivant en a un (reprise honnête).
+  ///   * [NetworkServiceBounds.dayOffset] — décalage (1..7) vers le prochain
+  ///     jour de service documenté lorsque [day] lui-même n'en a aucun
+  ///     (reprise honnête, sans heure inventée).
   ///
   /// Aucune heure n'est inventée : une valeur absente reste `null`.
   NetworkServiceBounds networkServiceBounds(DateTime day) {
-    bool active(int si) => serviceActiveOn(si, day);
-
-    int? first = _firstSec(active);
-    int last = _lastSec(active);
-    int offset = 0;
-    if (last < 0) {
-      final next = DateTime.utc(day.year, day.month, day.day + 1);
-      bool nextActive(int si) => serviceActiveOn(si, next);
-      first = _firstSec(nextActive);
-      last = _lastSec(nextActive);
-      if (last >= 0) offset = 1;
+    final int? first = firstDepartureSecOn(day);
+    final int last = lastDepartureSecOn(day);
+    if (last >= 0) {
+      return NetworkServiceBounds(
+        firstSec: first,
+        lastSec: last,
+        daySec: daySec,
+        dayOffset: 0,
+      );
     }
+    // Aucun service actif ce jour-là : on cherche le prochain jour de service
+    // documenté (jusqu'à 7 jours) pour une reprise honnête — aucune heure n'est
+    // inventée si rien n'est trouvé.
+    final resumption = nextServiceResumption(day);
     return NetworkServiceBounds(
-      firstSec: first,
-      lastSec: last,
+      firstSec: resumption?.firstSec,
+      lastSec: resumption == null ? -1 : lastDepartureSecOn(resumption.day),
       daySec: daySec,
-      dayOffset: offset,
+      dayOffset: resumption?.dayOffset ?? 0,
     );
+  }
+
+  /// Premier départ EMBARQUABLE documenté du service actif de [day], `null` si
+  /// ce jour n'a aucun service actif. Peut valoir `0` — un service de nuit qui
+  /// commence à 00:00 n'est jamais écarté.
+  int? firstDepartureSecOn(DateTime day) {
+    if (!_hasActiveServiceOn(day)) return null;
+    return _firstSec((int si) => serviceActiveOn(si, day));
+  }
+
+  /// Dernier départ EMBARQUABLE documenté du service actif de [day], `-1` si
+  /// ce jour n'a aucun service actif.
+  int lastDepartureSecOn(DateTime day) {
+    if (!_hasActiveServiceOn(day)) return -1;
+    return _lastSec((int si) => serviceActiveOn(si, day));
+  }
+
+  bool _hasActiveServiceOn(DateTime day) {
+    for (int i = 0; i < services.length; i++) {
+      if (serviceActiveOn(i, day)) return true;
+    }
+    return false;
+  }
+
+  /// Prochain jour de service STRICTEMENT postérieur à [afterDay] (jusqu'à
+  /// [maxDays] jours) avec son premier départ documenté : base de la reprise
+  /// T-1h. `null` si aucun service documenté n'est trouvé — jamais inventé.
+  ({DateTime day, int firstSec, int dayOffset})? nextServiceResumption(
+    DateTime afterDay, {
+    int maxDays = 7,
+  }) {
+    for (int d = 1; d <= maxDays; d++) {
+      final day = DateTime.utc(afterDay.year, afterDay.month, afterDay.day + d);
+      final int? first = firstDepartureSecOn(day);
+      if (first != null) {
+        return (day: day, firstSec: first, dayOffset: d);
+      }
+    }
+    return null;
   }
 
   /// Plus petit premier départ documenté parmi les services sélectionnés par
@@ -508,6 +550,43 @@ class GtfsNetwork {
           dayOffset: d,
         );
       }
+    }
+    return null;
+  }
+
+  /// Lot fin de service — prochain départ EMBARQUABLE d'un ensemble de routes
+  /// et d'un arrêt, **limité au SEUL jour de service de [at]** (aucun balayage
+  /// multi-jours). C'est la primitive du pipeline d'affichage : un départ du
+  /// service SUIVANT (lendemain, jour de service suivant) ne doit jamais être
+  /// présenté comme une attente du service en cours (c'est l'origine des
+  /// attentes aberrantes de plusieurs centaines de minutes, ex. 508 min).
+  ///
+  /// Le service applicable et le service suivant sont traités séparément par
+  /// [ServiceAvailability] (fin de service + reprise T-1h).
+  ({int sec, int routeIndex, int tripIndex, int dayOffset})?
+      nextDepartureAmongWithin({
+    required Set<int> routeIndexes,
+    required int stopIndex,
+    required DateTime at,
+  }) {
+    if (routeIndexes.isEmpty) return null;
+    final list = stopTimesByStop[stopIndex];
+    if (list == null) return null;
+    final since = at.isUtc ? at : at.toUtc();
+    final day0 = _dakarDay(since);
+    final minOfDay0 = since.difference(day0).inSeconds;
+    for (final st in list) {
+      if (st.departureSec < minOfDay0) continue;
+      final trip = trips[st.tripIndex];
+      if (!routeIndexes.contains(trip.routeIndex)) continue;
+      if (!serviceActiveOn(trip.serviceIndex, day0)) continue;
+      if (!_tripContinuesPast(st)) continue;
+      return (
+        sec: st.departureSec,
+        routeIndex: trip.routeIndex,
+        tripIndex: st.tripIndex,
+        dayOffset: 0,
+      );
     }
     return null;
   }

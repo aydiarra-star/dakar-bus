@@ -77,6 +77,22 @@ class ServiceAvailability {
   /// Avance de reprise appliquée (minutes), exposée pour la traçabilité.
   final int resumptionLeadMinutes;
 
+  /// Borne d'affichage : instant au-delà duquel un départ appartient à un
+  /// service qui n'a PAS encore repris (jour de service suivant). Un départ
+  /// dont l'horaire est ≥ à cette borne ne doit jamais être présenté comme une
+  /// attente du service en cours — c'est l'origine des attentes aberrantes de
+  /// plusieurs centaines de minutes (ex. 508 min).
+  ///
+  /// Calcul :
+  ///  * si la reprise T-1h du prochain jour de service tombe APRÈS le dernier
+  ///    départ du jour applicable (vraie interruption, ex. BRT/TER), la borne
+  ///    est cette reprise ;
+  ///  * sinon (réseau quasi continu, la reprise tombe pendant le service en
+  ///    cours, ex. DDD), la borne est le PREMIER départ du jour de service
+  ///    suivant (inclus), afin de ne pas supprimer un départ nocturne réel ;
+  ///  * `null` si aucune donnée documentée ne permet de la fixer.
+  final DateTime? displayHorizonAt;
+
   /// Code documentaire ([ServiceAvailabilityReason]).
   final String reason;
 
@@ -86,6 +102,7 @@ class ServiceAvailability {
     this.resumptionAt,
     this.firstDeparture,
     this.resumptionLeadMinutes = kResumptionLeadMinutes,
+    this.displayHorizonAt,
     required this.reason,
   });
 
@@ -110,6 +127,7 @@ class ServiceAvailability {
     DateTime? resumptionAt,
     DateTime? firstDeparture,
     int resumptionLeadMinutes = kResumptionLeadMinutes,
+    DateTime? displayHorizonAt,
   }) =>
       ServiceAvailability(
         status: ServiceAvailabilityStatus.active,
@@ -117,6 +135,7 @@ class ServiceAvailability {
         resumptionAt: resumptionAt,
         firstDeparture: firstDeparture,
         resumptionLeadMinutes: resumptionLeadMinutes,
+        displayHorizonAt: displayHorizonAt,
         reason: ServiceAvailabilityReason.serviceActive,
       );
 
@@ -125,6 +144,7 @@ class ServiceAvailability {
     DateTime? resumptionAt,
     DateTime? firstDeparture,
     int resumptionLeadMinutes = kResumptionLeadMinutes,
+    DateTime? displayHorizonAt,
   }) =>
       ServiceAvailability(
         status: ServiceAvailabilityStatus.serviceEnded,
@@ -132,6 +152,7 @@ class ServiceAvailability {
         resumptionAt: resumptionAt,
         firstDeparture: firstDeparture,
         resumptionLeadMinutes: resumptionLeadMinutes,
+        displayHorizonAt: displayHorizonAt,
         reason: ServiceAvailabilityReason.afterLastDeparture,
       );
 
@@ -148,11 +169,12 @@ class ServiceAvailability {
       other.resumptionAt == resumptionAt &&
       other.firstDeparture == firstDeparture &&
       other.resumptionLeadMinutes == resumptionLeadMinutes &&
+      other.displayHorizonAt == displayHorizonAt &&
       other.reason == reason;
 
   @override
-  int get hashCode => Object.hash(
-      status, lastDeparture, resumptionAt, firstDeparture, resumptionLeadMinutes, reason);
+  int get hashCode => Object.hash(status, lastDeparture, resumptionAt,
+      firstDeparture, resumptionLeadMinutes, displayHorizonAt, reason);
 }
 
 /// Calcule la disponibilité du service journalier d'un réseau à [at].
@@ -177,47 +199,114 @@ ServiceAvailability computeNetworkServiceAvailability({
 
   final DateTime t = at.isUtc ? at : at.toUtc();
   final DateTime day = DateTime.utc(t.year, t.month, t.day);
-  final NetworkServiceBounds bounds = network.networkServiceBounds(day);
-  if (bounds.lastSec < 0) {
-    return ServiceAvailability.unknown(
-        ServiceAvailabilityReason.noDocumentedService);
-  }
-
   final int secondsOfDay = t.difference(day).inSeconds;
-  final DateTime lastDeparture = day.add(Duration(seconds: bounds.lastSec));
 
-  if (secondsOfDay > bounds.lastSec) {
-    // Fin de service : le dernier départ documenté du jour (ou le dernier
-    // départ d'un service de nuit ayant commencé la veille) est passé.
-    final DateTime tomorrow = DateTime.utc(day.year, day.month, day.day + 1);
-    return ServiceAvailability.serviceEnded(
+  // Bornes du service RÉELLEMENT applicable ce jour-là (aucun repli sur le
+  // lendemain : c'est la distinction Fin de service vs service encore actif).
+  final int lastToday = network.lastDepartureSecOn(day);
+  final DateTime? lastDeparture =
+      lastToday < 0 ? null : day.add(Duration(seconds: lastToday));
+
+  if (lastToday >= 0 && secondsOfDay <= lastToday) {
+    // Le service applicable roule encore (un départ embarquable reste possible
+    // aujourd'hui, service de nuit type DDD inclus).
+    final resumptionAt = _todayResumption(network, day);
+    return ServiceAvailability.active(
       lastDeparture: lastDeparture,
-      resumptionAt: _resumptionAt(network, tomorrow),
-      firstDeparture: _firstDepartureOf(network, tomorrow),
+      resumptionAt: resumptionAt,
+      firstDeparture: _firstDepartureOf(network, day),
+      displayHorizonAt: _activeHorizon(network, day, lastDeparture),
     );
   }
 
-  return ServiceAvailability.active(
-    lastDeparture: lastDeparture,
-    resumptionAt: _resumptionAt(network, day),
-    firstDeparture: _firstDepartureOf(network, day),
-  );
+  // Fin de service : le dernier départ embarquable du jour est passé, ou aucun
+  // service n'est actif aujourd'hui. On cherche le prochain jour de service
+  // documenté (jusqu'à 7 jours) et sa fenêtre de reprise T-1h :
+  //   * journée déjà terminée (now > dernier départ) → on passe à la suivante ;
+  //   * fenêtre de reprise atteinte (now ≥ premier départ − 1 h) → service
+  //     actif : le prochain départ documenté est affichable ;
+  //   * sinon → fin de service, reprise à (premier départ − 1 h).
+  for (int d = 0; d <= 7; d++) {
+    final DateTime dd = DateTime.utc(day.year, day.month, day.day + d);
+    final int? firstSec = network.firstDepartureSecOn(dd);
+    if (firstSec == null) continue;
+    final int lastSec = network.lastDepartureSecOn(dd);
+    final DateTime first = _dayOf(dd).add(Duration(seconds: firstSec));
+    final DateTime last = _dayOf(dd).add(Duration(seconds: lastSec));
+    final DateTime resume =
+        first.subtract(const Duration(minutes: kResumptionLeadMinutes));
+    if (t.isAfter(last)) continue; // journée entièrement terminée
+    if (!t.isBefore(resume)) {
+      // Fenêtre de reprise T-1h atteinte : le prochain service est affichable
+      // (aucun départ réel masqué — ex. service nocturne DDD à 00:09).
+      return ServiceAvailability.active(
+        lastDeparture: lastDeparture,
+        resumptionAt: resume,
+        firstDeparture: first,
+        displayHorizonAt: _activeHorizon(network, dd, last),
+      );
+    }
+    return ServiceAvailability.serviceEnded(
+      lastDeparture: lastDeparture,
+      resumptionAt: resume,
+      firstDeparture: first,
+      displayHorizonAt: resume,
+    );
+  }
+
+  return ServiceAvailability.unknown(
+      ServiceAvailabilityReason.noDocumentedService);
 }
 
+DateTime _dayOf(DateTime day) => DateTime.utc(day.year, day.month, day.day);
+
 /// Premier départ documenté du service actif à cette date, `null` si non étayé.
+///
+/// Un service de nuit qui commence à 00:00 est conservé tel quel : `firstSec`
+/// peut valoir `0`. Il n'est écarté que s'il atteint la borne haute du feed
+/// (≥ [NetworkServiceBounds.daySec]), c'est-à-dire qu'il n'y a pas de fenêtre
+/// documentée cohérente.
 DateTime? _firstDepartureOf(GtfsNetwork network, DateTime day) {
   final NetworkServiceBounds b = network.networkServiceBounds(day);
   final int? first = b.firstSec;
-  if (first == null || first <= 0 || first >= b.daySec) return null;
-  final DateTime base =
-      DateTime.utc(day.year, day.month, day.day + b.dayOffset);
-  return base.add(Duration(seconds: first));
+  if (first == null || first >= b.daySec) return null;
+  return _dayOf(day).add(Duration(days: b.dayOffset, seconds: first));
 }
 
-/// Reprise automatique : premier départ documenté moins [kResumptionLeadMinutes].
-/// `null` si le premier départ n'est pas suffisamment étayé (jamais inventé).
-DateTime? _resumptionAt(GtfsNetwork network, DateTime day) {
+/// Reprise « du jour » (service ACTIF) : premier départ documenté de [day]
+/// moins [kResumptionLeadMinutes], `null` si le jour n'a pas de premier départ
+/// étayé. Exposée pour la traçabilité du service en cours.
+DateTime? _todayResumption(GtfsNetwork network, DateTime day) {
   final DateTime? first = _firstDepartureOf(network, day);
   if (first == null) return null;
   return first.subtract(const Duration(minutes: kResumptionLeadMinutes));
+}
+
+/// Borne d'affichage lorsque le service est ACTIF : un départ du jour de
+/// service suivant n'est affichable que si la reprise T-1h de ce jour tombe
+/// APRÈS le dernier départ du jour applicable (vraie interruption, ex.
+/// BRT/TER). Sinon (réseau quasi continu, la reprise tombe pendant le service
+/// en cours, ex. DDD) la borne est le PREMIER départ du jour suivant, inclus :
+/// aucun départ nocturne réel n'est supprimé, et aucune attente aberrante du
+/// lendemain (ex. 508 min) n'est présentée comme le service en cours.
+DateTime? _activeHorizon(
+  GtfsNetwork network,
+  DateTime day,
+  DateTime? lastDeparture,
+) {
+  final resumption = network.nextServiceResumption(day);
+  if (resumption == null) return null;
+  final DateTime nextFirst = _dayOf(resumption.day)
+      .add(Duration(seconds: resumption.firstSec));
+  final DateTime nextResumption =
+      nextFirst.subtract(const Duration(minutes: kResumptionLeadMinutes));
+  // Vraie interruption (ex. BRT/TER) : la reprise T-1h du lendemain tombe
+  // APRÈS le dernier départ du jour → borne = cette reprise.
+  if (lastDeparture != null && nextResumption.isAfter(lastDeparture)) {
+    return nextResumption;
+  }
+  // Réseau quasi continu (ex. DDD) : la reprise tombe pendant le service en
+  // cours → borne = premier départ du jour suivant (inclus), aucun départ
+  // nocturne réel supprimé.
+  return nextFirst;
 }
