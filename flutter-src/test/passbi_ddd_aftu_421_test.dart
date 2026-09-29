@@ -15,6 +15,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:dakar_bus/main.dart' as app;
 import 'package:dakar_bus/models/departure_info.dart';
 import 'package:dakar_bus/models/transport_network.dart';
+import 'package:dakar_bus/services/documented_route_identity.dart';
 import 'package:dakar_bus/services/eta_calculator.dart';
 import 'package:dakar_bus/services/gtfs/passbi_source.dart';
 import 'package:dakar_bus/services/schedule_provider.dart';
@@ -98,8 +99,10 @@ void main() {
       // Identité publique NON confirmée (§3) : champ DISTINCT du statut horaire.
       expect(info.identityStatus, IdentityStatus.unconfirmed);
       expect(info.identityNote, contains('UNCONFIRMED'));
-      // §2 : l'affichage vient des métadonnées PassBi réelles.
-      expect(info.lineLabel, startsWith('Ligne PassBi DDD_01'));
+      // §2 : l'affichage vient des métadonnées réelles du feed. Chantier UI :
+      // la source de données (PassBi) n'est plus nommée dans l'interface.
+      expect(info.lineLabel, isNot(contains('PassBi')));
+      expect(info.lineLabel, startsWith('DDD'));
     });
 
     test('audit §1 : 53 routes DDD, 52 avec horaires calculables', () {
@@ -148,7 +151,8 @@ void main() {
           reason: 'les arrêts DDD PassBi exposés doivent produire des départs');
       for (final info in avecDepart) {
         expectHonest(info);
-        expect(info.lineLabel, startsWith('Ligne PassBi DDD_'));
+        expect(info.lineLabel, isNot(contains('PassBi')));
+        expect(info.lineLabel, startsWith('DDD'));
       }
     });
 
@@ -192,7 +196,8 @@ void main() {
       // confirment jamais une identité, et deux lignes publiques distinctes ne
       // fusionnent jamais sur un même identifiant PassBi.
       expect(info.identityStatus, IdentityStatus.unconfirmed);
-      expect(info.lineLabel, startsWith('Ligne PassBi AFTU_3'));
+      expect(info.lineLabel, isNot(contains('PassBi')));
+      expect(info.lineLabel, startsWith('AFTU'));
     });
 
     test('audit §1 : 73 routes AFTU, 71 avec horaires calculables', () {
@@ -238,7 +243,8 @@ void main() {
       expect(stop.source, app.DataSourceInfo.passbiGtfs);
       expect(stop.stopId, isNull,
           reason: 'un arrêt PassBi n\'est pas un arrêt dakar_network');
-      expect(stop.direction, contains('PassBi AFTU'));
+      expect(stop.direction, isNot(contains('PassBi')));
+      expect(stop.direction, contains('AFTU'));
       // Aucune identité de ligne dakar ne lui est attribuée.
       expect(app.DetailedRoute.fromStop(stop), isNull);
     });
@@ -546,9 +552,22 @@ void main() {
         final label = ScheduleProvider.identityLabelFor(
             'DDD', s.routeId, s.identityStatus,
             shortName: s.shortName);
-        expect(label, startsWith('Ligne PassBi ${s.routeId}'));
+        expect(label, isNot(contains('PassBi')));
+        expect(label, startsWith('DDD'));
         expect(label, isNot(contains('DDD Ligne')));
-        expect(label, contains(s.shortName));
+        // Le libellé est le MODE seul, ou le MODE suivi d'un numéro PUBLIC
+        // DOCUMENTÉ (registre DDD). Jamais l'identifiant interne du feed, et
+        // jamais le `short_name` technique (D1LP…) promu en numéro.
+        final RegExp documented = RegExp(r'^DDD( \d+[A-Z]?)?$');
+        expect(documented.hasMatch(label), isTrue,
+            reason: '$label : mode seul ou numéro public documenté');
+        expect(label, isNot(contains(s.shortName)),
+            reason: 'le short_name technique n\'est jamais présenté');
+        if (label.contains(' ')) {
+          final String num = label.split(' ').last;
+          expect(DocumentedRouteRegistry.dddPublicNumbers.contains(num), isTrue,
+              reason: '$num doit être documenté par demdikk.sn');
+        }
       }
       // Une identité confirmée garde l'identifiant du feed tel quel.
       expect(
@@ -759,13 +778,22 @@ void main() {
               isNot(app.DataStatus.live));
           expect(seg.departureTime, isNotNull);
           expect(seg.arrivalTime, isNotNull);
-          // L'identité de ligne reste un identifiant PassBi réel, EXPLICITEMENT
-          // marqué « PassBi » tant que l'identité publique n'est pas confirmée
-          // (verrouillage : jamais présenté comme un numéro public).
-          expect(seg.modeLabel, matches(RegExp(r'^PassBi (DDD|AFTU)(_|$)')));
+          // L'identité de ligne n'est jamais un identifiant interne : le
+          // tronçon affiche le MODE, ou le MODE suivi d'un numéro PUBLIC
+          // DOCUMENTÉ. Le nom de la source (PassBi) n'apparaît plus.
+          expect(seg.modeLabel, isNot(contains('PassBi')));
+          expect(seg.modeLabel, matches(RegExp(r'^(DDD|AFTU)( \d+[A-Z]?)?$')));
+          if (seg.modeLabel.contains(' ')) {
+            final String num = seg.modeLabel.split(' ').last;
+            expect(
+                DocumentedRouteRegistry.dddPublicNumbers.contains(num) ||
+                    DocumentedRouteRegistry.aftuPublicNumbers.contains(num),
+                isTrue,
+                reason: '$num doit être documenté (demdikk.sn / aftu-senegal.org)');
+          }
         }
-        expect(r.segments.first.modeLabel, startsWith('PassBi DDD'));
-        expect(r.segments.last.modeLabel, startsWith('PassBi AFTU'));
+        expect(r.segments.first.modeLabel, startsWith('DDD'));
+        expect(r.segments.last.modeLabel, startsWith('AFTU'));
       } finally {
         app.allStops
           ..clear()
@@ -800,8 +828,12 @@ void main() {
           .widgetList<Text>(find.byType(Text))
           .map((t) => t.data ?? '')
           .toList();
-      expect(texts.any((t) => t.startsWith('Ligne PassBi DDD_')), isTrue,
-          reason: 'identité d\'affichage PassBi (§2) : $texts');
+      // Chantier UI : aucune chaîne « PassBi » visible, et l'identité DDD du
+      // feed reste lisible.
+      expect(texts.any((t) => t.contains('PassBi')), isFalse,
+          reason: 'aucune chaîne PassBi visible : $texts');
+      expect(texts.any((t) => t.startsWith('DDD')), isTrue,
+          reason: 'identité DDD visible (§2) : $texts');
       // Lot 4.22 : les prochains passages RÉELS s'affichent en minutes vertes
       // (« 1 mn · 10 mn · 15 mn ») — plus de « Prochain départ dans… ».
       final minutesPattern = RegExp(r'^[1-9]\d* mn( · [1-9]\d* mn)*$');

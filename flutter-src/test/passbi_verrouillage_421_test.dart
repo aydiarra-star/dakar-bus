@@ -18,6 +18,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:dakar_bus/main.dart' as app;
 import 'package:dakar_bus/models/departure_info.dart';
 import 'package:dakar_bus/models/transport_network.dart';
+import 'package:dakar_bus/services/documented_route_identity.dart';
 import 'package:dakar_bus/services/eta_calculator.dart';
 import 'package:dakar_bus/services/gtfs/passbi_source.dart';
 import 'package:dakar_bus/services/gtfs/routing_engine.dart';
@@ -199,13 +200,21 @@ void main() {
         IdentityStatus.unconfirmed,
         shortName: 'D217OT',
       );
-      expect(label, 'Ligne PassBi DDD_217 · D217OT');
-      expect(label, contains('PassBi'),
-          reason: 'un identifiant PassBi reste marqué comme tel');
-      expect(label, isNot('D217OT'));
-      expect(label.startsWith('D217OT'), isFalse);
-      expect(label, isNot('DDD 217'));
-      expect(label, isNot('D217'));
+      // Chantier identité : le numéro n'est affiché QUE s'il est établi par une
+      // source documentée (demdikk.sn). « 217 » EST documenté → « DDD 217 ».
+      // Le short_name technique (D217OT) et l'identifiant interne (DDD_217) ne
+      // sont jamais présentés comme le numéro public.
+      expect(label, isNot(contains('PassBi')));
+      expect(label, 'DDD 217');
+      expect(label, isNot(contains('D217OT')));
+      expect(label, isNot(contains('DDD_217')));
+      expect(DocumentedRouteRegistry.dddPublicNumbers.contains('217'), isTrue);
+      // Un numéro NON documenté ne produit aucun numéro public.
+      expect(
+          ScheduleProvider.identityLabelFor(
+              'DDD', 'DDD_102', IdentityStatus.unconfirmed),
+          'DDD');
+      expect(DocumentedRouteRegistry.dddPublicNumbers.contains('102'), isFalse);
       // Confirmée serait possible UNIQUEMENT avec rattachement documenté —
       // ce qui n'existe pas pour DDD_217.
       expect(app.appDataService.passBiSource.dakarRouteIdsFor('DDD', 'DDD_217'),
@@ -233,11 +242,11 @@ void main() {
       );
       expect(info.status, ScheduleStatus.scheduled);
       expect(info.identityStatus, IdentityStatus.unconfirmed);
-      expect(
-          ScheduleProvider.identityLabelFor(
-              'AFTU', 'AFTU_3', IdentityStatus.unconfirmed,
-              shortName: summary.shortName),
-          startsWith('Ligne PassBi AFTU_3'));
+      final String label = ScheduleProvider.identityLabelFor(
+          'AFTU', 'AFTU_3', IdentityStatus.unconfirmed,
+          shortName: summary.shortName);
+      expect(label, isNot(contains('PassBi')));
+      expect(label, startsWith('AFTU'));
     });
 
     test('3b. aftu_8 / aftu_11 → AFTU_3 : hypothèses NON confirmées, jamais '
