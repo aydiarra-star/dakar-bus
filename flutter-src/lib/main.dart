@@ -11,6 +11,7 @@ import 'models/transport_network.dart';
 import 'models/reliability.dart';
 import 'models/departure_info.dart';
 import 'services/data_service.dart';
+import 'services/dakar_clock.dart';
 
 // ============================================================
 // SERVICE GLOBAL RESEAU DAKAR — Connecté à assets/data/dakar_network.json
@@ -792,21 +793,50 @@ class Stop {
 
   bool get _hasSchedule => scheduleStatus == ScheduleStatus.scheduled;
 
-  int? nextDepartureMinutes() {
+  /// Instant de référence, ramené en heure de Dakar.
+  ///
+  /// Par défaut : l'heure courante de Dakar ([DakarClock.now]), jamais l'heure
+  /// locale du navigateur. `at` permet de fixer la référence (tests, itinéraire).
+  DateTime _reference(DateTime? at) =>
+      at == null ? DakarClock.now() : DakarClock.toDakar(at);
+
+  int? nextDepartureMinutes({DateTime? at}) {
     if (!_hasSchedule) return null;
-    final now = DateTime.now();
-    final currentMin = now.hour * 60 + now.minute;
+    final DateTime now = _reference(at);
+    final int currentMin = now.hour * 60 + now.minute;
     for (final d in departureMinutesFromMidnight) {
       if (d >= currentMin && (d - currentMin) <= 180) return d;
     }
     return null;
   }
 
-  int? remainingMinutes() {
-    final d = nextDepartureMinutes();
+  int? remainingMinutes({DateTime? at}) {
+    final d = nextDepartureMinutes(at: at);
     if (d == null) return null;
-    return d - (DateTime.now().hour * 60 + DateTime.now().minute);
+    final DateTime now = _reference(at);
+    final int minutes = d - (now.hour * 60 + now.minute);
+    // Un départ déjà passé ne doit jamais s'afficher comme négatif.
+    return minutes < 0 ? 0 : minutes;
   }
+
+  /// Minutes restantes réellement calculables, quel que soit le mode.
+  ///
+  /// * horaire programmé fourni (liste de départs) → compte à rebours ;
+  /// * horaire exact fourni par une source (`DepartureInfo.scheduledTime`) →
+  ///   compte à rebours ;
+  /// * fréquence officielle (`estimated`) → `null` : une fréquence n'est pas un
+  ///   prochain départ et ne doit produire aucun faux « X min » ;
+  /// * inconnu → `null`.
+  int? realRemainingMinutes({DateTime? at}) {
+    if (scheduleRouteId != null) {
+      return departureInfo.minutesUntil(_reference(at));
+    }
+    return remainingMinutes(at: at);
+  }
+
+  /// Libellé « X min » du temps restant, ou `null` si aucune heure exacte.
+  String? realRemainingLabel({DateTime? at}) =>
+      DepartureInfo.formatRemainingMinutes(realRemainingMinutes(at: at));
 
   String? nextDepartureLabel() {
     if (scheduleRouteId != null) return departureInfo.label;
@@ -1521,12 +1551,16 @@ class RoutePlanner {
     DateTime? at,
     bool isPublicHoliday = false,
   }) {
-    final now = at ?? DateTime.now();
+    final now = at == null ? DakarClock.now() : DakarClock.toDakar(at);
     // Audit données 2026-09-24 — AVANT : hors 5 h 00–22 h 30, réponse « Les
     // réseaux … sont actuellement fermés (Service de 5h00 à 22h30) ». Ces
     // heures de service ne figurent dans AUCUNE donnée (schedule_status
     // UNKNOWN partout) : affirmation supprimée. L'itinéraire reste calculé ;
     // ses heures sont « Horaire indisponible » faute d'horaire fourni.
+    //
+    // Correctif fuseau : `now` est désormais l'heure de DAKAR (UTC+00), et non
+    // l'heure locale du navigateur. Un utilisateur à Paris ne voit plus un
+    // décalage de deux heures sur les heures de départ/arrivée affichées.
 
     final fromStop = _findNearestStop(fromQuery);
     final toStop = _findNearestStop(toQuery);
@@ -2761,7 +2795,20 @@ class StopCard extends StatelessWidget {
         // APRÈS : sans horaire fourni → « Horaire indisponible » ; avec un
         //         horaire fourni → « Prévu HH h MM » (programmé, pas de
         //         compte à rebours). Aucun flux temps réel n'existe.
-        if (stop.scheduleRouteId != null) {
+        //
+        // LOT 1 (horaire réel) — le temps restant s'affiche « X min » en VERT
+        // uniquement lorsqu'une heure de départ EXACTE est connue. Une fréquence
+        // officielle (`estimated`) reste une fourchette neutre : la fréquence et
+        // le prochain départ sont deux données distinctes, aucune conversion
+        // fréquence → faux « X min » n'est faite.
+        final String? remaining = stop.realRemainingLabel();
+        if (remaining != null) {
+          timeWidget = Text(remaining, style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+            color: AppColors.success,
+          ));
+        } else if (stop.scheduleRouteId != null) {
           final info = stop.departureInfo;
           timeWidget = Text(info.label, style: TextStyle(
             fontSize: info.status == ScheduleStatus.scheduled ? 13 : 11,
@@ -4098,11 +4145,20 @@ class SingleStopView extends StatelessWidget {
                           children: [
                             Text('Prochain départ programmé', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
                             const SizedBox(height: 2),
-                            Text(
-                              stop.nextDepartureLabel() ?? ReliabilityLabel.scheduleUnavailable,
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: stop.color),
-                              softWrap: true,
-                            ),
+                            // LOT 1 — « X min » en vert dès qu'une heure exacte
+                            // permet le calcul ; sinon libellé de fiabilité
+                            // (fréquence estimée ou « Horaire indisponible »).
+                            if (stop.realRemainingLabel() != null)
+                              Text(
+                                stop.realRemainingLabel()!,
+                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.success),
+                              )
+                            else
+                              Text(
+                                stop.nextDepartureLabel() ?? ReliabilityLabel.scheduleUnavailable,
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: stop.color),
+                                softWrap: true,
+                              ),
                           ],
                         ),
                       ),

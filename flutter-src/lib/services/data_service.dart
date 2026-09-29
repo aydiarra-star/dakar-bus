@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../models/departure_info.dart';
 import '../models/transport_network.dart';
 import 'data_provider.dart';
+import 'dakar_clock.dart';
 
 /// Service de chargement du réseau Dakar
 /// CORRIGE : respecte le modèle TransportRoute (operatorId, type, stopIds)
@@ -54,7 +55,7 @@ class DataService {
     }
     return departureInfoForRoute(
       routeId,
-      at ?? DateTime.now(),
+      at ?? DakarClock.now(),
       isPublicHoliday: isPublicHoliday,
       operatorName: network,
     );

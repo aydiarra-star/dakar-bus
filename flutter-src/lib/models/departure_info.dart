@@ -155,6 +155,72 @@ class DepartureInfo {
     return 'Horaire indisponible';
   }
 
+  /// Minutes restantes avant l'heure de départ réellement programmée.
+  ///
+  /// `null` dès qu'aucune heure exacte n'est connue (`scheduledTime` absent —
+  /// cas de toute fréquence), que la référence est inexploitable, ou que le
+  /// départ est déjà passé. Un départ passé ne produit donc **jamais** de
+  /// « 0 min » ni de temps négatif : l'appelant retombe sur un état explicite.
+  /// Une fréquence ne produit jamais de compte à rebours : la fréquence et le
+  /// prochain départ sont deux données distinctes.
+  int? minutesUntil(DateTime now) {
+    final DateTime? departure = scheduledTime;
+    if (departure == null || status != ScheduleStatus.scheduled) return null;
+    final int minutes = departure.difference(now).inMinutes;
+    if (minutes < 0) return null;
+    return minutes;
+  }
+
+  /// Fabrique une réponse PROGRAMMÉE à partir d'une heure réellement fournie.
+  ///
+  /// À n'utiliser que lorsqu'une source exploitable donne l'heure exacte du
+  /// départ : ce constructeur transporte alors `scheduledTime`. Il ne génère
+  /// aucune heure à partir d'une fréquence.
+  factory DepartureInfo.scheduled({
+    required String operator,
+    required String routeId,
+    required DateTime scheduledTime,
+    String? source,
+    SourceType sourceType = SourceType.unknown,
+    String? dateSource,
+    String? dateVerified,
+    String? validFrom,
+    String? validTo,
+    double? confidence,
+    String? direction,
+    DateTime? referenceTime,
+  }) =>
+      DepartureInfo(
+        status: ScheduleStatus.scheduled,
+        operator: operator,
+        routeId: routeId,
+        referenceTime: referenceTime,
+        estimatedWaitFrom: null,
+        estimatedWaitTo: null,
+        scheduledTime: scheduledTime,
+        source: source,
+        sourceType: sourceType,
+        dateSource: dateSource,
+        dateVerified: dateVerified,
+        validFrom: validFrom,
+        validTo: validTo,
+        confidence: confidence,
+        frequencyMinutes: null,
+        operatingHours: null,
+        direction: direction,
+      );
+
+  /// Libellé « X min » du temps restant réellement calculable.
+  ///
+  /// Renvoie `null` quand aucun horaire exact n'existe ou que le départ est
+  /// passé : l'appelant affiche alors un état explicite plutôt qu'un faux délai.
+  /// `0` n'est renvoyé que pour un départ à l'instant présent.
+  static String? formatRemainingMinutes(int? minutes) {
+    if (minutes == null) return null;
+    if (minutes <= 0) return '0 min';
+    return '$minutes min';
+  }
+
   factory DepartureInfo.fromFrequency(
     FrequencySource source,
     FrequencyWindow window,
