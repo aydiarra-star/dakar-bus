@@ -1723,8 +1723,15 @@ class RoutePlanner {
     required bool isPublicHoliday,
   }) {
     if (allStops.isEmpty) return null;
-    final hub = allStops.firstWhere((s) => s.name.contains('Colobane') || s.name.contains('Petersen'), orElse: () => allStops.first);
-    if (hub.name == from.name || hub.name == to.name) return null;
+    // LOT 5 (itinéraires) — AVANT : le pôle de correspondance était un littéral
+    // (`s.name.contains('Colobane') || s.name.contains('Petersen')`), avec
+    // `allStops.first` en repli. Le choix d'un pôle est une décision de données,
+    // pas une constante d'UI : il est désormais DÉRIVÉ de `dakar_network.json`.
+    // Le pôle est l'arrêt desservi par le plus grand nombre de lignes distinctes
+    // (Colobane 27, Petersen 23 à l'audit 2026-09-24), en excluant les extrémités
+    // du trajet. Aucune coordonnée ni aucun nom n'est inventé.
+    final Stop? hub = _busiestInterchange(exclude: <String>{from.name, to.name});
+    if (hub == null || hub.name == from.name || hub.name == to.name) return null;
 
     final leg1 = _buildRoute(
       from,
@@ -1758,6 +1765,42 @@ class RoutePlanner {
                   : DataStatus.unknown,
       segments: [...leg1.segments, ...leg2.segments],
     );
+  }
+
+  /// Pôle de correspondance le plus desservi, DÉRIVÉ des données.
+  ///
+  /// Compte, pour chaque arrêt, le nombre de LIGNES distinctes du référentiel
+  /// (`appDataService.routes`) qui le desservent, puis retient le maximum. Les
+  /// arrêts dont le nom figure dans [exclude] (les extrémités du trajet) ne
+  /// peuvent pas servir de pôle. À égalité, ou si aucun arrêt n'est desservi par
+  /// au moins deux lignes, aucun pôle n'est choisi plutôt qu'un pôle arbitraire :
+  /// `_findTransfer` renvoie alors `null` — un inconnu honnête, jamais une
+  /// correspondance fabriquée.
+  static Stop? _busiestInterchange({Set<String> exclude = const <String>{}}) {
+    final List<TransportRoute> routes = appDataService.routes;
+    if (routes.isEmpty || allStops.isEmpty) return null;
+    final Map<String, int> linesByStop = <String, int>{};
+    for (final TransportRoute r in routes) {
+      for (final String stopId in r.stopIds) {
+        linesByStop[stopId] = (linesByStop[stopId] ?? 0) + 1;
+      }
+    }
+    Stop? best;
+    int bestCount = 0;
+    bool tied = false;
+    for (final Stop s in allStops) {
+      final int count = linesByStop[s.stopId] ?? 0;
+      if (count < 2 || exclude.contains(s.name)) continue;
+      if (count > bestCount) {
+        bestCount = count;
+        best = s;
+        tied = false;
+      } else if (count == bestCount) {
+        tied = true;
+      }
+    }
+    if (best == null || tied) return null;
+    return best;
   }
 
   static String _formatMin(int minFromMidnight) {
