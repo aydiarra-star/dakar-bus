@@ -1934,7 +1934,14 @@ class RoutePlanner {
     for (final s in allStops) {
       if (s.name.toLowerCase().contains(q)) return s;
     }
-    return allStops.firstWhere((s) => s.name.toLowerCase().contains('dakar'), orElse: () => allStops.first);
+    // LOT 3 (routage) — AVANT : `allStops.firstWhere((s) =>
+    // s.name.contains('dakar'), orElse: () => allStops.first)`. Un lieu
+    // inconnu (ex. « AIBD », « Paris ») se résolvait donc vers un arrêt réel
+    // du réseau — Dakar ou le premier de la liste — et l'itinéraire calculé
+    // partait d'un point que l'utilisateur n'avait pas demandé. C'est une
+    // origine fabriquée : une requête non résolue renvoie désormais `null`
+    // (l'appelant répond « lieu introuvable »), jamais un arrêt de repli.
+    return null;
   }
 
   static PlannedRoute? _buildRoute(
@@ -2018,6 +2025,23 @@ class RoutePlanner {
     final Stop? hub = _busiestInterchange(exclude: <String>{from.name, to.name});
     if (hub == null || hub.name == from.name || hub.name == to.name) return null;
 
+    // LOT 3 (routage) — une correspondance TER ↔ bus ou bus ↔ bus n'est
+    // valide que si un arrêt physique/documenté commun la justifie réellement.
+    // AVANT : `_buildRoute(from, hub)` et `_buildRoute(hub, to)` étaient
+    // TOUJOURS construits, même quand AUCUNE ligne du référentiel ne desservait
+    // `from → hub` (ou `hub → to`). `_buildRoute` ne fait que relier deux arrêts
+    // par la distance et la vitesse moyenne : un usager partant d'une gare TER
+    // obtenait donc une correspondance vers le pôle le plus desservi sans
+    // qu'aucune ligne n'y mène — une correspondance par simple proximité, ce que
+    // le lot interdit.
+    // DÉSORMAIS : les deux tronçons doivent être desservis par au moins une même
+    // ligne RÉELLE du référentiel (`appDataService.routes`). Sans ligne
+    // commune, aucun correspondance n'est produite (inconnu honnête), jamais un
+    // itinéraire fabriqué.
+    if (!_servedByCommonRoute(from, hub) || !_servedByCommonRoute(hub, to)) {
+      return null;
+    }
+
     final leg1 = _buildRoute(
       from,
       hub,
@@ -2050,6 +2074,28 @@ class RoutePlanner {
                   : DataStatus.unknown,
       segments: [...leg1.segments, ...leg2.segments],
     );
+  }
+
+  /// LOT 3 (routage) — Vrai si au moins une ligne RÉELLE du référentiel dessert
+  /// les deux arrêts [a] et [b]. C'est la preuve minimale de correspondance :
+  /// un arrêt physique commun (une même ligne les relie). Aucune proximité
+  /// géographique, aucun nom, aucune identité publique n'intervient.
+  ///
+  /// Les arrêts natifs PassBi (`passBiStopKey != null`) sont identifiés par
+  /// leur clé composite : deux arrêts portant la même clé sont le même arrêt
+  /// physique, même si leurs instances diffèrent.
+  static bool _servedByCommonRoute(Stop a, Stop b) {
+    final String? aid = a.stopId;
+    final String? bid = b.stopId;
+    for (final TransportRoute r in appDataService.routes) {
+      final bool hasA = (aid != null && r.stopIds.contains(aid)) ||
+          (a.passBiStopKey != null && r.stopIds.contains(a.passBiStopKey));
+      if (!hasA) continue;
+      final bool hasB = (bid != null && r.stopIds.contains(bid)) ||
+          (b.passBiStopKey != null && r.stopIds.contains(b.passBiStopKey));
+      if (hasB) return true;
+    }
+    return false;
   }
 
   /// Pôle de correspondance le plus desservi, DÉRIVÉ des données.
