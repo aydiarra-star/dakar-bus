@@ -17,6 +17,24 @@ class ReliabilityLabel {
   static const String noVerifiedSchedule =
       "Je ne dispose pas d'un horaire vérifié pour ce trajet.";
 
+  /// Garde-fou d'affichage — vrai si [text] contient un intervalle (« 0–6 »,
+  /// « 0-6 ») ou la mention d'une fréquence (« fréquence 6 min »).
+  ///
+  /// Aucune surface d'affichage ne doit présenter l'un ou l'autre : une
+  /// fréquence n'est jamais un départ, et un intervalle laisse croire à une
+  /// précision qui n'existe pas. Testé en tant que verrou anti-régression.
+  static bool containsForbiddenRangeOrFrequency(String text) =>
+      RegExp(r'\d\s*[–-]\s*\d').hasMatch(text) ||
+      text.toLowerCase().contains('fréquence');
+
+  /// Nettoie un libellé de délai avant affichage : retire un éventuel suffixe
+  /// de fréquence/intervalles. Un libellé sûr est renvoyé inchangé.
+  static String sanitizeScheduleLabel(String text) {
+    if (!containsForbiddenRangeOrFrequency(text)) return text;
+    final int dash = text.indexOf('·');
+    return (dash >= 0 ? text.substring(0, dash) : text).trim();
+  }
+
   /// Aucune donnée de fréquentation n'existe (ni comptage, ni opérateur).
   static const String crowdUnavailable = 'Affluence indisponible';
 

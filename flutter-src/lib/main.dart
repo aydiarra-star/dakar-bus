@@ -3676,7 +3676,7 @@ class _TripsPageState extends State<TripsPage> {
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
                       child: Text(
-                        '🟢 ${r.segments.first.departureInfo!.label}',
+                        '🟢 ${ReliabilityLabel.sanitizeScheduleLabel(r.segments.first.departureInfo!.label)}',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -4656,7 +4656,8 @@ class DetailedRoutePage extends StatelessWidget {
                                       network: route.operator,
                                     );
                                     return Text(
-                                      info.label,
+                                      ReliabilityLabel.sanitizeScheduleLabel(
+                                          info.label),
                                       style: TextStyle(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w600,

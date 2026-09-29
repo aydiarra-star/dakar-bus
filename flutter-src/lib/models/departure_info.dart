@@ -275,9 +275,15 @@ class DepartureInfo {
   String get label {
     if (status == ScheduleStatus.estimated) {
       // NIVEAU 3 — ESTIMATION. Une fréquence seule ne fixe jamais la phase du
-      // prochain véhicule : on ne peut donc pas calculer un « X min » exact.
-      // Une fenêtre documentée (0 → fréquence) et « estimé » restent honnêtes.
-      return 'Passage estimé dans $estimatedWaitFrom–$estimatedWaitTo min · fréquence $frequencyMinutes min';
+      // prochain véhicule : aucun « X min » exact n'est calculable depuis un
+      // stop_time. L'affichage est donc une borne HAUTE honnête
+      // (« Passage estimé dans X min », X = fréquence documentée), sans
+      // jamais exposer un intervalle « 0–X » ni un départ fictif.
+      final int? bound = estimatedWaitTo ?? frequencyMinutes;
+      if (bound != null) {
+        return 'Passage estimé dans $bound min';
+      }
+      return 'Passage estimé';
     }
     if (status == ScheduleStatus.scheduled) {
       // Message imposé dès qu'un délai numérique est calculable : jamais
