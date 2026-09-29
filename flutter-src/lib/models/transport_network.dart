@@ -76,6 +76,44 @@ extension ProvenanceStatusLabel on ProvenanceStatus {
   }
 }
 
+/// Statut d'un identifiant officiel de ligne (`official_identifier_status`).
+///
+/// Un numéro de ligne affiché peut être CONFLICTING (publié par un opérateur,
+/// mais attribué à une autre ligne) ou MISSING (aucun numéro publié). Le champ
+/// existe dans `dakar_network.json` sur 22 routes Tata/DDD ; sans ce statut,
+/// l'application présenterait un numéro contesté comme un numéro établi.
+enum OfficialIdentifierStatus { confirmed, missing, conflicting, unknown }
+
+extension OfficialIdentifierStatusLabel on OfficialIdentifierStatus {
+  String toLabel() {
+    switch (this) {
+      case OfficialIdentifierStatus.confirmed:
+        return 'CONFIRMED';
+      case OfficialIdentifierStatus.missing:
+        return 'MISSING';
+      case OfficialIdentifierStatus.conflicting:
+        return 'CONFLICTING';
+      case OfficialIdentifierStatus.unknown:
+        return 'UNKNOWN';
+    }
+  }
+
+  /// Absent ou inconnu → `unknown`. Un statut non reconnu ne devient jamais
+  /// `confirmed`.
+  static OfficialIdentifierStatus fromString(String? value) {
+    switch (value) {
+      case 'CONFIRMED':
+        return OfficialIdentifierStatus.confirmed;
+      case 'MISSING':
+        return OfficialIdentifierStatus.missing;
+      case 'CONFLICTING':
+        return OfficialIdentifierStatus.conflicting;
+      default:
+        return OfficialIdentifierStatus.unknown;
+    }
+  }
+}
+
 /// Nature de la source (`source_type`).
 enum SourceType {
   officialStatic,
@@ -359,6 +397,20 @@ class TransportRoute {
   /// Anomalies détectées par l'audit (ex. ITINERARY_GEOGRAPHICALLY_INCOHERENT).
   final List<String> auditFlags;
 
+  /// Verdict sur l'identifiant officiel de la ligne (`official_identifier_status`).
+  /// Absent du JSON → `unknown` (jamais `confirmed`).
+  final OfficialIdentifierStatus officialIdentifierStatus;
+
+  /// Motif documenté du verdict, jamais vide quand le statut est renseigné.
+  final String? officialIdentifierNote;
+
+  /// `true` : un numéro est réellement publié par un opérateur, même s'il ne
+  /// correspond pas à l'identité de la route.
+  final bool? officialNumberObserved;
+
+  /// Opérateur à qui appartient réellement le numéro observé, `null` sinon.
+  final String? officialNumberBelongsTo;
+
   TransportRoute({
     required this.id,
     required this.operatorId,
@@ -371,6 +423,10 @@ class TransportRoute {
     this.scheduleStatus = ScheduleStatus.unknown,
     this.countsTowardOfficialTotal,
     this.auditFlags = const <String>[],
+    this.officialIdentifierStatus = OfficialIdentifierStatus.unknown,
+    this.officialIdentifierNote,
+    this.officialNumberObserved,
+    this.officialNumberBelongsTo,
   });
 
   factory TransportRoute.fromJson(Map<String, dynamic> json) {
@@ -389,8 +445,18 @@ class TransportRoute {
       auditFlags: json['audit_flags'] == null
           ? const <String>[]
           : List<String>.from(json['audit_flags'] as List),
+      officialIdentifierStatus: OfficialIdentifierStatusLabel.fromString(
+          json['official_identifier_status'] as String?),
+      officialIdentifierNote: json['official_identifier_note'] as String?,
+      officialNumberObserved: json['official_number_observed'] as bool?,
+      officialNumberBelongsTo: json['official_number_belongs_to'] as String?,
     );
   }
+
+  /// Cette ligne porte-t-elle un identifiant officiel CONFIRMED ? Seul cas où le
+  /// numéro peut être présenté comme établi.
+  bool get hasConfirmedOfficialIdentifier =>
+      officialIdentifierStatus == OfficialIdentifierStatus.confirmed;
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -404,6 +470,12 @@ class TransportRoute {
         if (countsTowardOfficialTotal != null)
           'counts_toward_official_total': countsTowardOfficialTotal,
         if (auditFlags.isNotEmpty) 'audit_flags': auditFlags,
+        if (officialIdentifierStatus != OfficialIdentifierStatus.unknown) ...{
+          'official_identifier_status': officialIdentifierStatus.toLabel(),
+          'official_identifier_note': officialIdentifierNote,
+          'official_number_observed': officialNumberObserved,
+          'official_number_belongs_to': officialNumberBelongsTo,
+        },
         'stops': stopIds,
       };
 }

@@ -60,6 +60,20 @@ class ReliabilityLabel {
     }
   }
 
+  /// Libellé d'un identifiant officiel de ligne. `null` si CONFIRMED (rien à
+  /// signaler) ou UNKNOWN (aucun verdict renseigné) — jamais une affirmation.
+  static String? officialIdentifierLabel(OfficialIdentifierStatus status) {
+    switch (status) {
+      case OfficialIdentifierStatus.confirmed:
+      case OfficialIdentifierStatus.unknown:
+        return null;
+      case OfficialIdentifierStatus.conflicting:
+        return 'Numéro de ligne contesté : le numéro affiché appartient à un autre opérateur.';
+      case OfficialIdentifierStatus.missing:
+        return 'Aucun numéro officiel publié pour cette ligne.';
+    }
+  }
+
   /// Statut effectif d'un ensemble (ex. une route ET l'un de ses arrêts) : le
   /// MOINS sûr l'emporte. Ensemble vide → UNVERIFIED (rien n'est confirmé par
   /// défaut).

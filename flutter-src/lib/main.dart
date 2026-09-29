@@ -430,6 +430,10 @@ class DetailedRoute {
   /// ordinaire. Ils sont désormais portés jusqu'à la vue.
   final List<String> auditFlags;
 
+  /// Verdict sur l'identifiant officiel de la ligne (22 routes Tata/DDD du
+  /// JSON). `unknown` quand le champ est absent.
+  final OfficialIdentifierStatus officialIdentifierStatus;
+
   DetailedRoute({
     required this.routeId,
     required this.lineNumber,
@@ -443,6 +447,7 @@ class DetailedRoute {
     this.stopStatuses = const <String, ProvenanceStatus>{},
     this.stopCoordinatesStatuses = const <String, ProvenanceStatus>{},
     this.auditFlags = const <String>[],
+    this.officialIdentifierStatus = OfficialIdentifierStatus.unknown,
   });
 
   /// Libellés d'avertissement des drapeaux d'audit connus de cette ligne.
@@ -451,6 +456,16 @@ class DetailedRoute {
       .map(ReliabilityLabel.auditFlagLabel)
       .whereType<String>()
       .toList();
+
+  /// Avertissement d'identifiant officiel, `null` s'il n'y a rien à signaler.
+  String? get identifierWarning =>
+      ReliabilityLabel.officialIdentifierLabel(officialIdentifierStatus);
+
+  /// Tous les avertissements d'intégrité à afficher pour cette ligne.
+  List<String> get integrityWarnings => <String>[
+        if (identifierWarning != null) identifierWarning!,
+        ...auditWarnings,
+      ];
 
   /// La position d'un arrêt est-elle confirmée ? Distinct de [statusOf].
   bool hasConfirmedPosition(DetailedStop stop) =>
@@ -625,6 +640,7 @@ class DetailedRoute {
       // en portent : 42 AFTU + 2 DDD en itinéraire incohérent, 4 en séquence
       // d'arrêts dupliquée).
       auditFlags: route.auditFlags,
+      officialIdentifierStatus: route.officialIdentifierStatus,
     );
   }
 
@@ -3984,7 +4000,7 @@ class DetailedRoutePage extends StatelessWidget {
               // était présentée comme une séquence ordinaire. Ces bandeaux
               // n'ajoutent aucune donnée : ils restituent un verdict déjà
               // présent dans la source.
-              ...route.auditWarnings.map((String w) => Container(
+              ...route.integrityWarnings.map((String w) => Container(
                     margin: const EdgeInsets.only(bottom: 10),
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
