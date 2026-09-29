@@ -16,9 +16,33 @@
 // Distinction stricte des notions :
 //   * opérateur          → « DDD », « AFTU », « Tata » ;
 //   * numéro de ligne     → identifiant PUBLIC publié (« 217 ») ;
-//   * type de véhicule    → « Tata » (minibus), métadonnée, pas une ligne ;
+//   * type de véhicule    → « TATA » (minibus), métadonnée, pas une ligne ;
 //   * numéro de véhicule  → numéro de parc (« 9003 »), jamais un numéro de ligne ;
 //   * identifiant interne → `route_id` / `trip_id` GTFS, jamais affiché seul.
+//
+// ---------------------------------------------------------------------------
+// CHANTIER TATA (PR #48, lot 2) — HIÉRARCHIE DES SOURCES
+// ---------------------------------------------------------------------------
+// Niveau 1 — source officielle : CETUD / AFTU / données officielles de mobilité.
+//   `cetud.sn/reseaux-de-transport/*`, `aftu-senegal.org/infos-pratiques/`.
+// Niveau 2 — applications de mobilité : PassBi / Bus Bii.
+//   Une association TATA n'est enregistrée comme preuve que si ces applications
+//   exposent EXPLICITEMENT une ligne TATA (numéro et/ou arrêts).
+// Niveau 3 — sources secondaires (covoiturage.sn, Scribd) : CANDIDATURE
+//   uniquement, jamais transformée en vérité officielle.
+//
+// CONSTAT PROUVÉ (cet audit, 2026-09-29) : aucune source admissible ne documente
+// un NUMÉRO de ligne TATA.
+//   * AFTU/CETUD publient des numéros de ligne AFTU ; ils ne nomment aucun
+//     véhicule TATA (le référentiel interne le note : « minibus des GIE AFTU »).
+//   * Le feed PassBi AFTU expose 73 routes (`id`, `short`, `long`, `type`) sans
+//     champ `vehicle_type`/`network`/`agency` ; aucune route ne porte « tata ».
+//     `PassBiSource.tataMentions()` est vide sur tous les feeds chargés.
+//   * Bus Bii (busbii.com) déclare des itinéraires « TATA » mais n'expose
+//     aucune API/route numérotée publiquement consultable.
+// ⇒ TATA reste un TYPE DE VÉHICULE. Aucune ligne TATA n'est CONFIRMED : le
+//   registre ci-dessous conserve des CANDIDATS (niveau 3) à des fins de
+//   cross-check, sans jamais les afficher comme « Tata XX ».
 
 /// Nature de la source qui établit l'identité publique.
 enum IdentitySourceType {
@@ -28,9 +52,93 @@ enum IdentitySourceType {
   /// Site officiel de l'opérateur / de son association (AFTU).
   operatorWebsite,
 
+  /// Publication officielle de l'autorité organisatrice (CETUD).
+  officialAuthority,
+
+  /// Application de mobilité (PassBi, Bus Bii) exposant explicitement la ligne.
+  officialMobilityApp,
+
+  /// Source secondaire (covoiturage.sn, Scribd) — cross-check, jamais preuve.
+  secondaryCrossCheck,
+
   /// Source secondaire (presse), utilisée avec parcimonie pour le type de
   /// véhicule uniquement.
   secondaryPress,
+}
+
+/// Statut de documentation d'une identité publique.
+///
+/// Nommé `PublicIdentityStatus` (et non `IdentityStatus`) pour ne pas entrer en
+/// collision avec l'énumération homonyme de `departure_info.dart`, qui qualifie
+/// le STATUT D'UNE LIGNE dans le crosswalk, notion différente.
+enum PublicIdentityStatus {
+  /// Identité corroborée par une source admissible (niveau 1 ou 2).
+  documented,
+
+  /// Correspondance établie par une source secondaire (niveau 3) uniquement.
+  /// Conserve la donnée pour validation, ne s'affiche JAMAIS comme identité.
+  candidate,
+
+  /// Aucune source, ou sources non concordantes.
+  unconfirmed,
+}
+
+/// Nature de l'élément qui adosse une identité.
+enum IdentityEvidence {
+  /// Publication officielle (CETUD / AFTU / opérateur).
+  officialPublication,
+
+  /// Application de mobilité exposant explicitement la ligne.
+  mobilityApp,
+
+  /// Concordance de terminus (source secondaire) — candidature.
+  terminusCrossCheck,
+
+  /// Observation terrain non vérifiée.
+  fieldObservation,
+
+  /// Aucun élément.
+  none,
+}
+
+/// Candidature TATA issue de la liste secondaire (niveau 3).
+///
+/// Une candidature n'est PAS une identité : elle sert au cross-check avec les
+/// sources admissibles (CETUD/AFTU/PassBi/Bus Bii). Elle n'est jamais affichée
+/// comme « Tata XX ».
+class TataLineCandidate {
+  /// Numéro de ligne AFTU correspondant (1–5, 24–89, 91).
+  final String routeNumber;
+
+  /// Opérateur déduit de la source primaire — TOUJOURS « AFTU » ici : TATA
+  /// n'est jamais un opérateur.
+  final String operator;
+
+  /// Terminus A de la liste secondaire (cross-check, non officiel).
+  final String secondaryTerminusA;
+
+  /// Terminus B de la liste secondaire (cross-check, non officiel).
+  final String secondaryTerminusB;
+
+  /// Terminus A tel que publié par la source AFTU (feed PassBi AFTU).
+  final String feedTerminusA;
+
+  /// Terminus B tel que publié par la source AFTU (feed PassBi AFTU).
+  final String feedTerminusB;
+
+  /// Élément d'adossement (jamais `officialPublication` : aucune source
+  /// officielle ne nomme un véhicule TATA).
+  final IdentityEvidence evidence;
+
+  const TataLineCandidate({
+    required this.routeNumber,
+    required this.operator,
+    required this.secondaryTerminusA,
+    required this.secondaryTerminusB,
+    required this.feedTerminusA,
+    required this.feedTerminusB,
+    required this.evidence,
+  });
 }
 
 /// Une identité publique de ligne, établie par une source documentée.
@@ -51,8 +159,14 @@ class DocumentedRouteIdentity {
   /// Nature de la source.
   final IdentitySourceType sourceType;
 
-  /// `true` uniquement si un numéro public est réellement établi.
-  final bool documented;
+  /// Statut de documentation de l'identité.
+  final PublicIdentityStatus status;
+
+  /// Date de vérification (`YYYY-MM-DD`), vide si non applicable.
+  final String verifiedAt;
+
+  /// Niveau de confiance : `HIGH` | `MEDIUM` | `LOW` | `''`.
+  final String confidence;
 
   const DocumentedRouteIdentity({
     required this.operator,
@@ -60,8 +174,13 @@ class DocumentedRouteIdentity {
     required this.vehicleType,
     required this.source,
     required this.sourceType,
-    required this.documented,
+    this.status = PublicIdentityStatus.documented,
+    this.verifiedAt = '',
+    this.confidence = '',
   });
+
+  /// `true` uniquement si un numéro public est réellement établi.
+  bool get documented => status == PublicIdentityStatus.documented;
 
   /// Identité non documentée : aucun numéro public, aucun type de véhicule.
   const DocumentedRouteIdentity.undocumented(String operator, {String? source})
@@ -71,13 +190,26 @@ class DocumentedRouteIdentity {
           vehicleType: null,
           source: source ?? '',
           sourceType: IdentitySourceType.operatorPublication,
-          documented: false,
+          status: PublicIdentityStatus.unconfirmed,
+        );
+
+  /// Identité CANDIDATE : correspondance secondaire, jamais affichée.
+  const DocumentedRouteIdentity.candidate({
+    required String operator,
+    required String source,
+  }) : this(
+          operator: operator,
+          publicRouteNumber: null,
+          vehicleType: null,
+          source: source,
+          sourceType: IdentitySourceType.secondaryCrossCheck,
+          status: PublicIdentityStatus.candidate,
         );
 
   @override
   String toString() => 'DocumentedRouteIdentity($operator, '
       'number=$publicRouteNumber, vehicle=$vehicleType, '
-      'source=$source, documented=$documented)';
+      'source=$source, status=$status)';
 }
 
 /// Registre des identités publiques documentées (DDD, AFTU, type de véhicule
@@ -96,7 +228,19 @@ class DocumentedRouteRegistry {
   /// Source BRT — identité officielle SunuBRT (confirmée par le crosswalk).
   static const String brtSource = 'https://www.sunubrt.sn/';
 
-  /// Date de consultation des deux sources ci-dessus.
+  /// Source officielle CETUD — autorité organisatrice (référence réseau).
+  static const String cetudSource = 'https://cetud.sn/reseaux-de-transport/';
+
+  /// Source niveau 3 — liste secondaire de correspondances TATA (covoiturage.sn,
+  /// Scribd). Cross-check uniquement : ne constitue JAMAIS une preuve.
+  static const String tataSecondaryListSource =
+      'https://covoiturage.sn/ (liste TATA, recoupée Scribd) — NON OFFICIEL';
+
+  /// Source niveau 2 — application de mobilité Bus Bii : déclare des itinéraires
+  /// « TATA » mais n'expose aucun numéro de ligne publiquement consultable.
+  static const String busBiiSource = 'https://www.busbii.com/';
+
+  /// Date de consultation des sources ci-dessus.
   static const String sourcesCheckedAt = '2026-09-29';
 
   /// Identités publiques DDD documentées (`demdikk.sn/info-voyageurs/`).
@@ -131,15 +275,340 @@ class DocumentedRouteRegistry {
     '84', '85', '86', '87', '88', '89', '91',
   };
 
-  /// Type de véhicule documenté par ligne (« AFTU 72 » et « AFTU 80 » sont des
-  /// minibus Tata d'après des sources de presse). Ces associations NE sont PAS
-  /// généralisées : aucune autre ligne AFTU n'est réputée Tata, et aucun Tata
-  /// de l'application ne reçoit de numéro public.
-  static const Map<String, String> documentedVehicleTypes = <String, String>{
-    'AFTU 72': 'Tata',
-    'AFTU 80': 'Tata',
-  };
+  /// Type de véhicule documenté par ligne. **Aucune entrée active** : voir le
+  /// constat ci-dessous.
+  ///
+  /// Constat d'audit (2026-09-29) : aucune source admissible (CETUD/AFTU,
+  /// PassBi, Bus Bii) n'établit qu'une ligne AFTU précise est exploitée en
+  /// minibus TATA.
+  ///   * L'ITF/ILO (2020) atteste que « Tata » = marque/catégorie de
+  ///     l'écosystème AFTU, sans nommer de numéro de ligne.
+  ///   * Le feed PassBi AFTU ne comporte aucun champ `vehicle_type`.
+  ///   * Le référentiel interne et l'audit 3A concluent : « aucune
+  ///     correspondance officielle confirmée » (0 `CONFIRMED`).
+  /// La carte reste donc VIDE : TATA demeure un type de véhicule, jamais
+  /// attaché à un numéro faute de preuve. Les correspondances candidates sont
+  /// conservées à part dans [tataCandidates] (niveau 3, cross-check).
+  static const Map<String, String> documentedVehicleTypes = <String, String>{};
 
+  /// Correspondances candidates TATA ↔ lignes AFTU (niveau 3, cross-check).
+  ///
+  /// Chaque entrée croise la liste secondaire (terminus « Tata N ») avec les
+  /// terminus PUBLIÉS par AFTU (feed PassBi AFTU, champ `long`). Deux terminus
+  /// concordants → [IdentityEvidence.terminusCrossCheck] ; sinon
+  /// [IdentityEvidence.none].
+  ///
+  /// Ces entrées NE SONT PAS des identités : `operator` vaut toujours `AFTU`
+  /// (TATA n'est jamais un opérateur), et aucune n'est CONFIRMED faute de
+  /// source admissible nommant un véhicule TATA. Elles servent uniquement au
+  /// cross-check CETUD/AFTU/PassBi/Bus Bii et ne s'affichent jamais « Tata XX ».
+  static const Map<String, TataLineCandidate> tataCandidates =
+      <String, TataLineCandidate>{
+    '1': TataLineCandidate(
+        routeNumber: '1',
+        operator: 'AFTU',
+        secondaryTerminusA: 'HLM Grand Yoff',
+        secondaryTerminusB: 'Lat Dior',
+        feedTerminusA: 'HLM-GR-YOFF',
+        feedTerminusB: 'LAT-DIOR',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '2': TataLineCandidate(
+        routeNumber: '2',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Parcelles Assainies',
+        secondaryTerminusB: 'Petersen',
+        feedTerminusA: 'Parcelles-Assainies',
+        feedTerminusB: 'Petersen',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '3': TataLineCandidate(
+        routeNumber: '3',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Yoff Village',
+        secondaryTerminusB: 'Petersen',
+        feedTerminusA: 'Petersen',
+        feedTerminusB: 'Yoff',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '4': TataLineCandidate(
+        routeNumber: '4',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Yoff Village',
+        secondaryTerminusB: 'Petersen',
+        feedTerminusA: 'Petersen',
+        feedTerminusB: 'Yoff',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '5': TataLineCandidate(
+        routeNumber: '5',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Parcelles Assainies',
+        secondaryTerminusB: 'Petersen',
+        feedTerminusA: 'Parcelles-Assainies',
+        feedTerminusB: 'Petersen',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '24': TataLineCandidate(
+        routeNumber: '24',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Guediawaye',
+        secondaryTerminusB: 'UCAD',
+        feedTerminusA: 'Notaire',
+        feedTerminusB: 'UCAD',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '25': TataLineCandidate(
+        routeNumber: '25',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Parcelles Assainies',
+        secondaryTerminusB: 'Petersen',
+        feedTerminusA: 'Parcelle-Assainies',
+        feedTerminusB: 'Petersen',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '26': TataLineCandidate(
+        routeNumber: '26',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Parcelles Assainies',
+        secondaryTerminusB: 'Poste Thiaroye',
+        feedTerminusA: 'Parcelle-Assainies',
+        feedTerminusB: 'Poste-Thiaroye',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '27': TataLineCandidate(
+        routeNumber: '27',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Marche Boubess',
+        secondaryTerminusB: 'Petersen',
+        feedTerminusA: 'Guediawaye MB',
+        feedTerminusB: 'Petersen',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '28': TataLineCandidate(
+        routeNumber: '28',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Hamo VI',
+        secondaryTerminusB: 'Petersen',
+        feedTerminusA: 'Hamo VI',
+        feedTerminusB: 'Petersen',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '29': TataLineCandidate(
+        routeNumber: '29',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Cite Naons Unis',
+        secondaryTerminusB: 'Petersen',
+        feedTerminusA: 'Malibu',
+        feedTerminusB: 'Petersen',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '30': TataLineCandidate(
+        routeNumber: '30',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Gadaye',
+        secondaryTerminusB: 'Colobane',
+        feedTerminusA: 'Colobane',
+        feedTerminusB: 'Gadaye',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '31': TataLineCandidate(
+        routeNumber: '31',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Terminus Texaco',
+        secondaryTerminusB: 'Terminus Sham',
+        feedTerminusA: 'Sham',
+        feedTerminusB: 'Thiaroye-kao',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '32': TataLineCandidate(
+        routeNumber: '32',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Guediawaye',
+        secondaryTerminusB: 'Terminus Sham',
+        feedTerminusA: 'Daroukhane',
+        feedTerminusB: 'Sham',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '33': TataLineCandidate(
+        routeNumber: '33',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Daroukhane',
+        secondaryTerminusB: 'Colobane',
+        feedTerminusA: 'Colobane',
+        feedTerminusB: 'Daroukane',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '34': TataLineCandidate(
+        routeNumber: '34',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Nord Foire',
+        secondaryTerminusB: 'Lat Dior',
+        feedTerminusA: 'LAT-DIOR',
+        feedTerminusB: 'Nord-Foire',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '36': TataLineCandidate(
+        routeNumber: '36',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Daroukhane',
+        secondaryTerminusB: 'Ngor Village',
+        feedTerminusA: 'Daroukhane',
+        feedTerminusB: 'Ngor',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '37': TataLineCandidate(
+        routeNumber: '37',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Petersen',
+        secondaryTerminusB: 'Guediawaye',
+        feedTerminusA: 'APIX',
+        feedTerminusB: 'UCAD',
+        evidence: IdentityEvidence.none),
+    '38': TataLineCandidate(
+        routeNumber: '38',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Cite des Enseignants',
+        secondaryTerminusB: 'Sham',
+        feedTerminusA: 'Guediawaye',
+        feedTerminusB: 'Sahm',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '39': TataLineCandidate(
+        routeNumber: '39',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Terminus Diamalaye',
+        secondaryTerminusB: 'Gare Lat Dior',
+        feedTerminusA: 'Diamalaye',
+        feedTerminusB: 'Lat Dior',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '40': TataLineCandidate(
+        routeNumber: '40',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Grand Mbao',
+        secondaryTerminusB: 'Petersen',
+        feedTerminusA: 'Mbao',
+        feedTerminusB: 'Petersen',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '41': TataLineCandidate(
+        routeNumber: '41',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Guediawaye Madial',
+        secondaryTerminusB: 'Petersen',
+        feedTerminusA: 'Guediawaye',
+        feedTerminusB: 'Petersen',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '42': TataLineCandidate(
+        routeNumber: '42',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Corniche Guediawaye',
+        secondaryTerminusB: 'Ouakam',
+        feedTerminusA: 'Gadaye',
+        feedTerminusB: 'Ouakam',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '43': TataLineCandidate(
+        routeNumber: '43',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Yeumbeul Sud',
+        secondaryTerminusB: 'Ouakam Cite Avion',
+        feedTerminusA: 'Comico',
+        feedTerminusB: 'Ouakam',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '44': TataLineCandidate(
+        routeNumber: '44',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Ouakam Baye',
+        secondaryTerminusB: 'Grand Mbao Extension',
+        feedTerminusA: 'Mbao',
+        feedTerminusB: 'Ouakam',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '46': TataLineCandidate(
+        routeNumber: '46',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Guediawaye Notaire',
+        secondaryTerminusB: 'Lat Dior',
+        feedTerminusA: 'Guediawaye',
+        feedTerminusB: 'Lat Dior',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '47': TataLineCandidate(
+        routeNumber: '47',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Almadies',
+        secondaryTerminusB: 'Lat Dior',
+        feedTerminusA: 'Lat Dior',
+        feedTerminusB: 'Almadies',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '48': TataLineCandidate(
+        routeNumber: '48',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Cite Serigne Mansour',
+        secondaryTerminusB: 'Lat Dior',
+        feedTerminusA: 'Lat Dior',
+        feedTerminusB: 'Rufisque',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '49': TataLineCandidate(
+        routeNumber: '49',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Gadaye',
+        secondaryTerminusB: 'Ngor Village',
+        feedTerminusA: 'Gadaye',
+        feedTerminusB: 'Ngor',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '50': TataLineCandidate(
+        routeNumber: '50',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Malika',
+        secondaryTerminusB: 'Petersen',
+        feedTerminusA: 'Malicka',
+        feedTerminusB: 'Petersen',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '51': TataLineCandidate(
+        routeNumber: '51',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Plan Jaxaay 1',
+        secondaryTerminusB: 'Gare des Baux Maraichers',
+        feedTerminusA: 'Baux Maraichers',
+        feedTerminusB: 'Jaxaay',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '52': TataLineCandidate(
+        routeNumber: '52',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Bountou Pikine',
+        secondaryTerminusB: 'Keur Massar',
+        feedTerminusA: 'Baux Maraichers',
+        feedTerminusB: 'Jaxaay',
+        evidence: IdentityEvidence.none),
+    '53': TataLineCandidate(
+        routeNumber: '53',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Keur Massar',
+        secondaryTerminusB: 'Sebikhotane',
+        feedTerminusA: 'KEUR MASSAR',
+        feedTerminusB: 'Sebikotane',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '54': TataLineCandidate(
+        routeNumber: '54',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Keur Massar',
+        secondaryTerminusB: 'UCAD',
+        feedTerminusA: 'M T O A',
+        feedTerminusB: 'UCAD',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '55': TataLineCandidate(
+        routeNumber: '55',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Rufisque SONADIS',
+        secondaryTerminusB: 'Petersen',
+        feedTerminusA: 'Petersen',
+        feedTerminusB: 'Rufisque',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '56': TataLineCandidate(
+        routeNumber: '56',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Jaxaay 2',
+        secondaryTerminusB: 'Petersen',
+        feedTerminusA: 'Jaxaaye',
+        feedTerminusB: 'Petersen',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '57': TataLineCandidate(
+        routeNumber: '57',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Rufisque Gouye Mouride',
+        secondaryTerminusB: 'Giratoire Liberte 6',
+        feedTerminusA: 'LIBERTE 5',
+        feedTerminusB: 'Rufisque Gouye Mouride',
+        evidence: IdentityEvidence.terminusCrossCheck),
+    '58': TataLineCandidate(
+        routeNumber: '58',
+        operator: 'AFTU',
+        secondaryTerminusA: 'Fass Mbao',
+        secondaryTerminusB: 'Sham',
+        feedTerminusA: 'Comico',
+        feedTerminusB: 'Sahm',
+        evidence: IdentityEvidence.terminusCrossCheck),
+  };
   /// Normalise un nom d'opérateur quelconque vers son mode court.
   static String normalizeOperator(String operator) {
     final String op = operator.toLowerCase();
@@ -243,8 +712,70 @@ class DocumentedRouteRegistry {
       vehicleType: documentedVehicleType(op, number),
       source: source,
       sourceType: type,
-      documented: true,
+      status: PublicIdentityStatus.documented,
+      verifiedAt: sourcesCheckedAt,
+      confidence: 'HIGH',
     );
+  }
+
+  /// Statut de documentation de l'identité TATA d'une ligne.
+  ///
+  /// Aucune ligne TATA n'est [PublicIdentityStatus.documented] : aucune source
+  /// admissible ne documente un numéro de ligne TATA. Une ligne AFTU figurant
+  /// dans [tataCandidates] est [PublicIdentityStatus.candidate] ; les autres
+  /// sont [PublicIdentityStatus.unconfirmed].
+  static PublicIdentityStatus tataIdentityStatus(String operator, String? number) {
+    final String op = normalizeOperator(operator);
+    if (op != 'AFTU') return PublicIdentityStatus.unconfirmed;
+    if (number == null) return PublicIdentityStatus.unconfirmed;
+    final String n = normalizeNumber(number);
+    if (tataCandidates.containsKey(n)) return PublicIdentityStatus.candidate;
+    return PublicIdentityStatus.unconfirmed;
+  }
+
+  /// Correspondance candidate TATA pour une ligne, ou `null`.
+  static TataLineCandidate? tataCandidateFor(String operator, String? number) {
+    final String op = normalizeOperator(operator);
+    if (op != 'AFTU' || number == null) return null;
+    return tataCandidates[normalizeNumber(number)];
+  }
+
+  /// Identité TATA d'une ligne : CANDIDATE si la correspondance secondaire
+  /// existe, sinon non documentée. Ne retourne JAMAIS un numéro public : TATA
+  /// n'est pas une ligne.
+  static DocumentedRouteIdentity resolveTata(String operator, String? number) {
+    final String op = normalizeOperator(operator);
+    final PublicIdentityStatus status = tataIdentityStatus(op, number);
+    if (status == PublicIdentityStatus.candidate) {
+      return DocumentedRouteIdentity.candidate(
+          operator: op, source: tataSecondaryListSource);
+    }
+    return DocumentedRouteIdentity.undocumented(op);
+  }
+
+  /// Libellé « Tata N » pour un STATUT donné, ou `null` si l'identité TATA
+  /// n'est pas CONFIRMÉE.
+  ///
+  /// Règle pure et testable : seule une identité [PublicIdentityStatus
+  /// .documented] produit « Tata N ». Une candidature ([candidate]) ou une
+  /// absence ([unconfirmed]) ne produit JAMAIS de libellé « Tata N » — c'est ce
+  /// qui garantit qu'une correspondance secondaire ne devient pas une ligne.
+  static String? tataLabelForStatus(PublicIdentityStatus status, String number) {
+    if (status != PublicIdentityStatus.documented) return null;
+    final String n = normalizeNumber(number);
+    return n.isEmpty ? null : 'Tata $n';
+  }
+
+  /// Libellé d'affichage « Tata N », ou `null` si l'identité TATA n'est PAS
+  /// confirmée. Aucune source admissible ne confirmant aujourd'hui de ligne
+  /// TATA, cette méthode retourne `null` en l'état : l'appelant retombe alors
+  /// sur l'identité AFTU documentée ou, à défaut, sur le type de véhicule seul.
+  static String? confirmedTataLabel(String operator, String? number) {
+    if (number == null) return null;
+    final PublicIdentityStatus status = tataIdentityStatus(operator, number);
+    if (status != PublicIdentityStatus.documented) return null;
+    final TataLineCandidate? c = tataCandidateFor(operator, number);
+    return tataLabelForStatus(status, c?.routeNumber ?? number);
   }
 
   /// Résout l'identité à partir d'un `route_id` interne de feed.
@@ -262,7 +793,9 @@ class DocumentedRouteRegistry {
           vehicleType: null,
           source: brtSource,
           sourceType: IdentitySourceType.operatorWebsite,
-          documented: true,
+          status: PublicIdentityStatus.documented,
+          verifiedAt: sourcesCheckedAt,
+          confidence: 'HIGH',
         );
       }
       return DocumentedRouteIdentity.undocumented(op);

@@ -561,6 +561,15 @@ class DetailedRoute {
       final int? n = lineNumber;
       return n == null ? mode : 'BRT B$n';
     }
+    final int? n = lineNumber;
+    // Identité TATA CONFIRMÉE (source admissible) : « Tata N ». En l'état
+    // aucune ligne n'est confirmée, donc ce chemin n'est jamais pris ; il est
+    // prêt pour le jour où une source admissible documentera une ligne TATA.
+    final String? tata =
+        DocumentedRouteRegistry.confirmedTataLabel(mode, n == null ? null : '$n');
+    if (tata != null) return tata;
+    // Sinon : type de véhicule seul (« Tata ») ou numéro public DOCUMENTÉ
+    // uniquement (« DDD 217 », « AFTU 80 »). Jamais « Tata 218 ».
     final String? num = lineNumberLabel;
     if (num == null) return mode;
     return '$mode $num';

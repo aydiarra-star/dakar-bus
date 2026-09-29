@@ -82,10 +82,13 @@ void main() {
   });
 
   group('TATA — type de véhicule, jamais une ligne inventée', () {
-    test('Tata + ligne documentée (type de véhicule) → autorisé', () {
-      // Seules les lignes AFTU 72 et 80 sont documentées comme minibus Tata.
-      expect(DocumentedRouteRegistry.documentedVehicleType('AFTU', '72'), 'Tata');
-      expect(DocumentedRouteRegistry.documentedVehicleType('AFTU', '80'), 'Tata');
+    test('aucune ligne n\'est documentée comme minibus Tata (preuve absente)', () {
+      // Aucune source admissible (CETUD/AFTU/PassBi/Bus Bii) n\'établit qu\'une
+      // ligne précise est exploitée en minibus Tata : la carte est vide, et
+      // aucun méta-argument de presse ne généralise l\'association.
+      expect(DocumentedRouteRegistry.documentedVehicleTypes, isEmpty);
+      expect(DocumentedRouteRegistry.documentedVehicleType('AFTU', '72'), isNull);
+      expect(DocumentedRouteRegistry.documentedVehicleType('AFTU', '80'), isNull);
     });
 
     test('Tata + ligne non documentée → refusé', () {

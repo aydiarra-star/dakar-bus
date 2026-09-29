@@ -445,6 +445,11 @@ class ScheduleProvider {
     final DocumentedRouteIdentity documented =
         DocumentedRouteRegistry.resolveRouteId(networkKey, pbRouteId);
     if (documented.documented && documented.publicRouteNumber != null) {
+      // Identité TATA CONFIRMÉE par une source admissible → « Tata N ».
+      // Aucune ligne n'étant confirmée en l'état, le repli « AFTU N » s'applique.
+      final String? tata = DocumentedRouteRegistry.confirmedTataLabel(
+          networkKey, documented.publicRouteNumber);
+      if (tata != null) return tata;
       return '$networkKey ${documented.publicRouteNumber}';
     }
     // Aucune preuve documentaire : repli honnête sur le MODE du réseau.

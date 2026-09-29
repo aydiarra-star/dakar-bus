@@ -245,12 +245,13 @@ void main() {
 
     test('le type de véhicule Tata n\'est établi que sur sources documentées',
         () {
-      // Seules les lignes 72 et 80 sont documentées comme minibus Tata
-      // (sources secondaires) : aucune généralisation.
+      // Aucune source admissible ne nomme de ligne TATA : la carte des types
+      // de véhicule reste vide, donc aucune ligne n'est réputée Tata.
+      expect(DocumentedRouteRegistry.documentedVehicleTypes, isEmpty);
       expect(
-          DocumentedRouteRegistry.documentedVehicleType('AFTU', '72'), 'Tata');
+          DocumentedRouteRegistry.documentedVehicleType('AFTU', '72'), isNull);
       expect(
-          DocumentedRouteRegistry.documentedVehicleType('AFTU', '80'), 'Tata');
+          DocumentedRouteRegistry.documentedVehicleType('AFTU', '80'), isNull);
       // Une ligne non documentée n'a aucun type de véhicule.
       expect(
           DocumentedRouteRegistry.documentedVehicleType('AFTU', '54'), isNull);
