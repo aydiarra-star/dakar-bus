@@ -18,6 +18,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:dakar_bus/main.dart' as app;
 import 'package:dakar_bus/models/departure_info.dart';
 import 'package:dakar_bus/models/transport_network.dart';
+import 'package:dakar_bus/services/documented_route_identity.dart';
 import 'package:dakar_bus/services/eta_calculator.dart';
 import 'package:dakar_bus/services/gtfs/passbi_source.dart';
 import 'package:dakar_bus/services/gtfs/routing_engine.dart';
@@ -199,15 +200,21 @@ void main() {
         IdentityStatus.unconfirmed,
         shortName: 'D217OT',
       );
-      // Chantier UI : la source de données n'est plus nommée, et l'identifiant
-      // interne n'est jamais présenté comme le numéro public DDD.
+      // Chantier identité : le numéro n'est affiché QUE s'il est établi par une
+      // source documentée (demdikk.sn). « 217 » EST documenté → « DDD 217 ».
+      // Le short_name technique (D217OT) et l'identifiant interne (DDD_217) ne
+      // sont jamais présentés comme le numéro public.
       expect(label, isNot(contains('PassBi')));
-      expect(label, startsWith('DDD'));
-      expect(label, contains('D217OT'));
-      expect(label, isNot('D217OT'));
-      expect(label.startsWith('D217OT'), isFalse);
-      expect(label, isNot('DDD 217'));
-      expect(label, isNot('D217'));
+      expect(label, 'DDD 217');
+      expect(label, isNot(contains('D217OT')));
+      expect(label, isNot(contains('DDD_217')));
+      expect(DocumentedRouteRegistry.dddPublicNumbers.contains('217'), isTrue);
+      // Un numéro NON documenté ne produit aucun numéro public.
+      expect(
+          ScheduleProvider.identityLabelFor(
+              'DDD', 'DDD_102', IdentityStatus.unconfirmed),
+          'DDD');
+      expect(DocumentedRouteRegistry.dddPublicNumbers.contains('102'), isFalse);
       // Confirmée serait possible UNIQUEMENT avec rattachement documenté —
       // ce qui n'existe pas pour DDD_217.
       expect(app.appDataService.passBiSource.dakarRouteIdsFor('DDD', 'DDD_217'),

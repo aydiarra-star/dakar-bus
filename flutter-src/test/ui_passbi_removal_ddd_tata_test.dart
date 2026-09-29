@@ -17,6 +17,7 @@ import 'package:dakar_bus/main.dart' as app;
 import 'package:dakar_bus/models/departure_info.dart';
 import 'package:dakar_bus/models/schedule_display.dart';
 import 'package:dakar_bus/models/transport_network.dart';
+import 'package:dakar_bus/services/documented_route_identity.dart';
 import 'package:dakar_bus/services/schedule_provider.dart';
 
 /// Texte rendu par un widget, concaténé (pour la recherche de chaînes).
@@ -183,8 +184,22 @@ void main() {
       expect(r!.lineNumberLabel, isNotNull);
       expect(r.routeLabel, startsWith('DDD '));
       expect(r.routeLabel, isNot(contains('PassBi')));
-      // Le numéro affiché est celui de la source, jamais deviné.
-      expect(r.routeLabel, 'DDD ${r.lineNumber}');
+      // Le numéro affiché est un numéro PUBLIC DOCUMENTÉ (demdikk.sn), jamais
+      // un identifiant interne ni un numéro de parc.
+      expect(r.routeLabel, 'DDD ${r.lineNumberLabel}');
+      expect(
+          DocumentedRouteRegistry.dddPublicNumbers
+              .contains(r.lineNumberLabel),
+          isTrue);
+    });
+
+    test('un numéro non documenté ne devient jamais « DDD <numéro> »', () {
+      // ddd_102 n'est pas publié par demdikk.sn : aucun numéro public.
+      expect(
+          ScheduleProvider.identityLabelFor(
+              'DDD', 'DDD_102', IdentityStatus.unconfirmed),
+          'DDD');
+      expect(DocumentedRouteRegistry.dddPublicNumbers.contains('102'), isFalse);
     });
 
     testWidgets('la fiche de ligne DDD affiche numéro, direction et arrêts',
@@ -212,16 +227,34 @@ void main() {
   // 3. Identification TATA claire
   // ==================================================================
   group('3 — TATA : identification claire dans Explorer', () {
-    test('une ligne Tata documentée expose « Tata <numéro> »', () async {
+    test('TATA n\'est pas un réseau autonome : aucun numéro public inventé',
+        () async {
       if (!app.appDataService.isLoaded) {
         await app.appDataService.loadNetworkData();
       }
       app.integrateNetworkDataForTest();
       final app.DetailedRoute? r = app.DetailedRoute.fromOperator('tata');
       expect(r, isNotNull);
-      expect(r!.lineNumberLabel, isNotNull);
-      expect(r.routeLabel, startsWith('Tata '));
-      expect(r.routeLabel, 'Tata ${r.lineNumber}');
+      // TATA est un TYPE de véhicule, pas une ligne documentée : aucun numéro
+      // public n'est établi → le mode seul est affiché, jamais « Tata 218 ».
+      expect(r!.lineNumberLabel, isNull,
+          reason: 'aucune ligne Tata n\'a de numéro public publié');
+      expect(r.routeLabel, 'Tata');
+      expect(r.routeLabel, isNot(matches(RegExp(r'Tata \d'))));
+    });
+
+    test('le type de véhicule Tata n\'est établi que sur sources documentées',
+        () {
+      // Seules les lignes 72 et 80 sont documentées comme minibus Tata
+      // (sources secondaires) : aucune généralisation.
+      expect(
+          DocumentedRouteRegistry.documentedVehicleType('AFTU', '72'), 'Tata');
+      expect(
+          DocumentedRouteRegistry.documentedVehicleType('AFTU', '80'), 'Tata');
+      // Une ligne non documentée n'a aucun type de véhicule.
+      expect(
+          DocumentedRouteRegistry.documentedVehicleType('AFTU', '54'), isNull);
+      expect(DocumentedRouteRegistry.documentedVehicleType('DDD', '217'), isNull);
     });
 
     testWidgets('la fiche de ligne Tata affiche son numéro et sa direction',

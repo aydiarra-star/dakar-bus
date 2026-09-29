@@ -11,6 +11,7 @@ library;
 
 import '../models/departure_info.dart';
 import '../models/transport_network.dart';
+import 'documented_route_identity.dart';
 import 'gtfs/gtfs_source.dart';
 import 'gtfs/passbi_source.dart';
 
@@ -417,20 +418,20 @@ class ScheduleProvider {
     return null;
   }
 
-  /// §2 — Identité d'affichage d'une ligne, construite UNIQUEMENT à partir des
-  /// métadonnées réellement présentes dans le feed. Le nom de la source de
-  /// données (PassBi) n'apparaît jamais.
+  /// §2 — Identité d'affichage d'une ligne, construite UNIQUEMENT à partir
+  /// d'une identité PUBLIQUE DOCUMENTÉE ([DocumentedRouteRegistry]). Le nom de
+  /// la source de données (PassBi) n'apparaît jamais.
   ///
-  ///  * identité confirmée (preuve documentaire du crosswalk UNIQUEMENT :
-  ///    [RouteMapping.isMapped]) → l'identité publique documentée (ex. « BRT B1 ») ;
-  ///  * identité non confirmée → le MODE du réseau (ex. « DDD ») ; si le feed
-  ///    fournit un `short_name` distinct du `route_id`, il est ajouté tel quel
-  ///    (ex. « DDD · D217OT »).
+  ///  * identité publique confirmée par le référentiel documenté
+  ///    ([RouteMapping.isMapped], ex. « BRT B1 ») → cette identité ;
+  ///  * numéro public DOCUMENTÉ (DDD/AFTU, via [DocumentedRouteRegistry]) →
+  ///    « DDD 217 », « AFTU 54 » ;
+  ///  * sinon → le MODE du réseau seul (« DDD », « AFTU »), sans numéro.
   ///
-  /// Un identifiant interne n'est JAMAIS présenté comme un numéro public
-  /// confirmé : tant qu'aucune preuve documentaire ne l'établit comme identité
-  /// publique DDD/AFTU, seul le mode est affiché. Aucun nom commercial inventé,
-  /// aucune origine/destination déduite du numéro, aucune identité fabriquée.
+  /// Un identifiant interne (`DDD_217`, `tata_218`) n'est JAMAIS présenté comme
+  /// un numéro public : il est confronté au registre documenté, et sans preuve
+  /// seul le mode est affiché. Aucun nom commercial inventé, aucune
+  /// origine/destination déduite du numéro, aucune identité fabriquée.
   static String identityLabelFor(
     String networkKey,
     String pbRouteId,
@@ -440,10 +441,13 @@ class ScheduleProvider {
     if (identity == IdentityStatus.confirmed) {
       return pbRouteId.startsWith(networkKey) ? pbRouteId : '$networkKey $pbRouteId';
     }
-    final String short_ = shortName ?? '';
-    if (short_.isNotEmpty && short_ != pbRouteId) {
-      return '$networkKey · $short_';
+    // Identité publique documentée, adossée à une source vérifiable.
+    final DocumentedRouteIdentity documented =
+        DocumentedRouteRegistry.resolveRouteId(networkKey, pbRouteId);
+    if (documented.documented && documented.publicRouteNumber != null) {
+      return '$networkKey ${documented.publicRouteNumber}';
     }
+    // Aucune preuve documentaire : repli honnête sur le MODE du réseau.
     return networkKey;
   }
 }

@@ -15,6 +15,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:dakar_bus/main.dart' as app;
 import 'package:dakar_bus/models/departure_info.dart';
 import 'package:dakar_bus/models/transport_network.dart';
+import 'package:dakar_bus/services/documented_route_identity.dart';
 import 'package:dakar_bus/services/eta_calculator.dart';
 import 'package:dakar_bus/services/gtfs/passbi_source.dart';
 import 'package:dakar_bus/services/schedule_provider.dart';
@@ -554,7 +555,19 @@ void main() {
         expect(label, isNot(contains('PassBi')));
         expect(label, startsWith('DDD'));
         expect(label, isNot(contains('DDD Ligne')));
-        expect(label, contains(s.shortName));
+        // Le libellé est le MODE seul, ou le MODE suivi d'un numéro PUBLIC
+        // DOCUMENTÉ (registre DDD). Jamais l'identifiant interne du feed, et
+        // jamais le `short_name` technique (D1LP…) promu en numéro.
+        final RegExp documented = RegExp(r'^DDD( \d+[A-Z]?)?$');
+        expect(documented.hasMatch(label), isTrue,
+            reason: '$label : mode seul ou numéro public documenté');
+        expect(label, isNot(contains(s.shortName)),
+            reason: 'le short_name technique n\'est jamais présenté');
+        if (label.contains(' ')) {
+          final String num = label.split(' ').last;
+          expect(DocumentedRouteRegistry.dddPublicNumbers.contains(num), isTrue,
+              reason: '$num doit être documenté par demdikk.sn');
+        }
       }
       // Une identité confirmée garde l'identifiant du feed tel quel.
       expect(
@@ -765,14 +778,22 @@ void main() {
               isNot(app.DataStatus.live));
           expect(seg.departureTime, isNotNull);
           expect(seg.arrivalTime, isNotNull);
-          // L'identité de ligne n'est jamais présentée comme un numéro public
-          // tant qu'elle n'est pas confirmée : seul le MODE est affiché. Le nom
-          // de la source de données (PassBi) n'apparaît plus (chantier UI).
+          // L'identité de ligne n'est jamais un identifiant interne : le
+          // tronçon affiche le MODE, ou le MODE suivi d'un numéro PUBLIC
+          // DOCUMENTÉ. Le nom de la source (PassBi) n'apparaît plus.
           expect(seg.modeLabel, isNot(contains('PassBi')));
-          expect(seg.modeLabel, matches(RegExp(r'^(DDD|AFTU)$')));
+          expect(seg.modeLabel, matches(RegExp(r'^(DDD|AFTU)( \d+[A-Z]?)?$')));
+          if (seg.modeLabel.contains(' ')) {
+            final String num = seg.modeLabel.split(' ').last;
+            expect(
+                DocumentedRouteRegistry.dddPublicNumbers.contains(num) ||
+                    DocumentedRouteRegistry.aftuPublicNumbers.contains(num),
+                isTrue,
+                reason: '$num doit être documenté (demdikk.sn / aftu-senegal.org)');
+          }
         }
-        expect(r.segments.first.modeLabel, 'DDD');
-        expect(r.segments.last.modeLabel, 'AFTU');
+        expect(r.segments.first.modeLabel, startsWith('DDD'));
+        expect(r.segments.last.modeLabel, startsWith('AFTU'));
       } finally {
         app.allStops
           ..clear()

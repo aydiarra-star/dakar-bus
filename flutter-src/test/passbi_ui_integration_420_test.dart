@@ -142,14 +142,22 @@ void main() {
       expect(info.routeId, 'brt_b1_guediawaye_petersen');
     });
 
-    test('identité d ligne PassBi : « BRT B1 » sur les segments moteur', () {
-      // Le libellé vient des ids du feed (leg.routeId), pas d'une déduction.
+    test('identité de ligne : seule une identité PUBLIQUE documentée s\'affiche',
+        () {
+      // Le libellé vient d'une identité documentée (crosswalk BRT, ou registre
+      // DDD/AFTU) — jamais d'un identifiant interne promu en numéro.
       expect(
-        app.RoutePlanner.passBiLineLabel('BRT', 'B1'), 'BRT B1');
+        app.RoutePlanner.passBiLineLabel('BRT', 'B1', confirmed: true), 'BRT B1');
       expect(
-        app.RoutePlanner.passBiLineLabel('BRT', 'B2'), 'BRT B2');
-      expect(app.RoutePlanner.passBiLineLabel('DDD', 'DDD_01'), 'DDD_01');
-      expect(app.RoutePlanner.passBiLineLabel('AFTU', 'AFTU_3'), 'AFTU_3');
+        app.RoutePlanner.passBiLineLabel('BRT', 'B2', confirmed: true), 'BRT B2');
+      // DDD_01 → « 01 » n'est pas la forme publique ; le registre documenté
+      // reconnaît la ligne 1 → « DDD 1 ».
+      expect(app.RoutePlanner.passBiLineLabel('DDD', 'DDD_01'), 'DDD 1');
+      // AFTU_3 → ligne 3 documentée → « AFTU 3 ».
+      expect(app.RoutePlanner.passBiLineLabel('AFTU', 'AFTU_3'), 'AFTU 3');
+      // Un identifiant interne non documenté ne produit que le mode.
+      expect(app.RoutePlanner.passBiLineLabel('DDD', 'DDD_102'), 'DDD');
+      expect(app.RoutePlanner.passBiLineLabel('TATA', 'tata_218'), 'TATA');
       // Un UUID TER n'est pas un numéro de ligne : seul le réseau s'affiche.
       expect(
         app.RoutePlanner.passBiLineLabel(

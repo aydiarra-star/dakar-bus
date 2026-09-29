@@ -13,6 +13,7 @@ import 'models/departure_info.dart';
 import 'models/schedule_display.dart';
 import 'services/data_service.dart';
 import 'services/dakar_clock.dart';
+import 'services/documented_route_identity.dart';
 import 'services/gtfs/passbi_source.dart';
 import 'services/gtfs/routing_engine.dart';
 import 'services/schedule_provider.dart';
@@ -508,22 +509,25 @@ class DetailedRoute {
 
   /// Numéro de ligne publié, `null` si la donnée ne le documente pas.
   ///
-  /// Le numéro provient du `short_name` de la source (`dakar_network.json`,
-  /// ex. « DDD 1 » → « 1 », « Tata 218 » → « 218 »). Il n'est JAMAIS deviné :
-  /// une ligne sans numéro exploitable (`TER`) renvoie `null` et n'affiche
-  /// alors que son mode. Il n'est affiché que pour les réseaux dont l'identité
-  /// est documentée par le référentiel dakar.
+  /// Le numéro provient du `short_name` de la source (`dakar_network.json`).
+  /// Il n'est affiché QUE s'il correspond à une identité PUBLIQUE DOCUMENTÉE
+  /// ([DocumentedRouteRegistry]) : un numéro de parc ou un identifiant interne
+  /// n'est jamais présenté comme un numéro de ligne. Sans preuve → `null`, et
+  /// la vue n'affiche alors que le mode.
   String? get lineNumberLabel {
     final String s = originOperatorLabel;
     final int? n = lineNumber;
     if (n == null) return null;
     switch (s) {
       case 'DDD':
-      case 'Tata':
       case 'AFTU':
       case 'BRT':
-        return '$n';
+        final String? documented = DocumentedRouteRegistry.documentedPublicNumber(
+            s, '$n');
+        return documented;
       default:
+        // Tata / TER : aucune identité publique de ligne établie par le
+        // registre documenté (Tata n'est qu'un TYPE de véhicule, pas une ligne).
         return null;
     }
   }
@@ -540,13 +544,22 @@ class DetailedRoute {
     return operator;
   }
 
-  /// Identité d'affichage de la ligne : « DDD 1 », « Tata 218 », « BRT B1 »…
-  /// Le mode seul quand aucun numéro n'est documenté (`TER`).
+  /// Identité d'affichage de la ligne : « DDD 1 », « AFTU 54 », « BRT B1 »…
+  /// Le mode seul quand aucun numéro public n'est DOCUMENTÉ (Tata, TER).
+  ///
+  /// DDD/AFTU ne reçoivent un numéro que si le registre documenté l'établit
+  /// ([DocumentedRouteRegistry]). Un identifiant interne (`ddd_217`,
+  /// `tata_218`) ou un numéro de parc n'est jamais converti en numéro public.
   String get routeLabel {
-    final String? num = lineNumberLabel;
     final String mode = originOperatorLabel;
+    // BRT : identité publique documentée par le crosswalk (B1/B2), conservée
+    // telle quelle.
+    if (mode == 'BRT') {
+      final int? n = lineNumber;
+      return n == null ? mode : 'BRT B$n';
+    }
+    final String? num = lineNumberLabel;
     if (num == null) return mode;
-    if (mode == 'BRT') return 'BRT B$num';
     return '$mode $num';
   }
 
@@ -2287,14 +2300,16 @@ class RoutePlanner {
         ),
       );
       segments.add(RouteSegment(
-        // Lot 4.21 (verrouillage) : un identifiant interne n'est JAMAIS
-        // présenté comme le numéro public d'une ligne. Le tronçon affiche le
-        // MODE du réseau (DDD, AFTU, BRT, TER) ; une identité confirmée garde
-        // son identité documentée (« BRT B1 »). Le nom de la source de données
-        // (PassBi) n'apparaît plus dans l'interface.
-        modeLabel: identity == IdentityStatus.unconfirmed
-            ? leg.network
-            : passBiLineLabel(leg.network, leg.routeId),
+        // Un identifiant interne n'est JAMAIS présenté comme le numéro public
+        // d'une ligne. Le tronçon n'affiche le numéro que si l'identité est
+        // PUBLIQUE DOCUMENTÉE (crosswalk confirmé, ou registre documenté
+        // DDD/AFTU) ; sinon il affiche le MODE du réseau (DDD, AFTU, BRT, TER).
+        // Le nom de la source de données (PassBi) n'apparaît plus.
+        modeLabel: passBiLineLabel(
+          leg.network,
+          leg.routeId,
+          confirmed: identity == IdentityStatus.confirmed,
+        ),
         color: style.$2,
         icon: style.$3,
         from: leg.fromStopName,
@@ -2338,18 +2353,24 @@ class RoutePlanner {
     return null;
   }
 
-  /// Identité d'affichage d'une ligne — strictement les ids du feed :
-  /// « BRT B1 » / « BRT B2 », « DDD_01 », « AFTU_3 » ; le TER (UUID) reste
-  /// affiché sous son réseau, aucun numéro déduit.
+  /// Libellé de ligne d'un tronçon du feed, sans jamais inventer d'identité.
   ///
-  /// Verrouillage Lot 4.21 : ce libellé nu est un IDENTIFIANT interne. Sans
-  /// identité publique confirmée, les tronçons affichent le MODE du réseau
-  /// (voir [_plannedFromPassBi]) pour ne jamais présenter un identifiant
-  /// interne comme le numéro public d'une ligne DDD/AFTU.
-  static String passBiLineLabel(String network, String routeId) {
-    final String id = routeId.toUpperCase();
-    if (id.startsWith(network.toUpperCase())) return routeId;
-    if (network == 'BRT') return 'BRT $routeId';
+  /// * identité crosswalk CONFIRMÉE → l'identité documentée (« BRT B1 ») ;
+  /// * numéro public DOCUMENTÉ par le registre (DDD/AFTU) → « DDD 217 » ;
+  /// * sinon → le MODE du réseau seul (« DDD », « AFTU », « TER »).
+  static String passBiLineLabel(String network, String routeId,
+      {bool confirmed = false}) {
+    if (confirmed) {
+      final String id = routeId.toUpperCase();
+      if (id.startsWith(network.toUpperCase())) return routeId;
+      if (network == 'BRT') return 'BRT $routeId';
+      return network;
+    }
+    final DocumentedRouteIdentity documented =
+        DocumentedRouteRegistry.resolveRouteId(network, routeId);
+    if (documented.documented && documented.publicRouteNumber != null) {
+      return '$network ${documented.publicRouteNumber}';
+    }
     return network;
   }
 
