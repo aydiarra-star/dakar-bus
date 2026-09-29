@@ -435,6 +435,22 @@ class DetailedRoute {
   /// → UNVERIFIED : un arrêt n'est jamais présumé confirmé.
   final Map<String, ProvenanceStatus> stopStatuses;
 
+  /// Fiabilité des COORDONNÉES de chaque arrêt, par `stopId`. Distincte de
+  /// l'existence de l'arrêt : une gare TER peut être CONFIRMED tout en ayant une
+  /// position `UNVERIFIED`. Vide → toute position est lue UNVERIFIED.
+  final Map<String, ProvenanceStatus> stopCoordinatesStatuses;
+
+  /// Anomalies relevées par l'audit de la source unique (ex.
+  /// `ITINERARY_GEOGRAPHICALLY_INCOHERENT`, `DUPLICATE_STOP_SEQUENCE`). Ces
+  /// drapeaux existent dans `dakar_network.json` et étaient jusqu'ici ignorés :
+  /// l'application présentait donc une séquence contestée comme une séquence
+  /// ordinaire. Ils sont désormais portés jusqu'à la vue.
+  final List<String> auditFlags;
+
+  /// Verdict sur l'identifiant officiel de la ligne (22 routes Tata/DDD du
+  /// JSON). `unknown` quand le champ est absent.
+  final OfficialIdentifierStatus officialIdentifierStatus;
+
   DetailedRoute({
     required this.routeId,
     required this.lineNumber,
@@ -446,7 +462,32 @@ class DetailedRoute {
     required this.stops,
     this.dataStatus = ProvenanceStatus.unverified,
     this.stopStatuses = const <String, ProvenanceStatus>{},
+    this.stopCoordinatesStatuses = const <String, ProvenanceStatus>{},
+    this.auditFlags = const <String>[],
+    this.officialIdentifierStatus = OfficialIdentifierStatus.unknown,
   });
+
+  /// Libellés d'avertissement des drapeaux d'audit connus de cette ligne.
+  /// Un drapeau inconnu est ignoré, jamais reformulé en une affirmation.
+  List<String> get auditWarnings => auditFlags
+      .map(ReliabilityLabel.auditFlagLabel)
+      .whereType<String>()
+      .toList();
+
+  /// Avertissement d'identifiant officiel, `null` s'il n'y a rien à signaler.
+  String? get identifierWarning =>
+      ReliabilityLabel.officialIdentifierLabel(officialIdentifierStatus);
+
+  /// Tous les avertissements d'intégrité à afficher pour cette ligne.
+  List<String> get integrityWarnings => <String>[
+        if (identifierWarning != null) identifierWarning!,
+        ...auditWarnings,
+      ];
+
+  /// La position d'un arrêt est-elle confirmée ? Distinct de [statusOf].
+  bool hasConfirmedPosition(DetailedStop stop) =>
+      (stopCoordinatesStatuses[stop.stopId] ?? ProvenanceStatus.unverified) ==
+      ProvenanceStatus.confirmed;
 
   /// Badge de fiabilité d'un arrêt DANS cette ligne : le moins sûr des deux
   /// statuts (ligne, arrêt). « OFFICIEL » seulement si les deux sont CONFIRMED.
@@ -562,6 +603,8 @@ class DetailedRoute {
 
     final List<DetailedStop> out = <DetailedStop>[];
     final Map<String, ProvenanceStatus> stopStatuses = <String, ProvenanceStatus>{};
+    final Map<String, ProvenanceStatus> stopCoordinatesStatuses =
+        <String, ProvenanceStatus>{};
     double cumulatedMeters = 0.0;
     LatLng? previous;
 
@@ -586,6 +629,10 @@ class DetailedRoute {
         estimatedTime: '~$elapsedMinutes min',
       ));
       stopStatuses[s.id] = s.provenance.status;
+      // Fiabilité de la POSITION, distincte de celle de l'existence : 20 arrêts
+      // CONFIRMED ont une position UNVERIFIED ou CONFLICTING. La masquer
+      // reviendrait à présenter une position non vérifiée comme vérifiée.
+      stopCoordinatesStatuses[s.id] = s.coordinatesStatus;
       previous = location;
     }
 
@@ -609,6 +656,12 @@ class DetailedRoute {
       stops: out,
       dataStatus: route.provenance.status,
       stopStatuses: stopStatuses,
+      stopCoordinatesStatuses: stopCoordinatesStatuses,
+      // Drapeaux d'audit de la source unique, portés jusqu'à la vue (48 routes
+      // en portent : 42 AFTU + 2 DDD en itinéraire incohérent, 4 en séquence
+      // d'arrêts dupliquée).
+      auditFlags: route.auditFlags,
+      officialIdentifierStatus: route.officialIdentifierStatus,
     );
   }
 
@@ -1955,8 +2008,15 @@ class RoutePlanner {
     required bool isPublicHoliday,
   }) {
     if (allStops.isEmpty) return null;
-    final hub = allStops.firstWhere((s) => s.name.contains('Colobane') || s.name.contains('Petersen'), orElse: () => allStops.first);
-    if (hub.name == from.name || hub.name == to.name) return null;
+    // LOT 5 (itinéraires) — AVANT : le pôle de correspondance était un littéral
+    // (`s.name.contains('Colobane') || s.name.contains('Petersen')`), avec
+    // `allStops.first` en repli. Le choix d'un pôle est une décision de données,
+    // pas une constante d'UI : il est désormais DÉRIVÉ de `dakar_network.json`.
+    // Le pôle est l'arrêt desservi par le plus grand nombre de lignes distinctes
+    // (Colobane 27, Petersen 23 à l'audit 2026-09-24), en excluant les extrémités
+    // du trajet. Aucune coordonnée ni aucun nom n'est inventé.
+    final Stop? hub = _busiestInterchange(exclude: <String>{from.name, to.name});
+    if (hub == null || hub.name == from.name || hub.name == to.name) return null;
 
     final leg1 = _buildRoute(
       from,
@@ -1990,6 +2050,42 @@ class RoutePlanner {
                   : DataStatus.unknown,
       segments: [...leg1.segments, ...leg2.segments],
     );
+  }
+
+  /// Pôle de correspondance le plus desservi, DÉRIVÉ des données.
+  ///
+  /// Compte, pour chaque arrêt, le nombre de LIGNES distinctes du référentiel
+  /// (`appDataService.routes`) qui le desservent, puis retient le maximum. Les
+  /// arrêts dont le nom figure dans [exclude] (les extrémités du trajet) ne
+  /// peuvent pas servir de pôle. À égalité, ou si aucun arrêt n'est desservi par
+  /// au moins deux lignes, aucun pôle n'est choisi plutôt qu'un pôle arbitraire :
+  /// `_findTransfer` renvoie alors `null` — un inconnu honnête, jamais une
+  /// correspondance fabriquée.
+  static Stop? _busiestInterchange({Set<String> exclude = const <String>{}}) {
+    final List<TransportRoute> routes = appDataService.routes;
+    if (routes.isEmpty || allStops.isEmpty) return null;
+    final Map<String, int> linesByStop = <String, int>{};
+    for (final TransportRoute r in routes) {
+      for (final String stopId in r.stopIds) {
+        linesByStop[stopId] = (linesByStop[stopId] ?? 0) + 1;
+      }
+    }
+    Stop? best;
+    int bestCount = 0;
+    bool tied = false;
+    for (final Stop s in allStops) {
+      final int count = linesByStop[s.stopId] ?? 0;
+      if (count < 2 || exclude.contains(s.name)) continue;
+      if (count > bestCount) {
+        bestCount = count;
+        best = s;
+        tied = false;
+      } else if (count == bestCount) {
+        tied = true;
+      }
+    }
+    if (best == null || tied) return null;
+    return best;
   }
 
   static String _formatMin(int minFromMidnight) {
@@ -4123,6 +4219,35 @@ class AssistantReplies {
         buf.write(' : leurs itinéraires sont indicatifs.');
       }
       if (future > 0) buf.write(' $future ligne(s) annoncée(s), pas encore en service.');
+
+      // LOT 5 — l'assistant expose les métadonnées d'intégrité réellement
+      // présentes dans la source (audit_flags, official_identifier_status).
+      // AVANT : une ligne signalée « itinéraire incohérent » ou à numéro
+      // contesté était comptée comme une ligne ordinaire ; l'IA laissait croire
+      // que son tracé ou son numéro étaient établis.
+      final int incoherent =
+          mine.where((r) => r.auditFlags.contains('ITINERARY_GEOGRAPHICALLY_INCOHERENT')).length;
+      final int duplicateSequence =
+          mine.where((r) => r.auditFlags.contains('DUPLICATE_STOP_SEQUENCE')).length;
+      if (incoherent > 0) {
+        buf.write(' $incoherent ligne(s) sont signalées par l’audit comme '
+            'géographiquement incohérentes : leur tracé n’est pas fiable.');
+      }
+      if (duplicateSequence > 0) {
+        buf.write(' $duplicateSequence ligne(s) présentent une séquence d’arrêts '
+            'dupliquée signalée par l’audit.');
+      }
+      final int contestedNumbers =
+          mine.where((r) => r.officialIdentifierStatus == OfficialIdentifierStatus.conflicting).length;
+      final int missingNumbers =
+          mine.where((r) => r.officialIdentifierStatus == OfficialIdentifierStatus.missing).length;
+      if (contestedNumbers > 0) {
+        buf.write(' $contestedNumbers ligne(s) portent un numéro contesté '
+            '(le numéro publié appartient à un autre opérateur).');
+      }
+      if (missingNumbers > 0) {
+        buf.write(' $missingNumbers ligne(s) n’ont aucun numéro officiel publié.');
+      }
     }
     buf.write(" Je ne dispose d'aucun horaire ni d'aucune fréquence vérifiés pour ce réseau.");
     buf.write(' Dis-moi ton départ et ton arrivée pour un itinéraire.');
@@ -4408,6 +4533,27 @@ class DetailedRoutePage extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               Text('Arrêts & Gares alignés — ${route.operator}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
+              // LOT 2 (intégrité) — avertissements d'audit de la source unique.
+              // Les drapeaux `audit_flags` existaient dans `dakar_network.json`
+              // mais n'étaient affichés nulle part : une séquence d'arrêts
+              // signalée incohérente (42 AFTU, 2 DDD) ou dupliquée (4 lignes)
+              // était présentée comme une séquence ordinaire. Ces bandeaux
+              // n'ajoutent aucune donnée : ils restituent un verdict déjà
+              // présent dans la source.
+              ...route.integrityWarnings.map((String w) => Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.warning.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.warning.withOpacity(0.4)),
+                    ),
+                    child: Row(children: [
+                      const Icon(Icons.warning_amber_rounded, size: 16, color: AppColors.warning),
+                      const SizedBox(width: 8),
+                      Expanded(child: Text(w, style: const TextStyle(fontSize: 11, color: AppColors.warning, fontWeight: FontWeight.w600))),
+                    ]),
+                  )),
               const SizedBox(height: 12),
               ...route.stops.asMap().entries.map((entry) {
                 final idx = entry.key; final stop = entry.value; final isLast = idx == route.stops.length - 1;
@@ -4471,6 +4617,26 @@ class DetailedRoutePage extends StatelessWidget {
                                     );
                                   }),
                                   const Spacer(),
+                                  // LOT 2 (intégrité) — la fiabilité de la POSITION est une donnée
+                                  // distincte de l'existence de l'arrêt : 20 arrêts CONFIRMED (TER
+                                  // et BRT) ont une position UNVERIFIED ou CONFLICTING. Elle était
+                                  // silencieuse ; elle est désormais affichée pour ne pas laisser
+                                  // croire que la position est vérifiée parce que l'arrêt l'est.
+                                  if (!route.hasConfirmedPosition(stop)) ...[
+                                    const Icon(Icons.place_outlined, size: 12, color: AppColors.warning),
+                                    const SizedBox(width: 3),
+                                    Flexible(
+                                      child: Text(
+                                        ReliabilityLabel.coordinatesLabel(
+                                                route.stopCoordinatesStatuses[stop.stopId] ??
+                                                    ProvenanceStatus.unverified) ??
+                                            '',
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(fontSize: 10, color: AppColors.warning, fontWeight: FontWeight.w600),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                  ],
                                   Text('📍 ${stop.distanceFromStart}', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
                                 ]),
                               ],
