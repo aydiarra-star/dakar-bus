@@ -3751,6 +3751,35 @@ class AssistantReplies {
         buf.write(' : leurs itinéraires sont indicatifs.');
       }
       if (future > 0) buf.write(' $future ligne(s) annoncée(s), pas encore en service.');
+
+      // LOT 5 — l'assistant expose les métadonnées d'intégrité réellement
+      // présentes dans la source (audit_flags, official_identifier_status).
+      // AVANT : une ligne signalée « itinéraire incohérent » ou à numéro
+      // contesté était comptée comme une ligne ordinaire ; l'IA laissait croire
+      // que son tracé ou son numéro étaient établis.
+      final int incoherent =
+          mine.where((r) => r.auditFlags.contains('ITINERARY_GEOGRAPHICALLY_INCOHERENT')).length;
+      final int duplicateSequence =
+          mine.where((r) => r.auditFlags.contains('DUPLICATE_STOP_SEQUENCE')).length;
+      if (incoherent > 0) {
+        buf.write(' $incoherent ligne(s) sont signalées par l’audit comme '
+            'géographiquement incohérentes : leur tracé n’est pas fiable.');
+      }
+      if (duplicateSequence > 0) {
+        buf.write(' $duplicateSequence ligne(s) présentent une séquence d’arrêts '
+            'dupliquée signalée par l’audit.');
+      }
+      final int contestedNumbers =
+          mine.where((r) => r.officialIdentifierStatus == OfficialIdentifierStatus.conflicting).length;
+      final int missingNumbers =
+          mine.where((r) => r.officialIdentifierStatus == OfficialIdentifierStatus.missing).length;
+      if (contestedNumbers > 0) {
+        buf.write(' $contestedNumbers ligne(s) portent un numéro contesté '
+            '(le numéro publié appartient à un autre opérateur).');
+      }
+      if (missingNumbers > 0) {
+        buf.write(' $missingNumbers ligne(s) n’ont aucun numéro officiel publié.');
+      }
     }
     buf.write(" Je ne dispose d'aucun horaire ni d'aucune fréquence vérifiés pour ce réseau.");
     buf.write(' Dis-moi ton départ et ton arrivée pour un itinéraire.');
