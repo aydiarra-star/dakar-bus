@@ -137,3 +137,15 @@ test('no stop_times row references an undeclared trip (GTFS referential integrit
   // stop_times ne pointe vers un trip absent (UNKNOWN_TRIP_REFERENCE).
   assert.deepEqual([...orphans],[]);
 });
+test('PWA : aucun tarif ni faux temps réel exposé par index.html ou data/gtfs', () => {
+  const fs=require('node:fs'),path=require('node:path'),root=path.join(__dirname,'..');
+  const read=(p)=>fs.readFileSync(path.join(root,p),'utf8');
+  const price=/\b(fcfa|tarif|prix|co[ûu]t|fare|price)\b/i;
+  assert.equal(price.test(read('index.html')),false,'index.html ne doit exposer aucun prix');
+  const realtime=/"(schedule_status|data_status)"\s*:\s*"(REAL_TIME|LIVE)"/;
+  assert.equal(realtime.test(read('index.html')),false,'aucun faux temps réel dans index.html');
+  for (const f of fs.readdirSync(path.join(root,'data/gtfs'))) {
+    const body=read(path.join('data/gtfs',f));
+    assert.equal(price.test(body),false,`${f} ne doit exposer aucun prix`);
+  }
+});
