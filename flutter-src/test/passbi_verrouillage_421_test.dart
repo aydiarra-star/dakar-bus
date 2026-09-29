@@ -199,9 +199,11 @@ void main() {
         IdentityStatus.unconfirmed,
         shortName: 'D217OT',
       );
-      expect(label, 'Ligne PassBi DDD_217 · D217OT');
-      expect(label, contains('PassBi'),
-          reason: 'un identifiant PassBi reste marqué comme tel');
+      // Chantier UI : la source de données n'est plus nommée, et l'identifiant
+      // interne n'est jamais présenté comme le numéro public DDD.
+      expect(label, isNot(contains('PassBi')));
+      expect(label, startsWith('DDD'));
+      expect(label, contains('D217OT'));
       expect(label, isNot('D217OT'));
       expect(label.startsWith('D217OT'), isFalse);
       expect(label, isNot('DDD 217'));
@@ -233,11 +235,11 @@ void main() {
       );
       expect(info.status, ScheduleStatus.scheduled);
       expect(info.identityStatus, IdentityStatus.unconfirmed);
-      expect(
-          ScheduleProvider.identityLabelFor(
-              'AFTU', 'AFTU_3', IdentityStatus.unconfirmed,
-              shortName: summary.shortName),
-          startsWith('Ligne PassBi AFTU_3'));
+      final String label = ScheduleProvider.identityLabelFor(
+          'AFTU', 'AFTU_3', IdentityStatus.unconfirmed,
+          shortName: summary.shortName);
+      expect(label, isNot(contains('PassBi')));
+      expect(label, startsWith('AFTU'));
     });
 
     test('3b. aftu_8 / aftu_11 → AFTU_3 : hypothèses NON confirmées, jamais '

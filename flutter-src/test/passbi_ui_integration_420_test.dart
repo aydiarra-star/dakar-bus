@@ -264,7 +264,8 @@ void main() {
       expectHonest(natif);
       expect(natif.status, ScheduleStatus.scheduled);
       expect(natif.identityStatus, IdentityStatus.unconfirmed);
-      expect(natif.lineLabel, startsWith('Ligne PassBi AFTU_3'));
+      expect(natif.lineLabel, isNot(contains('PassBi')));
+      expect(natif.lineLabel, startsWith('AFTU'));
     });
 
     test('aftu_12 non mappé sans fréquence → UNKNOWN (jamais inventé)', () {

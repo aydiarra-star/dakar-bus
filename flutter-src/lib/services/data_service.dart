@@ -123,7 +123,8 @@ class DataService {
     final parts = PassBiSource.splitComposite(compositeStopId);
     if (parts == null) {
       return DepartureInfo.unknown(
-        operator: 'PassBi',
+        // Repli neutre : le nom de la source de données n'est jamais affiché.
+        operator: 'Bus',
         routeId: compositeStopId,
         requestedAt: at,
         unresolvedReason: UnresolvedReason.stopNotMatched,

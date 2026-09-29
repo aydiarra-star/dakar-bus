@@ -322,6 +322,18 @@ class OppositeStopService {
 class AppColors {
   static const primary = Color(0xFF00B140);
   static const primaryDark = Color(0xFF008A32);
+
+  /// Vert haricot clair — teinte unifiée de l'interface (boutons principaux,
+  /// indicateurs, éléments de navigation, mise en avant des départs au statut
+  /// positif). Teinte « haricot vert » documentée (#739047) : contraste ≈ 3,6:1
+  /// en texte blanc et ≈ 5,8:1 en texte noir, équilibré pour les deux fonds.
+  ///
+  /// [primary] (le vert historique) est conservé pour la carte, le GPS et la
+  /// palette des réseaux : le vert des départs reste, lui, porté par
+  /// [success], inchangé — aucune règle horaire n'est touchée.
+  static const beanGreen = Color(0xFF739047);
+  static const beanGreenLight = Color(0xFF9CBF6B);
+
   static const ter = Color(0xFF8B4513);
   static const brt = Color(0xFF22C55E);
   static const aftu = Color(0xFFFF8C42);
@@ -336,6 +348,30 @@ class AppColors {
 
   static const success = Color(0xFF00B140);
   static const warning = Color(0xFFEF6C00);
+}
+
+/// Retire toute mention « PassBi » d'un libellé destiné à l'utilisateur.
+///
+/// PassBi est la SOURCE DE DONNÉES interne (feeds GTFS) : le nom ne doit plus
+/// apparaître dans l'interface. Seule la PRÉSENTATION est touchée — les
+/// identifiants, clés de mapping et données source restent strictement
+/// inchangés. L'opération est purement textuelle : elle supprime les
+/// formulations connues (« Ligne PassBi X », « 3 lignes PassBi DDD »,
+/// « PassBi AFTU_3 ») et neutralise toute occurrence résiduelle du mot.
+///
+/// Un libellé qui ne contient pas « PassBi » est renvoyé à l'identique.
+String stripPassBiFromLabel(String label) {
+  String s = label;
+  // Formes composées, du plus spécifique au plus général.
+  s = s.replaceAll(RegExp(r'\d+\s+lignes?\s+PassBi\s*', caseSensitive: false), '');
+  s = s.replaceAll(RegExp(r'\bLignes?\s+PassBi\s*', caseSensitive: false), '');
+  s = s.replaceAll(RegExp(r'\bPassBi\s*', caseSensitive: false), '');
+  // Nettoyage des séparateurs devenus orphelins (« · », « - »).
+  s = s.replaceAll(RegExp(r'\s*[·|]\s*$'), '');
+  s = s.replaceAll(RegExp(r'\s*[·|]\s*[·|]\s*'), ' · ');
+  s = s.replaceAll(RegExp(r'^\s*[·|-]\s*'), '');
+  s = s.replaceAll(RegExp(r'\s*[·|-]\s*$'), '');
+  return s.replaceAll(RegExp(r'\s{2,}'), ' ').trim();
 }
 
 // ============================================================
@@ -358,11 +394,14 @@ class DataSourceInfo {
   static const unverified = DataSourceInfo(origin: DataOrigin.indicative, label: 'Donnée non vérifiée', badgeEmoji: '🟡');
   static const demo = DataSourceInfo(origin: DataOrigin.indicative, label: 'Donnée Indicative (~)', badgeEmoji: '🟡');
 
-  /// Lot 4.21 — Arrêt/route PassBi exploitables dont l'horaire est un GTFS
-  /// public SCHEDULED, mais dont l'IDENTITÉ PUBLIQUE reste à confirmer
+  /// Lot 4.21 — Arrêt/route exploitables dont l'horaire est un GTFS public
+  /// SCHEDULED, mais dont l'IDENTITÉ PUBLIQUE reste à confirmer
   /// (`identity_status` UNCONFIRMED). Pastille 🔵 : ni le vert « officiel »
   /// (SETER/SunuBRT confirmés) ni le jaune « observation terrain ».
-  static const passbiGtfs = DataSourceInfo(origin: DataOrigin.verified, label: 'PassBi GTFS (identité à confirmer)', badgeEmoji: '🔵');
+  ///
+  /// Identifiant Dart conservé (API interne) ; le LIBELLÉ affiché ne nomme plus
+  /// la source de données (PassBi), conformément au chantier UI.
+  static const passbiGtfs = DataSourceInfo(origin: DataOrigin.verified, label: 'Horaire public GTFS (identité à confirmer)', badgeEmoji: '🔵');
 }
 
 // ============================================================
@@ -466,6 +505,50 @@ class DetailedRoute {
     this.auditFlags = const <String>[],
     this.officialIdentifierStatus = OfficialIdentifierStatus.unknown,
   });
+
+  /// Numéro de ligne publié, `null` si la donnée ne le documente pas.
+  ///
+  /// Le numéro provient du `short_name` de la source (`dakar_network.json`,
+  /// ex. « DDD 1 » → « 1 », « Tata 218 » → « 218 »). Il n'est JAMAIS deviné :
+  /// une ligne sans numéro exploitable (`TER`) renvoie `null` et n'affiche
+  /// alors que son mode. Il n'est affiché que pour les réseaux dont l'identité
+  /// est documentée par le référentiel dakar.
+  String? get lineNumberLabel {
+    final String s = originOperatorLabel;
+    final int? n = lineNumber;
+    if (n == null) return null;
+    switch (s) {
+      case 'DDD':
+      case 'Tata':
+      case 'AFTU':
+      case 'BRT':
+        return '$n';
+      default:
+        return null;
+    }
+  }
+
+  /// Libellé court de l'exploitant (« DDD », « Tata », « AFTU », « BRT », « TER »),
+  /// dérivé du nom d'exploitant réellement chargé. Jamais inventé.
+  String get originOperatorLabel {
+    final String op = operator.toLowerCase();
+    if (op.contains('dem dikk')) return 'DDD';
+    if (op.contains('tata')) return 'Tata';
+    if (op.contains('aftu')) return 'AFTU';
+    if (op.contains('sunubrt') || op.contains('brt')) return 'BRT';
+    if (op.contains('ter') || op.contains('seter')) return 'TER';
+    return operator;
+  }
+
+  /// Identité d'affichage de la ligne : « DDD 1 », « Tata 218 », « BRT B1 »…
+  /// Le mode seul quand aucun numéro n'est documenté (`TER`).
+  String get routeLabel {
+    final String? num = lineNumberLabel;
+    final String mode = originOperatorLabel;
+    if (num == null) return mode;
+    if (mode == 'BRT') return 'BRT B$num';
+    return '$mode $num';
+  }
 
   /// Libellés d'avertissement des drapeaux d'audit connus de cette ligne.
   /// Un drapeau inconnu est ignoré, jamais reformulé en une affirmation.
@@ -1706,9 +1789,10 @@ void _integratePassBiNativeStops() {
         // n'est PAS un identifiant de ligne dakar, elle branche uniquement le
         // chemin natif de [Stop.departureInfoAt].
         scheduleRouteId: ref.compositeKey,
-        direction: n == 1
-            ? '1 ligne PassBi $netKey'
-            : '$n lignes PassBi $netKey',
+        // Libellé de présentation : le MODE porté par l'arrêt, jamais le nom
+        // de la source de données. Ce n'est PAS une destination : il ne porte
+        // pas le préfixe « Dir. », donc aucune « vers » n'en est déduite.
+        direction: '$n ${n == 1 ? 'ligne' : 'lignes'} $netKey',
         distanceMeters: DistanceHelper.haversineMeters(
           dakarOrderCenter,
           LatLng(ref.lat, ref.lon),
@@ -2190,9 +2274,9 @@ class RoutePlanner {
         direction: tripDirectionOf(leg),
         identityStatus: identity,
         identityNote: identity == IdentityStatus.confirmed
-            ? 'Identité publique confirmée par le crosswalk PassBi.'
-            : 'Identité publique UNCONFIRMED ; horaire PassBi calculé sur un '
-                'trip/stop_time réel. Affichage : métadonnées PassBi réelles.',
+            ? 'Identité publique confirmée par le référentiel documenté.'
+            : 'Identité publique UNCONFIRMED ; horaire calculé sur un '
+                'trip/stop_time réel. Affichage : métadonnées réelles du feed.',
         lineLabel: ScheduleProvider.identityLabelFor(
           leg.network,
           leg.routeId,
@@ -2203,13 +2287,13 @@ class RoutePlanner {
         ),
       );
       segments.add(RouteSegment(
-        // Lot 4.21 (verrouillage) : un identifiant PassBi n'est JAMAIS
-        // présenté comme le numéro public d'une ligne. Sans preuve
-        // documentaire d'identité, le tronçon est explicitement marqué
-        // « PassBi » (ex. « PassBi DDD_217 ») ; une identité confirmée garde
-        // son identité documentée (« BRT B1 », réseau « TER »).
+        // Lot 4.21 (verrouillage) : un identifiant interne n'est JAMAIS
+        // présenté comme le numéro public d'une ligne. Le tronçon affiche le
+        // MODE du réseau (DDD, AFTU, BRT, TER) ; une identité confirmée garde
+        // son identité documentée (« BRT B1 »). Le nom de la source de données
+        // (PassBi) n'apparaît plus dans l'interface.
         modeLabel: identity == IdentityStatus.unconfirmed
-            ? 'PassBi ${passBiLineLabel(leg.network, leg.routeId)}'
+            ? leg.network
             : passBiLineLabel(leg.network, leg.routeId),
         color: style.$2,
         icon: style.$3,
@@ -2254,14 +2338,14 @@ class RoutePlanner {
     return null;
   }
 
-  /// Identité d'affichage d'une ligne PassBi — strictement les ids du feed :
+  /// Identité d'affichage d'une ligne — strictement les ids du feed :
   /// « BRT B1 » / « BRT B2 », « DDD_01 », « AFTU_3 » ; le TER (UUID) reste
   /// affiché sous son réseau, aucun numéro déduit.
   ///
-  /// Verrouillage Lot 4.21 : ce libellé nu est un IDENTIFIANT PassBi. Sans
-  /// identité publique confirmée, les tronçons l'affichent préfixé
-  /// « PassBi » (voir [_plannedFromPassBi]) pour ne jamais le présenter
-  /// comme le numéro public d'une ligne DDD/AFTU.
+  /// Verrouillage Lot 4.21 : ce libellé nu est un IDENTIFIANT interne. Sans
+  /// identité publique confirmée, les tronçons affichent le MODE du réseau
+  /// (voir [_plannedFromPassBi]) pour ne jamais présenter un identifiant
+  /// interne comme le numéro public d'une ligne DDD/AFTU.
   static String passBiLineLabel(String network, String routeId) {
     final String id = routeId.toUpperCase();
     if (id.startsWith(network.toUpperCase())) return routeId;
@@ -2777,15 +2861,15 @@ class _MainShellState extends State<MainShell> {
             selectedIndex: _currentIndex,
             onDestinationSelected: (i) => setState(() => _currentIndex = i),
             backgroundColor: AppColors.surface(dark),
-            indicatorColor: AppColors.primary.withOpacity(0.18),
+            indicatorColor: AppColors.beanGreen.withOpacity(0.20),
             labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
             height: 68,
             destinations: const [
-              NavigationDestination(icon: Icon(Icons.explore_outlined), selectedIcon: Icon(Icons.explore, color: AppColors.primary), label: 'Explorer'),
-              NavigationDestination(icon: Icon(Icons.alt_route_outlined), selectedIcon: Icon(Icons.alt_route, color: AppColors.primary), label: 'Trajets'),
-              NavigationDestination(icon: Icon(Icons.notifications_outlined), selectedIcon: Icon(Icons.notifications, color: AppColors.primary), label: 'Alertes'),
-              NavigationDestination(icon: Icon(Icons.people_outline), selectedIcon: Icon(Icons.people, color: AppColors.primary), label: 'Direct rue'),
-              NavigationDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings, color: AppColors.primary), label: 'Réglages'),
+              NavigationDestination(icon: Icon(Icons.explore_outlined), selectedIcon: Icon(Icons.explore, color: AppColors.beanGreen), label: 'Explorer'),
+              NavigationDestination(icon: Icon(Icons.alt_route_outlined), selectedIcon: Icon(Icons.alt_route, color: AppColors.beanGreen), label: 'Trajets'),
+              NavigationDestination(icon: Icon(Icons.notifications_outlined), selectedIcon: Icon(Icons.notifications, color: AppColors.beanGreen), label: 'Alertes'),
+              NavigationDestination(icon: Icon(Icons.people_outline), selectedIcon: Icon(Icons.people, color: AppColors.beanGreen), label: 'Direct rue'),
+              NavigationDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings, color: AppColors.beanGreen), label: 'Réglages'),
             ],
           ),
         ),
@@ -3237,7 +3321,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                           onPressed: _openAI,
                           icon: const Icon(Icons.auto_awesome, size: 16),
                           label: const Text('Assistant IA', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)), elevation: 4),
+                          style: ElevatedButton.styleFrom(backgroundColor: AppColors.beanGreen, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)), elevation: 4),
                         ),
                       ),
 
@@ -3270,7 +3354,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
                     children: [
                       Row(children: [
-                        Container(width: 40, height: 40, decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.12), borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.directions_bus, color: AppColors.primary, size: 22)),
+                        Container(width: 40, height: 40, decoration: BoxDecoration(color: AppColors.beanGreen.withOpacity(0.12), borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.directions_bus, color: AppColors.beanGreen, size: 22)),
                         const SizedBox(width: 12),
                         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                           Text('Dakar Bus', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
@@ -3287,7 +3371,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                           decoration: InputDecoration(
                             hintText: 'Où voulez-vous aller ? (ex: Colobane, Yoff...)',
                             hintStyle: TextStyle(color: AppColors.textSecondary(dark)),
-                            prefixIcon: const Icon(Icons.search, color: AppColors.primary, size: 22),
+                            prefixIcon: const Icon(Icons.search, color: AppColors.beanGreen, size: 22),
                             suffixIcon: _searchFocused ? IconButton(icon: Icon(Icons.close, size: 20, color: AppColors.textSecondary(dark)), onPressed: () { _searchCtrl.clear(); setState(() => _searchFocused = false); }) : null,
                             border: InputBorder.none,
                             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14)
@@ -3308,7 +3392,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                         Text('${stops.length} arrêts', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
                         const SizedBox(width: 8),
                         if (_isLoadingRoutes)
-                          const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary))
+                          const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.beanGreen))
                         else
                           Text('à proximité (Maintenez un arrêt pour l\'ajouter aux favoris)', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark)))
                       ]),
@@ -3409,11 +3493,16 @@ class StopCard extends StatelessWidget {
             : (normalizeDirectionLabel(prochains.first.direction) ??
                 normalizeDirectionLabel(stop.direction,
                     requireDirPrefix: true));
-        final String header =
-            formatStopHeader(stop.name, stop.modeLabel, destination);
+        // PRÉSENTATION UNIQUEMENT : le nom de la source de données (PassBi) ne
+        // doit jamais apparaître. Les données et le pipeline horaire restent
+        // strictement inchangés.
+        final String header = stripPassBiFromLabel(
+            formatStopHeader(stop.name, stop.modeLabel, destination));
         final bool hasWaits = waits.isNotEmpty;
-        final String? lineLabel =
+        final String? rawLineLabel =
             prochains.isEmpty ? null : prochains.first.lineLabel;
+        final String? lineLabel =
+            rawLineLabel == null ? null : stripPassBiFromLabel(rawLineLabel);
         // FUSION LOT 1 (#40) — repli legacy : un arrêt porteur d'un horaire
         // EXACT en minutes-depuis-minuit (aucun en production aujourd'hui, la
         // source opérationnelle étant PassBi) conserve son compte à rebours
@@ -3558,7 +3647,7 @@ class _TripsPageState extends State<TripsPage> {
                       const SizedBox(height: 20),
                       ElevatedButton(
                         onPressed: _loading ? null : _search,
-                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 52), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)), elevation: 2),
+                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.beanGreen, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 52), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)), elevation: 2),
                         child: _loading ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5)) : const Text('Rechercher mon itinéraire', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       ),
                     ],
@@ -3707,7 +3796,7 @@ class _TripsPageState extends State<TripsPage> {
                       child: Padding(
                         padding: EdgeInsets.only(bottom: isLast ? 0 : 16),
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Row(children: [Icon(s.icon, size: 14, color: s.color), const SizedBox(width: 6), Text(s.modeLabel, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: s.color)), const Spacer(), Text(s.departureTime ?? ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))]),
+                          Row(children: [Icon(s.icon, size: 14, color: s.color), const SizedBox(width: 6), Text(stripPassBiFromLabel(s.modeLabel), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: s.color)), const Spacer(), Text(s.departureTime ?? ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))]),
                           const SizedBox(height: 4),
                           Text('${s.from} - ${s.to}', style: TextStyle(fontSize: 12, color: AppColors.textPrimary(dark))),
                           const SizedBox(height: 2),
@@ -3889,7 +3978,7 @@ class AlertsPage extends StatelessWidget {
                   Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: badgeColor.withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Text(alertBadge, style: TextStyle(fontSize: 10, color: badgeColor, fontWeight: FontWeight.bold)))
                 ]),
                 const SizedBox(height: 4),
-                Text(alertSource, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                Text(alertSource, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.beanGreen)),
                 const SizedBox(height: 6),
                 Text(alertMessage, style: TextStyle(fontSize: 13, height: 1.4, color: AppColors.textPrimary(dark))),
               ],
@@ -4013,7 +4102,7 @@ class CommunityAlertsPageState extends State<CommunityAlertsPage> {
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Signalement ajouté sur cet appareil (non partagé, non vérifié).')));
                   }
                 },
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 48), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.beanGreen, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 48), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                 child: const Text('Publier mon signalement', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ],
@@ -4056,7 +4145,7 @@ class CommunityAlertsPageState extends State<CommunityAlertsPage> {
                       onPressed: _showAddReportModal,
                       icon: const Icon(Icons.add, size: 16),
                       label: const Text('Signaler'),
-                      style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))),
+                      style: ElevatedButton.styleFrom(backgroundColor: AppColors.beanGreen, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))),
                     ),
                   ],
                 ),
@@ -4123,7 +4212,7 @@ class SettingsPage extends StatelessWidget {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 44)),
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.beanGreen, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 44)),
                 child: const Text('Fermer'),
               ),
             ],
@@ -4152,26 +4241,26 @@ class SettingsPage extends StatelessWidget {
                   decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)]),
                   child: Column(
                     children: [
-                      SwitchListTile(secondary: const Icon(Icons.notifications_outlined, color: AppColors.primary), title: Text('Notifications trafic', style: TextStyle(color: AppColors.textPrimary(dark))), value: true, activeColor: AppColors.primary, onChanged: (_) {}),
+                      SwitchListTile(secondary: const Icon(Icons.notifications_outlined, color: AppColors.beanGreen), title: Text('Notifications trafic', style: TextStyle(color: AppColors.textPrimary(dark))), value: true, activeColor: AppColors.beanGreen, onChanged: (_) {}),
                       Divider(height: 1, color: AppColors.divider(dark)),
-                      SwitchListTile(secondary: const Icon(Icons.dark_mode_outlined, color: AppColors.primary), title: Text('Mode sombre', style: TextStyle(color: AppColors.textPrimary(dark))), value: dark, activeColor: AppColors.primary, onChanged: (v) => globalState.toggleDarkMode(v)),
+                      SwitchListTile(secondary: const Icon(Icons.dark_mode_outlined, color: AppColors.beanGreen), title: Text('Mode sombre', style: TextStyle(color: AppColors.textPrimary(dark))), value: dark, activeColor: AppColors.beanGreen, onChanged: (v) => globalState.toggleDarkMode(v)),
                       Divider(height: 1, color: AppColors.divider(dark)),
                       ListTile(
-                        leading: const Icon(Icons.help_outline, color: AppColors.primary),
+                        leading: const Icon(Icons.help_outline, color: AppColors.beanGreen),
                         title: Text('Comment utiliser l’application', style: TextStyle(color: AppColors.textPrimary(dark))),
                         trailing: const Icon(Icons.chevron_right),
-                        onTap: () => _showInfoModal(context, 'Comment utiliser l’application', '1. Utilisez l’onglet Explorer pour visualiser votre position GPS en temps réel et les arrêts à proximité.\n2. Maintenez un arrêt enfoncé pour l’ajouter à vos favoris ⭐.\n3. Utilisez l’onglet Trajets pour planifier vos déplacements multimodaux (TER, BRT, DDD, TATA) ; les itinéraires non vérifiés sont signalés comme tels.\n4. Interrogez l’Assistant IA pour toute question sur les lignes. Les horaires GTFS PassBi (programmation SCHEDULED) s’affichent quand la ligne est mappée ; ils ne sont jamais présentés en temps réel.'),
+                        onTap: () => _showInfoModal(context, 'Comment utiliser l’application', '1. Utilisez l’onglet Explorer pour visualiser votre position GPS en temps réel et les arrêts à proximité.\n2. Maintenez un arrêt enfoncé pour l’ajouter à vos favoris ⭐.\n3. Utilisez l’onglet Trajets pour planifier vos déplacements multimodaux (TER, BRT, DDD, TATA) ; les itinéraires non vérifiés sont signalés comme tels.\n4. Interrogez l’Assistant IA pour toute question sur les lignes. Les horaires GTFS publics (programmation SCHEDULED) s’affichent quand la ligne est mappée ; ils ne sont jamais présentés en temps réel.'),
                       ),
                       Divider(height: 1, color: AppColors.divider(dark)),
                       ListTile(
-                        leading: const Icon(Icons.description_outlined, color: AppColors.primary),
+                        leading: const Icon(Icons.description_outlined, color: AppColors.beanGreen),
                         title: Text('Conditions d’utilisation', style: TextStyle(color: AppColors.textPrimary(dark))),
                         trailing: const Icon(Icons.chevron_right),
-                        onTap: () => _showInfoModal(context, 'Conditions d’utilisation', 'Dakar Bus fournit des informations de transport indicatives. Seules les données dont la source officielle a été vérifiée (SETER, SunuBRT) sont présentées comme officielles ; les autres itinéraires (DDD, AFTU, TATA) sont signalés comme non vérifiés. Les horaires PassBi sont des programmations (SCHEDULED) issues de GTFS publics ; aucune position de véhicule en temps réel n’est fournie.'),
+                        onTap: () => _showInfoModal(context, 'Conditions d’utilisation', 'Dakar Bus fournit des informations de transport indicatives. Seules les données dont la source officielle a été vérifiée (SETER, SunuBRT) sont présentées comme officielles ; les autres itinéraires (DDD, AFTU, TATA) sont signalés comme non vérifiés. Les horaires affichés sont des programmations (SCHEDULED) issues de GTFS publics ; aucune position de véhicule en temps réel n’est fournie.'),
                       ),
                       Divider(height: 1, color: AppColors.divider(dark)),
                       ListTile(
-                        leading: const Icon(Icons.info_outline, color: AppColors.primary),
+                        leading: const Icon(Icons.info_outline, color: AppColors.beanGreen),
                         title: Text('Qui sommes-nous ?', style: TextStyle(color: AppColors.textPrimary(dark))),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () => _showInfoModal(context, 'Qui sommes-nous ?', 'Dakar Bus est la plateforme de référence multimodale conçue pour faciliter la mobilité urbaine à Dakar. Notre mission est d’offrir à chaque usager une visibilité totale sur les réseaux de transport et de fluidifier les déplacements quotidiens.'),
@@ -4521,7 +4610,7 @@ class _AIChatPageState extends State<AIChatPage> {
                   color: AppColors.surface(dark),
                   child: Row(children: [
                     Expanded(child: TextField(controller: _msgCtrl, style: TextStyle(color: AppColors.textPrimary(dark)), decoration: InputDecoration(hintText: 'Posez votre question sur un trajet ou une mobilité...', hintStyle: TextStyle(color: AppColors.textSecondary(dark)), border: InputBorder.none))),
-                    IconButton(icon: const Icon(Icons.send, color: AppColors.primary), onPressed: _sendMessage),
+                    IconButton(icon: const Icon(Icons.send, color: AppColors.beanGreen), onPressed: _sendMessage),
                   ]),
                 ),
               ],
@@ -4549,7 +4638,7 @@ class DetailedRoutePage extends StatelessWidget {
       builder: (context, _) {
         final dark = globalState.darkMode;
         return Scaffold(
-          appBar: AppBar(title: Text('${route.operator} — ${route.origin}'), backgroundColor: route.color, foregroundColor: Colors.white),
+          appBar: AppBar(title: Text('${route.routeLabel} — ${route.origin}'), backgroundColor: route.color, foregroundColor: Colors.white),
           body: ListView(
             padding: const EdgeInsets.all(16),
             children: [
@@ -4560,11 +4649,13 @@ class DetailedRoutePage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text('${route.origin} ➔ ${route.destination}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textPrimary(dark))),
+                      // Hiérarchie d'identification : le numéro de ligne (et son
+                      // mode) d'abord, puis la direction/origine-destination.
+                      Text('${route.routeLabel} · ${route.origin} ➔ ${route.destination}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textPrimary(dark))),
                       const SizedBox(height: 4),
                       Text('${route.totalDistance} • ${route.stops.length} stations/arrêts', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark))),
                     ])),
-                    Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: route.color.withOpacity(0.15), borderRadius: BorderRadius.circular(8)), child: Text(route.operator, style: TextStyle(fontWeight: FontWeight.bold, color: route.color, fontSize: 11))),
+                    Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: route.color.withOpacity(0.15), borderRadius: BorderRadius.circular(8)), child: Text(route.originOperatorLabel, style: TextStyle(fontWeight: FontWeight.bold, color: route.color, fontSize: 11))),
                   ],
                 ),
               ),
@@ -4583,7 +4674,7 @@ class DetailedRoutePage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
-              Text('Arrêts & Gares alignés — ${route.operator}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
+              Text('Arrêts & Gares alignés — ${route.routeLabel}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
               // LOT 2 (intégrité) — avertissements d'audit de la source unique.
               // Les drapeaux `audit_flags` existaient dans `dakar_network.json`
               // mais n'étaient affichés nulle part : une séquence d'arrêts
@@ -4844,7 +4935,13 @@ class SingleStopView extends StatelessWidget {
                           children: [
                             Text(stop.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimary(dark))),
                             const SizedBox(height: 2),
-                            Text(stop.direction, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textSecondary(dark))),
+                            // Identité de ligne (numéro + mode) quand la source
+                            // la documente — jamais devinée.
+                            if (routeDetails != null) ...[
+                              Text(routeDetails.routeLabel, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: stop.color)),
+                              const SizedBox(height: 2),
+                            ],
+                            Text(stripPassBiFromLabel(stop.direction), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textSecondary(dark))),
                           ],
                         ),
                       ),
