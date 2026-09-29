@@ -63,16 +63,29 @@ Effet mesuré : **6 codes d'erreur de l'adaptateur disparaissent**
 `STOP_DIRECTIONS_INVALID`, `STOP_DATA_UNVERIFIED`, `ROUTE_GEOMETRY_UNVERIFIED`,
 `UNKNOWN_TRIP_REFERENCE` **subsistent volontairement**.
 
-## 3. Anomalie réelle ouverte : `stop_times` → trip inexistant
+## 3. Anomalie réelle corrigée : `stop_times` → trip inexistant
 
-`data/gtfs/stop_times.txt` contient deux trips non déclarés dans `trips.txt` :
+`data/gtfs/stop_times.txt` référençait deux trips non déclarés dans
+`trips.txt` (36 lignes au total) :
 
-- `TER_01_003` (12:00 Diamniadio → 12:46 Dakar) — absent de `trips.txt` ;
-- `BRT_01_003` — absent de `trips.txt`.
+- `TER_01_003` (12:00 Diamniadio → 12:46 Dakar) ;
+- `BRT_01_003` (12:00 Préfecture → 12:55 Papa Gueye Fall).
 
-Ces lignes ne sont **pas supprimées** dans ce lot : leur suppression serait une
-décision de données non couverte par une source. Elles sont signalées
-(`UNKNOWN_TRIP_REFERENCE` × 36) et restent non résolues.
+Fait déterminant : ces deux trips **existent déjà intégralement** dans
+`stop_times.txt` (13 et 23 arrêts, séquences contiguës, heures cohérentes) et
+sont des trajets **retour** (12:00 → 12:55) distincts des services matin
+(`*_001` aller, `*_002` retour matin). Leur déclaration `trips.txt` était
+purement **omise** : c'est une rupture de clé étrangère GTFS, pas une donnée
+manquante.
+
+**Correction minimale et factuelle** : les deux lignes `trips.txt` manquantes
+sont ajoutées, en reprenant uniquement des valeurs déjà présentes dans le
+dépôt — `route_id`, `service_id`, `trip_id` et `shape_id` copiés du trip retour
+frère (`*_002`), `direction_id=1`, `trip_headsign` identique à la destination
+réelle (`Dakar` / `Petersen`). **Aucune donnée inventée**, aucun horaire touché.
+
+Effet mesuré : `UNKNOWN_TRIP_REFERENCE × 36` **disparaît**. Un test de
+non-régression verrouille l'intégrité référentielle (`stop_times` → `trips`).
 
 ## 4. Contradiction documentée : effectif BRT
 
