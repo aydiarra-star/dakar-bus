@@ -84,6 +84,7 @@ enum SourceType {
   estimated,
   community,
   fieldObservation,
+  publicGtfs,
   unknown,
 }
 
@@ -100,9 +101,11 @@ extension SourceTypeLabel on SourceType {
         return 'ESTIMATED';
       case SourceType.community:
         return 'COMMUNITY';
-      case SourceType.fieldObservation:
-        return 'FIELD_OBSERVATION';
-      case SourceType.unknown:
+    case SourceType.fieldObservation:
+      return 'FIELD_OBSERVATION';
+    case SourceType.publicGtfs:
+      return 'PUBLIC_GTFS';
+    case SourceType.unknown:
         return 'UNKNOWN';
     }
   }
@@ -122,6 +125,8 @@ extension SourceTypeLabel on SourceType {
         return SourceType.community;
       case 'FIELD_OBSERVATION':
         return SourceType.fieldObservation;
+      case 'PUBLIC_GTFS':
+        return SourceType.publicGtfs;
       default:
         return SourceType.unknown;
     }

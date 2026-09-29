@@ -10,8 +10,12 @@ import 'package:http/http.dart' as http;
 import 'models/transport_network.dart';
 import 'models/reliability.dart';
 import 'models/departure_info.dart';
+import 'models/schedule_display.dart';
 import 'services/data_service.dart';
 import 'services/dakar_clock.dart';
+import 'services/gtfs/passbi_source.dart';
+import 'services/gtfs/routing_engine.dart';
+import 'services/schedule_provider.dart';
 
 // ============================================================
 // SERVICE GLOBAL RESEAU DAKAR — Connecté à assets/data/dakar_network.json
@@ -33,6 +37,13 @@ Future<void> main() async {
   try {
     await appDataService.loadNetworkData();
     _integrateNetworkData();
+    // Lot 4.18 : horaires GTFS PassBi (source opérationnelle actuelle,
+    // PUBLIC_GTFS). Chargement séparé : un échec laisse l'app en mode
+    // legacy sans bloquer le démarrage. Aucune donnée n'est embarquée ici.
+    await appDataService.loadPassBiSchedules();
+    // Lot 4.21 : référentiel natif PassBi (DDD/AFTU) — arrêts réellement
+    // desservis, horaires SCHEDULED calculables, identité publique distincte.
+    _integratePassBiNativeStops();
   } catch (e, st) {
     debugPrint('⚠️ DataService init failed: $e');
     debugPrint('$st');
@@ -346,6 +357,12 @@ class DataSourceInfo {
   /// Donnée dont la provenance n'est pas CONFIRMED (UNVERIFIED / CONFLICTING).
   static const unverified = DataSourceInfo(origin: DataOrigin.indicative, label: 'Donnée non vérifiée', badgeEmoji: '🟡');
   static const demo = DataSourceInfo(origin: DataOrigin.indicative, label: 'Donnée Indicative (~)', badgeEmoji: '🟡');
+
+  /// Lot 4.21 — Arrêt/route PassBi exploitables dont l'horaire est un GTFS
+  /// public SCHEDULED, mais dont l'IDENTITÉ PUBLIQUE reste à confirmer
+  /// (`identity_status` UNCONFIRMED). Pastille 🔵 : ni le vert « officiel »
+  /// (SETER/SunuBRT confirmés) ni le jaune « observation terrain ».
+  static const passbiGtfs = DataSourceInfo(origin: DataOrigin.verified, label: 'PassBi GTFS (identité à confirmer)', badgeEmoji: '🔵');
 }
 
 // ============================================================
@@ -489,6 +506,10 @@ class DetailedRoute {
   /// [reverse] produit la direction inverse par INVERSION de l'ordre courant du
   /// JSON (§6 pour le TER, §7 pour le BRT). Aucune seconde liste n'est créée.
   static DetailedRoute? fromStop(Stop stop, {bool reverse = false}) {
+    // Lot 4.21 — un arrêt NATIF PassBi n'appartient pas au référentiel dakar :
+    // aucune identité de ligne dakar ne lui est attribuée. La fiche de ligne
+    // reste donc indisponible (jamais une fiche empruntée à une autre ligne).
+    if (stop.passBiStopKey != null) return null;
     final BusStop? json = _resolveJsonStop(stop);
     if (json == null) return null;
 
@@ -718,19 +739,79 @@ class Stop {
   /// un élément de [departureMinutesFromMidnight] : elle reste dans le provider.
   final String? scheduleRouteId;
 
+  /// Lot 4.21 §2 — Clé composite PassBi (« DDD:D_217 ») d'un arrêt NATIF du
+  /// référentiel PassBi. Non nul uniquement pour les arrêts issus des feeds
+  /// DDD/AFTU (voir [passBiNativeStops]) : leur prochain départ est calculé
+  /// sur les lignes qui les desservent réellement, sans aucun mapping
+  /// d'identité publique. `null` pour tous les arrêts du référentiel dakar.
+  final String? passBiStopKey;
+
   DepartureInfo get departureInfo => departureInfoAt();
 
   DepartureInfo departureInfoAt({
     DateTime? at,
     bool isPublicHoliday = false,
-  }) =>
-      appDataService.departureFor(
-        network: modeLabel,
-        routeId: scheduleRouteId,
-        stopId: stopId,
+  }) {
+    // Lot 4.21 — chemin NATIF PassBi : route + trip + stop + stop_time +
+    // service actif suffisent (§2). Aucun repli fréquence, aucune identité
+    // publique requise pour l'affichage horaire.
+    final String? key = passBiStopKey;
+    if (key != null) {
+      return appDataService.passBiDepartureForCompositeStop(
+        compositeStopId: key,
         at: at,
         isPublicHoliday: isPublicHoliday,
       );
+    }
+    return appDataService.departureFor(
+      network: modeLabel,
+      routeId: scheduleRouteId,
+      stopId: stopId,
+      at: at,
+      isPublicHoliday: isPublicHoliday,
+    );
+  }
+
+  /// Lot 4.22 (Explorer) — Jusqu'à [limit] prochains passages RÉELS de
+  /// l'arrêt (vrais trips + stop_times + services actifs PassBi).
+  ///
+  /// Une fréquence ne produit JAMAIS de liste de départs ; sans stop_time
+  /// réel applicable la liste est vide (l'UI affiche alors « Horaire
+  /// indisponible » — jamais de faux temps).
+  List<DepartureInfo> nextRealDepartures({DateTime? at, int limit = 3}) {
+    final String? key = passBiStopKey;
+    if (key != null) {
+      return appDataService.passBiNextDeparturesForCompositeStop(
+        compositeStopId: key,
+        at: at,
+        limit: limit,
+      );
+    }
+    return appDataService.nextDeparturesFor(
+      network: modeLabel,
+      routeId: scheduleRouteId,
+      stopId: stopId,
+      at: at,
+      limit: limit,
+    );
+  }
+
+  /// Lot 4.22 (Explorer) — Minutes d'attente (arrondi vers le haut, jamais 0)
+  /// des prochains passages RÉELS : `ceil(waitSeconds / 60)`. Liste vide si
+  /// aucun passage réel — un départ déjà passé est ignoré.
+  List<int> nextRealWaitingMinutes({DateTime? at, int limit = 3}) {
+    // FUSION LOT 1 (#40) : référence par défaut = heure de Dakar, jamais
+    // l'heure locale du navigateur.
+    final DateTime now = at == null ? DakarClock.now() : DakarClock.toDakar(at);
+    final List<int> out = <int>[];
+    for (final DepartureInfo info in nextRealDepartures(at: now, limit: limit)) {
+      final DateTime? departureTime = info.scheduledTime;
+      if (departureTime == null) continue;
+      final int? minutes = waitingMinutesBetween(departureTime, now);
+      if (minutes != null) out.add(minutes);
+    }
+    return out;
+  }
 
   const Stop({
     required this.name, required this.direction, required this.distanceMeters,
@@ -738,7 +819,7 @@ class Stop {
     required this.location, required this.modeLabel,
     DataStatus status = DataStatus.scheduled,
     this.source = DataSourceInfo.demo, this.stopType = StopType.departure,
-    this.stopId, this.scheduleRouteId,
+    this.stopId, this.scheduleRouteId, this.passBiStopKey,
   }) : _legacyStatus = status;
 
   Stop copyWith({
@@ -746,7 +827,7 @@ class Stop {
     List<int>? departureMinutesFromMidnight, IconData? icon, Color? color,
     LatLng? location, DataStatus? status, String? modeLabel,
     DataSourceInfo? source, StopType? stopType, String? stopId,
-    String? scheduleRouteId,
+    String? scheduleRouteId, String? passBiStopKey,
   }) => Stop(
     name: name ?? this.name,
     direction: direction ?? this.direction,
@@ -761,6 +842,7 @@ class Stop {
     stopType: stopType ?? this.stopType,
     stopId: stopId ?? this.stopId,
     scheduleRouteId: scheduleRouteId ?? this.scheduleRouteId,
+    passBiStopKey: passBiStopKey ?? this.passBiStopKey,
   );
 
   // AUDIT DONNÉES 2026-09-24 — horaires.
@@ -1489,6 +1571,135 @@ void _integrateNetworkData() {
 }
 
 // ============================================================
+// LOT 4.21 — RÉFÉRENTIEL NATIF PASSBI (DDD / AFTU)
+// ============================================================
+//
+// POURQUOI UNE LISTE SÉPARÉE (et non `allStops`) :
+//  * `allStops` est le référentiel dakar (117 arrêts de `dakar_network.json`) ;
+//    un test de non-régression impose que TOUT arrêt de `allStops` porte un
+//    `stopId` existant dans ce JSON, et la couche marqueurs en dépend
+//    (36 officiels TER/BRT + 20 de proximité). Y verser 3 423 arrêts PassBi
+//    changerait le rendu de la carte et des listes — interdit par le §13
+//    (« ne pas refaire l'interface »).
+//  * Les feeds DDD et AFTU décrivent en revanche 1 186 et 2 237 arrêts RÉELS
+//    (nom + coordonnées du feed) avec des horaires calculables. Ils sont donc
+//    exposés dans leur propre référentiel, alimentant le SEUL filtre DDD/AFTU
+//    de l'Explorer (§7) et la recherche d'itinéraire (§8).
+//
+// AUCUNE IDENTITÉ N'EST INVENTÉE : le nom, les coordonnées et l'identité de
+// ligne affichée proviennent exclusivement du feed PassBi. L'identité publique
+// vis-à-vis du référentiel dakar reste `IdentityStatus.unconfirmed` (§3).
+
+/// Arrêts natifs PassBi (DDD / AFTU), construits depuis les feeds.
+final List<Stop> passBiNativeStops = <Stop>[];
+
+/// Couture de test : même intégration que [main], sans passer par `main()`.
+@visibleForTesting
+void integratePassBiNativeStopsForTest() => _integratePassBiNativeStops();
+
+/// Réseaux dont les horaires PassBi sont exploitables alors que leur identité
+/// publique reste à confirmer : c'est exactement la situation que le §2 décrit
+/// (donnée disponible ≠ identité résolue). TER et BRT sont exclus : leurs
+/// identités sont confirmées et leurs arrêts déjà intégrés par le crosswalk.
+List<String> passBiNativeNetworkKeys() {
+  if (!appDataService.passBiActive) return const <String>[];
+  final out = <String>[];
+  for (final key in PassBiSource.assetFiles.keys) {
+    final summaries = appDataService.passBiRouteSummaries(key);
+    if (summaries.isEmpty) continue;
+    final bool anySchedulable = summaries.any((s) => s.scheduleAvailable);
+    final bool anyUnconfirmed =
+        summaries.any((s) => s.identityStatus == IdentityStatus.unconfirmed);
+    if (anySchedulable && anyUnconfirmed) out.add(key);
+  }
+  return out;
+}
+
+/// Construit [passBiNativeStops] depuis les feeds PassBi déjà chargés.
+/// Idempotent : un second appel ne duplique rien.
+void _integratePassBiNativeStops() {
+  if (!appDataService.passBiActive) return;
+  if (passBiNativeStops.isNotEmpty) return;
+
+  // Référence d'ORDONNANCEMENT (jamais une position utilisateur) : même point
+  // que `explorerVisibleStops` hors zone. Sert de repli à `Stop.distanceMeters`
+  // — repli préexistant du modèle (constat F7), ici renseigné par une distance
+  // géographique réellement calculée.
+  const LatLng dakarOrderCenter = LatLng(14.7167, -17.4677);
+  final existingKeys = <String>{
+    for (final Stop s in allStops)
+      '${s.name}_${s.location.latitude}_${s.location.longitude}',
+  };
+
+  for (final netKey in passBiNativeNetworkKeys()) {
+    final Color color = netKey == 'DDD' ? AppColors.ddd : AppColors.aftu;
+    final IconData icon = netKey == 'DDD'
+        ? Icons.directions_bus_filled_rounded
+        : Icons.directions_bus_outlined;
+    int added = 0;
+    for (final ref in appDataService.passBiNativeStops(netKey)) {
+      final int n = ref.routeCount;
+      final Stop stop = Stop(
+        name: ref.name,
+        // Aucun `stopId` dakar : cet arrêt n'appartient pas au référentiel
+        // `dakar_network.json` et ne doit jamais y être résolu (aucune
+        // identité de ligne dakar ne lui est attribuée).
+        stopId: null,
+        passBiStopKey: ref.compositeKey,
+        // Le libellé de carte lit `scheduleRouteId != null` : la clé composite
+        // n'est PAS un identifiant de ligne dakar, elle branche uniquement le
+        // chemin natif de [Stop.departureInfoAt].
+        scheduleRouteId: ref.compositeKey,
+        direction: n == 1
+            ? '1 ligne PassBi $netKey'
+            : '$n lignes PassBi $netKey',
+        distanceMeters: DistanceHelper.haversineMeters(
+          dakarOrderCenter,
+          LatLng(ref.lat, ref.lon),
+        ),
+        departureMinutesFromMidnight: const <int>[],
+        icon: icon,
+        color: color,
+        location: LatLng(ref.lat, ref.lon),
+        modeLabel: netKey,
+        source: DataSourceInfo.passbiGtfs,
+        // Type inconnu dans le référentiel natif : jamais promu terminus ni
+        // embarquement sur la seule position dans la ligne.
+        stopType: StopType.intermediate,
+      );
+      final String key =
+          '${stop.name}_${stop.location.latitude}_${stop.location.longitude}';
+      if (existingKeys.contains(key)) continue;
+      existingKeys.add(key);
+      passBiNativeStops.add(stop);
+      added++;
+    }
+    debugPrint('✅ PassBi natif $netKey : $added arrêts exploitables '
+        '(identité publique UNCONFIRMED, horaires SCHEDULED calculables)');
+  }
+}
+
+/// Source des arrêts consultables dans l'Explorer pour un filtre donné.
+///
+/// Comportement INCHANGÉ pour tous les filtres existants ; seuls « DDD » et
+/// « AFTU » reçoivent en plus les arrêts natifs PassBi réellement desservis, de
+/// sorte que le filtre renvoie des données exploitables (§7) au lieu d'un
+/// réseau dont l'identité dakar n'est pas résolue.
+List<Stop> explorerStopSource({
+  required String selectedFilter,
+  required List<Stop> dakarStops,
+  required List<Stop> passBiStops,
+}) {
+  switch (selectedFilter) {
+    case 'DDD':
+    case 'AFTU':
+      return <Stop>[...dakarStops, ...passBiStops];
+    default:
+      return dakarStops;
+  }
+}
+
+// ============================================================
 // TRACES DES ROUTES — POLYLIGNES DE LA CARTE EXPLORER
 // ============================================================
 /// Tracés de lignes dessinés sur la carte Explorer.
@@ -1571,7 +1782,44 @@ class RoutePlanner {
     final currentMin = now.hour * 60 + now.minute;
     final candidates = <PlannedRoute>[];
 
-    if (fromStop.modeLabel == toStop.modeLabel) {
+    // Lot 4.20 — SOURCE DE VÉRITÉ : le moteur PassBi (Lot 4.19).
+    // Les candidats legacy (durée distance/vitesse, heures de fréquence)
+    // ne sont proposés QUE quand le moteur ne trouve aucun chemin : jamais
+    // en concurrence d'un résultat réel (suppression des UNKNOWN et
+    // horaires artificiels quand PassBi calcule — §10 du lot).
+    // Les segments portent heures, ETA et identité de ligne issues de
+    // route → trip → service → stop → stop_sequence → horaire.
+    List<PassBiJourney> journeys = const <PassBiJourney>[];
+    bool nativeJourneys = false;
+    if (appDataService.passBiActive) {
+      journeys = appDataService.planPassBiJourneys(
+        fromPassBiKeys:
+            appDataService.passBiStopKeysForDakarStop(fromStop.stopId ?? ''),
+        toPassBiKeys:
+            appDataService.passBiStopKeysForDakarStop(toStop.stopId ?? ''),
+        at: now,
+      );
+      if (journeys.isEmpty) {
+        // Lot 4.21 §8 — SECOND ESSAI, sur le RÉFÉRENTIEL NATIF PassBi.
+        //
+        // Le premier essai ne dispose que des arrêts reliés par le crosswalk
+        // (identités publiques confirmées : TER, BRT, 2 lignes AFTU). Pour les
+        // feeds DDD et AFTU, l'identité publique reste à confirmer : la
+        // recherche est alors faite directement sur les NOMS D'ARRÊTS RÉELS du
+        // feed (§2 « utiliser les métadonnées PassBi réellement présentes »).
+        // Aucun nom de ligne n'est deviné, aucune correspondance par proximité
+        // n'est créée : le moteur n'utilise que les trips, stop_times et
+        // correspondances réellement documentés.
+        journeys = _planNativePassBi(fromQuery, toQuery, now);
+        nativeJourneys = journeys.isNotEmpty;
+      }
+      for (final journey in journeys) {
+        candidates.add(_plannedFromPassBi(journey, fromStop, toStop, now,
+            useFeedNames: nativeJourneys));
+      }
+    }
+
+    if (journeys.isEmpty && fromStop.modeLabel == toStop.modeLabel) {
       final direct = _buildRoute(
         fromStop,
         toStop,
@@ -1599,6 +1847,29 @@ class RoutePlanner {
 
     candidates.sort((a, b) => a.totalMinutes.compareTo(b.totalMinutes));
     return RouteSearchResult(routes: candidates);
+  }
+
+  /// Lot 4.21 §8/§10 — Itinéraire sur le référentiel natif PassBi.
+  ///
+  /// Les requêtes saisies sont résolues vers les arrêts PassBi dont le NOM
+  /// RÉEL contient la requête entière ([PassBiSource.searchNativeStops] :
+  /// aucun appariement approché, aucune proximité). Le moteur explore ensuite
+  /// route → trip → service → stop_sequence → horaire, correspondances
+  /// documentées du crosswalk incluses (DDD ↔ AFTU : 746 liens de nom vérifié).
+  static List<PassBiJourney> _planNativePassBi(
+    String fromQuery,
+    String toQuery,
+    DateTime at,
+  ) {
+    final fromRefs = appDataService.passBiStopSearch(fromQuery);
+    if (fromRefs.isEmpty) return const <PassBiJourney>[];
+    final toRefs = appDataService.passBiStopSearch(toQuery);
+    if (toRefs.isEmpty) return const <PassBiJourney>[];
+    return appDataService.planPassBiJourneys(
+      fromPassBiKeys: fromRefs.map((r) => r.compositeKey).toSet(),
+      toPassBiKeys: toRefs.map((r) => r.compositeKey).toSet(),
+      at: at,
+    );
   }
 
   static Stop? _findNearestStop(String query) {
@@ -1634,8 +1905,6 @@ class RoutePlanner {
     final safeCurrentMin = math.max(0, currentMin);
     final bool sameBoundRoute = from.scheduleRouteId == null ||
         from.scheduleRouteId == to.scheduleRouteId;
-    final int? dep = from.departureAfter(safeCurrentMin);
-    final int? arr = dep == null ? null : dep + dur;
     final DepartureInfo departureInfo = from.scheduleRouteId != null && sameBoundRoute
         ? from.departureInfoAt(
             at: referenceTime, isPublicHoliday: isPublicHoliday)
@@ -1644,6 +1913,19 @@ class RoutePlanner {
             routeId: from.scheduleRouteId ?? 'unknown',
             requestedAt: referenceTime,
           );
+    // Lot 4.20 : quand le moteur connaît le prochain départ (SCHEDULED),
+    // son heure réelle s'affiche — aucune heure n'est fabriquée, aucune
+    // fréquence ne devient une heure fixe (ESTIMATED reste sans heure).
+    final int? scheduledMin = departureInfo.status == ScheduleStatus.scheduled &&
+            departureInfo.scheduledTime != null
+        ? departureInfo.scheduledTime!.difference(DateTime.utc(
+                departureInfo.scheduledTime!.year,
+                departureInfo.scheduledTime!.month,
+                departureInfo.scheduledTime!.day))
+            .inMinutes
+        : null;
+    final int? dep = from.departureAfter(safeCurrentMin) ?? scheduledMin;
+    final int? arr = dep == null ? null : dep + dur;
     final DataStatus status = from.scheduleRouteId != null
         ? sameBoundRoute
             ? from.departureStatusAt(referenceTime,
@@ -1710,6 +1992,151 @@ class RoutePlanner {
   static String _formatMin(int minFromMidnight) {
     final normalized = minFromMidnight % (24 * 60);
     return '${(normalized ~/ 60).toString().padLeft(2, '0')} h ${(normalized % 60).toString().padLeft(2, '0')}';
+  }
+
+  // ---------------------------------------------------------------- PassBi
+  // Lot 4.20 : conversion d'un trajet PassBi (moteur Lot 4.19) en candidate
+  // d'itinéraire. AUCUNE fréquence utilisée, AUCUNE heure inventée :
+  //  * heures = stop_sequence réelle du trip (y compris passage J+1) ;
+  //  * ETA = prochain départ du moteur calculé à l'instant [at] (SCHEDULED
+  //    strict, jamais REAL_TIME, jamais « 0 min ») ;
+  //  * identité = identifiants PassBi réels (BRT B1 / BRT B2, DDD_01…),
+  //    aucun numéro ni sens déduit.
+  static PlannedRoute _plannedFromPassBi(
+    PassBiJourney journey,
+    Stop from,
+    Stop to,
+    DateTime at, {
+    bool useFeedNames = false,
+  }) {
+    final segments = <RouteSegment>[];
+    final DateTime day0 = DateTime.utc(at.year, at.month, at.day);
+    final int nowSinceDay0 = at.difference(day0).inSeconds;
+    for (final leg in journey.legs) {
+      final style = _passBiStyle(leg.network);
+      final DateTime depTime = day0.add(Duration(seconds: leg.departureSec));
+      final int waitSec = leg.departureSec - nowSinceDay0;
+      final int waitMin = waitSec <= 0 ? 0 : waitSec ~/ 60;
+      final Map<String, String> meta =
+          appDataService.passBiSource.network(leg.network)?.meta ??
+              const <String, String>{};
+      // Lot 4.21 §2/§3 : l'identité d'affichage et le statut d'identité
+      // viennent du feed (route_id, short_name) et du crosswalk. Une identité
+      // UNCONFIRMED n'empêche pas le tronçon d'être SCHEDULED.
+      final IdentityStatus identity = appDataService.passBiSource
+          .identityStatusOf(leg.network, leg.routeId);
+      final DepartureInfo info = DepartureInfo(
+        status: ScheduleStatus.scheduled,
+        operator: style.$1,
+        routeId: leg.routeId,
+        referenceTime: at,
+        scheduledTime: depTime,
+        estimatedWaitFrom: waitMin,
+        estimatedWaitTo: waitMin,
+        source: PassBiSource.sourceUrl,
+        sourceType: SourceType.publicGtfs,
+        dateSource: meta['date_source'],
+        dateVerified: meta['date_verified'] ?? PassBiSource.dateVerified,
+        validFrom: meta['valid_from'],
+        validTo: meta['valid_to'],
+        confidence: 0.8,
+        frequencyMinutes: null,
+        operatingHours: null,
+        direction: tripDirectionOf(leg),
+        identityStatus: identity,
+        identityNote: identity == IdentityStatus.confirmed
+            ? 'Identité publique confirmée par le crosswalk PassBi.'
+            : 'Identité publique UNCONFIRMED ; horaire PassBi calculé sur un '
+                'trip/stop_time réel. Affichage : métadonnées PassBi réelles.',
+        lineLabel: ScheduleProvider.identityLabelFor(
+          leg.network,
+          leg.routeId,
+          identity,
+          shortName: appDataService.passBiSource
+              .routeSummary(leg.network, leg.routeId)
+              ?.shortName,
+        ),
+      );
+      segments.add(RouteSegment(
+        // Lot 4.21 (verrouillage) : un identifiant PassBi n'est JAMAIS
+        // présenté comme le numéro public d'une ligne. Sans preuve
+        // documentaire d'identité, le tronçon est explicitement marqué
+        // « PassBi » (ex. « PassBi DDD_217 ») ; une identité confirmée garde
+        // son identité documentée (« BRT B1 », réseau « TER »).
+        modeLabel: identity == IdentityStatus.unconfirmed
+            ? 'PassBi ${passBiLineLabel(leg.network, leg.routeId)}'
+            : passBiLineLabel(leg.network, leg.routeId),
+        color: style.$2,
+        icon: style.$3,
+        from: leg.fromStopName,
+        to: leg.toStopName,
+        durationMinutes: leg.durationMinutes,
+        departureTime: _formatMin(leg.departureSec ~/ 60),
+        arrivalTime: _formatMin(leg.arrivalSec ~/ 60),
+        status: DataStatus.scheduled,
+        departureInfo: info,
+      ));
+    }
+    return PlannedRoute(
+      // Chemin natif : les extrémités affichées sont les arrêts RÉELS du feed
+      // (le libellé dakar résolu peut être un repli sans rapport avec la
+      // requête PassBi). Chemin crosswalk : comportement inchangé.
+      fromName: useFeedNames
+          ? (journey.legs.isEmpty ? from.name : journey.legs.first.fromStopName)
+          : from.name,
+      toName: useFeedNames
+          ? (journey.legs.isEmpty ? to.name : journey.legs.last.toStopName)
+          : to.name,
+      totalMinutes: journey.totalMinutes,
+      transferCount: journey.transferCount,
+      status: DataStatus.scheduled,
+      segments: segments,
+    );
+  }
+
+  /// Sens réel du trip PassBi (direction_id/headsign du feed), ou null.
+  /// Jamais déduit d'une proximité ou d'un numéro de ligne.
+  static String? tripDirectionOf(PassBiLeg leg) {
+    final net = appDataService.passBiSource.network(leg.network);
+    if (net == null) return null;
+    for (final t in net.trips) {
+      if (t.id == leg.tripId) {
+        if (t.headsign.isNotEmpty) return t.headsign;
+        if (t.direction.isNotEmpty) return t.direction;
+        return null;
+      }
+    }
+    return null;
+  }
+
+  /// Identité d'affichage d'une ligne PassBi — strictement les ids du feed :
+  /// « BRT B1 » / « BRT B2 », « DDD_01 », « AFTU_3 » ; le TER (UUID) reste
+  /// affiché sous son réseau, aucun numéro déduit.
+  ///
+  /// Verrouillage Lot 4.21 : ce libellé nu est un IDENTIFIANT PassBi. Sans
+  /// identité publique confirmée, les tronçons l'affichent préfixé
+  /// « PassBi » (voir [_plannedFromPassBi]) pour ne jamais le présenter
+  /// comme le numéro public d'une ligne DDD/AFTU.
+  static String passBiLineLabel(String network, String routeId) {
+    final String id = routeId.toUpperCase();
+    if (id.startsWith(network.toUpperCase())) return routeId;
+    if (network == 'BRT') return 'BRT $routeId';
+    return network;
+  }
+
+  static (String, Color, IconData) _passBiStyle(String network) {
+    switch (network) {
+      case 'TER':
+        return ('TER', AppColors.ter, Icons.train_rounded);
+      case 'BRT':
+        return ('BRT', AppColors.brt, Icons.directions_bus_rounded);
+      case 'DDD':
+        return ('DDD', AppColors.ddd, Icons.directions_bus_filled_rounded);
+      case 'AFTU':
+        return ('AFTU', AppColors.aftu, Icons.directions_bus_outlined);
+      default:
+        return ('Bus', AppColors.primary, Icons.directions_bus);
+    }
   }
 }
 
@@ -2377,7 +2804,15 @@ class _ExplorerPageState extends State<ExplorerPage> {
           base: explorerBaseStopsForFilter(
             selectedFilter: _selectedFilter,
             favoriteStopNames: globalState.favoriteStopNames,
-            source: allStops,
+            // Lot 4.21 §7 : les filtres DDD et AFTU reçoivent en plus les
+            // arrêts natifs PassBi réellement desservis (horaires
+            // calculables). Tous les autres filtres restent strictement sur
+            // le référentiel dakar : aucun rendu existant n'est modifié.
+            source: explorerStopSource(
+              selectedFilter: _selectedFilter,
+              dakarStops: allStops,
+              passBiStops: passBiNativeStops,
+            ),
           ),
           userPosition: widget.userPosition,
         );
@@ -2435,7 +2870,15 @@ class _ExplorerPageState extends State<ExplorerPage> {
   List<Stop> get _searchResults {
     final q = _searchCtrl.text.trim().toLowerCase();
     if (q.isEmpty) return [];
-    return allStops.where((s) => (s.name.toLowerCase().contains(q) || s.direction.toLowerCase().contains(q)) && DakarBounds.isValid(s.location)).take(8).toList();
+    // Le référentiel dakar garde la PRIORITÉ (comportement existant préservé :
+    // toute requête qui trouvait un arrêt dakar trouve le même arrêt, dans le
+    // même ordre). Lot 4.21 §7 : les arrêts PassBi DDD/AFTU réellement
+    // desservis complètent la liste quand le référentiel dakar ne suffit pas.
+    final dakar = allStops.where((s) => (s.name.toLowerCase().contains(q) || s.direction.toLowerCase().contains(q)) && DakarBounds.isValid(s.location));
+    if (dakar.length >= 8) return dakar.take(8).toList();
+    final natifs = passBiNativeStops.where((s) =>
+        s.name.toLowerCase().contains(q) && DakarBounds.isValid(s.location));
+    return <Stop>[...dakar, ...natifs].take(8).toList();
   }
 
   void _centerOnStop(Stop s) {
@@ -2786,44 +3229,52 @@ class StopCard extends StatelessWidget {
         final dark = globalState.darkMode;
         final isFav = globalState.isFavorite(stop.name);
         const String crowd = ReliabilityLabel.crowdUnavailable;
-        Widget timeWidget;
 
-        // AUDIT DONNÉES 2026-09-24.
-        // AVANT : « Fermé » déduit de l'heure (5 h–22 h 30 supposés),
-        //         « Bientôt », « Imminent » et un compte à rebours vert calculé
-        //         sur des départs générés — lu comme du temps réel.
-        // APRÈS : sans horaire fourni → « Horaire indisponible » ; avec un
-        //         horaire fourni → « Prévu HH h MM » (programmé, pas de
-        //         compte à rebours). Aucun flux temps réel n'existe.
+        // AUDIT DONNÉES 2026-09-24 + Lot 4.22 (Explorer) — 3 prochains temps
+        // d'attente RÉELS, numériques, en vert, sous l'en-tête
+        // « [Nom station] [MODE] vers [Destination] ».
         //
-        // LOT 1 (horaire réel) — le temps restant s'affiche « X min » en VERT
-        // uniquement lorsqu'une heure de départ EXACTE est connue. Une fréquence
-        // officielle (`estimated`) reste une fourchette neutre : la fréquence et
-        // le prochain départ sont deux données distinctes, aucune conversion
-        // fréquence → faux « X min » n'est faite.
-        final String? remaining = stop.realRemainingLabel();
-        if (remaining != null) {
-          timeWidget = Text(remaining, style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-            color: AppColors.success,
-          ));
-        } else if (stop.scheduleRouteId != null) {
-          final info = stop.departureInfo;
-          timeWidget = Text(info.label, style: TextStyle(
-            fontSize: info.status == ScheduleStatus.scheduled ? 13 : 11,
-            fontWeight: FontWeight.bold,
-            color: info.status == ScheduleStatus.scheduled
-                ? stop.color
-                : AppColors.textSecondary(dark),
-          ));
-        } else if (stop.scheduleStatus == ScheduleStatus.unknown) {
-          timeWidget = Text(ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary(dark)));
-        } else if (stop.nextDepartureMinutes() == null) {
-          timeWidget = Text('Aucun départ programmé', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary(dark)));
-        } else {
-          timeWidget = Text('Prévu ${stop.nextDepartureLabel()}', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: stop.color));
+        // AVANT : « Fermé »/« Bientôt »/« Imminent » déduits de l'heure, et
+        //         « Prévu HH h MM », « Prochain départ dans N min »,
+        //         « Passage estimé dans 0–6 min · fréquence 6 min ».
+        // APRÈS : uniquement les minutes d'attente de VRAIS trips + stop_times
+        //         (« 1 mn · 10 mn · 15 mn », arrondi vers le haut, jamais
+        //         0 mn, jamais une série issue d'une fréquence). Sans passage
+        //         réel : « Horaire indisponible » (aucun faux temps).
+        // Identité PassBi (Lot 4.21) conservée : `lineLabel` sous les minutes.
+        //
+        // FUSION LOT 1 (#40) × LOT 4.22 (#39) : l'instant de référence est
+        // l'heure de Dakar ([DakarClock.now], jamais `DateTime.now()` local) et
+        // les minutes sont calculées par `waitingMinutesBetween` (ceil, jamais
+        // 0, jamais un départ passé) — les deux règles sont conservées.
+        final DateTime now = DakarClock.now();
+        final List<DepartureInfo> prochains = stop.nextRealDepartures(at: now);
+        final List<int> waits = <int>[];
+        for (final DepartureInfo info in prochains) {
+          final DateTime? departureTime = info.scheduledTime;
+          if (departureTime == null) continue;
+          final int? minutes = waitingMinutesBetween(departureTime, now);
+          if (minutes != null) waits.add(minutes);
         }
+        // Destination RÉELLE uniquement : sens du prochain trip (headsign du
+        // feed), sinon la direction référentielle explicite « Dir. X ». Sans
+        // direction réelle : aucun « vers » inventé.
+        final String? destination = prochains.isEmpty
+            ? normalizeDirectionLabel(stop.direction, requireDirPrefix: true)
+            : (normalizeDirectionLabel(prochains.first.direction) ??
+                normalizeDirectionLabel(stop.direction,
+                    requireDirPrefix: true));
+        final String header =
+            formatStopHeader(stop.name, stop.modeLabel, destination);
+        final bool hasWaits = waits.isNotEmpty;
+        final String? lineLabel =
+            prochains.isEmpty ? null : prochains.first.lineLabel;
+        // FUSION LOT 1 (#40) — repli legacy : un arrêt porteur d'un horaire
+        // EXACT en minutes-depuis-minuit (aucun en production aujourd'hui, la
+        // source opérationnelle étant PassBi) conserve son compte à rebours
+        // « X min » en vert. Une fréquence (`estimated`) ne produit jamais de
+        // compte à rebours : `realRemainingLabel` renvoie alors `null`.
+        final String? legacyRemaining = hasWaits ? null : stop.realRemainingLabel(at: now);
 
         return GestureDetector(
           onLongPress: () {
@@ -2846,7 +3297,7 @@ class StopCard extends StatelessWidget {
               leading: CircleAvatar(backgroundColor: stop.color, radius: 24, child: Icon(stop.icon, color: Colors.white, size: 22)),
               title: Row(
                 children: [
-                  Expanded(child: Text(stop.name, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))),
+                  Expanded(child: Text(header, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))),
                   if (isFav) const Padding(padding: EdgeInsets.only(right: 6), child: Icon(Icons.star, size: 16, color: Colors.amber)),
                   _buildStopTypeBadge(stop.stopType),
                 ],
@@ -2856,42 +3307,34 @@ class StopCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(stop.direction, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textSecondary(dark))),
+                    // Lot 4.22 : les 3 prochains temps RÉELS, numériques, en
+                    // vert, immédiatement sous l'en-tête. Sinon l'indicateur
+                    // neutre « Horaire indisponible » — jamais de faux temps.
+                    Text(
+                      hasWaits
+                          ? formatWaitingMinutes(waits)
+                          : (legacyRemaining ?? ReliabilityLabel.scheduleUnavailable),
+                      style: TextStyle(
+                        fontSize: hasWaits || legacyRemaining != null ? 13 : 11,
+                        fontWeight: FontWeight.bold,
+                        color: hasWaits || legacyRemaining != null
+                            ? AppColors.success
+                            : AppColors.textSecondary(dark),
+                      ),
+                    ),
+                    if (lineLabel != null) ...[
+                      const SizedBox(height: 2),
+                      Text(lineLabel, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textSecondary(dark))),
+                    ],
                     const SizedBox(height: 2),
                     Text('${DistanceHelper.format(distanceMeters)} • ${stop.modeLabel} (${stop.source.badgeEmoji}) • $crowd', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
                   ],
                 ),
               ),
-              // BUG UI — LIBELLÉ DE DIRECTION REPLIÉ CARACTÈRE PAR CARACTÈRE.
-              //
-              // CAUSE : `ListTile` n'est pas un `Row` contrôlé ici ; il calcule
-              //   lui-même la largeur du titre et du sous-titre :
-              //     largeurTitre = largeurTuile − contentPadding
-              //                    − (leading + horizontalTitleGap)
-              //                    − (trailing + horizontalTitleGap)
-              //   `leading` vaut 48 px (+ 16 px de gap) et `trailing` reçoit
-              //   une largeur NON bornée : le libellé de fréquence
-              //   (« Passage estimé dans 0–6 min · fréquence 6 min », ~285 px
-              //   en 11 px gras) consommait donc presque toute la tuile. La
-              //   colonne de texte (dont `Text(stop.direction,
-              //   « Dir. Papa Gueye Fall - PEM Petersen BRT ») ne recevait plus
-              //   que quelques pixels — d'où un repli caractère par caractère
-              //   et un empilement vertical qui déformait la carte.
-              //
-              // CORRECTIF MINIMAL : borner la largeur du seul élément de droite
-              //   à une fraction de la largeur réellement disponible (contrainte
-              //   responsive issue du parent : aucune largeur fixe arbitraire),
-              //   de sorte que la colonne de texte conserve toujours la majorité
-              //   de l'espace et se replie uniquement entre les mots. Quand le
-              //   libellé tient déjà sur une ligne (écrans larges), sa largeur
-              //   naturelle est conservée : aucun changement d'affichage.
-              //   Aucun texte, couleur, icône, espacement ni style modifié.
-              trailing: LayoutBuilder(
-                builder: (context, constraints) => ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: constraints.maxWidth * 0.34),
-                  child: timeWidget,
-                ),
-              ),
+              // Lot 4.22 : l'ancienne étiquette horaire de droite (« Prévu
+              // HH h MM » / « Prochain départ dans… » / « Passage estimé
+              // dans… ») est remplacée par la liste des minutes vertes, posée
+              // sous l'en-tête — plus de zone « trailing » à borner.
             ),
           ),
         );
@@ -3072,7 +3515,25 @@ class _TripsPageState extends State<TripsPage> {
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text('${r.fromName} - ${r.toName}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textPrimary(dark))),
                   const SizedBox(height: 2),
-                  Text('${r.transferCount} correspondance(s) • ${r.segments.length} étape(s)', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark)))
+                  Text('${r.transferCount} correspondance(s) • ${r.segments.length} étape(s)', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
+                  // Lot 4.20 : ETA dynamique du moteur PassBi sur le premier
+                  // tronçon (prochain départ réel GTFS, statut SCHEDULED —
+                  // jamais « 0 min », jamais une fréquence, jamais « Live »).
+                  if (r.segments.isNotEmpty &&
+                      r.segments.first.departureInfo != null &&
+                      r.segments.first.departureInfo!.status ==
+                          ScheduleStatus.scheduled)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        '🟢 ${r.segments.first.departureInfo!.label}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.success,
+                        ),
+                      ),
+                    ),
                 ])),
                 Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
                   Text('~${r.totalMinutes} min', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 18)),
@@ -3549,14 +4010,14 @@ class SettingsPage extends StatelessWidget {
                         leading: const Icon(Icons.help_outline, color: AppColors.primary),
                         title: Text('Comment utiliser l’application', style: TextStyle(color: AppColors.textPrimary(dark))),
                         trailing: const Icon(Icons.chevron_right),
-                        onTap: () => _showInfoModal(context, 'Comment utiliser l’application', '1. Utilisez l’onglet Explorer pour visualiser votre position GPS en temps réel et les arrêts à proximité.\n2. Maintenez un arrêt enfoncé pour l’ajouter à vos favoris ⭐.\n3. Utilisez l’onglet Trajets pour planifier vos déplacements multimodaux (TER, BRT, DDD, TATA) ; les itinéraires non vérifiés sont signalés comme tels.\n4. Interrogez l’Assistant IA pour toute question sur les lignes. Aucun horaire vérifié n’est disponible pour l’instant.'),
+                        onTap: () => _showInfoModal(context, 'Comment utiliser l’application', '1. Utilisez l’onglet Explorer pour visualiser votre position GPS en temps réel et les arrêts à proximité.\n2. Maintenez un arrêt enfoncé pour l’ajouter à vos favoris ⭐.\n3. Utilisez l’onglet Trajets pour planifier vos déplacements multimodaux (TER, BRT, DDD, TATA) ; les itinéraires non vérifiés sont signalés comme tels.\n4. Interrogez l’Assistant IA pour toute question sur les lignes. Les horaires GTFS PassBi (programmation SCHEDULED) s’affichent quand la ligne est mappée ; ils ne sont jamais présentés en temps réel.'),
                       ),
                       Divider(height: 1, color: AppColors.divider(dark)),
                       ListTile(
                         leading: const Icon(Icons.description_outlined, color: AppColors.primary),
                         title: Text('Conditions d’utilisation', style: TextStyle(color: AppColors.textPrimary(dark))),
                         trailing: const Icon(Icons.chevron_right),
-                        onTap: () => _showInfoModal(context, 'Conditions d’utilisation', 'Dakar Bus fournit des informations de transport indicatives. Seules les données dont la source officielle a été vérifiée (SETER, SunuBRT) sont présentées comme officielles ; les autres itinéraires (DDD, AFTU, TATA) sont signalés comme non vérifiés. Aucun horaire ni aucune position de véhicule en temps réel ne sont fournis.'),
+                        onTap: () => _showInfoModal(context, 'Conditions d’utilisation', 'Dakar Bus fournit des informations de transport indicatives. Seules les données dont la source officielle a été vérifiée (SETER, SunuBRT) sont présentées comme officielles ; les autres itinéraires (DDD, AFTU, TATA) sont signalés comme non vérifiés. Les horaires PassBi sont des programmations (SCHEDULED) issues de GTFS publics ; aucune position de véhicule en temps réel n’est fournie.'),
                       ),
                       Divider(height: 1, color: AppColors.divider(dark)),
                       ListTile(
@@ -3604,6 +4065,10 @@ class AssistantReplies {
       buf.writeln('${i + 1}. ${s.modeLabel} : ${s.from} → ${s.to}');
       if (s.status == DataStatus.scheduled && s.departureTime != null && s.arrivalTime != null) {
         buf.writeln('   🕒 Horaire programmé : ${s.departureTime} → ${s.arrivalTime}');
+      } else if (s.status == DataStatus.scheduled && s.departureInfo != null) {
+        // Lot 4.20 : l'heure vient du moteur PassBi (SCHEDULED), jamais du
+        // repli « aucun horaire » quand le prochain départ est connu.
+        buf.writeln('   🕒 ${s.departureInfo!.label} — horaire programmé');
       } else if (s.status == DataStatus.estimated && s.departureInfo != null) {
         buf.writeln('   🕒 ${s.departureInfo!.label} — estimation non garantie');
       } else {
@@ -3977,9 +4442,31 @@ class DetailedRoutePage extends StatelessWidget {
                                   Icon(Icons.access_time, size: 12, color: route.color),
                                   const SizedBox(width: 4),
                                   // Audit 2026-09-24 — AVANT : « Heure : ~N min » (N = rang × 3,
-                                  // hypothèse non sourcée) lu comme une heure. Aucun horaire n'existe
-                                  // dans les données : `estimatedTime` reste dans le modèle, non affiché.
-                                  Text(ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textPrimary(dark))),
+                                  // hypothèse non sourcée) lu comme une heure. Puis repli fixe
+                                  // « Horaire indisponible » (UNKNOWN artificiel).
+                                  // Lot 4.20 : le prochain départ vient du moteur PassBi
+                                  // (SCHEDULED) quand la ligne est mappée ; sinon le repli
+                                  // honnête reste « Horaire indisponible ». Aucune heure
+                                  // n'est fabriquée, aucune fréquence ne devient un départ.
+                                  Builder(builder: (context) {
+                                    final DepartureInfo info =
+                                        appDataService.departureFor(
+                                      routeId: route.routeId,
+                                      stopId: stop.stopId,
+                                      network: route.operator,
+                                    );
+                                    return Text(
+                                      info.label,
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: info.status ==
+                                                ScheduleStatus.scheduled
+                                            ? route.color
+                                            : AppColors.textPrimary(dark),
+                                      ),
+                                    );
+                                  }),
                                   const Spacer(),
                                   Text('📍 ${stop.distanceFromStart}', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
                                 ]),
@@ -4100,6 +4587,11 @@ class SingleStopView extends StatelessWidget {
       builder: (context, _) {
         final dark = globalState.darkMode;
         final isFav = globalState.isFavorite(stop.name);
+        // Lot 4.22 (Explorer) : les prochains temps d'attente RÉELS
+        // (stop_times), minutes vertes ; « Horaire indisponible » sans
+        // passage réel — jamais de faux temps, jamais une fréquence.
+        final List<int> ficheWaits = stop.nextRealWaitingMinutes();
+        final bool ficheHasWaits = ficheWaits.isNotEmpty;
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
@@ -4145,20 +4637,23 @@ class SingleStopView extends StatelessWidget {
                           children: [
                             Text('Prochain départ programmé', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
                             const SizedBox(height: 2),
-                            // LOT 1 — « X min » en vert dès qu'une heure exacte
-                            // permet le calcul ; sinon libellé de fiabilité
-                            // (fréquence estimée ou « Horaire indisponible »).
-                            if (stop.realRemainingLabel() != null)
-                              Text(
-                                stop.realRemainingLabel()!,
-                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.success),
-                              )
-                            else
-                              Text(
-                                stop.nextDepartureLabel() ?? ReliabilityLabel.scheduleUnavailable,
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: stop.color),
-                                softWrap: true,
+                            // FUSION LOT 1 (#40) × LOT 4.22 (#39) — « X min »
+                            // en vert dès qu'un passage RÉEL (trip + stop_time)
+                            // est calculable, jamais 0, jamais une fréquence ;
+                            // sinon « Horaire indisponible » (aucun faux temps).
+                            Text(
+                              ficheHasWaits
+                                  ? formatWaitingMinutes(ficheWaits)
+                                  : ReliabilityLabel.scheduleUnavailable,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: ficheHasWaits
+                                    ? AppColors.success
+                                    : AppColors.textSecondary(dark),
                               ),
+                              softWrap: true,
+                            ),
                           ],
                         ),
                       ),

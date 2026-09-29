@@ -33,6 +33,10 @@ on:
       - arena/01a0d0ad-dakar-bus
       - arena/01a0d193-dakar-bus
       - arena/01a0d21a-dakar-bus
+      # Lot 4.21 — exploitation PassBi DDD/AFTU (analyze + test + build web).
+      - arena/01a0e53c-dakar-bus
+      # Suite Lot 4.21 — verrouillage identité / horaire / correspondances.
+      - arena/01a0e820-dakar-bus
     paths:
       - 'flutter-src/**'
       - '.github/workflows/flutter-web-build.yml'
