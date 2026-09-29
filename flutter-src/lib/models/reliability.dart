@@ -32,6 +32,34 @@ class ReliabilityLabel {
   static const String badgeConflicting = 'CONTESTÉ';
   static const String badgeFuture = 'PROCHAINEMENT';
 
+  /// Libellé d'avertissement d'un drapeau d'audit de route, ou `null` si le
+  /// drapeau est inconnu — un drapeau non répertorié n'est jamais reformulé.
+  static String? auditFlagLabel(String flag) {
+    switch (flag) {
+      case 'ITINERARY_GEOGRAPHICALLY_INCOHERENT':
+        return 'Ordre des arrêts non vérifié : la distance cumulée est indicative.';
+      case 'DUPLICATE_STOP_SEQUENCE':
+        return 'Séquence d\'arrêts identique à une autre ligne : numéro non confirmé.';
+      default:
+        return null;
+    }
+  }
+
+  /// Libellé d'un état de coordonnées NON confirmé, `null` si CONFIRMED.
+  /// La position d'un arrêt est une donnée distincte de son existence.
+  static String? coordinatesLabel(ProvenanceStatus status) {
+    switch (status) {
+      case ProvenanceStatus.confirmed:
+        return null;
+      case ProvenanceStatus.unverified:
+        return 'Position non vérifiée';
+      case ProvenanceStatus.conflicting:
+        return 'Position contestée';
+      case ProvenanceStatus.future:
+        return 'Position non publiée';
+    }
+  }
+
   /// Statut effectif d'un ensemble (ex. une route ET l'un de ses arrêts) : le
   /// MOINS sûr l'emporte. Ensemble vide → UNVERIFIED (rien n'est confirmé par
   /// défaut).

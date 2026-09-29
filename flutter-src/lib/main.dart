@@ -418,6 +418,18 @@ class DetailedRoute {
   /// → UNVERIFIED : un arrêt n'est jamais présumé confirmé.
   final Map<String, ProvenanceStatus> stopStatuses;
 
+  /// Fiabilité des COORDONNÉES de chaque arrêt, par `stopId`. Distincte de
+  /// l'existence de l'arrêt : une gare TER peut être CONFIRMED tout en ayant une
+  /// position `UNVERIFIED`. Vide → toute position est lue UNVERIFIED.
+  final Map<String, ProvenanceStatus> stopCoordinatesStatuses;
+
+  /// Anomalies relevées par l'audit de la source unique (ex.
+  /// `ITINERARY_GEOGRAPHICALLY_INCOHERENT`, `DUPLICATE_STOP_SEQUENCE`). Ces
+  /// drapeaux existent dans `dakar_network.json` et étaient jusqu'ici ignorés :
+  /// l'application présentait donc une séquence contestée comme une séquence
+  /// ordinaire. Ils sont désormais portés jusqu'à la vue.
+  final List<String> auditFlags;
+
   DetailedRoute({
     required this.routeId,
     required this.lineNumber,
@@ -429,7 +441,21 @@ class DetailedRoute {
     required this.stops,
     this.dataStatus = ProvenanceStatus.unverified,
     this.stopStatuses = const <String, ProvenanceStatus>{},
+    this.stopCoordinatesStatuses = const <String, ProvenanceStatus>{},
+    this.auditFlags = const <String>[],
   });
+
+  /// Libellés d'avertissement des drapeaux d'audit connus de cette ligne.
+  /// Un drapeau inconnu est ignoré, jamais reformulé en une affirmation.
+  List<String> get auditWarnings => auditFlags
+      .map(ReliabilityLabel.auditFlagLabel)
+      .whereType<String>()
+      .toList();
+
+  /// La position d'un arrêt est-elle confirmée ? Distinct de [statusOf].
+  bool hasConfirmedPosition(DetailedStop stop) =>
+      (stopCoordinatesStatuses[stop.stopId] ?? ProvenanceStatus.unverified) ==
+      ProvenanceStatus.confirmed;
 
   /// Badge de fiabilité d'un arrêt DANS cette ligne : le moins sûr des deux
   /// statuts (ligne, arrêt). « OFFICIEL » seulement si les deux sont CONFIRMED.
@@ -541,6 +567,8 @@ class DetailedRoute {
 
     final List<DetailedStop> out = <DetailedStop>[];
     final Map<String, ProvenanceStatus> stopStatuses = <String, ProvenanceStatus>{};
+    final Map<String, ProvenanceStatus> stopCoordinatesStatuses =
+        <String, ProvenanceStatus>{};
     double cumulatedMeters = 0.0;
     LatLng? previous;
 
@@ -565,6 +593,10 @@ class DetailedRoute {
         estimatedTime: '~$elapsedMinutes min',
       ));
       stopStatuses[s.id] = s.provenance.status;
+      // Fiabilité de la POSITION, distincte de celle de l'existence : 20 arrêts
+      // CONFIRMED ont une position UNVERIFIED ou CONFLICTING. La masquer
+      // reviendrait à présenter une position non vérifiée comme vérifiée.
+      stopCoordinatesStatuses[s.id] = s.coordinatesStatus;
       previous = location;
     }
 
@@ -588,6 +620,11 @@ class DetailedRoute {
       stops: out,
       dataStatus: route.provenance.status,
       stopStatuses: stopStatuses,
+      stopCoordinatesStatuses: stopCoordinatesStatuses,
+      // Drapeaux d'audit de la source unique, portés jusqu'à la vue (48 routes
+      // en portent : 42 AFTU + 2 DDD en itinéraire incohérent, 4 en séquence
+      // d'arrêts dupliquée).
+      auditFlags: route.auditFlags,
     );
   }
 
@@ -3940,6 +3977,27 @@ class DetailedRoutePage extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               Text('Arrêts & Gares alignés — ${route.operator}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
+              // LOT 2 (intégrité) — avertissements d'audit de la source unique.
+              // Les drapeaux `audit_flags` existaient dans `dakar_network.json`
+              // mais n'étaient affichés nulle part : une séquence d'arrêts
+              // signalée incohérente (42 AFTU, 2 DDD) ou dupliquée (4 lignes)
+              // était présentée comme une séquence ordinaire. Ces bandeaux
+              // n'ajoutent aucune donnée : ils restituent un verdict déjà
+              // présent dans la source.
+              ...route.auditWarnings.map((String w) => Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.warning.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.warning.withOpacity(0.4)),
+                    ),
+                    child: Row(children: [
+                      const Icon(Icons.warning_amber_rounded, size: 16, color: AppColors.warning),
+                      const SizedBox(width: 8),
+                      Expanded(child: Text(w, style: const TextStyle(fontSize: 11, color: AppColors.warning, fontWeight: FontWeight.w600))),
+                    ]),
+                  )),
               const SizedBox(height: 12),
               ...route.stops.asMap().entries.map((entry) {
                 final idx = entry.key; final stop = entry.value; final isLast = idx == route.stops.length - 1;
@@ -3981,6 +4039,26 @@ class DetailedRoutePage extends StatelessWidget {
                                   // dans les données : `estimatedTime` reste dans le modèle, non affiché.
                                   Text(ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textPrimary(dark))),
                                   const Spacer(),
+                                  // LOT 2 (intégrité) — la fiabilité de la POSITION est une donnée
+                                  // distincte de l'existence de l'arrêt : 20 arrêts CONFIRMED (TER
+                                  // et BRT) ont une position UNVERIFIED ou CONFLICTING. Elle était
+                                  // silencieuse ; elle est désormais affichée pour ne pas laisser
+                                  // croire que la position est vérifiée parce que l'arrêt l'est.
+                                  if (!route.hasConfirmedPosition(stop)) ...[
+                                    const Icon(Icons.place_outlined, size: 12, color: AppColors.warning),
+                                    const SizedBox(width: 3),
+                                    Flexible(
+                                      child: Text(
+                                        ReliabilityLabel.coordinatesLabel(
+                                                route.stopCoordinatesStatuses[stop.stopId] ??
+                                                    ProvenanceStatus.unverified) ??
+                                            '',
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(fontSize: 10, color: AppColors.warning, fontWeight: FontWeight.w600),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                  ],
                                   Text('📍 ${stop.distanceFromStart}', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
                                 ]),
                               ],
