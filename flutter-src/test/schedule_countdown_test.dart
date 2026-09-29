@@ -74,6 +74,17 @@ void main() {
       expect(_codeSansCommentaires().contains('DateTime.now()'), isFalse,
           reason: 'l\'heure locale du navigateur ne doit plus servir au calcul');
     });
+
+    test('source : data_service.dart n\'utilise pas DateTime.now() (heure de Dakar via DakarClock)', () {
+      final String code = File('lib/services/data_service.dart')
+          .readAsStringSync()
+          .split('\n')
+          .where((String l) => !l.trimLeft().startsWith('//'))
+          .join('\n');
+      expect(code.contains('DateTime.now()'), isFalse,
+          reason: 'la référence temporelle par défaut doit être DakarClock.now()');
+      expect(code.contains('DakarClock.now()'), isTrue);
+    });
   });
 
   // ==================================================================
