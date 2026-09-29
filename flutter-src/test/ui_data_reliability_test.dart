@@ -276,7 +276,9 @@ void main() {
         expect(seg.departureInfo?.frequencyMinutes, 10);
       }
       final String txt = AssistantReplies.itinerary(r, 'Dakar', 'Rufisque');
-      expect(txt, contains('Passage estimé dans 0–10 min'));
+      expect(txt, contains('Passage estimé dans 10 min'));
+      expect(txt, isNot(contains('0–10 min')),
+          reason: 'aucun intervalle affiché (règle anti-régression)');
       expect(txt, contains('estimation non garantie'));
       expect(kHeure.hasMatch(txt), isFalse, reason: txt);
       expect(kTempsReel.hasMatch(txt), isFalse, reason: txt);

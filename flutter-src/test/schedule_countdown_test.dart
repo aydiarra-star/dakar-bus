@@ -107,9 +107,9 @@ void main() {
       expect(stop.realRemainingLabel(at: kBase), '12 min');
     });
 
-    test('départ à l\'instant présent → « 0 min » (seul cas de 0)', () {
+    test('départ à l\'instant présent → « 1 min » (jamais « 0 min »)', () {
       final Stop stop = _stopWithDepartures(<int>[_minuteOfDay(kBase)]);
-      expect(stop.realRemainingLabel(at: kBase), '0 min');
+      expect(stop.realRemainingLabel(at: kBase), '1 min');
     });
 
     test('départ passé → aucun temps négatif, état explicite', () {
@@ -164,10 +164,13 @@ void main() {
       expect(info.minutesUntil(kBase), isNull);
     });
 
-    test('formatRemainingMinutes : null → null, sinon « N min »', () {
+    test('formatRemainingMinutes : null → null, sinon « N min » (jamais 0)',
+        () {
       expect(DepartureInfo.formatRemainingMinutes(null), isNull);
       expect(DepartureInfo.formatRemainingMinutes(3), '3 min');
       expect(DepartureInfo.formatRemainingMinutes(12), '12 min');
+      expect(DepartureInfo.formatRemainingMinutes(0), '1 min');
+      expect(DepartureInfo.formatRemainingMinutes(-5), '1 min');
     });
   });
 

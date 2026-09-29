@@ -210,7 +210,7 @@ void main() {
       // dimanche 23:59 → lundi 06:00:30 via la plateforme sœur PGFA.
       expect(nuit.scheduledTime, DateTime.utc(2026, 10, 5, 6, 0, 30));
       expect(nuit.estimatedWaitFrom, 361);
-      expect(nuit.label, 'Prochain départ dans 361 min');
+      expect(nuit.label, 'Prochain départ dans 362 min');
     });
 
     test('API moteur directe : DDD_01 et AFTU_1 exploitables', () {
@@ -247,19 +247,19 @@ void main() {
       expect(info.estimatedWaitFrom, 0);
       expect(info.estimatedWaitTo, 0);
       expect(info.scheduledTime, DateTime.utc(2026, 9, 28, 14, 0, 30));
-      expect(info.label, 'Prochain départ dans moins d’une minute');
+      expect(info.label, 'Prochain départ dans 1 min');
       // Statut affiché = programmé (jamais « live »).
       expect(departureDataStatusOf(info.status), isNot('live'));
     });
 
-    test('TER Colobane → « Prochain départ dans 11 min »', () {
+    test('TER Colobane → « Prochain départ dans 12 min »', () {
       final info = provider.departureAt(
         routeId: 'ter_dakar_diamniadio',
         stopId: 'stop_colobane',
         requestedAt: lundi12,
       );
       expect(info!.estimatedWaitFrom, 11);
-      expect(info.label, 'Prochain départ dans 11 min');
+      expect(info.label, 'Prochain départ dans 12 min');
       expect(info.sourceType, SourceType.publicGtfs);
       expect(info.sourceType.toLabel(), 'PUBLIC_GTFS');
     });
@@ -548,7 +548,7 @@ void main() {
       // Lot 4.19 A : quai sœur PGFA 14:00:30 → attente < 1 min (cohérent
       // avec le groupe 12 du présent fichier, exécuté au même instant).
       expect(info.estimatedWaitFrom, 0);
-      expect(info.label, 'Prochain départ dans moins d’une minute');
+      expect(info.label, 'Prochain départ dans 1 min');
       expect(info.sourceType, SourceType.publicGtfs);
       // Route inconnue du référentiel → UNKNOWN, jamais planté.
       final ko = ds.departureFor(

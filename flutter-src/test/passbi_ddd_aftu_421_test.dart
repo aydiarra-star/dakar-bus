@@ -369,9 +369,12 @@ void main() {
       expect(a.scheduledTime, isNot(b.scheduledTime));
       expect(a.estimatedWaitFrom, lessThan(180));
       expect(b.estimatedWaitFrom, lessThan(180));
-      expect(a.label, a.estimatedWaitFrom == 0
-          ? 'Prochain départ dans moins d’une minute'
-          : 'Prochain départ dans ${a.estimatedWaitFrom} min');
+      expect(a.label, 'Prochain départ dans 8 min');
+      expect(b.estimatedWaitFrom, greaterThan(a.estimatedWaitFrom!),
+          reason: '30 min plus tard, l\'ETA change (aucune valeur figée)');
+      expect(b.label, matches(RegExp(r'^Prochain départ dans \d+ min$')));
+      expect(RegExp(r'(^|[^0-9])0 min').hasMatch(b.label), isFalse,
+          reason: b.label);
     });
   });
 

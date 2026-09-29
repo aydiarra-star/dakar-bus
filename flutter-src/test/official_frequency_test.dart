@@ -256,7 +256,12 @@ void main() {
         expect(route.segments.single.arrivalTime, isNull);
         expect(
           app.AssistantReplies.itinerary(route, route.fromName, route.toName),
-          contains('Passage estimé dans 0–6 min'),
+          contains('Passage estimé dans 6 min'),
+        );
+        expect(
+          app.AssistantReplies.itinerary(route, route.fromName, route.toName),
+          isNot(contains('0–6 min')),
+          reason: 'aucun intervalle affiché (règle anti-régression)',
         );
       } finally {
         app.allStops

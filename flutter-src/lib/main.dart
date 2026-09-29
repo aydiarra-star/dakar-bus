@@ -3663,15 +3663,20 @@ class _TripsPageState extends State<TripsPage> {
                   Text('${r.transferCount} correspondance(s) • ${r.segments.length} étape(s)', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
                   // Lot 4.20 : ETA dynamique du moteur PassBi sur le premier
                   // tronçon (prochain départ réel GTFS, statut SCHEDULED —
-                  // jamais « 0 min », jamais une fréquence, jamais « Live »).
+                  // jamais « 0 min », jamais une fréquence convertie en heure).
+                  // Une ESTIMATION encadrée (fréquence documentée) s'affiche
+                  // aussi en vert : « Passage estimé dans … ». Le calcul du
+                  // délai est indépendant de la couleur du réseau.
                   if (r.segments.isNotEmpty &&
                       r.segments.first.departureInfo != null &&
-                      r.segments.first.departureInfo!.status ==
-                          ScheduleStatus.scheduled)
+                      (r.segments.first.departureInfo!.status ==
+                              ScheduleStatus.scheduled ||
+                          r.segments.first.departureInfo!.status ==
+                              ScheduleStatus.estimated))
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
                       child: Text(
-                        '🟢 ${r.segments.first.departureInfo!.label}',
+                        '🟢 ${ReliabilityLabel.sanitizeScheduleLabel(r.segments.first.departureInfo!.label)}',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -4651,13 +4656,21 @@ class DetailedRoutePage extends StatelessWidget {
                                       network: route.operator,
                                     );
                                     return Text(
-                                      info.label,
+                                      ReliabilityLabel.sanitizeScheduleLabel(
+                                          info.label),
                                       style: TextStyle(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w600,
+                                        // Couleur de l'INFORMATION HORAIRE
+                                        // indépendante de la couleur du réseau :
+                                        // un délai numérique (programmé ou
+                                        // estimé) est toujours vert. Le TER reste
+                                        // marron sur la carte et sa ligne.
                                         color: info.status ==
-                                                ScheduleStatus.scheduled
-                                            ? route.color
+                                                    ScheduleStatus.scheduled ||
+                                                info.status ==
+                                                    ScheduleStatus.estimated
+                                            ? AppColors.success
                                             : AppColors.textPrimary(dark),
                                       ),
                                     );
