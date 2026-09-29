@@ -1,0 +1,110 @@
+{
+  "manifest_version": "1.0",
+  "dataset_set": "passbi-gtfs-public",
+  "purpose": "Couche transit — jeu de données public réellement récupéré (Lot 4.17). Structure de réseau documentée avec provenance. AUCUNE prétention temps réel, AUCUN horaire 2026 déduit.",
+  "date_verified": "2026-09-27",
+  "retrieval": {
+    "discovery_source": "PassBi",
+    "discovery_urls": [
+      "https://senpassbi.com/",
+      "https://play.google.com/store/apps/details?id=com.senpassbi.app",
+      "https://impactsolutionsas.github.io/passbi_core/"
+    ],
+    "discovery_source_type": "PUBLIC_APP",
+    "declared_provenance_note": "PassBi déclare utiliser des données GTFS publiques centralisées par le CETUD, issues des opérateurs suivants : cetud.sn, sunubrt.sn, terdakar.sn, demdikk.sn (source : description officielle PassBi, Google Play, consultée le 2026-09-27).",
+    "file_repository": "https://github.com/impactsolutionsas/passbi_core",
+    "file_directory": "gtfs_folder/",
+    "file_source_type": "PUBLIC_GTFS",
+    "file_commit": "7a2b99824699cb10daf69852c8fbecb746200d77",
+    "file_commit_date": "2026-02-10",
+    "retrieval_method": "git clone --depth 1 (lecture seule), fichiers copiés bit-à-bit",
+    "license_note": "Aucun fichier LICENSE dans le dépôt impactsolutionsas/passbi_core (constat du 2026-09-27). Réutilisation sous réserve des droits du dépositaire ; le CETUD déclare ses fichiers GTFS destinés à l'open data et au développement d'applications mobiles. Aucune autre républication que ces fichiers bruts n'est effectuée."
+  },
+  "realtime": {
+    "status": "ABSENT",
+    "note": "Aucun timestamp, aucune position véhicule, aucune prédiction dans ces fichiers. L'API PassBi de production (https://passbi-api.onrender.com) répond « This service has been suspended. » (vérifié le 2026-09-27 sur /health et /v2/routes/list). Aucun flux GTFS-RT identifié (Lot 4.15/4.17)."
+  },
+  "usage_rules": [
+    "STATUTÉ : ces jeux sont des schedules DONT LES CALENDRIERS SONT EXPIRÉS (voir valid_from/valid_to par réseau). Ils documentent la STRUCTURE (routes, stops, directions, trips, shapes) et servent de référence comparée.",
+    "NE PAS produire un départ planifié 2026 à partir de ces fichiers : toutes les dates de service sont passées.",
+    "NE PAS convertir une fréquence en prochain passage.",
+    "NE PAS présenter ces données comme temps réel ni comme GTFS-RT.",
+    "NE PAS reconstruire B3 depuis B1/B2 : le feed PassBi ne contient que B1 et B2.",
+    "Toute réutilisation doit conserver source, source_url, source_type, date_source, date_verified, valid_from, valid_to, confidence, verification_note."
+  ],
+  "networks": [
+    {
+      "network": "TER",
+      "file": "gtfs_TER.zip",
+      "sha256": "09cb31f4291b28aae072b9b053dc31d06154a7eeb8c212b4bc08825823197408",
+      "bytes": 109650,
+      "source": "PassBi (impactsolutionsas/passbi_core)",
+      "source_url": "https://raw.githubusercontent.com/impactsolutionsas/passbi_core/main/gtfs_folder/gtfs_TER.zip",
+      "source_type": "PUBLIC_GTFS",
+      "declared_origin": "GTFS public centralisé par le CETUD — opérateur SETER (agency.txt = SETER)",
+      "date_source": "2026-02-10",
+      "date_verified": "2026-09-27",
+      "valid_from": "2025-08-18",
+      "valid_to": "2025-08-31",
+      "validity_status": "EXPIRÉ",
+      "confidence": "MEDIUM",
+      "verification_note": "Intégrité référentielle vérifiée (0 orphelin stop_times→trip, 0 trip→route, 0 stop_id manquant) le 2026-09-27. 26 lignes stop = 13 gares × 2 entrées (noms dupliqués), correspond aux 13 gares du référentiel de contrôle (reference-policy). direction_id 0/1 présent. Calendrier 12 services sur 2025-08-18→2025-08-31 uniquement : expiré. Aucun shapes.txt. Les comptes (6 routes / 26 stops / 572 trips / 7332 stop_times) correspondent exactement à l'inventaire PassBi du Lot 4.14E.",
+      "counts": {"agency": 1, "routes": 6, "stops": 26, "trips": 572, "stop_times": 7332, "calendar": 12, "calendar_dates": 0, "shapes": 0}
+    },
+    {
+      "network": "BRT",
+      "file": "gtfs_BRT.zip",
+      "sha256": "f5e27b7ee446d52a6c32961db3684637cb0ebb319bb80883c82bcc47104e46c4",
+      "bytes": 520189,
+      "source": "PassBi (impactsolutionsas/passbi_core)",
+      "source_url": "https://raw.githubusercontent.com/impactsolutionsas/passbi_core/main/gtfs_folder/gtfs_BRT.zip",
+      "source_type": "PUBLIC_GTFS",
+      "declared_origin": "GTFS public centralisé par le CETUD — opérateur BRT/Dakar Mobilité (agency = BRT)",
+      "date_source": "2026-02-10",
+      "date_verified": "2026-09-27",
+      "valid_from": "2024-10-24",
+      "valid_to": "2024-12-31",
+      "validity_status": "EXPIRÉ",
+      "confidence": "MEDIUM (structure) / LOW (horaires)",
+      "verification_note": "Intégrité référentielle vérifiée le 2026-09-27 : 0 orphelin. Routes B1 et B2 distinctes — aucune ligne B3/B4. direction_id VIDE sur tous les trips (sens non porté). calendar.txt vide ; service limité à calendar_dates exception_type=1 du 2024-10-24 au 2024-12-31 : expiré. 36 stop_id non référencés par stop_times. Comptes identiques à l'inventaire PassBi 4.14E (2/79/4036/58674).",
+      "counts": {"agency": 1, "routes": 2, "stops": 79, "trips": 4036, "stop_times": 58674, "calendar": 0, "calendar_dates": 69, "shapes": 6785, "transfers": 0}
+    },
+    {
+      "network": "DDD",
+      "file": "gtfs_Dem_Dikk.zip",
+      "sha256": "578323c9fa4375313d57c4120071da3d0da499eb9216e5a4a22a28ffae707159",
+      "bytes": 2635299,
+      "source": "PassBi (impactsolutionsas/passbi_core)",
+      "source_url": "https://raw.githubusercontent.com/impactsolutionsas/passbi_core/main/gtfs_folder/gtfs_Dem_Dikk.zip",
+      "source_type": "PUBLIC_GTFS",
+      "declared_origin": "GTFS public centralisé par le CETUD — opérateur Dakar Dem Dikk (agency = Dakar Dem Dikk)",
+      "date_source": "2026-02-10",
+      "date_verified": "2026-09-27",
+      "valid_from": "2022-01-01",
+      "valid_to": "2023-12-31",
+      "validity_status": "HISTORIQUE EXPIRÉ",
+      "confidence": "MEDIUM (structure) / LOW (horaires)",
+      "verification_note": "Intégrité référentielle vérifiée le 2026-09-27 : 0 orphelin. 53 routes (DDD_01…), direction_id 0/1. Calendrier 4 services 2022-01-01→2023-12-31 : historique. Anomalie : calendar_dates.txt utilise un délimiteur ';' (non conforme GTFS qui exige ','). Comptes identiques à l'inventaire PassBi 4.14E (53/1277/9529/314029).",
+      "counts": {"agency": 1, "routes": 53, "stops": 1277, "trips": 9529, "stop_times": 314029, "calendar": 4, "calendar_dates": 40, "shapes": 3500}
+    },
+    {
+      "network": "AFTU",
+      "file": "gtfs_AFTU.zip",
+      "sha256": "7fae6b438de6177ff1d777546684e83c8882927b67efa4645dbecca3d77af428",
+      "bytes": 10693791,
+      "source": "PassBi (impactsolutionsas/passbi_core)",
+      "source_url": "https://raw.githubusercontent.com/impactsolutionsas/passbi_core/main/gtfs_folder/gtfs_AFTU.zip",
+      "source_type": "PUBLIC_GTFS",
+      "declared_origin": "GTFS public centralisé par le CETUD — opérateur AFTU (agency = Association de Financement des Professionnels du transport Urbain)",
+      "date_source": "2026-02-10",
+      "date_verified": "2026-09-27",
+      "valid_from": "2022-01-01",
+      "valid_to": "2023-12-31",
+      "validity_status": "HISTORIQUE EXPIRÉ",
+      "confidence": "MEDIUM (structure) / LOW (horaires)",
+      "verification_note": "Intégrité référentielle vérifiée le 2026-09-27 : 0 orphelin. 73 routes (AFTU_1…, numérotation non contiguë jusqu'à AFTU_84), direction_id 0/1, shapes présents. Calendrier 4 services 2022-01-01→2023-12-31 : historique. Comptes identiques à l'inventaire PassBi 4.14E (73/2401/11077/677918). Numérotation divergente du site AFTU (83+ lignes) et du CETUD (72 lignes) — conflit documenté dans le rapport 4.17.",
+      "counts": {"agency": 1, "routes": 73, "stops": 2401, "trips": 11077, "stop_times": 677918, "calendar": 4, "calendar_dates": 40, "shapes": 9498, "fare_rules": 1196602}
+    }
+  ],
+  "eta_implication": "Aucune de ces sources ne produit un ETA nouveau : calendriers expirés (ABSENCE DE DONNÉE pour les départs 2026), aucun temps réel. L'ETA TER par terminus (mécanisme 4.14E, sources officielles terdakar.sn) reste inchangé et hors de ce jeu de données."
+}

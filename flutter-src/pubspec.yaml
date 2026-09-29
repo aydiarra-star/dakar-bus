@@ -46,3 +46,5 @@ flutter:
   uses-material-design: true
   assets:
     - assets/data/dakar_network.json
+    # Lot 4.18 — source opérationnelle PassBi (4 feeds GTFS + crosswalk).
+    - assets/data/passbi/

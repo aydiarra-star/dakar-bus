@@ -1,0 +1,153 @@
+name: Flutter verify (Step 4B)
+
+# Workflow de VÉRIFICATION UNIQUEMENT — Step 4B.
+#
+# Objet : exécuter `flutter analyze` et `flutter test` sur la source Flutter
+#         située dans flutter-src/, parce que l'environnement de travail local
+#         ne peut pas installer le SDK Dart (sortie réseau restreinte :
+#         storage.googleapis.com, pub.dev et les quatre miroirs de secours
+#         ont leur poignée de main TLS interrompue).
+#
+# Ce workflow ne déploie RIEN :
+#   - aucune permission `pages: write` ;
+#   - aucun job `deploy` ;
+#   - aucun `actions/upload-pages-artifact` ni `actions/deploy-pages` ;
+#   - aucune écriture sur la branche gh-pages, ni sur main ;
+#   - aucune publication, aucune release, aucun commit de retour,
+#     aucun fichier du dépôt modifié.
+#
+# Les permissions `checks: write` et `statuses: write` servent UNIQUEMENT à
+# publier le résultat chiffré de la vérification. Ni un check run ni un statut
+# ne modifie de fichier ou de branche, et ne peut rien déployer.
+#
+# Pourquoi ce canal : les journaux de run sont hébergés sur
+# results-receiver.actions.githubusercontent.com, inaccessible depuis
+# l'environnement de travail. La conclusion `success` d'une étape ne prouve
+# donc pas à elle seule que des tests ont été exécutés — `flutter test`
+# réussit aussi lorsqu'il ne découvre AUCUN test. La sortie du check run,
+# elle, est lisible via api.github.com.
+#
+# Déclencheurs : la branche de session et l'appel manuel uniquement.
+
+on:
+  push:
+    branches:
+      - arena/01a0e370-dakar-bus
+      # Lot 4.21 — exploitation PassBi DDD/AFTU (vérification analyze + test).
+      - arena/01a0e53c-dakar-bus
+      # Suite Lot 4.21 — verrouillage identité / horaire / correspondances.
+      - arena/01a0e820-dakar-bus
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: write
+  statuses: write
+
+concurrency:
+  group: flutter-verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: analyze + test (Flutter 3.24.5)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: flutter-src
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze (0 error exigé)
+        run: |
+          set +e
+          flutter analyze > /tmp/analyze.log 2>&1
+          echo $? > /tmp/analyze.exit
+          tail -40 /tmp/analyze.log
+
+      - name: Test
+        run: |
+          set +e
+          flutter test --reporter expanded > /tmp/test.log 2>&1
+          echo $? > /tmp/test.exit
+          tail -60 /tmp/test.log
+
+      - name: Publier le résultat (check run + statut, aucun fichier modifié)
+        if: always()
+        env:
+          GH_TOKEN_RUNNER: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          GH_SHA: ${{ github.sha }}
+        run: |
+          set +e
+          AEXIT=$(cat /tmp/analyze.exit 2>/dev/null | tr -dc '0-9'); AEXIT=${AEXIT:-NA}
+          TEXIT=$(cat /tmp/test.exit 2>/dev/null | tr -dc '0-9'); TEXIT=${TEXIT:-NA}
+          PASS=$(grep -oE '\+[0-9]+' /tmp/test.log 2>/dev/null | tail -1 | tr -d '+'); PASS=${PASS:-0}
+          FAIL=$(grep -oE '\+[0-9]+ -[0-9]+' /tmp/test.log 2>/dev/null | tail -1 | grep -oE '\-[0-9]+' | tr -d '-'); FAIL=${FAIL:-0}
+          SUITES=$(ls test/*_test.dart 2>/dev/null | wc -l | tr -d ' ')
+          AISSUES=$(grep -cE '^[[:space:]]*(error|warning|info)[[:space:]]' /tmp/analyze.log 2>/dev/null | tr -dc '0-9'); AISSUES=${AISSUES:-0}
+          FLUTTER_V=$(flutter --version 2>/dev/null | head -1)
+
+          SUMMARY="tests +${PASS}/-${FAIL} | ${SUITES} fichiers | analyze ${AISSUES} issue(s) | exit a=${AEXIT} t=${TEXIT} | ${FLUTTER_V}"
+          echo "RÉSUMÉ : ${SUMMARY}"
+
+          {
+            echo "=== RÉSUMÉ ==="
+            echo "${SUMMARY}"
+            echo
+            echo "=== flutter analyze (intégral) ==="
+            cat /tmp/analyze.log 2>/dev/null
+            echo
+            echo "=== flutter test (intégral) ==="
+            cat /tmp/test.log 2>/dev/null
+          } > /tmp/full.txt
+          head -c 60000 /tmp/full.txt > /tmp/full.trunc.txt
+
+          export SUMMARY
+          CRID=$(curl -sS -H "Authorization: Bearer ${GH_TOKEN_RUNNER}" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${GH_REPO}/commits/${GH_SHA}/check-runs" | python3 -c 'import json,sys; d=json.load(sys.stdin); r=d.get("check_runs",[]); c=[x for x in r if "analyze" in x.get("name","")]; print((c or r)[0]["id"] if (c or r) else "")')
+          echo "check_run_id=${CRID}"
+
+          if [ -n "${CRID}" ]; then
+            python3 -c 'import json,os; t=open("/tmp/full.trunc.txt",encoding="utf-8",errors="replace").read(); print(json.dumps({"output":{"title":"Flutter verify (4B)","summary":os.environ["SUMMARY"][:300],"text":t}}))' > /tmp/cr.json
+            CODE=$(curl -sS -o /tmp/cr.out -w "%{http_code}" -X PATCH -H "Authorization: Bearer ${GH_TOKEN_RUNNER}" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${GH_REPO}/check-runs/${CRID}" --data-binary @/tmp/cr.json)
+            echo "PATCH check-run -> HTTP ${CODE}"
+            head -c 200 /tmp/cr.out; echo
+          fi
+
+          if [ "${FAIL}" = "0" ] && [ "${AISSUES}" = "0" ] && [ "${PASS}" != "0" ] && [ "${AEXIT}" = "0" ] && [ "${TEXIT}" = "0" ]; then
+            STATE=success
+          else
+            STATE=failure
+          fi
+          export STATE
+          python3 -c 'import json,os; print(json.dumps({"state":os.environ["STATE"],"description":os.environ["SUMMARY"][:140],"context":"flutter-4b/decompte"}))' > /tmp/st.json
+          SCODE=$(curl -sS -o /tmp/st.out -w "%{http_code}" -X POST -H "Authorization: Bearer ${GH_TOKEN_RUNNER}" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${GH_REPO}/statuses/${GH_SHA}" --data-binary @/tmp/st.json)
+          echo "POST statut -> HTTP ${SCODE} (${STATE})"
+          head -c 300 /tmp/st.out; echo
+
+          if [ "${AEXIT}" != "0" ] || [ "${TEXIT}" != "0" ]; then
+            echo "ÉCHEC de vérification : analyze=${AEXIT} test=${TEXIT}"
+            exit 1
+          fi
+          if [ "${PASS}" = "0" ]; then
+            echo "ÉCHEC de vérification : AUCUN test exécuté"
+            exit 1
+          fi
+          echo "Vérification verte : ${PASS} test(s) passé(s), 0 issue analyze."
