@@ -107,7 +107,7 @@ void main() {
       expect(stop.realRemainingMinutes(at: kBase), isNull);
       expect(stop.realRemainingLabel(at: kBase), isNull);
       expect(stop.nextDepartureMinutes(at: kBase), isNull);
-      expect(stop.nextDepartureLabel(), 'Horaire indisponible');
+      expect(stop.nextDepartureLabel(at: kBase), 'Horaire indisponible');
     });
 
     test('aucun horaire → « Horaire indisponible », pas de faux délai', () {
@@ -115,7 +115,7 @@ void main() {
       expect(stop.scheduleStatus, ScheduleStatus.unknown);
       expect(stop.realRemainingMinutes(at: kBase), isNull);
       expect(stop.realRemainingLabel(at: kBase), isNull);
-      expect(stop.nextDepartureLabel(), 'Horaire indisponible');
+      expect(stop.nextDepartureLabel(at: kBase), 'Horaire indisponible');
     });
   });
 

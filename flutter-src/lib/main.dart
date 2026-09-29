@@ -920,9 +920,12 @@ class Stop {
   String? realRemainingLabel({DateTime? at}) =>
       DepartureInfo.formatRemainingMinutes(realRemainingMinutes(at: at));
 
-  String? nextDepartureLabel() {
+  String? nextDepartureLabel({DateTime? at}) {
     if (scheduleRouteId != null) return departureInfo.label;
-    final d = nextDepartureMinutes();
+    // `at` doit être propagé : sans lui, le libellé se calcule sur l'heure
+    // courante alors que `nextDepartureMinutes(at: ...)` a une autre référence,
+    // ce qui rendait le verdict dépendant de l'heure du runner CI.
+    final d = nextDepartureMinutes(at: at);
     if (d == null) return ReliabilityLabel.scheduleUnavailable;
     final normalized = d % (24 * 60);
     return '${(normalized ~/ 60).toString().padLeft(2, '0')} h ${(normalized % 60).toString().padLeft(2, '0')}';
