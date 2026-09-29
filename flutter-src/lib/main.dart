@@ -1022,31 +1022,6 @@ class Stop {
     return out;
   }
 
-  /// Variante « service du jour » de [nextRealWaitingMinutes] : ne conserve que
-  /// les passages RÉELS du jour de service en cours (heure de Dakar).
-  ///
-  /// LOT fin de service : après le dernier départ embarquable du jour, le
-  /// prochain passage du feed peut relever d'un SERVICE DE NUIT DU LENDEMAIN
-  /// (ex. DDD à 00:09). Ce n'est PAS le service en cours : il est donc exclu de
-  /// l'affichage « X min » — la fin de service est alors annoncée par
-  /// [serviceAvailability], jamais par un faux « 55 min » issu du jour suivant.
-  List<int> todayRealWaitingMinutes({DateTime? at, int limit = 3}) {
-    final DateTime now = at == null ? DakarClock.now() : DakarClock.toDakar(at);
-    final DateTime today = DateTime.utc(now.year, now.month, now.day);
-    final List<int> out = <int>[];
-    for (final DepartureInfo info in nextRealDepartures(at: now, limit: limit)) {
-      final DateTime? departureTime = info.scheduledTime;
-      if (departureTime == null) continue;
-      if (DateTime.utc(departureTime.year, departureTime.month, departureTime.day) !=
-          today) {
-        continue;
-      }
-      final int? minutes = waitingMinutesBetween(departureTime, now);
-      if (minutes != null) out.add(minutes);
-    }
-    return out;
-  }
-
   /// Lot fin de service — disponibilité du service journalier de la mobilité
   /// portée par cet arrêt, à [at] (heure de Dakar).
   ///
@@ -3609,11 +3584,24 @@ class StopCard extends StatelessWidget {
         final DateTime? reference = at;
         final DateTime now =
             reference == null ? DakarClock.now() : DakarClock.toDakar(reference);
-        // LOT fin de service : passages RÉELS du SERVICE DU JOUR uniquement.
-        // Après le dernier départ embarquable, le prochain stop_time peut
-        // relever du service de nuit du lendemain (DDD 00:09) — exclu ici, car
-        // la fin de service doit être annoncée, pas masquée par un « X min ».
-        final List<int> waits = stop.todayRealWaitingMinutes(at: now);
+        // LOT fin de service — « Fin de service » n'est posé que si le service
+        // documenté du jour est RÉELLEMENT terminé (dernier départ embarquable
+        // dépassé). Le calcul est indépendant de l'arrêt : la disponibilité
+        // `active` ne produit aucun message, même si cet arrêt n'a plus de
+        // passage propre.
+        final ServiceAvailability? availability = stop.serviceAvailability(at: now);
+        final bool serviceEnded = availability != null &&
+            availability.status == ServiceAvailabilityStatus.serviceEnded &&
+            !availability.isResumedAt(now);
+        // Après la fin de service, le prochain stop_time peut relever d'un
+        // SERVICE DE NUIT DU LENDEMAIN (ex. DDD 00:09) : ce n'est PAS le service
+        // en cours, donc aucun « X min » n'est affiché — la fin de service est
+        // annoncée, jamais masquée par un faux délai. Tant que le réseau roule
+        // (`active`), le prochain départ RÉEL documenté est affiché, même s'il
+        // appartient au service de nuit (arrêt nocturne : aucune heure
+        // fabriquée, uniquement le stop_time du feed).
+        final List<int> waits =
+            serviceEnded ? const <int>[] : stop.nextRealWaitingMinutes(at: now);
         final List<DepartureInfo> prochains = stop.nextRealDepartures(at: now);
         // Destination RÉELLE uniquement : sens du prochain trip (headsign du
         // feed), sinon la direction référentielle explicite « Dir. X ». Sans
@@ -3639,12 +3627,6 @@ class StopCard extends StatelessWidget {
         // « X min » en vert. Une fréquence (`estimated`) ne produit jamais de
         // compte à rebours : `realRemainingLabel` renvoie alors `null`.
         final String? legacyRemaining = hasWaits ? null : stop.realRemainingLabel(at: now);
-        // LOT fin de service — « Fin de service » n'est posé que si le service
-        // documenté du jour est RÉELLEMENT terminé (dernier départ embarquable
-        // dépassé). Le calcul est indépendant de l'arrêt : la disponibilité
-        // `active` ne produit aucun message, même si cet arrêt n'a plus de
-        // passage propre.
-        final ServiceAvailability? availability = stop.serviceAvailability(at: now);
         final String? serviceNotice = serviceNoticeFor(availability, now);
 
         return GestureDetector(
@@ -4584,12 +4566,20 @@ class AssistantReplies {
   /// « Horaire indisponible » — jamais d'horaire inventé.
   static String nextDepartureForStop(Stop stop) {
     final DateTime now = DakarClock.now();
-    final List<int> waits = stop.todayRealWaitingMinutes(at: now);
+    final ServiceAvailability? availability = stop.serviceAvailability(at: now);
+    final bool serviceEnded = availability != null &&
+        availability.status == ServiceAvailabilityStatus.serviceEnded &&
+        !availability.isResumedAt(now);
+    // Après la fin de service documentée, le prochain stop_time peut relever du
+    // service de nuit du lendemain : il est exclu, et la fin de service est
+    // annoncée. Tant que le réseau roule, le prochain départ réel est affiché.
+    final List<int> waits =
+        serviceEnded ? const <int>[] : stop.nextRealWaitingMinutes(at: now);
     if (waits.isNotEmpty) {
       return '🚏 ${stop.name} : prochain passage ${formatWaitingMinutes(waits)} '
           '(horaire programmé, arrondi vers le haut).';
     }
-    final String? notice = serviceNoticeFor(stop.serviceAvailability(at: now), now);
+    final String? notice = serviceNoticeFor(availability, now);
     if (notice != null) return '🚏 ${stop.name} : $notice.';
     return '🚏 ${stop.name} : ${ReliabilityLabel.scheduleUnavailable} '
         '(aucun départ programmé connu pour cet arrêt).';
@@ -5153,14 +5143,20 @@ class SingleStopView extends StatelessWidget {
         // Lot 4.22 (Explorer) : les prochains temps d'attente RÉELS
         // (stop_times), minutes vertes ; « Horaire indisponible » sans
         // passage réel — jamais de faux temps, jamais une fréquence.
-        final List<int> ficheWaits = stop.todayRealWaitingMinutes();
+        final ServiceAvailability? ficheAvailability = stop.serviceAvailability();
+        final bool ficheServiceEnded = ficheAvailability != null &&
+            ficheAvailability.status == ServiceAvailabilityStatus.serviceEnded &&
+            !ficheAvailability.isResumedAt(DakarClock.now());
+        // LOT fin de service — après la fin du service documenté du jour, le
+        // prochain stop_time peut relever du service de nuit du lendemain : il
+        // est alors exclu de l'affichage « X min ». Tant que le réseau roule
+        // (`active`), le prochain départ réel documenté est affiché.
+        final List<int> ficheWaits =
+            ficheServiceEnded ? const <int>[] : stop.nextRealWaitingMinutes();
         final bool ficheHasWaits = ficheWaits.isNotEmpty;
-        // LOT fin de service — message de fin uniquement lorsque le service
-        // documenté du jour est RÉELLEMENT terminé et qu'aucun passage réel ne
-        // subsiste. Tant qu'un passage réel existe, le service est actif.
         final String? ficheServiceNotice = ficheHasWaits
             ? null
-            : serviceNoticeFor(stop.serviceAvailability(), DakarClock.now());
+            : serviceNoticeFor(ficheAvailability, DakarClock.now());
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
