@@ -274,20 +274,41 @@ class DepartureInfo {
 
   String get label {
     if (status == ScheduleStatus.estimated) {
+      // NIVEAU 3 — ESTIMATION. Une fréquence seule ne fixe jamais la phase du
+      // prochain véhicule : on ne peut donc pas calculer un « X min » exact.
+      // Une fenêtre documentée (0 → fréquence) et « estimé » restent honnêtes.
       return 'Passage estimé dans $estimatedWaitFrom–$estimatedWaitTo min · fréquence $frequencyMinutes min';
     }
     if (status == ScheduleStatus.scheduled) {
-      // Lot 4.18 : horaire PassBi réellement trouvé (SCHEDULED).
-      final from = estimatedWaitFrom;
-      if (from != null && from <= 0) {
-        return 'Prochain départ dans moins d’une minute';
+      // Message imposé dès qu'un délai numérique est calculable : jamais
+      // « moins d'une minute », jamais « 0 min ».
+      final String? remaining = computedRemainingLabel;
+      if (remaining != null) {
+        return 'Prochain départ dans $remaining';
       }
-      if (from != null) {
-        return 'Prochain départ dans $from min';
-      }
-      return 'Départ programmé';
+      // Un départ OFFICIEL dont l'heure est connue mais inexploitable au moment
+      // demandé ne doit pas être masqué par « Horaire indisponible ».
+      if (scheduledTime != null) return 'Départ programmé';
+      return 'Horaire indisponible';
     }
     return 'Horaire indisponible';
+  }
+
+  /// Délai numérique du prochain départ, calculé depuis [scheduledTime] et
+  /// l'instant de référence, ou `null` si aucun horaire exact exploitable.
+  ///
+  /// Règle du « moins d'une minute » : un départ encore futur à moins de
+  /// 60 secondes affiche **1 min** (jamais « 0 min », jamais « moins d'une
+  /// minute », jamais un nombre négatif). Un départ déjà passé renvoie `null` :
+  /// l'appelant recherche alors le départ suivant.
+  String? get computedRemainingLabel {
+    final DateTime? departure = scheduledTime;
+    final DateTime? reference = referenceTime;
+    if (departure == null || reference == null) return null;
+    final int seconds = departure.difference(reference).inSeconds;
+    if (seconds < 0) return null;
+    final int minutes = (seconds + 59) ~/ 60;
+    return '${minutes < 1 ? 1 : minutes} min';
   }
 
   /// Minutes restantes avant l'heure de départ réellement programmée.
@@ -301,9 +322,11 @@ class DepartureInfo {
   int? minutesUntil(DateTime now) {
     final DateTime? departure = scheduledTime;
     if (departure == null || status != ScheduleStatus.scheduled) return null;
-    final int minutes = departure.difference(now).inMinutes;
-    if (minutes < 0) return null;
-    return minutes;
+    final int seconds = departure.difference(now).inSeconds;
+    if (seconds < 0) return null;
+    // Arrondi vers le haut : jamais 0 min pour un départ encore futur.
+    final int minutes = (seconds + 59) ~/ 60;
+    return minutes < 1 ? 1 : minutes;
   }
 
   /// Fabrique une réponse PROGRAMMÉE à partir d'une heure réellement fournie.
@@ -352,7 +375,7 @@ class DepartureInfo {
   /// `0` n'est renvoyé que pour un départ à l'instant présent.
   static String? formatRemainingMinutes(int? minutes) {
     if (minutes == null) return null;
-    if (minutes <= 0) return '0 min';
+    if (minutes <= 0) return '1 min';
     return '$minutes min';
   }
 

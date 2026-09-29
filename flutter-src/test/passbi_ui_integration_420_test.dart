@@ -84,7 +84,7 @@ void main() {
       expect(info.status, ScheduleStatus.scheduled);
       expect(info.scheduledTime, DateTime.utc(2026, 9, 28, 12, 11, 25));
       expect(info.estimatedWaitFrom, 11);
-      expect(info.label, 'Prochain départ dans 11 min');
+      expect(info.label, 'Prochain départ dans 12 min');
       expect(info.sourceType, SourceType.publicGtfs);
       expect(app.departureDataStatus(info.status), app.DataStatus.scheduled);
     });
@@ -138,7 +138,7 @@ void main() {
       // 14:00:30 = VRAI départ (jamais l'arrivée 14:02:27 du terminus).
       expect(info.scheduledTime, DateTime.utc(2026, 9, 28, 14, 0, 30));
       expect(info.estimatedWaitFrom, 0);
-      expect(info.label, 'Prochain départ dans moins d’une minute');
+      expect(info.label, 'Prochain départ dans 1 min');
       expect(info.routeId, 'brt_b1_guediawaye_petersen');
     });
 
@@ -331,7 +331,7 @@ void main() {
   // ==================================================================== G
   group('G. lendemain — dimanche 23:59 → service J+1 (Lot 4.19 conservé)',
       () {
-    test('ETA : lundi 05:35:30 (336 min), SCHEDULED', () {
+    test('ETA : lundi 05:35:30 (337 min), SCHEDULED', () {
       final s = stopFix(
         name: 'Colobane',
         stopId: 'stop_colobane',
@@ -342,7 +342,7 @@ void main() {
       expect(info.status, ScheduleStatus.scheduled);
       expect(info.scheduledTime, DateTime.utc(2026, 10, 5, 5, 35, 30));
       expect(info.estimatedWaitFrom, 336);
-      expect(info.label, 'Prochain départ dans 336 min');
+      expect(info.label, 'Prochain départ dans 337 min');
     });
   });
 

@@ -159,7 +159,7 @@ void main() {
       expect(toIdx, greaterThan(fromIdx));
     });
 
-    test('ETA B1 dynamique : 13:29 → 13:32:04 = 🟢 3 min', () {
+    test('ETA B1 dynamique : 13:29 → 13:32:04 = 🟢 4 min', () {
       final info = provider.departureAt(
         routeId: 'brt_b1_guediawaye_petersen',
         stopId: 'stop_brt_05_grand_dakar',
@@ -168,7 +168,7 @@ void main() {
       expect(info.status, ScheduleStatus.scheduled);
       expect(info.scheduledTime, DateTime.utc(2026, 9, 28, 13, 32, 4));
       expect(info.estimatedWaitFrom, 3);
-      expect(info.label, 'Prochain départ dans 3 min');
+      expect(info.label, 'Prochain départ dans 4 min');
     });
 
     test('rég. A : quai d\'arrivée PGFB sans sœur → aucun départ ( jamais 0 min)',
@@ -189,7 +189,7 @@ void main() {
       expect(info.status, ScheduleStatus.scheduled);
       expect(info.scheduledTime, DateTime.utc(2026, 9, 28, 14, 0, 30));
       expect(info.estimatedWaitFrom, 0);
-      expect(info.label, 'Prochain départ dans moins d’une minute');
+      expect(info.label, 'Prochain départ dans 1 min');
     });
   });
 
@@ -397,7 +397,7 @@ void main() {
 
   // ------------------------------------------------------------------ §9
   group('§9 ETA dynamique', () {
-    test('13:29 → 13:32 = 🟢 3 min ; 13:29 → 13:35 = 🟢 6 min', () {
+    test('13:29 → 13:32 = 🟢 4 min ; 13:29 → 13:35 = 🟢 7 min', () {
       final a = provider.departureAt(
         routeId: 'brt_b1_guediawaye_petersen',
         stopId: 'stop_brt_05_grand_dakar',
@@ -413,7 +413,7 @@ void main() {
       )!;
       expect(b.scheduledTime, DateTime.utc(2026, 9, 28, 13, 35, 12));
       expect(b.estimatedWaitFrom, 6);
-      expect(b.label, 'Prochain départ dans 6 min');
+      expect(b.label, 'Prochain départ dans 7 min');
 
       // 30 s plus tôt → ETA différente (aucune valeur codée en dur).
       final earlier = provider.departureAt(
