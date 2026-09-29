@@ -330,8 +330,7 @@ class AppColors {
   /// en texte blanc et ≈ 5,8:1 en texte noir, équilibré pour les deux fonds.
   ///
   /// [primary] (le vert historique) est conservé pour la carte, le GPS et la
-  /// palette des réseaux : le vert des départs reste, lui, porté par
-  /// [success], inchangé — aucune règle horaire n'est touchée.
+  /// palette des réseaux.
   static const beanGreen = Color(0xFF739047);
   static const beanGreenLight = Color(0xFF9CBF6B);
 
@@ -347,7 +346,11 @@ class AppColors {
   static Color textSecondary(bool dark) => dark ? const Color(0xFFAAAAAA) : const Color(0xFF555555);
   static Color divider(bool dark) => dark ? const Color(0xFF2C2C2C) : const Color(0xFFD4EDE2);
 
-  static const success = Color(0xFF00B140);
+  /// Vert positif des départs (« X min », statut SCHEDULED/ESTIMATED) et des
+  /// indicateurs favorables. Rendu homogène avec le vert haricot : la RÈGLE
+  /// horaire qui décide QUAND ce vert s'affiche reste strictement inchangée
+  /// (vrai stop_time prioritaire, jamais 0 min, jamais d'heure inventée).
+  static const success = beanGreen;
   static const warning = Color(0xFFEF6C00);
 }
 

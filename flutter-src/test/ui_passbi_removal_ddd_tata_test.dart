@@ -304,13 +304,14 @@ void main() {
   // 4. Vert haricot clair homogène
   // ==================================================================
   group('4 — vert haricot clair', () {
-    test('la teinte haricot clair est définie et distincte du vert de statut',
-        () {
-      expect(app.AppColors.beanGreen, isA<Color>());
-      expect(app.AppColors.beanGreenLight, isA<Color>());
-      // Le vert des départs (success) reste inchangé : aucune règle horaire
-      // n'est touchée.
-      expect(app.AppColors.success, const Color(0xFF00B140));
+    test('la teinte haricot clair unifie aussi le vert des départs', () {
+      expect(app.AppColors.beanGreen, const Color(0xFF739047));
+      expect(app.AppColors.beanGreenLight, const Color(0xFF9CBF6B));
+      // Le vert positif des départs est rendu homogène : même teinte haricot.
+      // La RÈGLE horaire (quand ce vert s'affiche) reste inchangée.
+      expect(app.AppColors.success, app.AppColors.beanGreen);
+      // Les statuts jaune/rouge sont préservés.
+      expect(app.AppColors.warning, const Color(0xFFEF6C00));
     });
 
     test('les boutons principaux et la navigation utilisent le vert haricot',
