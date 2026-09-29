@@ -1,40 +1,40 @@
-stop_id,stop_name,stop_lat,stop_lon
-BRT_01_Papa_Gueye,Papa Gueye Fall - PEM Petersen,14.67548,-17.44157
-BRT_02_Grande_Mos,Grande Mosquée,14.67822,-17.44219
-BRT_03_Place_de_l,Place de la Nation - Obélisque,14.6943,-17.44826
-BRT_04_Dial_Diop,Dial Diop,14.69956,-17.45244
-BRT_05_Grand_Dakar,Grand Dakar,14.7052,-17.4578
-BRT_06_Liberte_1,Liberté 1,14.70993,-17.4625
-BRT_07_Sacre_Coeur,Sacré-Cœur,14.7166,-17.4635
-BRT_08_Liberte_5,Liberté 5,14.72044,-17.46444
-BRT_09_Liberte_6,Liberté 6,14.72631,-17.45919
-BRT_10_Khar_Yalla,Khar Yallah,14.7315,-17.456
-BRT_11_Scat_Urbam,Scat Urbam,14.73681,-17.45531
-BRT_12_Cardinal_H,Cardinal Hyacinthe Thiandoum,14.74156,-17.45131
-BRT_13_Grand_Medine,Grand Médine - PEM,14.74795,-17.44715
-BRT_14_Police_des,Police des Parcelles,14.7512,-17.4395
-BRT_15_Croisement,Croisement 22,14.75369,-17.43181
-BRT_16_Parcelles,Parcelles Assainies,14.76269,-17.42431
-BRT_17_Ndingala,Ndingala - Golf Sud,14.76462,-17.41969
-BRT_18_Golf_Sud,Golf Sud,14.76756,-17.41356
-BRT_19_Dalal_Jam,Dalal Jam - Hôpital,14.77287,-17.40979
-BRT_20_Fith_Mith,Fith Mith,14.77019,-17.40156
-BRT_21_Golf_Nord,Golf Nord,14.77619,-17.39881
-BRT_22_Gadaye,Gadaye - Cambérène,14.7745,-17.393
-BRT_23_Prefecture,Préfecture Guédiawaye - PEM,14.77156,-17.38694
-TER_01_Dakar,Gare de Dakar,14.67599,-17.43352
-TER_02_Colobane,Colobane,14.70035,-17.44165
-TER_03_Hann,Hann,14.72209,-17.43207
-TER_04_Dalifort,Dalifort,14.73425,-17.419
-TER_05_Beaux_Mara,Baux Maraîchers,14.73971,-17.40361
-TER_06_Pikine,Pikine,14.74986,-17.39169
-TER_07_Thiaroye,Thiaroye,14.75877,-17.3803
-TER_08_Yeumbeul,Yeumbeul,14.76491,-17.3565
-TER_09_Keur_Mbaye_Fall,Keur Mbaye Fall,14.74408,-17.31389
-TER_10_PNR,PNR,14.72317,-17.28394
-TER_11_Rufisque,Rufisque,14.71596,-17.27
-TER_12_Bargny,Bargny,14.69818,-17.2292
-TER_13_Diamniadio,Diamniadio,14.71606,-17.19845
+stop_id,stop_name,stop_lat,stop_lon,network,ordre_sur_ligne,source,data_status,status
+BRT_01_Papa_Gueye,Papa Gueye Fall - PEM Petersen,14.67548,-17.44157,BRT,1,https://www.sunubrt.sn/quest-ce-quun-brt/dakar-mobilite/,UNVERIFIED,UNKNOWN
+BRT_02_Grande_Mos,Grande Mosquée,14.67822,-17.44219,BRT,2,https://www.sunubrt.sn/quest-ce-quun-brt/dakar-mobilite/,UNVERIFIED,UNKNOWN
+BRT_03_Place_de_l,Place de la Nation - Obélisque,14.6943,-17.44826,BRT,3,https://www.sunubrt.sn/quest-ce-quun-brt/dakar-mobilite/,UNVERIFIED,UNKNOWN
+BRT_04_Dial_Diop,Dial Diop,14.69956,-17.45244,BRT,4,https://www.sunubrt.sn/quest-ce-quun-brt/dakar-mobilite/,UNVERIFIED,UNKNOWN
+BRT_05_Grand_Dakar,Grand Dakar,14.7052,-17.4578,BRT,5,https://www.sunubrt.sn/quest-ce-quun-brt/dakar-mobilite/,UNVERIFIED,UNKNOWN
+BRT_06_Liberte_1,Liberté 1,14.70993,-17.4625,BRT,6,https://www.sunubrt.sn/quest-ce-quun-brt/dakar-mobilite/,UNVERIFIED,UNKNOWN
+BRT_07_Sacre_Coeur,Sacré-Cœur,14.7166,-17.4635,BRT,7,https://www.sunubrt.sn/quest-ce-quun-brt/dakar-mobilite/,UNVERIFIED,UNKNOWN
+BRT_08_Liberte_5,Liberté 5,14.72044,-17.46444,BRT,8,https://www.sunubrt.sn/quest-ce-quun-brt/dakar-mobilite/,UNVERIFIED,UNKNOWN
+BRT_09_Liberte_6,Liberté 6,14.72631,-17.45919,BRT,9,https://www.sunubrt.sn/quest-ce-quun-brt/dakar-mobilite/,UNVERIFIED,UNKNOWN
+BRT_10_Khar_Yalla,Khar Yallah,14.7315,-17.456,BRT,10,https://www.sunubrt.sn/quest-ce-quun-brt/dakar-mobilite/,UNVERIFIED,UNKNOWN
+BRT_11_Scat_Urbam,Scat Urbam,14.73681,-17.45531,BRT,11,https://www.sunubrt.sn/quest-ce-quun-brt/dakar-mobilite/,UNVERIFIED,UNKNOWN
+BRT_12_Cardinal_H,Cardinal Hyacinthe Thiandoum,14.74156,-17.45131,BRT,12,https://www.sunubrt.sn/quest-ce-quun-brt/dakar-mobilite/,UNVERIFIED,UNKNOWN
+BRT_13_Grand_Medine,Grand Médine - PEM,14.74795,-17.44715,BRT,13,https://www.sunubrt.sn/quest-ce-quun-brt/dakar-mobilite/,UNVERIFIED,UNKNOWN
+BRT_14_Police_des,Police des Parcelles,14.7512,-17.4395,BRT,14,https://www.sunubrt.sn/quest-ce-quun-brt/dakar-mobilite/,UNVERIFIED,UNKNOWN
+BRT_15_Croisement,Croisement 22,14.75369,-17.43181,BRT,15,https://www.sunubrt.sn/quest-ce-quun-brt/dakar-mobilite/,UNVERIFIED,UNKNOWN
+BRT_16_Parcelles,Parcelles Assainies,14.76269,-17.42431,BRT,16,https://www.sunubrt.sn/quest-ce-quun-brt/dakar-mobilite/,UNVERIFIED,UNKNOWN
+BRT_17_Ndingala,Ndingala - Golf Sud,14.76462,-17.41969,BRT,17,https://www.sunubrt.sn/quest-ce-quun-brt/dakar-mobilite/,UNVERIFIED,UNKNOWN
+BRT_18_Golf_Sud,Golf Sud,14.76756,-17.41356,BRT,18,https://www.sunubrt.sn/quest-ce-quun-brt/dakar-mobilite/,UNVERIFIED,UNKNOWN
+BRT_19_Dalal_Jam,Dalal Jam - Hôpital,14.77287,-17.40979,BRT,19,https://www.sunubrt.sn/quest-ce-quun-brt/dakar-mobilite/,UNVERIFIED,UNKNOWN
+BRT_20_Fith_Mith,Fith Mith,14.77019,-17.40156,BRT,20,https://www.sunubrt.sn/quest-ce-quun-brt/dakar-mobilite/,UNVERIFIED,UNKNOWN
+BRT_21_Golf_Nord,Golf Nord,14.77619,-17.39881,BRT,21,https://www.sunubrt.sn/quest-ce-quun-brt/dakar-mobilite/,UNVERIFIED,UNKNOWN
+BRT_22_Gadaye,Gadaye - Cambérène,14.7745,-17.393,BRT,22,https://www.sunubrt.sn/quest-ce-quun-brt/dakar-mobilite/,UNVERIFIED,UNKNOWN
+BRT_23_Prefecture,Préfecture Guédiawaye - PEM,14.77156,-17.38694,BRT,23,https://www.sunubrt.sn/quest-ce-quun-brt/dakar-mobilite/,UNVERIFIED,UNKNOWN
+TER_01_Dakar,Gare de Dakar,14.67599,-17.43352,TER,1,https://www.terdakar.sn/acceder-au-plan-de-la-ligne/,UNVERIFIED,UNKNOWN
+TER_02_Colobane,Colobane,14.70035,-17.44165,TER,2,https://www.terdakar.sn/acceder-au-plan-de-la-ligne/,UNVERIFIED,UNKNOWN
+TER_03_Hann,Hann,14.72209,-17.43207,TER,3,https://www.terdakar.sn/acceder-au-plan-de-la-ligne/,UNVERIFIED,UNKNOWN
+TER_04_Dalifort,Dalifort,14.73425,-17.419,TER,4,https://www.terdakar.sn/acceder-au-plan-de-la-ligne/,UNVERIFIED,UNKNOWN
+TER_05_Beaux_Mara,Baux Maraîchers,14.73971,-17.40361,TER,5,https://www.terdakar.sn/acceder-au-plan-de-la-ligne/,UNVERIFIED,UNKNOWN
+TER_06_Pikine,Pikine,14.74986,-17.39169,TER,6,https://www.terdakar.sn/acceder-au-plan-de-la-ligne/,UNVERIFIED,UNKNOWN
+TER_07_Thiaroye,Thiaroye,14.75877,-17.3803,TER,7,https://www.terdakar.sn/acceder-au-plan-de-la-ligne/,UNVERIFIED,UNKNOWN
+TER_08_Yeumbeul,Yeumbeul,14.76491,-17.3565,TER,8,https://www.terdakar.sn/acceder-au-plan-de-la-ligne/,UNVERIFIED,UNKNOWN
+TER_09_Keur_Mbaye_Fall,Keur Mbaye Fall,14.74408,-17.31389,TER,9,https://www.terdakar.sn/acceder-au-plan-de-la-ligne/,UNVERIFIED,UNKNOWN
+TER_10_PNR,PNR,14.72317,-17.28394,TER,10,https://www.terdakar.sn/acceder-au-plan-de-la-ligne/,UNVERIFIED,UNKNOWN
+TER_11_Rufisque,Rufisque,14.71596,-17.27,TER,11,https://www.terdakar.sn/acceder-au-plan-de-la-ligne/,UNVERIFIED,UNKNOWN
+TER_12_Bargny,Bargny,14.69818,-17.2292,TER,12,https://www.terdakar.sn/acceder-au-plan-de-la-ligne/,UNVERIFIED,UNKNOWN
+TER_13_Diamniadio,Diamniadio,14.71606,-17.19845,TER,13,https://www.terdakar.sn/acceder-au-plan-de-la-ligne/,UNVERIFIED,UNKNOWN
 ucad,UCAD,14.688,-17.465
 plateau_-_,Plateau - Indépendance,14.671,-17.432
 ouakam,Ouakam,14.72,-17.5
