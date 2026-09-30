@@ -1,6 +1,6 @@
 // Chantier DDD / AFTU / TATA — identification des pôles, gares routières et
 // terminus. Bibliothèque de construction du référentiel (lecture seule des
-// feeds PassBi déjà intégrés au dépôt).
+// feeds opérationnels déjà intégrés au dépôt).
 //
 // PÉRIMÈTRE : ce module ne touche NI au TER, NI au BRT, NI aux horaires, NI au
 // routage. Il DÉRIVE, pour chaque route DDD et AFTU, le premier et le dernier
@@ -10,7 +10,7 @@
 //
 // Règle de statut :
 //   * `CONFIRMED`  → terminus réel des trips du feed ET arrêt nommé d'un pôle
-//                    documenté (source opérateur/PassBi).
+//                    documenté (source opérateur / feed).
 //   * `PARTIAL`    → terminus réel du feed, mais non rattaché à un pôle de la
 //                    liste documentée (nom d'arrêt non identifié).
 //   * `UNKNOWN`    → la route n'a AUCUN `stop_time` (aucun terminus calculable).
@@ -45,7 +45,7 @@ const ACCENT_FOLDS = {
   Ç: 'c', Ñ: 'n',
 };
 
-/** Normalisation identique à `PassBiSource.normalizeName` (Dart) : accents
+/** Normalisation identique à celle de la source opérationnelle (Dart) : accents
  *  repliés, minuscules, ponctuation → espace. */
 export function normalizeName(value) {
   let out = '';
@@ -127,7 +127,7 @@ export function routeTermini(feed, routeId) {
 // --------------------------------------------------------------------------
 // Pôles documentés (périmètre §3–§5). Les coordonnées déclarées proviennent du
 // référentiel projet (`dakar_network.json`, `place_*`) ; elles sont CONFRONTÉES
-// aux coordonnées réelles du feed PassBi pour l'arrêt terminus correspondant,
+// aux coordonnées réelles du feed opérationnel pour l’arrêt terminus correspondant,
 // et signalées UNVERIFIED si aucun ancrage feed n'existe.
 // --------------------------------------------------------------------------
 export const POLES = [
@@ -145,10 +145,10 @@ export const POLES = [
   // Sandaga est testé STRICTEMENT : aucune ligne ne doit être déclarée
   // terminant au marché Sandaga sans arrêt terminus nommé « Sandaga ».
   { id: 'sandaga', name: 'Sandaga', hubType: ['pole_echange'], match: ['sandaga'], declared: { lat: 14.687, lon: -17.451 }, declaredSource: 'dakar_network.json place_sandaga' },
-  { id: 'plateau_leclerc', name: 'Plateau — Terminus Leclerc', hubType: ['pole_echange'], match: ['terminus leclerc'], declared: { lat: 14.672107, lon: -17.427493 }, declaredSource: 'PassBi DDD feed — Terminus Leclerc (D_140)' },
-  { id: 'plateau_palais_1', name: 'Plateau — Terminus Palais 1', hubType: ['pole_echange'], match: ['terminus palais 1'], declared: { lat: 14.651017, lon: -17.433384 }, declaredSource: 'PassBi DDD feed — Terminus Palais 1 (D_709)' },
-  { id: 'plateau_palais_2', name: 'Plateau — Terminus Palais 2', hubType: ['pole_echange'], match: ['terminus palais 2'], declared: { lat: 14.652759, lon: -17.433470 }, declaredSource: 'PassBi DDD feed — Terminus Palais 2 (D_708)' },
-  { id: 'plateau_port_dakar', name: 'Plateau — Port de Dakar', hubType: ['pole_echange'], match: ['port de dakar'], declared: { lat: 14.674378, lon: -17.432178 }, declaredSource: 'PassBi DDD feed — Port De Dakar (D_1275)' },
+  { id: 'plateau_leclerc', name: 'Plateau — Terminus Leclerc', hubType: ['pole_echange'], match: ['terminus leclerc'], declared: { lat: 14.672107, lon: -17.427493 }, declaredSource: 'feed opérationnel DDD — Terminus Leclerc (D_140)' },
+  { id: 'plateau_palais_1', name: 'Plateau — Terminus Palais 1', hubType: ['pole_echange'], match: ['terminus palais 1'], declared: { lat: 14.651017, lon: -17.433384 }, declaredSource: 'feed opérationnel DDD — Terminus Palais 1 (D_709)' },
+  { id: 'plateau_palais_2', name: 'Plateau — Terminus Palais 2', hubType: ['pole_echange'], match: ['terminus palais 2'], declared: { lat: 14.652759, lon: -17.433470 }, declaredSource: 'feed opérationnel DDD — Terminus Palais 2 (D_708)' },
+  { id: 'plateau_port_dakar', name: 'Plateau — Port de Dakar', hubType: ['pole_echange'], match: ['port de dakar'], declared: { lat: 14.674378, lon: -17.432178 }, declaredSource: 'feed opérationnel DDD — Port De Dakar (D_1275)' },
   { id: 'yoff', name: 'Yoff', hubType: ['pole_echange'], match: ['yoff'], declared: { lat: 14.7604, lon: -17.4681 }, declaredSource: 'dakar_network.json place_yoff' },
   { id: 'ouakam', name: 'Ouakam', hubType: ['pole_echange'], match: ['ouakam'], declared: { lat: 14.724, lon: -17.491 }, declaredSource: 'dakar_network.json place_ouakam' },
   { id: 'ngor', name: 'Ngor', hubType: ['pole_echange'], match: ['ngor'], declared: { lat: 14.747, lon: -17.521 }, declaredSource: 'dakar_network.json place_ngor' },
@@ -314,7 +314,7 @@ export function buildReference({ dddPath, aftuPath, generatedAt, officialLabels 
       match: [],
       stopIds: [...g.stopIds],
       declared: { lat: stop.lat, lon: stop.lon },
-      declaredSource: `PassBi feed — arrêt terminus « ${g.name} » (${stopId})`,
+      declaredSource: `feed opérationnel — arrêt terminus « ${g.name} » (${stopId})`,
       discovered: true,
     });
   }
@@ -387,7 +387,7 @@ export function buildReference({ dddPath, aftuPath, generatedAt, officialLabels 
       coordinates,
       declaredCoordinates: p.declared,
       coordinateSource: best
-        ? `PassBi feed — arrêt terminus « ${best.stopName} » (${best.stopId})`
+        ? `feed opérationnel — arrêt terminus « ${best.stopName} » (${best.stopId})`
         : p.declaredSource,
       coordinateConfidence: coordinatesStatus === 'CONFIRMED_VS_FEED' ? 'HIGH' : 'LOW',
       coordinatesStatus,

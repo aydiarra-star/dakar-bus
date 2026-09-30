@@ -13,11 +13,14 @@ import 'models/departure_info.dart';
 import 'models/schedule_display.dart';
 import 'models/service_availability.dart';
 import 'models/terminus_pole.dart';
+import 'models/public_bus_line.dart';
 import 'services/data_service.dart';
 import 'services/dakar_clock.dart';
 import 'services/documented_route_identity.dart';
+import 'services/gtfs/network_access.dart';
 import 'services/gtfs/passbi_source.dart';
 import 'services/gtfs/routing_engine.dart';
+import 'services/network_search.dart';
 import 'services/schedule_provider.dart';
 
 // ============================================================
@@ -50,6 +53,14 @@ Future<void> main() async {
     // Chantier DDD/AFTU/TATA : référentiel pôles & terminus (dérivé des mêmes
     // feeds, aucune donnée TER/BRT/horaire/routage touchée).
     await appDataService.loadTerminusCatalog();
+    // MISSION — référentiel public des lignes AFTU/TATA/DDD (numéros officiels,
+    // terminus publiés, raccordement horaire). Chargement non bloquant.
+    await appDataService.loadPublicBusLineCatalog();
+    // Chantier « Recherche + GPS + Routage » : catalogue de recherche unique
+    // (mobilités, lignes, arrêts, gares, terminus, pôles, destinations),
+    // construit depuis les données déjà chargées. La recherche et le GPS
+    // interrogent le même référentiel.
+    integrateNetworkSearchCatalog();
   } catch (e, st) {
     debugPrint('⚠️ DataService init failed: $e');
     debugPrint('$st');
@@ -1018,6 +1029,36 @@ class Stop {
         .toList(growable: false);
   }
 
+  /// PRÉSENTATION — Sous-liste des prochains passages RÉELS satisfaisant
+  /// [keep]. Aucun horaire n'est créé : [keep] ne fait que RESTREINDRE les
+  /// départs réels déjà calculés (ex. filtrer un sens via `DepartureInfo.direction`).
+  /// Un pool plus large que [limit] est lu pour ne pas rater un sens desservi
+  /// moins fréquemment ; l'ordre chronologique réel est conservé.
+  List<DepartureInfo> realDeparturesWhere(bool Function(DepartureInfo) keep,
+      {DateTime? at, int limit = 3, DateTime? horizon}) {
+    final int pool = limit > 24 ? limit : 24;
+    final List<DepartureInfo> base =
+        nextRealDepartures(at: at, limit: pool, horizon: horizon);
+    return base.where(keep).take(limit).toList(growable: false);
+  }
+
+  /// PRÉSENTATION — Minutes d'attente des prochains passages RÉELS satisfaisant
+  /// [keep]. Mêmes règles que [nextRealWaitingMinutes] (ceil, jamais 0, jamais
+  /// un départ passé) ; liste vide si aucun passage réel ne satisfait [keep].
+  List<int> realWaitingMinutesWhere(bool Function(DepartureInfo) keep,
+      {DateTime? at, int limit = 3, DateTime? horizon}) {
+    final DateTime now = at == null ? DakarClock.now() : DakarClock.toDakar(at);
+    final List<int> out = <int>[];
+    for (final DepartureInfo info in realDeparturesWhere(keep,
+        at: now, limit: limit, horizon: horizon)) {
+      final DateTime? departureTime = info.scheduledTime;
+      if (departureTime == null) continue;
+      final int? minutes = waitingMinutesBetween(departureTime, now);
+      if (minutes != null) out.add(minutes);
+    }
+    return out;
+  }
+
   /// Lot 4.22 (Explorer) — Minutes d'attente (arrondi vers le haut, jamais 0)
   /// des prochains passages RÉELS : `ceil(waitSeconds / 60)`. Liste vide si
   /// aucun passage réel — un départ déjà passé est ignoré.
@@ -1028,6 +1069,30 @@ class Stop {
     final List<int> out = <int>[];
     for (final DepartureInfo info
         in nextRealDepartures(at: now, limit: limit, horizon: horizon)) {
+      final DateTime? departureTime = info.scheduledTime;
+      if (departureTime == null) continue;
+      final int? minutes = waitingMinutesBetween(departureTime, now);
+      if (minutes != null) out.add(minutes);
+    }
+    return out;
+  }
+
+  /// PRÉSENTATION — Minutes d'attente des prochains passages RÉELS du SENS
+  /// documenté [toward] (`headsign` du feed). Mêmes règles que
+  /// [nextRealWaitingMinutes] (ceil, jamais 0, jamais un départ passé) ;
+  /// liste vide si le sens n'est pas desservi à cet arrêt.
+  List<int> nextRealWaitingMinutesToward(
+      bool Function(String? direction) toward,
+      {DateTime? at,
+      int limit = 3,
+      DateTime? horizon}) {
+    final DateTime now = at == null ? DakarClock.now() : DakarClock.toDakar(at);
+    final List<int> out = <int>[];
+    for (final DepartureInfo info in realDeparturesWhere(
+        (DepartureInfo d) => toward(d.direction),
+        at: now,
+        limit: limit,
+        horizon: horizon)) {
       final DateTime? departureTime = info.scheduledTime;
       if (departureTime == null) continue;
       final int? minutes = waitingMinutesBetween(departureTime, now);
@@ -1960,6 +2025,56 @@ List<Stop> explorerStopSource({
 }
 
 // ============================================================
+// CHANTIER « RECHERCHE + GPS + ROUTAGE » — CATALOGUE DE RECHERCHE UNIQUE
+// ============================================================
+//
+// La barre de recherche et le GPS interrogent le MÊME catalogue, construit à
+// partir des données réellement chargées (feeds PassBi + référentiel pôles et
+// terminus généré). Aucune entrée n'est fabriquée : l'autocomplétion ne peut
+// proposer que des mobilités, lignes, arrêts, gares, terminus, pôles et
+// destinations RÉELLEMENT présents dans le référentiel.
+
+/// Catalogue de recherche du réseau (voir [NetworkSearchCatalogBuilder]).
+///
+/// Construit après le chargement des feeds et du référentiel pôles/terminus.
+/// Vide tant que les données ne sont pas chargées — jamais d'entrée inventée.
+NetworkSearchCatalog _networkSearchCatalog =
+    const NetworkSearchCatalog(<NetworkSearchEntry>[]);
+
+/// Catalogue de recherche actuellement construit (accès lecture).
+NetworkSearchCatalog get currentNetworkSearchCatalog => _networkSearchCatalog;
+
+/// Construit le catalogue de recherche depuis les données déjà chargées.
+///
+/// Idempotent : un second appel reconstruit le catalogue à l'identique.
+/// Aucune donnée réseau n'est modifiée — seules des entrées de recherche sont
+/// dérivées des feeds et du référentiel généré.
+void integrateNetworkSearchCatalog() {
+  final List<NetworkSearchEntry> passBi = <NetworkSearchEntry>[];
+  if (appDataService.passBiActive) {
+    passBi.addAll(
+        NetworkSearchCatalogBuilder.fromPassBi(appDataService.passBiSource));
+  }
+  final List<NetworkSearchEntry> poles =
+      NetworkSearchCatalogBuilder.fromPoles(appDataService.terminusCatalog.poles);
+  // MISSION — lignes PUBLIQUES AFTU/DDD (numéros officiels) : mêmes entrées
+  // pour la recherche textuelle et pour le GPS, dans le MÊME catalogue.
+  final List<NetworkSearchEntry> publicLines =
+      NetworkSearchCatalogBuilder.fromPublicLines(
+          appDataService.publicBusLineCatalog.publicLines);
+  _networkSearchCatalog = NetworkSearchCatalogBuilder.build(
+      passBi: passBi, poles: poles, extra: publicLines);
+}
+
+/// Couture de test : même construction que [main], sans passer par `main()`.
+@visibleForTesting
+void integrateNetworkSearchCatalogForTest() => integrateNetworkSearchCatalog();
+
+/// Recherche exhaustive dans le catalogue réseau (autocomplétion).
+List<NetworkSearchEntry> searchNetworkCatalog(String query, {int limit = 12}) =>
+    _networkSearchCatalog.search(query, limit: limit);
+
+// ============================================================
 // TRACES DES ROUTES — POLYLIGNES DE LA CARTE EXPLORER
 // ============================================================
 /// Tracés de lignes dessinés sur la carte Explorer.
@@ -2016,6 +2131,176 @@ final List<TransitRoute> demoRoutes = <TransitRoute>[];
 // MOTEUR D ITINERAIRES INTELLIGENT
 // ============================================================
 class RoutePlanner {
+  /// Chantier « Recherche + GPS + Routage » — le GPS comme entrée DIRECTE du
+  /// routage.
+  ///
+  /// À partir d'une position de départ et d'une position d'arrivée, le moteur :
+  ///  1. recherche un ENSEMBLE de points d'accès réels autour du départ
+  ///     (arrêts DDD, AFTU, BRT, gares TER — jamais un seul arrêt) ;
+  ///  2. recherche un ENSEMBLE de points de sortie réels autour de la
+  ///     destination ;
+  ///  3. fait explorer au moteur PassBi les trajets `route → trip → service →
+  ///     stop_sequence` entre ces ensembles, correspondances documentées
+  ///     comprises ;
+  ///  4. compare les candidats sur la durée **porte-à-porte** (marche d'accès +
+  ///     transport + marche de sortie).
+  ///
+  /// Aucune correspondance n'est créée par proximité : les points d'accès
+  /// servent d'entrée/sortie, jamais de preuve de relation entre deux lignes.
+  /// Sans chemin documenté, la liste est vide — jamais un itinéraire inventé.
+  static RouteSearchResult planFromPositions({
+    required LatLng from,
+    required LatLng to,
+    DateTime? at,
+    int maxResults = 4,
+  }) {
+    final DateTime now = at == null ? DakarClock.now() : DakarClock.toDakar(at);
+    if (!appDataService.passBiActive) {
+      return const RouteSearchResult(
+          errorMessage: 'Réseau indisponible : aucune donnée de service chargée.');
+    }
+    final List<PassBiJourney> journeys =
+        appDataService.planJourneysFromPositions(
+      fromLat: from.latitude,
+      fromLon: from.longitude,
+      toLat: to.latitude,
+      toLon: to.longitude,
+      at: now,
+      maxResults: maxResults,
+    );
+    if (journeys.isEmpty) {
+      final List<NetworkAccessPoint> origins = appDataService.accessPointsNear(
+          lat: from.latitude, lon: from.longitude);
+      if (origins.isEmpty) {
+        return const RouteSearchResult(
+            errorMessage:
+                'Aucun arrêt du réseau à proximité de votre position.');
+      }
+      return const RouteSearchResult(
+          errorMessage: 'Aucun itinéraire documenté entre ces deux points.');
+    }
+    final List<PlannedRoute> candidates = <PlannedRoute>[];
+    for (final journey in journeys) {
+      candidates.add(_plannedFromPassBiPosition(journey, now));
+    }
+    candidates.sort((a, b) => a.totalMinutes.compareTo(b.totalMinutes));
+    return RouteSearchResult(routes: candidates);
+  }
+
+  /// Conversion d'un trajet porte-à-porte (position → arrêt → … → arrêt →
+  /// position) en candidat d'itinéraire, avec tronçons de marche RÉELS.
+  ///
+  /// Les segments de transport sont construits exactement comme le chemin natif
+  /// ([_plannedFromPassBi] : route/trip/stop_time réels, ETA SCHEDULED) ; les
+  /// deux tronçons de marche encadrants portent la distance mesurée depuis la
+  /// position GPS et la destination — aucune distance estimée.
+  static PlannedRoute _plannedFromPassBiPosition(
+      PassBiJourney journey, DateTime at) {
+    final PlannedRoute transport = _plannedFromPassBi(
+      journey,
+      _accessStopFor(journey.originKey),
+      _accessStopFor(journey.destinationKey),
+      at,
+      useFeedNames: true,
+    );
+    final List<RouteSegment> segments = <RouteSegment>[];
+    if (journey.originAccessMeters > 0 && transport.segments.isNotEmpty) {
+      segments.add(RouteSegment(
+        modeLabel: 'Marche',
+        color: Colors.grey,
+        icon: Icons.directions_walk,
+        from: 'Ma position',
+        to: transport.segments.first.from,
+        durationMinutes: (journey.originWalkSeconds / 60).ceil(),
+        status: DataStatus.estimated,
+        isWalk: true,
+      ));
+    }
+    segments.addAll(transport.segments);
+    if (journey.destinationAccessMeters > 0 && transport.segments.isNotEmpty) {
+      segments.add(RouteSegment(
+        modeLabel: 'Marche',
+        color: Colors.grey,
+        icon: Icons.directions_walk,
+        from: transport.segments.last.to,
+        to: 'Destination',
+        durationMinutes: (journey.destinationWalkSeconds / 60).ceil(),
+        status: DataStatus.estimated,
+        isWalk: true,
+      ));
+    }
+    return PlannedRoute(
+      fromName: 'Ma position',
+      toName: 'Destination',
+      segments: segments,
+      // Durée porte-à-porte : marche d'accès + transport + marche de sortie.
+      totalMinutes: journey.doorToDoorMinutes,
+      transferCount: journey.transferCount,
+      status: DataStatus.scheduled,
+    );
+  }
+
+  /// Arrêt « support » d'une clé composite : un [Stop] minimal dont seuls le
+  /// nom et le mode sont lus par [_plannedFromPassBi] (les extrémités
+  /// affichées proviennent des arrêts réels du feed). Aucune donnée réseau
+  /// n'est modifiée ni inventée.
+  static Stop _accessStopFor(String compositeKey) {
+    final List<String>? parts = PassBiSource.splitComposite(compositeKey);
+    final String network = parts?[0] ?? 'Bus';
+    final String name = parts == null
+        ? compositeKey
+        : _stopNameOf(network, parts[1]);
+    return Stop(
+      name: name,
+      direction: 'Dir. réseau',
+      distanceMeters: 0,
+      departureMinutesFromMidnight: const <int>[],
+      icon: Icons.directions_bus,
+      color: _passBiStyle(network).$2,
+      location: const LatLng(0, 0),
+      modeLabel: network,
+    );
+  }
+
+  static String _stopNameOf(String network, String stopId) {
+    final net = appDataService.passBiSource.network(network);
+    final int? idx = net?.stopIndexById[stopId];
+    if (net != null && idx != null) return net.stops[idx].name;
+    return stopId;
+  }
+
+  /// Position d'un lieu saisi par l'utilisateur (destination du flux GPS).
+  ///
+  /// Résolution STRICTE, dans l'ordre :
+  ///  1. arrêt du référentiel dakar (nom contient la requête) → sa position ;
+  ///  2. arrêt réel du feed PassBi (nom contient la requête, via
+  ///     [PassBiSource.searchNativeStops]) → sa position exacte ;
+  ///  3. pôle/terminus documenté (nom contient la requête) → sa position.
+  ///
+  /// `null` si rien ne correspond : l'appelant répond alors « lieu
+  /// introuvable » — jamais une position de repli inventée.
+  static LatLng? positionForQuery(String query) {
+    final q = query.trim().toLowerCase();
+    if (q.isEmpty) return null;
+    for (final s in allStops) {
+      if (s.name.toLowerCase().contains(q)) return s.location;
+    }
+    if (appDataService.passBiActive) {
+      final refs = appDataService.passBiStopSearch(query);
+      if (refs.isNotEmpty) {
+        return LatLng(refs.first.lat, refs.first.lon);
+      }
+    }
+    for (final p in appDataService.terminusCatalog.poles) {
+      if (p.name.toLowerCase().contains(q)) {
+        return LatLng(p.latitude, p.longitude);
+      }
+    }
+    return null;
+  }
+
+  /// Planification PassBi entre arrêts du référentiel dakar (via crosswalk).
+  /// Retourne les trajets triés par heure d'arrivée (≤ [maxResults]).
   static RouteSearchResult plan({
     required String fromQuery,
     required String toQuery,
@@ -2495,6 +2780,9 @@ class RoutePlanner {
         return ('Bus', AppColors.primary, Icons.directions_bus);
     }
   }
+
+  /// Couleur d'affichage d'un réseau (mêmes teintes que les tronçons).
+  static Color modeColorFor(String network) => _passBiStyle(network).$2;
 }
 
 // ============================================================
@@ -2972,7 +3260,7 @@ class _MainShellState extends State<MainShell> {
     final dark = globalState.darkMode;
     final pages = [
       ExplorerPage(userPosition: _userPosition, gpsState: _gpsState, gpsMessage: _gpsMessage, onRequestLocation: _requestLocation),
-      const TripsPage(),
+      TripsPage(userPosition: _userPosition, gpsState: _gpsState, onRequestLocation: _requestLocation),
       const AlertsPage(),
       const CommunityAlertsPage(),
       const SettingsPage(),
@@ -3238,6 +3526,80 @@ class _ExplorerPageState extends State<ExplorerPage> {
     return <Stop>[...dakar, ...natifs].take(8).toList();
   }
 
+  /// MISSION — suggestions issues du CATALOGUE réseau (lignes publiques
+  /// AFTU/DDD, mobilités, terminus, pôles, destinations), en complément des
+  /// arrêts. Les arrêts restent affichés par [_searchResults] : on exclut donc
+  /// les natures arrêt/gare pour éviter un doublon visuel. Aucune entrée
+  /// inventée : le catalogue ne contient que des données réellement chargées.
+  List<NetworkSearchEntry> get _catalogResults {
+    final q = _searchCtrl.text.trim();
+    if (q.length < 2) return const <NetworkSearchEntry>[];
+    return searchNetworkCatalog(q, limit: 12)
+        .where((e) =>
+            e.kind != NetworkSearchKind.stop &&
+            e.kind != NetworkSearchKind.station)
+        .take(8)
+        .toList();
+  }
+
+  static String _kindLabel(NetworkSearchKind k) => switch (k) {
+        NetworkSearchKind.mobility => 'Mobilité',
+        NetworkSearchKind.line => 'Ligne',
+        NetworkSearchKind.terminus => 'Terminus',
+        NetworkSearchKind.pole => 'Pôle',
+        NetworkSearchKind.destination => 'Destination',
+        NetworkSearchKind.station => 'Gare / station',
+        NetworkSearchKind.stop => 'Arrêt',
+      };
+
+  static IconData _kindIcon(NetworkSearchKind k) => switch (k) {
+        NetworkSearchKind.mobility => Icons.directions_bus_filled,
+        NetworkSearchKind.line => Icons.route,
+        NetworkSearchKind.terminus => Icons.flag_rounded,
+        NetworkSearchKind.pole => Icons.alt_route_rounded,
+        NetworkSearchKind.destination => Icons.place_rounded,
+        NetworkSearchKind.station => Icons.train_rounded,
+        NetworkSearchKind.stop => Icons.location_on,
+      };
+
+  void _openCatalogEntry(NetworkSearchEntry e) {
+    _searchCtrl.text = e.label;
+    setState(() => _searchFocused = false);
+    // Une entrée LIGNE ouvre une VRAIE fiche ligne (aucun bouton mort). Le
+    // route_id du catalogue pointe la ligne publique correspondante ; à défaut
+    // d'identité publique, l'entrée reste un simple recentrage (jamais de fiche
+    // fabriquée pour une route de feed sans numéro public).
+    if (e.kind == NetworkSearchKind.line) {
+      final PublicBusLine? line = _publicLineForEntry(e);
+      if (line != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => PublicLineDetailPage(line: line)),
+        );
+        return;
+      }
+    }
+    if (e.lat != null && e.lon != null) {
+      try {
+        _mapController.move(LatLng(e.lat!, e.lon!), _zoomOnStop);
+      } catch (err) {
+        debugPrint('centerOnCatalogEntry skipped (map not ready): $err');
+      }
+    }
+  }
+
+  /// Ligne publique correspondant à une entrée de recherche de nature LIGNE.
+  ///
+  /// Appariement STRICT par libellé public (« AFTU 26 », « DDD 221 ») : le
+  /// numéro public n'est jamais déduit d'un route_id. Retourne `null` si
+  /// l'entrée est une ligne de feed sans identité publique.
+  PublicBusLine? _publicLineForEntry(NetworkSearchEntry e) {
+    for (final l in appDataService.publicBusLineCatalog.publicLines) {
+      if (l.publicLabel == e.label) return l;
+    }
+    return null;
+  }
+
   void _centerOnStop(Stop s) {
     try {
       _mapController.move(s.location, _zoomOnStop);
@@ -3250,6 +3612,11 @@ class _ExplorerPageState extends State<ExplorerPage> {
   /// généré — jamais une position devinée.
   List<TerminusPole> get _poles =>
       appDataService.terminusCatalog.mappablePoles();
+
+  /// Lignes PUBLIQUES AFTU/DDD (filtre « Lignes »). Chaque entrée possède un
+  /// numéro officiel établi par une source — jamais un identifiant de feed.
+  List<PublicBusLine> get _publicLines =>
+      appDataService.publicBusLineCatalog.publicLines;
 
   void _centerOnPole(TerminusPole p) {
     try {
@@ -3561,10 +3928,70 @@ class _ExplorerPageState extends State<ExplorerPage> {
                           child: Column(children: _searchResults.map((s) => ListTile(dense: true, leading: Icon(s.icon, color: s.color, size: 22), title: Text(s.name, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textPrimary(dark))), subtitle: Text(s.direction, style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark))), onTap: () { _searchCtrl.text = s.name; setState(() => _searchFocused = false); _centerOnStop(s); })).toList()),
                         ),
                       ],
+                      // MISSION — suggestions du CATALOGUE (lignes publiques
+                      // AFTU/DDD, mobilités, terminus, pôles, destinations) :
+                      // la barre de recherche est une porte d'entrée du réseau.
+                      if (_searchFocused && _catalogResults.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.divider(dark))),
+                          child: Column(
+                            children: _catalogResults
+                                .map((e) => ListTile(
+                                      dense: true,
+                                      leading: Icon(_kindIcon(e.kind),
+                                          color: AppColors.beanGreen, size: 20),
+                                      title: Text(e.label,
+                                          style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600,
+                                              color: AppColors.textPrimary(dark))),
+                                      subtitle: Text(
+                                          '${_kindLabel(e.kind)}${e.network.isEmpty ? '' : ' · ${e.network}'}',
+                                          style: TextStyle(
+                                              fontSize: 11,
+                                              color: AppColors.textSecondary(dark))),
+                                      onTap: () => _openCatalogEntry(e),
+                                    ))
+                                .toList(),
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 12),
-                      SizedBox(height: 40, child: ListView(scrollDirection: Axis.horizontal, children: [_chip('Tous'), _chip('⭐ Favoris'), _chip('TER'), _chip('BRT'), _chip('DDD'), _chip('TATA'), _chip('AFTU'), _chip('Pôles')])),
+                      SizedBox(height: 40, child: ListView(scrollDirection: Axis.horizontal, children: [_chip('Tous'), _chip('⭐ Favoris'), _chip('TER'), _chip('BRT'), _chip('DDD'), _chip('TATA'), _chip('AFTU'), _chip('Lignes'), _chip('Pôles')])),
                       const SizedBox(height: 16),
-                      if (_selectedFilter == 'Pôles') ...[
+                      if (_selectedFilter == 'Lignes') ...[
+                        Row(children: [
+                          Text('${_publicLines.length} lignes publiques', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
+                          const SizedBox(width: 8),
+                          Text('numéros officiels AFTU/DDD', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
+                        ]),
+                        const SizedBox(height: 10),
+                        if (_publicLines.isEmpty)
+                          // Le filtre ne doit JAMAIS être vide si le JSON contient
+                          // des lignes : on distingue « non chargé » de « vide ».
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: AppColors.surface(dark),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: AppColors.divider(dark)),
+                            ),
+                            child: Text(
+                              appDataService.publicBusLineCatalog.isLoaded
+                                  ? 'Aucune ligne publique dans le référentiel chargé.'
+                                  : 'Référentiel public non chargé — les lignes AFTU/DDD '
+                                      'seront affichées dès que l’asset sera disponible.',
+                              style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark)),
+                            ),
+                          )
+                        else
+                          ..._publicLines.map((l) => Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: PublicLineCard(line: l),
+                              )),
+                      ] else if (_selectedFilter == 'Pôles') ...[
                         Row(children: [
                           Text('${_poles.length} pôles DDD/AFTU', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
                           const SizedBox(width: 8),
@@ -3662,10 +4089,357 @@ class _ExplorerPageState extends State<ExplorerPage> {
       case 'DDD': return AppColors.ddd;
       case 'TATA': return AppColors.tata;
       case 'AFTU': return AppColors.aftu;
+      case 'Lignes': return AppColors.primary;
       case 'Pôles': return AppColors.beanGreen;
       default: return AppColors.primary;
     }
   }
+}
+
+// ============================================================
+// MISSION — RÉFÉRENTIEL PUBLIC DES LIGNES AFTU / TATA / DDD
+// ============================================================
+//
+// Carte d'une ligne PUBLIQUE : numéro officiel, terminus publiés, statut
+// d'identité et raccordement horaire RÉEL. Présentation seule : aucune donnée
+// n'est recalculée ici, tout provient du référentiel généré. Une identité Tata
+// n'est jamais rendue comme une ligne (TATA est un type de véhicule).
+//
+// La carte est CLIQUABLE et ouvre une vraie fiche ligne ([PublicLineDetailPage]).
+// Aucun bouton mort : un tap effectue toujours la navigation.
+class PublicLineCard extends StatelessWidget {
+  final PublicBusLine line;
+  const PublicLineCard({super.key, required this.line});
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = globalState.darkMode;
+    final Color color = line.operator == 'DDD' ? AppColors.ddd : AppColors.aftu;
+    // Statut RÉEL : une ligne BLOCKED/NOT_VERIFIED n'est jamais présentée comme
+    // horairée. `hasRealSchedule` exige la chaîne de raccordement complète.
+    final bool connected = line.hasRealSchedule;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => PublicLineDetailPage(line: line)),
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppColors.surface(dark),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+                color: connected ? AppColors.success : AppColors.divider(dark)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                      color: color.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(8)),
+                  child: Text(line.operator,
+                      style: TextStyle(
+                          fontSize: 10, fontWeight: FontWeight.bold, color: color)),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(line.publicLabel,
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary(dark))),
+                ),
+                Icon(Icons.chevron_right, size: 20,
+                    color: AppColors.textSecondary(dark)),
+              ]),
+              const SizedBox(height: 6),
+              Text(
+                line.hasPublishedTerminus
+                    ? '${line.origin} ➔ ${line.destination}'
+                    : 'Terminus non publiés par la source',
+                style: TextStyle(fontSize: 13, color: AppColors.textPrimary(dark)),
+              ),
+              const SizedBox(height: 6),
+              Row(children: [
+                Icon(
+                  connected ? Icons.check_circle : Icons.info_outline,
+                  size: 14,
+                  color: connected
+                      ? AppColors.success
+                      : AppColors.textSecondary(dark),
+                ),
+                const SizedBox(width: 5),
+                Expanded(
+                  child: Text(
+                    connected
+                        ? '${line.mappingStatus.label} · ${line.servedStopCount} arrêts réels'
+                        : '${line.mappingStatus.label} — ${line.unresolvedReason ?? 'raccordement incomplet'}',
+                    style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: connected
+                            ? AppColors.success
+                            : AppColors.textSecondary(dark)),
+                  ),
+                ),
+              ]),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================
+// FICHE LIGNE — LIGNE PUBLIQUE AFTU / DDD
+// ============================================================
+//
+// Fiche d'une ligne publique. Affiche les données RÉELLEMENT disponibles :
+// opérateur, numéro, origine, destination, terminus, directions, arrêts
+// ORDONNÉS par `stop_sequence` et statut de raccordement. Pour une ligne non
+// raccordée, la fiche explique le blocage (preuve de non-raccordement) au lieu
+// d'inventer un itinéraire ou des horaires.
+class PublicLineDetailPage extends StatelessWidget {
+  final PublicBusLine line;
+  const PublicLineDetailPage({super.key, required this.line});
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: globalState,
+      builder: (context, _) {
+        final dark = globalState.darkMode;
+        final Color color =
+            line.operator == 'DDD' ? AppColors.ddd : AppColors.aftu;
+        final bool connected = line.hasRealSchedule;
+        final PassBiRouteStopSequence? seq =
+            appDataService.publicLineStopSequence(line);
+        return Scaffold(
+          backgroundColor: AppColors.background(dark),
+          appBar: AppBar(
+            backgroundColor: color,
+            foregroundColor: Colors.white,
+            title: Text(line.publicLabel, style: const TextStyle(fontSize: 16)),
+          ),
+          body: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              _header(dark, color, connected),
+              const SizedBox(height: 12),
+              _section('Identité', dark, Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _kv('Opérateur', line.operator, dark),
+                  _kv('Numéro public', line.lineNumber, dark),
+                  _kv('Type de véhicule', line.vehicleType, dark),
+                  if (line.officialName.isNotEmpty)
+                    _kv('Nom officiel', line.officialName, dark),
+                ],
+              )),
+              const SizedBox(height: 12),
+              _section('Terminus publiés', dark, Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _kv('Origine', line.origin, dark),
+                  _kv('Destination', line.destination, dark),
+                  if (seq != null && seq.direction.isNotEmpty)
+                    _kv('Direction (feed)', seq.direction, dark),
+                ],
+              )),
+              const SizedBox(height: 12),
+              _section('Statut des données', dark, Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _kv('Statut de raccordement', line.mappingStatus.code, dark),
+                  _kv('Statut horaire', line.scheduleStatus, dark),
+                  if (line.publishedScheduleStatus.isNotEmpty)
+                    _kv('Statut publié (source)', line.publishedScheduleStatus, dark),
+                  _kv('Identité', line.identityStatus, dark),
+                  _kv('Itinéraire', line.routeStatus, dark),
+                  _kv('Arrêts', line.stopsStatus, dark),
+                  _kv('Ordre des arrêts (feed)', line.sequenceQuality.code, dark),
+                  _kv('Source', line.source, dark),
+                  _kv('Vérifié le', line.verifiedAt, dark),
+                ],
+              )),
+              const SizedBox(height: 12),
+              if (connected)
+                _section('Données horaires raccordées', dark, Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _kv('Route(s) feed', line.feedRouteIds.join(', '), dark),
+                    _kv('Trips réels', '${line.tripIdsCount}', dark),
+                    _kv('Directions', line.directionIds.join(', '), dark),
+                    _kv('stop_times', '${line.stopTimesCount}', dark),
+                    _kv('Arrêts desservis', '${line.servedStopCount}', dark),
+                    if (line.sampleTripIds.isNotEmpty)
+                      _kv('Exemple de trip', line.sampleTripIds.first, dark),
+                  ],
+                ))
+              else
+                _blockedSection(dark),
+              const SizedBox(height: 12),
+              _stopsSection(dark, color, seq),
+              const SizedBox(height: 24),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _header(bool dark, Color color, bool connected) => Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.10),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withOpacity(0.4)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              Icon(connected ? Icons.check_circle : Icons.info_outline,
+                  color: connected ? AppColors.success : AppColors.warning,
+                  size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(line.mappingStatus.label,
+                    style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary(dark))),
+              ),
+            ]),
+            const SizedBox(height: 8),
+            Text(
+              line.hasPublishedTerminus
+                  ? '${line.origin} ➔ ${line.destination}'
+                  : 'Terminus non publiés par la source',
+              style: TextStyle(fontSize: 14, color: AppColors.textPrimary(dark)),
+            ),
+          ],
+        ),
+      );
+
+  /// Blocage explicité : ce qui manque, sources consultées, prochaine action.
+  Widget _blockedSection(bool dark) {
+    final LineBlocking? b = line.blocking;
+    return _section('Pourquoi les horaires ne sont pas raccordés', dark, Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _kv('Cause', line.unresolvedReason ?? 'raccordement incomplet', dark),
+        if (b != null) ...[
+          if (b.missingFields.isNotEmpty)
+            _kv('Champs manquants', b.missingFields.join(', '), dark),
+          if (b.bareNumberRouteIds.isNotEmpty)
+            _kv('Route au numéro nu (NON fusionnée)', b.bareNumberRouteIds.join(', '), dark),
+          if (b.consultedSources.isNotEmpty)
+            _kv('Sources consultées', b.consultedSources.join(' · '), dark),
+          if (b.nextAction.isNotEmpty)
+            _kv('Prochaine action', b.nextAction, dark),
+        ],
+      ],
+    ));
+  }
+
+  /// Arrêts ORDONNÉS par `stop_sequence`. Aucune fiche fabriquée : si la ligne
+  /// n'est pas raccordée, la section l'explique au lieu d'afficher une liste.
+  Widget _stopsSection(bool dark, Color color, PassBiRouteStopSequence? seq) {
+    if (seq == null || seq.isEmpty) {
+      return _section('Arrêts', dark, Text(
+        line.hasRealSchedule
+            ? 'Séquence d’arrêts indisponible dans le feed.'
+            : 'Aucun arrêt : la ligne n’est pas raccordée à une route réelle du feed.',
+        style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark)),
+      ));
+    }
+    return _section(
+      'Arrêts (${seq.stops.length}, ordre stop_sequence)',
+      dark,
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!seq.ordered)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Text(
+                'Ordre du feed non strictement croissant (artefact de donnée source).',
+                style: TextStyle(fontSize: 11, color: AppColors.warning),
+              ),
+            ),
+          ...List<Widget>.generate(seq.stops.length, (i) {
+            final PassBiStopRef s = seq.stops[i];
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 3),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 22,
+                    alignment: Alignment.topRight,
+                    child: Text('${i + 1}.',
+                        style: TextStyle(
+                            fontSize: 11, color: AppColors.textSecondary(dark))),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(s.name,
+                        style: TextStyle(
+                            fontSize: 13, color: AppColors.textPrimary(dark))),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _kv(String k, String v, bool dark) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: RichText(
+          text: TextSpan(
+            style: TextStyle(fontSize: 12, color: AppColors.textPrimary(dark)),
+            children: [
+              TextSpan(
+                  text: '$k : ',
+                  style: TextStyle(color: AppColors.textSecondary(dark))),
+              TextSpan(text: v, style: const TextStyle(fontWeight: FontWeight.w600)),
+            ],
+          ),
+        ),
+      );
+
+  Widget _section(String title, bool dark, Widget child) => Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.surface(dark),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.divider(dark)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title,
+                style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary(dark))),
+            const SizedBox(height: 8),
+            child,
+          ],
+        ),
+      );
 }
 
 // ============================================================
@@ -3878,7 +4652,7 @@ class TerminusPolePage extends StatelessWidget {
               )),
               const SizedBox(height: 12),
               _section('Source', dark, child: Text(
-                "Terminus dérivés des feeds PassBi (DDD/AFTU) — premier et dernier "
+                "Terminus dérivés des données opérationnelles DDD/AFTU — premier et dernier "
                 "arrêt réellement desservis par chaque trip. Aucun horaire, aucun "
                 "arrêt et aucune ligne ne sont inventés. Statut UNKNOWN conservé "
                 "quand la preuve manque.",
@@ -4117,7 +4891,17 @@ class StopCard extends StatelessWidget {
 // ONGLET TRAJETS
 // ============================================================
 class TripsPage extends StatefulWidget {
-  const TripsPage({super.key});
+  /// Chantier « Recherche + GPS + Routage » : position GPS de l'usager,
+  /// transmise par [MainShell] pour servir d'origine directe au routage.
+  final LatLng? userPosition;
+  final GpsState gpsState;
+  final Future<void> Function() onRequestLocation;
+  const TripsPage({
+    super.key,
+    this.userPosition,
+    this.gpsState = GpsState.idle,
+    required this.onRequestLocation,
+  });
   @override
   State<TripsPage> createState() => _TripsPageState();
 }
@@ -4128,11 +4912,48 @@ class _TripsPageState extends State<TripsPage> {
   bool _loading = false;
   RouteSearchResult? _result;
 
+  /// Chantier GPS — l'itinéraire a été calculé depuis la position GPS (et non
+  /// depuis la saisie texte du champ « Départ »).
+  bool _fromGps = false;
+
   Future<void> _search() async {
     FocusScope.of(context).unfocus();
-    setState(() { _loading = true; _result = null; });
+    setState(() { _loading = true; _result = null; _fromGps = false; });
     await Future.delayed(const Duration(milliseconds: 500));
     final res = RoutePlanner.plan(fromQuery: _fromCtrl.text, toQuery: _toCtrl.text);
+    if (!mounted) return;
+    setState(() { _loading = false; _result = res; });
+  }
+
+  /// Recherche depuis la position GPS : le moteur cherche les points d'accès
+  /// réels autour de l'usager, puis les points de sortie autour de la
+  /// destination saisie, et compare les itinéraires candidats.
+  Future<void> _searchFromGps() async {
+    FocusScope.of(context).unfocus();
+    final LatLng? pos = widget.userPosition;
+    if (!GpsResolver.isWithinServiceZone(pos)) {
+      if (!mounted) return;
+      setState(() {
+        _result = const RouteSearchResult(
+            errorMessage:
+                'Activez le GPS pour calculer un itinéraire depuis votre position.');
+        _fromGps = false;
+      });
+      return;
+    }
+    final LatLng? destination = RoutePlanner.positionForQuery(_toCtrl.text);
+    if (destination == null) {
+      if (!mounted) return;
+      setState(() {
+        _result = const RouteSearchResult(
+            errorMessage: 'Destination introuvable.');
+        _fromGps = false;
+      });
+      return;
+    }
+    setState(() { _loading = true; _result = null; _fromGps = true; });
+    await Future.delayed(const Duration(milliseconds: 300));
+    final res = RoutePlanner.planFromPositions(from: pos!, to: destination);
     if (!mounted) return;
     setState(() { _loading = false; _result = res; });
   }
@@ -4169,9 +4990,51 @@ class _TripsPageState extends State<TripsPage> {
                         style: ElevatedButton.styleFrom(backgroundColor: AppColors.beanGreen, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 52), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)), elevation: 2),
                         child: _loading ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5)) : const Text('Rechercher mon itinéraire', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       ),
+                      const SizedBox(height: 10),
+                      // Chantier GPS — le GPS est une ENTRÉE du routage : ce
+                      // bouton calcule l'itinéraire depuis la position mesurée
+                      // (points d'accès réels autour de l'usager) et non depuis
+                      // le texte du champ « Départ ».
+                      OutlinedButton.icon(
+                        onPressed: _loading ? null : _searchFromGps,
+                        icon: Icon(
+                          widget.gpsState == GpsState.granted
+                              ? Icons.my_location
+                              : Icons.gps_not_fixed,
+                          size: 18,
+                        ),
+                        label: const Text('Partir de ma position (GPS)',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.beanGreen,
+                          minimumSize: const Size(double.infinity, 48),
+                          side: const BorderSide(color: AppColors.beanGreen),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14)),
+                        ),
+                      ),
+                      if (widget.gpsState != GpsState.granted) ...[
+                        const SizedBox(height: 8),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: TextButton.icon(
+                            onPressed: widget.onRequestLocation,
+                            icon: const Icon(Icons.location_searching, size: 16),
+                            label: const Text('Activer le GPS'),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
+
+                // Chantier GPS — mobilités réellement disponibles autour de
+                // l'usager : « quelles mobilités puis-je prendre d'ici ? ».
+                if (GpsResolver.isWithinServiceZone(widget.userPosition) &&
+                    !_loading) ...[
+                  const SizedBox(height: 16),
+                  _buildNearbyMobilities(dark),
+                ],
 
                 if (_result == null && !_loading) ...[
                   const SizedBox(height: 24),
@@ -4212,6 +5075,16 @@ class _TripsPageState extends State<TripsPage> {
                     Text('${_result!.routes.length} résultat(s)', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark)))
                   ]),
                   const SizedBox(height: 12),
+                  // Chantier GPS — itinéraire calculé depuis la position : les
+                  // tronçons de marche d'accès/sortie encadrent le transport.
+                  if (_fromGps && _result!.hasRoutes) ...[
+                    Text(
+                      'Calculé depuis votre position GPS (marche d\'accès incluse).',
+                      style: TextStyle(
+                          fontSize: 12, color: AppColors.textSecondary(dark)),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
                   if (_result!.hasRoutes)
                     ..._result!.routes.map((r) => _buildRouteCard(r, dark))
                   else
@@ -4246,6 +5119,80 @@ class _TripsPageState extends State<TripsPage> {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.divider(dark)), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4)]),
         child: Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.textPrimary(dark)))
+      ),
+    );
+  }
+
+  /// Chantier GPS — mobilités et arrêts RÉELS accessibles à pied depuis la
+  /// position de l'usager. Aucune donnée n'est inventée : chaque ligne de la
+  /// liste est un arrêt réel du feed, avec sa distance mesurée.
+  Widget _buildNearbyMobilities(bool dark) {
+    final LatLng pos = widget.userPosition!;
+    final List<NetworkAccessPoint> points = appDataService.accessPointsNear(
+        lat: pos.latitude, lon: pos.longitude);
+    if (points.isEmpty) {
+      return Text(
+        'Aucun arrêt du réseau dans un rayon de '
+        '${(NetworkAccess.defaultRadiusMeters / 1000).round()} km.',
+        style: TextStyle(fontSize: 13, color: AppColors.textSecondary(dark)),
+      );
+    }
+    final List<String> mobilities = <String>[];
+    for (final p in points) {
+      if (!mobilities.contains(p.network)) mobilities.add(p.network);
+    }
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface(dark),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.divider(dark)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            const Icon(Icons.my_location, size: 16, color: AppColors.beanGreen),
+            const SizedBox(width: 6),
+            Text('Autour de vous',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: AppColors.textPrimary(dark))),
+          ]),
+          const SizedBox(height: 4),
+          Text(
+            '${points.length} arrêts réels • mobilités : ${mobilities.join(', ')}',
+            style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark)),
+          ),
+          const SizedBox(height: 10),
+          ...points.take(6).map((p) => Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Row(children: [
+                  Icon(
+                    p.network == 'TER'
+                        ? Icons.train_rounded
+                        : Icons.directions_bus,
+                    size: 15,
+                    color: RoutePlanner.modeColorFor(p.network),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '${p.name} • ${p.network}',
+                      style: TextStyle(
+                          fontSize: 13, color: AppColors.textPrimary(dark)),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Text(DistanceHelper.format(p.distanceMeters),
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textSecondary(dark))),
+                ]),
+              )),
+        ],
       ),
     );
   }
@@ -5105,16 +6052,10 @@ class _AIChatPageState extends State<AIChatPage> {
       //    repli sur « Dakar » (ci-dessous) au lieu d'une origine trompeuse.
       if ((from == null || from.isEmpty) &&
           GpsResolver.isWithinServiceZone(widget.userPosition)) {
-        // trouve l'arrêt le plus proche de la position
-        Stop? nearest;
-        double best = double.infinity;
-        for (final s in allStops) {
-          final d = DistanceHelper.haversineMeters(widget.userPosition!, s.location);
-          if (d < best) { best = d; nearest = s; }
-        }
-        if (nearest != null) {
-          from = nearest.name;
-        }
+        // Chantier GPS — le GPS est une entrée DIRECTE du routage : l'origine
+        // n'est plus un unique arrêt « le plus proche », mais l'ENSEMBLE des
+        // points d'accès réels autour de l'usager, exploité par le moteur.
+        from = 'Ma position';
       }
       if (from == null || from.isEmpty) {
         from = "Dakar";
@@ -5122,11 +6063,25 @@ class _AIChatPageState extends State<AIChatPage> {
       if (to == null || to.isEmpty) {
         aiReply = '🧭 Pour calculer ton itinéraire, précise ta destination. Exemple : "Je suis à Petersen, je veux aller à Keur Mbaye Fall" ou "De Colobane à Yoff"';
       } else {
-        final res = RoutePlanner.plan(fromQuery: from, toQuery: to);
-        aiReply = _formatRouteResult(res, from, to);
-        // Mémorise le mode du premier segment
-        if (res.hasRoutes && res.routes.first.segments.isNotEmpty) {
-          _dernierModeInterroge = res.routes.first.segments.first.modeLabel;
+        final bool fromGps = from == 'Ma position' &&
+            GpsResolver.isWithinServiceZone(widget.userPosition);
+        final LatLng? gpsTarget =
+            fromGps ? RoutePlanner.positionForQuery(to) : null;
+        if (fromGps && gpsTarget == null) {
+          aiReply = '🧭 Destination introuvable : « $to » ne correspond à aucun '
+              'arrêt, gare, pôle ou terminus du référentiel.';
+        } else {
+          final RouteSearchResult res = fromGps
+              ? RoutePlanner.planFromPositions(
+                  from: widget.userPosition!,
+                  to: gpsTarget!,
+                )
+              : RoutePlanner.plan(fromQuery: from, toQuery: to);
+          aiReply = _formatRouteResult(res, from, to);
+          // Mémorise le mode du premier segment
+          if (res.hasRoutes && res.routes.first.segments.isNotEmpty) {
+            _dernierModeInterroge = res.routes.first.segments.first.modeLabel;
+          }
         }
       }
     } else if (lower.contains('ter') || lower.contains('train') || lower.contains('diamniadio')) {
@@ -5154,9 +6109,24 @@ class _AIChatPageState extends State<AIChatPage> {
               AssistantReplies.availabilityForMode('aftu'), 'AFTU');
     } else if (lower.contains('où suis-je') || lower.contains('ou suis je') || lower.contains('autour de moi') || lower.contains('proche')) {
       if (GpsResolver.isWithinServiceZone(widget.userPosition)) {
-        final nearby = allStops.map((s) => MapEntry(s, DistanceHelper.haversineMeters(widget.userPosition!, s.location))).toList()..sort((a,b)=>a.value.compareTo(b.value));
-        final top = nearby.take(3).map((e)=> '- ${e.key.name} (${DistanceHelper.format(e.value)} • ${e.key.modeLabel})').join('\n');
-        aiReply = '📍 Tu es près de :\n$top\n\nJe peux te guider vers une destination. Où veux-tu aller ?';
+        // Chantier GPS — plusieurs arrêts candidats, tous réseaux réels
+        // (DDD, AFTU, BRT, TER), avec la distance mesurée.
+        final List<NetworkAccessPoint> near = appDataService.accessPointsNear(
+            lat: widget.userPosition!.latitude,
+            lon: widget.userPosition!.longitude);
+        final List<String> mobilities = <String>[];
+        for (final p in near) {
+          if (!mobilities.contains(p.network)) mobilities.add(p.network);
+        }
+        final top = near
+            .take(5)
+            .map((p) =>
+                '- ${p.name} (${DistanceHelper.format(p.distanceMeters)} • ${p.network})')
+            .join('\n');
+        aiReply = '📍 Tu es près de :\n$top\n\n'
+            'Mobilités disponibles : ${mobilities.join(', ')}.\n'
+            'Où veux-tu aller ? Je peux calculer un itinéraire depuis ta '
+            'position.';
       } else if (widget.userPosition != null) {
         // ✅ CORRECTION HORS ZONE : position réelle mais hors de la zone de
         //    service — aucune distance de proximité n'est calculée (elle
@@ -5440,43 +6410,70 @@ class DetailedRoutePage extends StatelessWidget {
 // ============================================================
 // DETAIL ARRET — ALLER / RETOUR SYNCHRONISE
 // ============================================================
-class DualStopDetailPage extends StatelessWidget {
+class DualStopDetailPage extends StatefulWidget {
   final Stop stop;
   const DualStopDetailPage({super.key, required this.stop});
 
   @override
+  State<DualStopDetailPage> createState() => _DualStopDetailPageState();
+}
+
+class _DualStopDetailPageState extends State<DualStopDetailPage> {
+  late final Stop _stop = widget.stop;
+
+  /// Sens PRIMAIRE = sens DOMINANT desservi à l'arrêt (headsign le plus fréquent
+  /// parmi les prochains départs réels du feed). Choisir le départ le plus
+  /// proche ferait basculer les onglets au gré des passages ; le mode est stable
+  /// et reste 100 % documenté. `null` si aucun passage réel : les onglets
+  /// affichent alors l'indisponibilité honnête, sans rien inventer.
+  late final String? _primaryHeading = _dominantHeading();
+
+  String? _dominantHeading() {
+    final List<DepartureInfo> deps = _stop.nextRealDepartures(limit: 12);
+    final Map<String, int> counts = <String, int>{};
+    for (final DepartureInfo d in deps) {
+      final String? h = d.direction;
+      if (h == null || h.isEmpty) continue;
+      counts[h] = (counts[h] ?? 0) + 1;
+    }
+    if (counts.isEmpty) return null;
+    final List<String> keys = counts.keys.toList()
+      ..sort((a, b) => counts[b]!.compareTo(counts[a]!));
+    return keys.first;
+  }
+
+  /// Sens ALLER = sens dominant réel. Sens RETOUR = tout AUTRE sens
+  /// réellement desservi à cet arrêt. Aucun libellé n'est inversé, aucun départ
+  /// n'est fabriqué : chaque onglet lit les `trips` réels du feed de son sens.
+  bool Function(String? direction)? get _allerFilter {
+    final String? h = _primaryHeading;
+    if (h == null) return null;
+    return (String? d) => d != null && d == h;
+  }
+
+  bool Function(String? direction)? get _retourFilter {
+    final String? h = _primaryHeading;
+    if (h == null) return null;
+    return (String? d) => d != null && d != h;
+  }
+
+  bool _hasRealDepartures(bool Function(String? direction)? filter) {
+    if (filter == null) return _stop.nextRealDepartures(limit: 1).isNotEmpty;
+    return _stop
+        .realDeparturesWhere((DepartureInfo d) => filter(d.direction), limit: 1)
+        .isNotEmpty;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final allerStop = stop.copyWith(
-      direction: stop.direction.contains('Dir.') ? stop.direction : 'Dir. Diamniadio (Embarquement)',
-      stopType: StopType.boarding,
-    );
-
-    // GROUPE 3 (§10, §12) — AVANT : l'absence de correspondance fiable était
-    // masquée par un arrêt FABRIQUÉ, `stop.copyWith(direction: 'Dir. Dakar /
-    // Centre')` : le MÊME arrêt, affublé d'un libellé de sens inventé, présenté
-    // dans l'onglet « Sens Retour » comme un vis-à-vis réel. C'est forcer une
-    // correspondance, ce que le §12 interdit.
-    // APRÈS : le `null` renvoyé par le service est conservé tel quel et l'onglet
-    // affiche un état « non identifié » explicite.
-    //
-    // Limite structurelle portée au rapport : `dakar_network.json` ne contient
-    // AUCUN champ de sens — un arrêt n'y porte que id, name, latitude,
-    // longitude et data_trust. La « direction » que compare la passe 2 est donc
-    // un libellé synthétisé par `_integrateNetworkData` d'après la position de
-    // l'arrêt dans sa ligne, et non un sens réel issu de la source unique.
-    // L'algorithme de production `adD` fonctionnait déjà sur ce même champ ; il
-    // est réintégré à l'identique, et cette limite est documentée plutôt que
-    // corrigée ici (la correction exigerait de créer un sens que la donnée ne
-    // fournit pas, ce qui serait une invention).
-    final Stop? retourStop =
-        OppositeStopService.findOppositeStop(currentStop: stop, allStops: allStops);
-
+    final bool allerAvailable = _hasRealDepartures(_allerFilter);
+    final bool retourAvailable = _hasRealDepartures(_retourFilter);
     return DefaultTabController(
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(stop.name),
-          backgroundColor: stop.color,
+          title: Text(_stop.name),
+          backgroundColor: _stop.color,
           foregroundColor: Colors.white,
           bottom: const TabBar(
             labelColor: Colors.white,
@@ -5490,32 +6487,38 @@ class DualStopDetailPage extends StatelessWidget {
         ),
         body: TabBarView(
           children: [
-            SingleStopView(stop: allerStop),
-            // §12 : aucune correspondance fiable -> état explicite, jamais un
-            // arrêt inventé. L'architecture à deux onglets, leurs libellés et
-            // les styles sont conservés à l'identique (§21) : seul le contenu
-            // de l'onglet « Sens Retour » cesse d'être fabriqué.
-            if (retourStop != null)
-              SingleStopView(stop: retourStop)
+            if (allerAvailable)
+              SingleStopView(
+                stop: _stop,
+                returnDirectionFilter: _allerFilter,
+              )
             else
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Text(
-                    'Arrêt en face non identifié\n\n'
-                    'Aucune correspondance fiable dans les données réseau '
-                    'pour « ${stop.name} ».',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        color: AppColors.textSecondary(globalState.darkMode)),
-                  ),
-                ),
-              ),
+              _unavailable('Aucun départ réel programmé pour le sens aller.'),
+            if (retourAvailable)
+              SingleStopView(
+                stop: _stop,
+                returnDirectionFilter: _retourFilter,
+              )
+            else
+              _unavailable(
+                  'Aucun départ réel programmé dans le sens retour à cet arrêt.'),
           ],
         ),
       ),
     );
   }
+
+  Widget _unavailable(String message) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            '$message\n\nAucun horaire n\'est affiché plutôt que d\'en inventer un.',
+            textAlign: TextAlign.center,
+            style:
+                TextStyle(color: AppColors.textSecondary(globalState.darkMode)),
+          ),
+        ),
+      );
 }
 
 // ============================================================
@@ -5523,7 +6526,19 @@ class DualStopDetailPage extends StatelessWidget {
 // ============================================================
 class SingleStopView extends StatelessWidget {
   final Stop stop;
-  const SingleStopView({super.key, required this.stop});
+
+  /// PRÉSENTATION — Filtre de sens DOCUMENTÉ (`headsign` du feed) appliqué aux
+  /// horaires affichés. `null` = prochain départ toutes directions confondues
+  /// (comportement historique). Utilisé par l'onglet « Sens Retour » : les
+  /// horaires sont ceux du SENS opposé réellement desservi, jamais l'inversion
+  /// du sens aller.
+  final bool Function(String? direction)? returnDirectionFilter;
+
+  const SingleStopView({
+    super.key,
+    required this.stop,
+    this.returnDirectionFilter,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -5550,8 +6565,11 @@ class SingleStopView extends StatelessWidget {
         // (`active`), le prochain départ réel documenté est affiché.
         final List<int> ficheWaits = ficheServiceEnded
             ? const <int>[]
-            : stop.nextRealWaitingMinutes(
-                horizon: ficheAvailability?.displayHorizonAt);
+            : (returnDirectionFilter == null
+                ? stop.nextRealWaitingMinutes(
+                    horizon: ficheAvailability?.displayHorizonAt)
+                : stop.nextRealWaitingMinutesToward(returnDirectionFilter!,
+                    horizon: ficheAvailability?.displayHorizonAt));
         final bool ficheHasWaits = ficheWaits.isNotEmpty;
         final String? ficheServiceNotice = ficheHasWaits
             ? null
@@ -5665,3 +6683,4 @@ class SingleStopView extends StatelessWidget {
     );
   }
 }
+

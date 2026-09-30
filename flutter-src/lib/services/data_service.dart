@@ -1,14 +1,17 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import '../models/departure_info.dart';
+import '../models/public_bus_line.dart';
 import '../models/service_availability.dart';
 import '../models/transport_network.dart';
 import 'data_provider.dart';
 import 'dakar_clock.dart';
 import 'eta_calculator.dart';
+import 'gtfs/network_access.dart';
 import 'gtfs/passbi_source.dart';
 import 'gtfs/routing_engine.dart';
 import 'schedule_provider.dart';
+import 'public_bus_line_catalog.dart';
 import 'terminus_catalog.dart';
 
 /// Service de chargement du réseau Dakar
@@ -38,9 +41,38 @@ class DataService {
   /// Chantier DDD/AFTU/TATA — référentiel pôles & terminus (lecture seule).
   final TerminusCatalog terminusCatalog = TerminusCatalog();
 
+  /// MISSION — référentiel public des lignes AFTU / TATA / DDD (lecture seule).
+  /// Numéros officiels, terminus publiés, raccordement horaire. Aucun horaire,
+  /// aucun arrêt, aucune correspondance n'y est fabriqué.
+  final PublicBusLineCatalog publicBusLineCatalog = PublicBusLineCatalog();
+
+  /// Chantier « Recherche + GPS + Routage » — accès au réseau depuis une
+  /// position : arrêts réels accessibles à pied, réseau par réseau.
+  late final NetworkAccessIndex networkAccessIndex =
+      NetworkAccessIndex(passBiSource);
+
   /// Chargement du référentiel pôles/terminus DDD/AFTU. Non bloquant :
   /// un échec laisse le catalogue vide sans impacter TER/BRT ni les horaires.
   Future<void> loadTerminusCatalog() => terminusCatalog.load();
+
+  /// Chargement du référentiel public des lignes AFTU/DDD. Non bloquant.
+  Future<void> loadPublicBusLineCatalog() => publicBusLineCatalog.load();
+
+  /// Fiche ligne — séquence d'arrêts ORDONNÉE d'une ligne publique raccordée.
+  ///
+  /// Lit la route PassBi RÉELLE de la ligne (`feed_route_ids`) et ses
+  /// `stop_times` réels, ordonnés par `stop_sequence`. Retourne `null` si la
+  /// ligne n'est pas raccordée à une route réelle : aucune fiche n'est
+  /// fabriquée pour une ligne BLOCKED / NOT_VERIFIED.
+  PassBiRouteStopSequence? publicLineStopSequence(PublicBusLine line) {
+    if (!line.hasRealSchedule) return null;
+    final network = line.operator; // DDD | AFTU — clés de feed PassBi
+    for (final routeId in line.feedRouteIds) {
+      final seq = passBiSource.routeStopSequence(network, routeId);
+      if (seq != null && !seq.isEmpty) return seq;
+    }
+    return null;
+  }
 
   /// Chargement des horaires PassBi (distinct de loadNetworkData).
   /// En cas d'échec, l'app reste sur les données legacy — jamais de plantage.
@@ -72,6 +104,80 @@ class DataService {
   /// Clés PassBi (composite) correspondant à un arrêt dakar — tous réseaux.
   Set<String> passBiStopKeysForDakarStop(String dakarStopId) =>
       passBiSource.compositeStopsForDakarStop(dakarStopId);
+
+  // ======================================================================
+  // CHANTIER « RECHERCHE + GPS + ROUTAGE » — le GPS, entrée du routage
+  // ======================================================================
+
+  /// Arrêts RÉELS accessibles à pied autour d'une position, tous réseaux
+  /// (DDD, AFTU, BRT, TER). Retourne un ENSEMBLE de candidats — jamais un seul
+  /// arrêt — avec leur distance mesurée. Aucun arrêt n'est fabriqué.
+  List<NetworkAccessPoint> accessPointsNear({
+    required double lat,
+    required double lon,
+    double? radiusMeters,
+  }) {
+    if (radiusMeters == null) {
+      return networkAccessIndex.accessPointsNear(lat: lat, lon: lon);
+    }
+    return NetworkAccessIndex(passBiSource, radiusMeters: radiusMeters)
+        .accessPointsNear(lat: lat, lon: lon);
+  }
+
+  /// Mobilités (TER, BRT, DDD, AFTU) réellement disponibles autour d'une
+  /// position : « quelles mobilités puis-je prendre depuis ici ? ».
+  Set<String> mobilitiesNear({required double lat, required double lon}) =>
+      networkAccessIndex.networksNear(lat: lat, lon: lon);
+
+  /// Points de sortie accessibles à pied autour d'une destination.
+  List<NetworkAccessPoint> exitPointsNear({
+    required double lat,
+    required double lon,
+    double? radiusMeters,
+  }) =>
+      accessPointsNear(lat: lat, lon: lon, radiusMeters: radiusMeters);
+
+  /// Planning **porte-à-porte** entre une position de départ et une position
+  /// d'arrivée : les points d'accès et de sortie sont dérivés des coordonnées
+  /// réelles, puis le moteur PassBi explore `route → trip → service →
+  /// stop_sequence` (correspondances documentées uniquement).
+  ///
+  /// Retourne plusieurs itinéraires candidats, comparés sur la durée totale
+  /// (marche + transport). Liste vide si aucun chemin documenté n'existe —
+  /// jamais d'itinéraire inventé.
+  List<PassBiJourney> planJourneysFromPositions({
+    required double fromLat,
+    required double fromLon,
+    required double toLat,
+    required double toLon,
+    required DateTime at,
+    int maxResults = 4,
+    double? radiusMeters,
+  }) {
+    final origins = accessPointsNear(
+        lat: fromLat, lon: fromLon, radiusMeters: radiusMeters);
+    final exits = exitPointsNear(
+        lat: toLat, lon: toLon, radiusMeters: radiusMeters);
+    if (origins.isEmpty || exits.isEmpty) return const <PassBiJourney>[];
+    final originWalk = <String, int>{
+      for (final p in origins) p.compositeKey: p.walkSeconds,
+    };
+    final originMeters = <String, double>{
+      for (final p in origins) p.compositeKey: p.distanceMeters,
+    };
+    final exitMeters = <String, double>{
+      for (final p in exits) p.compositeKey: p.distanceMeters,
+    };
+    return routingEngine.planJourneysWithAccess(
+      fromKeys: origins.map((p) => p.compositeKey).toSet(),
+      toKeys: exits.map((p) => p.compositeKey).toSet(),
+      at: at,
+      originWalkSeconds: originWalk,
+      originAccessMeters: originMeters,
+      destinationAccessMeters: exitMeters,
+      maxResults: maxResults,
+    );
+  }
 
   // ======================================================================
   // LOT 4.21 — PASSBI NATIF (DDD / AFTU) : identité ≠ exploitation horaire

@@ -1,0 +1,4954 @@
+{
+  "schema": "public-bus-lines-dakar/v3",
+  "generated_at": "2026-09-30",
+  "sources_verified_at": "2026-09-25",
+  "principle": "Numéro public obligatoire (operator + line_number + public_label + origin + destination). Aucune ligne sans numéro officiel. Aucun horaire, aucun arrêt, aucune correspondance inventés. Le numéro public n’est jamais déduit du route_id. Toute ligne publique AFTU/DDD doit être raccordée aux données horaires réelles (route_id → trip_id → direction_id → stop_id → stop_sequence → stop_times) ; un défaut de raccordement est listé dans `unresolved_public_lines` avec sa cause exacte et sa preuve de blocage (`blocking`), jamais masqué. `mapping_status` vaut CONNECTED uniquement si la chaîne complète existe ; sinon BLOCKED (route présente, maillon manquant) ou NOT_VERIFIED (aucune route de ce numéro). Aucune ligne n’est supprimée pour masquer un blocage, aucune identité publique distincte n’est fusionnée.",
+  "sources": {
+    "aftu": "https://aftu-senegal.org/infos-pratiques/",
+    "ddd": "https://demdikk.sn/info-voyageurs/",
+    "dddItineraries": "https://demdikk.sn/reseau-urbain-dakar/",
+    "canonical": "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md"
+  },
+  "counts": {
+    "aftu_official": 72,
+    "ddd_public": 48,
+    "tata_identities": 7,
+    "linked": 104,
+    "unresolved": 16,
+    "connected": 104,
+    "blocked": 2,
+    "not_verified": 14,
+    "partial": 0,
+    "feed_routes_without_public_line": 20
+  },
+  "unresolved_public_lines": [
+    {
+      "operator": "AFTU",
+      "line_number": "47",
+      "public_label": "AFTU 47",
+      "reason": "FEED_ROUTE_WITHOUT_TRIP",
+      "mapping_status": "BLOCKED",
+      "feed_route_ids": [
+        "AFTU_47"
+      ]
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "52",
+      "public_label": "AFTU 52",
+      "reason": "FEED_ROUTE_WITHOUT_STOP_TIME",
+      "mapping_status": "BLOCKED",
+      "feed_route_ids": [
+        "AFTU_52"
+      ]
+    },
+    {
+      "operator": "DDD",
+      "line_number": "502A",
+      "public_label": "DDD 502A",
+      "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "mapping_status": "NOT_VERIFIED",
+      "feed_route_ids": []
+    },
+    {
+      "operator": "DDD",
+      "line_number": "502B",
+      "public_label": "DDD 502B",
+      "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "mapping_status": "NOT_VERIFIED",
+      "feed_route_ids": []
+    },
+    {
+      "operator": "DDD",
+      "line_number": "503A",
+      "public_label": "DDD 503A",
+      "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "mapping_status": "NOT_VERIFIED",
+      "feed_route_ids": []
+    },
+    {
+      "operator": "DDD",
+      "line_number": "503B",
+      "public_label": "DDD 503B",
+      "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "mapping_status": "NOT_VERIFIED",
+      "feed_route_ids": []
+    },
+    {
+      "operator": "DDD",
+      "line_number": "504A",
+      "public_label": "DDD 504A",
+      "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "mapping_status": "NOT_VERIFIED",
+      "feed_route_ids": []
+    },
+    {
+      "operator": "DDD",
+      "line_number": "504B",
+      "public_label": "DDD 504B",
+      "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "mapping_status": "NOT_VERIFIED",
+      "feed_route_ids": []
+    },
+    {
+      "operator": "DDD",
+      "line_number": "TO1",
+      "public_label": "DDD TO1",
+      "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "mapping_status": "NOT_VERIFIED",
+      "feed_route_ids": []
+    },
+    {
+      "operator": "DDD",
+      "line_number": "TAF",
+      "public_label": "DDD TAF",
+      "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "mapping_status": "NOT_VERIFIED",
+      "feed_route_ids": []
+    },
+    {
+      "operator": "DDD",
+      "line_number": "TAF TAF",
+      "public_label": "DDD TAF TAF",
+      "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "mapping_status": "NOT_VERIFIED",
+      "feed_route_ids": []
+    },
+    {
+      "operator": "DDD",
+      "line_number": "15A",
+      "public_label": "DDD 15A",
+      "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "mapping_status": "NOT_VERIFIED",
+      "feed_route_ids": []
+    },
+    {
+      "operator": "DDD",
+      "line_number": "15B",
+      "public_label": "DDD 15B",
+      "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "mapping_status": "NOT_VERIFIED",
+      "feed_route_ids": []
+    },
+    {
+      "operator": "DDD",
+      "line_number": "16A",
+      "public_label": "DDD 16A",
+      "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "mapping_status": "NOT_VERIFIED",
+      "feed_route_ids": []
+    },
+    {
+      "operator": "DDD",
+      "line_number": "16B",
+      "public_label": "DDD 16B",
+      "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "mapping_status": "NOT_VERIFIED",
+      "feed_route_ids": []
+    },
+    {
+      "operator": "DDD",
+      "line_number": "327",
+      "public_label": "DDD 327",
+      "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "mapping_status": "NOT_VERIFIED",
+      "feed_route_ids": []
+    }
+  ],
+  "feed_routes_without_public_line": {
+    "note": "Routes présentes dans le feed opérationnel dont le numéro public n’est PAS établi par le référentiel canonique publié. Aucune ligne n’est fabriquée et aucune n’est fusionnée avec une ligne existante.",
+    "DDD": [
+      "DDD_102",
+      "DDD_103",
+      "DDD_105",
+      "DDD_111",
+      "DDD_16",
+      "DDD_210",
+      "DDD_223",
+      "DDD_231",
+      "DDD_301",
+      "DDD_305",
+      "DDD_308",
+      "DDD_315",
+      "DDD_323",
+      "DDD_401",
+      "DDD_402",
+      "DDD_403",
+      "DDD_404",
+      "DDD_405",
+      "DDD_504"
+    ],
+    "AFTU": [
+      "AFTU_90"
+    ]
+  },
+  "aftu": [
+    {
+      "operator": "AFTU",
+      "line_number": "1",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 1",
+      "origin": "LAT DIOR",
+      "destination": "HLM GRAND YOFF",
+      "official_name": "LAT DIOR- HLM GRAND YOFF",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_1"
+      ],
+      "trip_ids_count": 114,
+      "sample_trip_ids": [
+        "AFTU_1_HLM-GR-YOFF_1",
+        "AFTU_1_HLM-GR-YOFF_2",
+        "AFTU_1_HLM-GR-YOFF_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 5250,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 90,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "2",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 2",
+      "origin": "ROUTE PRINCIPALE PARCELLES",
+      "destination": "PETERSEN",
+      "official_name": "ROUTE PRINCIPALE PARCELLES - PETERSEN",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_2"
+      ],
+      "trip_ids_count": 149,
+      "sample_trip_ids": [
+        "AFTU_2_Parcelles-Assainies_1",
+        "AFTU_2_Parcelles-Assainies_2",
+        "AFTU_2_Parcelles-Assainies_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 7447,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 98,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "3",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 3",
+      "origin": "YOFF",
+      "destination": "PETERSEN",
+      "official_name": "YOFF - PETERSEN",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_3"
+      ],
+      "trip_ids_count": 175,
+      "sample_trip_ids": [
+        "AFTU_3_Petersen_1",
+        "AFTU_3_Petersen_2",
+        "AFTU_3_Petersen_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 10592,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 119,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "4",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 4",
+      "origin": "YOFF VILLAGE",
+      "destination": "PETERSEN",
+      "official_name": "YOFF VILLAGE - PETERSEN",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_4"
+      ],
+      "trip_ids_count": 171,
+      "sample_trip_ids": [
+        "AFTU_4_Petersen_1",
+        "AFTU_4_Petersen_2",
+        "AFTU_4_Petersen_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 6840,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 78,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "5",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 5",
+      "origin": "PARCELLES ASSAINIES",
+      "destination": "PETERSEN",
+      "official_name": "PARCELLES ASSAINIES- PETERSEN",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_5"
+      ],
+      "trip_ids_count": 169,
+      "sample_trip_ids": [
+        "AFTU_5_Parcelles-Assainies_1",
+        "AFTU_5_Parcelles-Assainies_2",
+        "AFTU_5_Parcelles-Assainies_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 7857,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 91,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "24",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 24",
+      "origin": "UCAD",
+      "destination": "NOTAIRE GUEDIAWAYE",
+      "official_name": "UCAD - NOTAIRE GUEDIAWAYE",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_24"
+      ],
+      "trip_ids_count": 152,
+      "sample_trip_ids": [
+        "AFTU_24_Notaire_1",
+        "AFTU_24_Notaire_2",
+        "AFTU_24_Notaire_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 7440,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 96,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "25",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 25",
+      "origin": "PARCELLES ASSAINIES",
+      "destination": "PETERSEN",
+      "official_name": "PARCELLES ASSAINIES - PETERSEN",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_25"
+      ],
+      "trip_ids_count": 183,
+      "sample_trip_ids": [
+        "AFTU_25_Parcelle-Assainies_1",
+        "AFTU_25_Parcelle-Assainies_2",
+        "AFTU_25_Parcelle-Assainies_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 7503,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 80,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "26",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 26",
+      "origin": "PARCELLES ASSAINIES",
+      "destination": "POST THIAROYE",
+      "official_name": "PARCELLES ASSAINIES - POST THIAROYE",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_26"
+      ],
+      "trip_ids_count": 182,
+      "sample_trip_ids": [
+        "AFTU_26_Parcelle-Assainies_1",
+        "AFTU_26_Parcelle-Assainies_2",
+        "AFTU_26_Parcelle-Assainies_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 7374,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 80,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "27",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 27",
+      "origin": "MARCHE BOUBESS",
+      "destination": "PETERSEN",
+      "official_name": "MARCHE BOUBESS - PETERSEN",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_27"
+      ],
+      "trip_ids_count": 126,
+      "sample_trip_ids": [
+        "AFTU_27_Guediawaye MB_1",
+        "AFTU_27_Guediawaye MB_2",
+        "AFTU_27_Guediawaye MB_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 4760,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 74,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "28",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 28",
+      "origin": "HAMO V/VI",
+      "destination": "PETERSEN",
+      "official_name": "HAMO V/VI - PETERSEN",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_28"
+      ],
+      "trip_ids_count": 132,
+      "sample_trip_ids": [
+        "AFTU_28_Hamo VI_1",
+        "AFTU_28_Hamo VI_2",
+        "AFTU_28_Hamo VI_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 4162,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 60,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "29",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 29",
+      "origin": "CITE NATION UNIES (CAMBERENE)",
+      "destination": "PETERSEN",
+      "official_name": "CITE NATION UNIES (CAMBERENE) - PETERSEN",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_29"
+      ],
+      "trip_ids_count": 182,
+      "sample_trip_ids": [
+        "AFTU_29_Malibu_1",
+        "AFTU_29_Malibu_2",
+        "AFTU_29_Malibu_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 10444,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 113,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "30",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 30",
+      "origin": "GADAYE (GUEDIEWAYE)",
+      "destination": "GARE DE COLOBANE",
+      "official_name": "GADAYE (GUEDIEWAYE) - GARE DE COLOBANE",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_30"
+      ],
+      "trip_ids_count": 135,
+      "sample_trip_ids": [
+        "AFTU_30_Colobane_1",
+        "AFTU_30_Colobane_2",
+        "AFTU_30_Colobane_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 9109,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 133,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "31",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 31",
+      "origin": "TALLY ICOTAF X ROUTE DES NIAYES",
+      "destination": "HOPITAL ABASS NDAO",
+      "official_name": "TALLY ICOTAF X ROUTE DES NIAYES - HOPITAL ABASS NDAO",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_31"
+      ],
+      "trip_ids_count": 160,
+      "sample_trip_ids": [
+        "AFTU_31_Sham_1",
+        "AFTU_31_Sham_2",
+        "AFTU_31_Sham_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 3525,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 47,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "32",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 32",
+      "origin": "SAHM",
+      "destination": "SERIGNE ASSANE",
+      "official_name": "SAHM - SERIGNE ASSANE",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_32"
+      ],
+      "trip_ids_count": 138,
+      "sample_trip_ids": [
+        "AFTU_32_Daroukhane_1",
+        "AFTU_32_Daroukhane_2",
+        "AFTU_32_Daroukhane_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 8300,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 118,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "33",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 33",
+      "origin": "COLOBANE",
+      "destination": "SERIGNE ASSANE",
+      "official_name": "COLOBANE - SERIGNE ASSANE",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_33"
+      ],
+      "trip_ids_count": 127,
+      "sample_trip_ids": [
+        "AFTU_33_Colobane_1",
+        "AFTU_33_Colobane_2",
+        "AFTU_33_Colobane_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 7871,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 122,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "34",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 34",
+      "origin": "NORD FOIRE",
+      "destination": "LAT DIOR",
+      "official_name": "NORD FOIRE - LAT DIOR",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_34"
+      ],
+      "trip_ids_count": 170,
+      "sample_trip_ids": [
+        "AFTU_34_LAT-DIOR_1",
+        "AFTU_34_LAT-DIOR_2",
+        "AFTU_34_LAT-DIOR_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 8236,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 95,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "35",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 35",
+      "origin": "NGOR",
+      "destination": "PIKINE TEXACO",
+      "official_name": "NGOR - PIKINE TEXACO",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_35"
+      ],
+      "trip_ids_count": 177,
+      "sample_trip_ids": [
+        "AFTU_35_Ngor_1",
+        "AFTU_35_Ngor_2",
+        "AFTU_35_Ngor_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 8695,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 96,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "36",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 36",
+      "origin": "MARCHE NDIAREME",
+      "destination": "NGOR",
+      "official_name": "MARCHE NDIAREME - NGOR",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_36"
+      ],
+      "trip_ids_count": 166,
+      "sample_trip_ids": [
+        "AFTU_36_Daroukhane_1",
+        "AFTU_36_Daroukhane_2",
+        "AFTU_36_Daroukhane_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 12616,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 150,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "37",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 37",
+      "origin": "CITÉ APIX",
+      "destination": "UCAD (CLAUDEL)",
+      "official_name": "CITÉ APIX - UCAD (CLAUDEL)",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_37"
+      ],
+      "trip_ids_count": 103,
+      "sample_trip_ids": [
+        "AFTU_37_APIX_1",
+        "AFTU_37_APIX_2",
+        "AFTU_37_APIX_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 10437,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 201,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "38",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 38",
+      "origin": "CITE DES ENSEIGNANTS",
+      "destination": "SHAM",
+      "official_name": "CITE DES ENSEIGNANTS - SHAM",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_38"
+      ],
+      "trip_ids_count": 136,
+      "sample_trip_ids": [
+        "AFTU_38_GuΓö£├óΓö¼ΓîÉdiawaye_1",
+        "AFTU_38_GuΓö£├óΓö¼ΓîÉdiawaye_2",
+        "AFTU_38_GuΓö£├óΓö¼ΓîÉdiawaye_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 3965,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 61,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "39",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 39",
+      "origin": "LAT-DIOR",
+      "destination": "DIAMALAYE",
+      "official_name": "LAT-DIOR - DIAMALAYE",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_39"
+      ],
+      "trip_ids_count": 126,
+      "sample_trip_ids": [
+        "AFTU_39_Diamalaye_1",
+        "AFTU_39_Diamalaye_2",
+        "AFTU_39_Diamalaye_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 8496,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 133,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "40",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 40",
+      "origin": "GRAND MBAO",
+      "destination": "PETERSEN",
+      "official_name": "GRAND MBAO - PETERSEN",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_40"
+      ],
+      "trip_ids_count": 113,
+      "sample_trip_ids": [
+        "AFTU_40_Mbao_1",
+        "AFTU_40_Mbao_2",
+        "AFTU_40_Mbao_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 5813,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 101,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "41",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 41",
+      "origin": "PETERSEN",
+      "destination": "ETAGE MADIALE",
+      "official_name": "PETERSEN - ETAGE MADIALE",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_41"
+      ],
+      "trip_ids_count": 123,
+      "sample_trip_ids": [
+        "AFTU_41_GuΓö£├óΓö¼ΓîÉdiawaye_1",
+        "AFTU_41_GuΓö£├óΓö¼ΓîÉdiawaye_2",
+        "AFTU_41_GuΓö£├óΓö¼ΓîÉdiawaye_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 3180,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 60,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "42",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 42",
+      "origin": "GADAYE (GUEDIEWAYE)",
+      "destination": "OUAKAM BAYE",
+      "official_name": "GADAYE (GUEDIEWAYE) - OUAKAM BAYE",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_42"
+      ],
+      "trip_ids_count": 161,
+      "sample_trip_ids": [
+        "AFTU_42_Gadaye_1",
+        "AFTU_42_Gadaye_2",
+        "AFTU_42_Gadaye_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 10712,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 131,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "43",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 43",
+      "origin": "OUAKAM",
+      "destination": "THIERNO NDIAYE",
+      "official_name": "OUAKAM - THIERNO NDIAYE",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_43"
+      ],
+      "trip_ids_count": 137,
+      "sample_trip_ids": [
+        "AFTU_43_Comico_1",
+        "AFTU_43_Comico_2",
+        "AFTU_43_Comico_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 11234,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": false,
+      "sequence_quality": "UNORDERED_IN_FEED",
+      "served_stop_count": 162,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "44",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 44",
+      "origin": "GRAND MBAO",
+      "destination": "OUAKAM",
+      "official_name": "GRAND MBAO - OUAKAM",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_44"
+      ],
+      "trip_ids_count": 190,
+      "sample_trip_ids": [
+        "AFTU_44_Mbao_1",
+        "AFTU_44_Mbao_2",
+        "AFTU_44_Mbao_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 10547,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 109,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "45",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 45",
+      "origin": "KOUNOUNE NGALAM",
+      "destination": "PARCELLES EGLISE",
+      "official_name": "KOUNOUNE NGALAM - PARCELLES EGLISE",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_45"
+      ],
+      "trip_ids_count": 143,
+      "sample_trip_ids": [
+        "AFTU_45_kounoune_1",
+        "AFTU_45_kounoune_2",
+        "AFTU_45_kounoune_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 13831,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 191,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "46",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 46",
+      "origin": "SDE SERIGNE ASSANE",
+      "destination": "LAT DIOR",
+      "official_name": "SDE SERIGNE ASSANE - LAT DIOR",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_46"
+      ],
+      "trip_ids_count": 140,
+      "sample_trip_ids": [
+        "AFTU_46_GuΓö£├óΓö¼ΓîÉdiawaye_1",
+        "AFTU_46_GuΓö£├óΓö¼ΓîÉdiawaye_2",
+        "AFTU_46_GuΓö£├óΓö¼ΓîÉdiawaye_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 4623,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 69,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "47",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 47",
+      "origin": "LAT DIOR",
+      "destination": "ALMADIES",
+      "official_name": "LAT DIOR - ALMADIES",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "NO_SCHEDULE",
+      "mapping_status": "BLOCKED",
+      "feed_route_ids": [
+        "AFTU_47"
+      ],
+      "trip_ids_count": 0,
+      "sample_trip_ids": [],
+      "direction_ids": [],
+      "stop_times_count": 0,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 0,
+      "unresolved_reason": "FEED_ROUTE_WITHOUT_TRIP",
+      "blocking": {
+        "operator": "AFTU",
+        "line_number": "47",
+        "reason": "FEED_ROUTE_WITHOUT_TRIP",
+        "missing_fields": [
+          "trip_id",
+          "direction_id",
+          "stop_id",
+          "stop_sequence",
+          "stop_times"
+        ],
+        "consulted_sources": [
+          "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+          "feeds opérationnels embarqués (ddd.json / aftu.json)"
+        ],
+        "next_action": "La route AFTU_47 existe dans le feed mais ne porte aucun trip : obtenir les trips (et leurs stop_times) auprès de la source.",
+        "feed_route_ids_present": [
+          "AFTU_47"
+        ]
+      },
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "48",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 48",
+      "origin": "CITE SERIGNE MANSOUR",
+      "destination": "LAT DIOR",
+      "official_name": "CITE SERIGNE MANSOUR - LAT DIOR",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_48"
+      ],
+      "trip_ids_count": 238,
+      "sample_trip_ids": [
+        "AFTU_48_Lat Dior_1",
+        "AFTU_48_Lat Dior_2",
+        "AFTU_48_Lat Dior_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 11902,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 101,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "49",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 49",
+      "origin": "GADAYE",
+      "destination": "NGOR",
+      "official_name": "GADAYE - NGOR",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_49"
+      ],
+      "trip_ids_count": 147,
+      "sample_trip_ids": [
+        "AFTU_49_Gadaye_1",
+        "AFTU_49_Gadaye_2",
+        "AFTU_49_Gadaye_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 13370,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 179,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "50",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 50",
+      "origin": "PETERSEN",
+      "destination": "MALIKA CIMETIERE",
+      "official_name": "PETERSEN - MALIKA CIMETIERE",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_50"
+      ],
+      "trip_ids_count": 135,
+      "sample_trip_ids": [
+        "AFTU_50_Malicka_1",
+        "AFTU_50_Malicka_2",
+        "AFTU_50_Malicka_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 7416,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 108,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "51",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 51",
+      "origin": "JAXAAY",
+      "destination": "GARE DES BAUX MARAICHERS",
+      "official_name": "JAXAAY - GARE DES BAUX MARAICHERS",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_51"
+      ],
+      "trip_ids_count": 157,
+      "sample_trip_ids": [
+        "AFTU_51_Baux Maraichers_1",
+        "AFTU_51_Baux Maraichers_2",
+        "AFTU_51_Baux Maraichers_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 11301,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 142,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "52",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 52",
+      "origin": "BOUNTOU PIKINE",
+      "destination": "KEUR MASSAR",
+      "official_name": "BOUNTOU PIKINE - KEUR MASSAR",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "NO_SCHEDULE",
+      "mapping_status": "BLOCKED",
+      "feed_route_ids": [
+        "AFTU_52"
+      ],
+      "trip_ids_count": 190,
+      "sample_trip_ids": [
+        "AFTU_52_Baux Maraichers_1",
+        "AFTU_52_Baux Maraichers_2",
+        "AFTU_52_Baux Maraichers_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 0,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 0,
+      "unresolved_reason": "FEED_ROUTE_WITHOUT_STOP_TIME",
+      "blocking": {
+        "operator": "AFTU",
+        "line_number": "52",
+        "reason": "FEED_ROUTE_WITHOUT_STOP_TIME",
+        "missing_fields": [
+          "stop_times",
+          "stop_sequence"
+        ],
+        "consulted_sources": [
+          "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+          "feeds opérationnels embarqués (ddd.json / aftu.json)"
+        ],
+        "next_action": "La route AFTU_52 porte des trips mais AUCUN stop_time : obtenir les stop_times auprès de la source.",
+        "feed_route_ids_present": [
+          "AFTU_52"
+        ]
+      },
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "53",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 53",
+      "origin": "KEUR MASSAR",
+      "destination": "SEBIKOTANE",
+      "official_name": "KEUR MASSAR - SEBIKOTANE",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_53"
+      ],
+      "trip_ids_count": 176,
+      "sample_trip_ids": [
+        "AFTU_53_KEUR MASSAR_1",
+        "AFTU_53_KEUR MASSAR_2",
+        "AFTU_53_KEUR MASSAR_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 7569,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 87,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "54",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 54",
+      "origin": "TERMINUS KEUR MASSAR (CITE MTOA)",
+      "destination": "UCAD",
+      "official_name": "TERMINUS KEUR MASSAR (CITE MTOA) - UCAD",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_54"
+      ],
+      "trip_ids_count": 199,
+      "sample_trip_ids": [
+        "AFTU_54_M T O A_1",
+        "AFTU_54_M T O A_2",
+        "AFTU_54_M T O A_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 12324,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 122,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "55",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 55",
+      "origin": "TERMINUS RUFISQUE SONADIS",
+      "destination": "PETERSEN",
+      "official_name": "TERMINUS RUFISQUE SONADIS - PETERSEN",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_55"
+      ],
+      "trip_ids_count": 188,
+      "sample_trip_ids": [
+        "AFTU_55_Petersen_1",
+        "AFTU_55_Petersen_2",
+        "AFTU_55_Petersen_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 7852,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 82,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "56",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 56",
+      "origin": "JAXAAY 2",
+      "destination": "PETERSEN",
+      "official_name": "JAXAAY 2 - PETERSEN",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_56"
+      ],
+      "trip_ids_count": 170,
+      "sample_trip_ids": [
+        "AFTU_56_Jaxaaye_1",
+        "AFTU_56_Jaxaaye_2",
+        "AFTU_56_Jaxaaye_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 7434,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 85,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "57",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 57",
+      "origin": "LIBERTE 6",
+      "destination": "RUFISQUE",
+      "official_name": "LIBERTE 6 - RUFISQUE",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_57"
+      ],
+      "trip_ids_count": 172,
+      "sample_trip_ids": [
+        "AFTU_57_LIBERTE 5_1",
+        "AFTU_57_LIBERTE 5_2",
+        "AFTU_57_LIBERTE 5_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 4374,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 54,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "58",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 58",
+      "origin": "SAHM",
+      "destination": "COMICO",
+      "official_name": "SAHM - COMICO",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_58"
+      ],
+      "trip_ids_count": 171,
+      "sample_trip_ids": [
+        "AFTU_58_Comico_1",
+        "AFTU_58_Comico_2",
+        "AFTU_58_Comico_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 7611,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 88,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "59",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 59",
+      "origin": "DIAMALAYE",
+      "destination": "CITÉ GENDARMERIE (Jaxaay)",
+      "official_name": "DIAMALAYE - CITÉ GENDARMERIE (Jaxaay)",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_59"
+      ],
+      "trip_ids_count": 162,
+      "sample_trip_ids": [
+        "AFTU_59_cite gendarmerie_1",
+        "AFTU_59_cite gendarmerie_2",
+        "AFTU_59_cite gendarmerie_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 17991,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": false,
+      "sequence_quality": "UNORDERED_IN_FEED",
+      "served_stop_count": 219,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "60",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 60",
+      "origin": "COLOBANE",
+      "destination": "BARGNY",
+      "official_name": "COLOBANE - BARGNY",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_60"
+      ],
+      "trip_ids_count": 183,
+      "sample_trip_ids": [
+        "AFTU_60_bargny_1",
+        "AFTU_60_bargny_2",
+        "AFTU_60_bargny_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 8326,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 90,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "61",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 61",
+      "origin": "ALMADIES",
+      "destination": "KEUR MASSAR",
+      "official_name": "ALMADIES - KEUR MASSAR",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_61"
+      ],
+      "trip_ids_count": 180,
+      "sample_trip_ids": [
+        "AFTU_61_KEUR MASSAR_1",
+        "AFTU_61_KEUR MASSAR_2",
+        "AFTU_61_KEUR MASSAR_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 11423,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 125,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "62",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 62",
+      "origin": "ARRET CHERIF (RUFISQUE)",
+      "destination": "PENC MI (GUEULE TAPEE)",
+      "official_name": "ARRET CHERIF (RUFISQUE) - PENC MI (GUEULE TAPEE)",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_62"
+      ],
+      "trip_ids_count": 139,
+      "sample_trip_ids": [
+        "AFTU_62_gueule tapee_1",
+        "AFTU_62_gueule tapee_2",
+        "AFTU_62_gueule tapee_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 11555,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 164,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "63",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 63",
+      "origin": "TERMINUS CAMP MARCHAND RUFISQUE",
+      "destination": "STADE LSS",
+      "official_name": "TERMINUS CAMP MARCHAND RUFISQUE - STADE LSS",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_63"
+      ],
+      "trip_ids_count": 117,
+      "sample_trip_ids": [
+        "AFTU_63_YOFF_1",
+        "AFTU_63_YOFF_2",
+        "AFTU_63_YOFF_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 8540,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 144,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "64",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 64",
+      "origin": "GUEDIAWAYE",
+      "destination": "RUFISQUE",
+      "official_name": "GUEDIAWAYE - RUFISQUE",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_64"
+      ],
+      "trip_ids_count": 166,
+      "sample_trip_ids": [
+        "AFTU_64_diamniadio_1",
+        "AFTU_64_diamniadio_2",
+        "AFTU_64_diamniadio_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 13359,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 159,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "65",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 65",
+      "origin": "COLOBANE",
+      "destination": "JAXAAY",
+      "official_name": "COLOBANE - JAXAAY",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_65"
+      ],
+      "trip_ids_count": 141,
+      "sample_trip_ids": [
+        "AFTU_65_Colobane_1",
+        "AFTU_65_Colobane_2",
+        "AFTU_65_Colobane_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 8990,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 126,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "66",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 66",
+      "origin": "YOFF",
+      "destination": "GOROM 1",
+      "official_name": "YOFF - GOROM 1",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_66"
+      ],
+      "trip_ids_count": 136,
+      "sample_trip_ids": [
+        "AFTU_66_gorom_1",
+        "AFTU_66_gorom_2",
+        "AFTU_66_gorom_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 14214,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 204,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "67",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 67",
+      "origin": "OUAKAM",
+      "destination": "THIAWLENE RUFISQUE",
+      "official_name": "OUAKAM - THIAWLENE RUFISQUE",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_67"
+      ],
+      "trip_ids_count": 115,
+      "sample_trip_ids": [
+        "AFTU_67_Ouakam_1",
+        "AFTU_67_Ouakam_2",
+        "AFTU_67_Ouakam_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 8731,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 150,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "68",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 68",
+      "origin": "YEUMBEUL",
+      "destination": "SEBIKOTANE",
+      "official_name": "YEUMBEUL - SEBIKOTANE",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_68"
+      ],
+      "trip_ids_count": 189,
+      "sample_trip_ids": [
+        "AFTU_68_sebikotane_1",
+        "AFTU_68_sebikotane_2",
+        "AFTU_68_sebikotane_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 12474,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 130,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "69",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 69",
+      "origin": "DIAMALAYE",
+      "destination": "TERMINUS TIVAOUANE PEUL",
+      "official_name": "DIAMALAYE - TERMINUS TIVAOUANE PEUL",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_69"
+      ],
+      "trip_ids_count": 126,
+      "sample_trip_ids": [
+        "AFTU_69_Diamalaye_1",
+        "AFTU_69_Diamalaye_2",
+        "AFTU_69_Diamalaye_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 3705,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 65,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "70",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 70",
+      "origin": "DAROUKHANE",
+      "destination": "JAXXAY 2",
+      "official_name": "DAROUKHANE - JAXXAY 2",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_70"
+      ],
+      "trip_ids_count": 162,
+      "sample_trip_ids": [
+        "AFTU_70_darouhane_1",
+        "AFTU_70_darouhane_2",
+        "AFTU_70_darouhane_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 9171,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 111,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "71",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 71",
+      "origin": "KEUR MASSAR",
+      "destination": "CLAUDEL",
+      "official_name": "KEUR MASSAR - CLAUDEL",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_71"
+      ],
+      "trip_ids_count": 144,
+      "sample_trip_ids": [
+        "AFTU_71_claudel_1",
+        "AFTU_71_claudel_2",
+        "AFTU_71_claudel_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 7530,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 103,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "72",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 72",
+      "origin": "GUEDIAWAYE",
+      "destination": "KOUNOUNE",
+      "official_name": "GUEDIAWAYE - KOUNOUNE",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_72"
+      ],
+      "trip_ids_count": 157,
+      "sample_trip_ids": [
+        "AFTU_72_kounoune_1",
+        "AFTU_72_kounoune_2",
+        "AFTU_72_kounoune_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 14209,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 179,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "73",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 73",
+      "origin": "LAC ROSE",
+      "destination": "POSTE THIAROYE",
+      "official_name": "LAC ROSE - POSTE THIAROYE",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_73"
+      ],
+      "trip_ids_count": 230,
+      "sample_trip_ids": [
+        "AFTU_73_Lac Rose_1",
+        "AFTU_73_Lac Rose_2",
+        "AFTU_73_Lac Rose_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 18051,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 155,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "74",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 74",
+      "origin": "TERMINUS BARGNY (GARE FERROVIAIRE)",
+      "destination": "TIVAOUNE PEUL",
+      "official_name": "TERMINUS BARGNY (GARE FERROVIAIRE) - TIVAOUNE PEUL",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_74"
+      ],
+      "trip_ids_count": 152,
+      "sample_trip_ids": [
+        "AFTU_74_bargny_1",
+        "AFTU_74_bargny_2",
+        "AFTU_74_bargny_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 13224,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 172,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "75",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 75",
+      "origin": "TERMINUS MALIKA (CITE SONATEL)",
+      "destination": "TERMINUS GARE ROUTIERE COLOBANE",
+      "official_name": "TERMINUS MALIKA (CITE SONATEL) - TERMINUS GARE ROUTIERE COLOBANE",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_75"
+      ],
+      "trip_ids_count": 134,
+      "sample_trip_ids": [
+        "AFTU_75_Colobane_1",
+        "AFTU_75_Colobane_2",
+        "AFTU_75_Colobane_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 10304,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 152,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "76",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 76",
+      "origin": "SIPRES",
+      "destination": "CITE ASSURANCE",
+      "official_name": "SIPRES - CITE ASSURANCE",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_76"
+      ],
+      "trip_ids_count": 150,
+      "sample_trip_ids": [
+        "AFTU_76_ASSURANCE_1",
+        "AFTU_76_ASSURANCE_2",
+        "AFTU_76_ASSURANCE_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 10123,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 133,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "77",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 77",
+      "origin": "RUFISQUE",
+      "destination": "LIBERTE 5",
+      "official_name": "RUFISQUE - LIBERTE 5",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_77"
+      ],
+      "trip_ids_count": 167,
+      "sample_trip_ids": [
+        "AFTU_77_CITE TACCO_1",
+        "AFTU_77_CITE TACCO_2",
+        "AFTU_77_CITE TACCO_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 9039,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 107,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "78",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 78",
+      "origin": "DIAMAGUENE",
+      "destination": "LIBERTE 5",
+      "official_name": "DIAMAGUENE - LIBERTE 5",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_78"
+      ],
+      "trip_ids_count": 140,
+      "sample_trip_ids": [
+        "AFTU_78_DIAMAGUENE_1",
+        "AFTU_78_DIAMAGUENE_2",
+        "AFTU_78_DIAMAGUENE_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 7406,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 104,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "79",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 79",
+      "origin": "SANGALKAM",
+      "destination": "CAMBERENE",
+      "official_name": "SANGALKAM - CAMBERENE",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_79"
+      ],
+      "trip_ids_count": 131,
+      "sample_trip_ids": [
+        "AFTU_79_CAMBERENE2_1",
+        "AFTU_79_CAMBERENE2_2",
+        "AFTU_79_CAMBERENE2_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 12707,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 192,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "80",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 80",
+      "origin": "DIAMALAYE",
+      "destination": "DAROU THIOUB",
+      "official_name": "DIAMALAYE - DAROU THIOUB",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_80"
+      ],
+      "trip_ids_count": 136,
+      "sample_trip_ids": [
+        "AFTU_80_DAROU THIOUB_1",
+        "AFTU_80_DAROU THIOUB_2",
+        "AFTU_80_DAROU THIOUB_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 14207,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": false,
+      "sequence_quality": "UNORDERED_IN_FEED",
+      "served_stop_count": 207,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "81",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 81",
+      "origin": "BEAUX MARRAICHERS",
+      "destination": "TIVAOUNE PEUL",
+      "official_name": "BEAUX MARRAICHERS - TIVAOUNE PEUL",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_81"
+      ],
+      "trip_ids_count": 132,
+      "sample_trip_ids": [
+        "AFTU_81_BEAUX MARAICHER_1",
+        "AFTU_81_BEAUX MARAICHER_2",
+        "AFTU_81_BEAUX MARAICHER_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 11085,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 165,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "82",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 82",
+      "origin": "LAT DIOR",
+      "destination": "COMICO YEUMBEUL",
+      "official_name": "LAT DIOR - COMICO YEUMBEUL",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_82"
+      ],
+      "trip_ids_count": 136,
+      "sample_trip_ids": [
+        "AFTU_82_CITE COMICO_1",
+        "AFTU_82_CITE COMICO_2",
+        "AFTU_82_CITE COMICO_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 6631,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 96,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "83",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 83",
+      "origin": "RUFISQUE ARAFAT",
+      "destination": "ZONE DE CAPTAGE",
+      "official_name": "RUFISQUE ARAFAT- ZONE DE CAPTAGE",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_DOCUMENTED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_83"
+      ],
+      "trip_ids_count": 225,
+      "sample_trip_ids": [
+        "AFTU_83_ARAFAT_1",
+        "AFTU_83_ARAFAT_2",
+        "AFTU_83_ARAFAT_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 20679,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 181,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "84",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 84",
+      "origin": "UCAD",
+      "destination": "JAXAAY",
+      "official_name": "UCAD - JAXAAY",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_NOT_FOUND",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_84"
+      ],
+      "trip_ids_count": 191,
+      "sample_trip_ids": [
+        "AFTU_84_Jaxaay_1",
+        "AFTU_84_Jaxaay_2",
+        "AFTU_84_Jaxaay_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 14189,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": false,
+      "sequence_quality": "UNORDERED_IN_FEED",
+      "served_stop_count": 148,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "UNVERIFIED"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "85",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 85",
+      "origin": "BANOBA",
+      "destination": "LIBERTE 5",
+      "official_name": "BANOBA - LIBERTE 5",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_NOT_FOUND",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_85"
+      ],
+      "trip_ids_count": 188,
+      "sample_trip_ids": [
+        "AFTU_85_Lac Rose_1",
+        "AFTU_85_Lac Rose_2",
+        "AFTU_85_Lac Rose_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 17117,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 98,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "UNVERIFIED"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "86",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 86",
+      "origin": "TOURNALOU BOUNE",
+      "destination": "TOUBAB DIALAW",
+      "official_name": "TOURNALOU BOUNE - TOUBAB DIALAW",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_NOT_FOUND",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_86"
+      ],
+      "trip_ids_count": 131,
+      "sample_trip_ids": [
+        "AFTU_86_Yeumbeul_1",
+        "AFTU_86_Yeumbeul_2",
+        "AFTU_86_Yeumbeul_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 8652,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 131,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "UNVERIFIED"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "87",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 87",
+      "origin": "BAMBILOR",
+      "destination": "MOSQUEE MASSALIKOU DJINANE",
+      "official_name": "BAMBILOR - MOSQUEE MASSALIKOU DJINANE",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_NOT_FOUND",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_87"
+      ],
+      "trip_ids_count": 100,
+      "sample_trip_ids": [
+        "AFTU_87_BAMBIBOR COMICO_1",
+        "AFTU_87_BAMBIBOR COMICO_2",
+        "AFTU_87_BAMBIBOR COMICO_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 6944,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 137,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "UNVERIFIED"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "88",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 88",
+      "origin": "MTOA",
+      "destination": "LIBERTE 5",
+      "official_name": "MTOA - LIBERTE 5",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_NOT_FOUND",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_88"
+      ],
+      "trip_ids_count": 105,
+      "sample_trip_ids": [
+        "AFTU_88_KEUR MASSAR_1",
+        "AFTU_88_KEUR MASSAR_2",
+        "AFTU_88_KEUR MASSAR_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 8331,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 157,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "UNVERIFIED"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "89",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 89",
+      "origin": "BARGNY",
+      "destination": "CROISEMENT NIAGUE (CITE SICAP)",
+      "official_name": "BARGNY - CROISEMENT NIAGUE (CITE SICAP)",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_NOT_FOUND",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_89"
+      ],
+      "trip_ids_count": 131,
+      "sample_trip_ids": [
+        "AFTU_89_bargny_1",
+        "AFTU_89_bargny_2",
+        "AFTU_89_bargny_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 7079,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 106,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "UNVERIFIED"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "91",
+      "vehicle_type": "TATA",
+      "public_label": "AFTU 91",
+      "origin": "APIX",
+      "destination": "DOUGAR",
+      "official_name": "APIX - DOUGAR",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_NOT_FOUND",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "AFTU_91"
+      ],
+      "trip_ids_count": 103,
+      "sample_trip_ids": [
+        "AFTU_91_APIX_1",
+        "AFTU_91_APIX_2",
+        "AFTU_91_APIX_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 7210,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 139,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://aftu-senegal.org/infos-pratiques/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "UNVERIFIED"
+    }
+  ],
+  "ddd": [
+    {
+      "operator": "DDD",
+      "line_number": "501",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 501",
+      "origin": "GARE DE DAKAR",
+      "destination": "PALAIS 2",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_501"
+      ],
+      "trip_ids_count": 300,
+      "sample_trip_ids": [
+        "DDD_501_GARE-DE-DAKAR_LAV_1",
+        "DDD_501_GARE-DE-DAKAR_LAV_2",
+        "DDD_501_GARE-DE-DAKAR_LAV_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 2700,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 16,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "CONFLICTING"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "502A",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 502A",
+      "origin": "COLOBANE",
+      "destination": "UCAD",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_NOT_FOUND",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "NO_SCHEDULE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "NOT_VERIFIED",
+      "feed_route_ids": [],
+      "trip_ids_count": 0,
+      "sample_trip_ids": [],
+      "direction_ids": [],
+      "stop_times_count": 0,
+      "stop_sequence_present": false,
+      "stop_sequence_strict": false,
+      "sequence_quality": "ABSENT",
+      "served_stop_count": 0,
+      "unresolved_reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "blocking": {
+        "operator": "DDD",
+        "line_number": "502A",
+        "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+        "missing_fields": [
+          "route_id",
+          "trip_id",
+          "direction_id",
+          "stop_id",
+          "stop_sequence",
+          "stop_times"
+        ],
+        "consulted_sources": [
+          "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+          "feeds opérationnels embarqués (ddd.json / aftu.json)"
+        ],
+        "next_action": "Obtenir de la source la preuve que la variante « 502A » emprunte bien la route au numéro nu (DDD_502) AVANT tout raccordement. Sans cette preuve, la fusion est interdite (identités publiques distinctes).",
+        "feed_route_ids_present": [],
+        "bare_number_route_ids": [
+          "DDD_502"
+        ]
+      },
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "502B",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 502B",
+      "origin": "COLOBANE",
+      "destination": "ABASS NDAO",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_NOT_FOUND",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "NO_SCHEDULE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "NOT_VERIFIED",
+      "feed_route_ids": [],
+      "trip_ids_count": 0,
+      "sample_trip_ids": [],
+      "direction_ids": [],
+      "stop_times_count": 0,
+      "stop_sequence_present": false,
+      "stop_sequence_strict": false,
+      "sequence_quality": "ABSENT",
+      "served_stop_count": 0,
+      "unresolved_reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "blocking": {
+        "operator": "DDD",
+        "line_number": "502B",
+        "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+        "missing_fields": [
+          "route_id",
+          "trip_id",
+          "direction_id",
+          "stop_id",
+          "stop_sequence",
+          "stop_times"
+        ],
+        "consulted_sources": [
+          "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+          "feeds opérationnels embarqués (ddd.json / aftu.json)"
+        ],
+        "next_action": "Obtenir de la source la preuve que la variante « 502B » emprunte bien la route au numéro nu (DDD_502) AVANT tout raccordement. Sans cette preuve, la fusion est interdite (identités publiques distinctes).",
+        "feed_route_ids_present": [],
+        "bare_number_route_ids": [
+          "DDD_502"
+        ]
+      },
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "503A",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 503A",
+      "origin": "COLOBANE",
+      "destination": "MOLE 8",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_NOT_FOUND",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "NO_SCHEDULE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "NOT_VERIFIED",
+      "feed_route_ids": [],
+      "trip_ids_count": 0,
+      "sample_trip_ids": [],
+      "direction_ids": [],
+      "stop_times_count": 0,
+      "stop_sequence_present": false,
+      "stop_sequence_strict": false,
+      "sequence_quality": "ABSENT",
+      "served_stop_count": 0,
+      "unresolved_reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "blocking": {
+        "operator": "DDD",
+        "line_number": "503A",
+        "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+        "missing_fields": [
+          "route_id",
+          "trip_id",
+          "direction_id",
+          "stop_id",
+          "stop_sequence",
+          "stop_times"
+        ],
+        "consulted_sources": [
+          "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+          "feeds opérationnels embarqués (ddd.json / aftu.json)"
+        ],
+        "next_action": "Obtenir de la source la preuve que la variante « 503A » emprunte bien la route au numéro nu (DDD_503) AVANT tout raccordement. Sans cette preuve, la fusion est interdite (identités publiques distinctes).",
+        "feed_route_ids_present": [],
+        "bare_number_route_ids": [
+          "DDD_503"
+        ]
+      },
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "503B",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 503B",
+      "origin": "COLOBANE",
+      "destination": "HYDROCARBURE",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_NOT_FOUND",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "NO_SCHEDULE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "NOT_VERIFIED",
+      "feed_route_ids": [],
+      "trip_ids_count": 0,
+      "sample_trip_ids": [],
+      "direction_ids": [],
+      "stop_times_count": 0,
+      "stop_sequence_present": false,
+      "stop_sequence_strict": false,
+      "sequence_quality": "ABSENT",
+      "served_stop_count": 0,
+      "unresolved_reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "blocking": {
+        "operator": "DDD",
+        "line_number": "503B",
+        "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+        "missing_fields": [
+          "route_id",
+          "trip_id",
+          "direction_id",
+          "stop_id",
+          "stop_sequence",
+          "stop_times"
+        ],
+        "consulted_sources": [
+          "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+          "feeds opérationnels embarqués (ddd.json / aftu.json)"
+        ],
+        "next_action": "Obtenir de la source la preuve que la variante « 503B » emprunte bien la route au numéro nu (DDD_503) AVANT tout raccordement. Sans cette preuve, la fusion est interdite (identités publiques distinctes).",
+        "feed_route_ids_present": [],
+        "bare_number_route_ids": [
+          "DDD_503"
+        ]
+      },
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "504A",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 504A",
+      "origin": "GARE DIAMNIADIO",
+      "destination": "SPHERE MINISTERIEL",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_NOT_FOUND",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "NO_SCHEDULE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "NOT_VERIFIED",
+      "feed_route_ids": [],
+      "trip_ids_count": 0,
+      "sample_trip_ids": [],
+      "direction_ids": [],
+      "stop_times_count": 0,
+      "stop_sequence_present": false,
+      "stop_sequence_strict": false,
+      "sequence_quality": "ABSENT",
+      "served_stop_count": 0,
+      "unresolved_reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "blocking": {
+        "operator": "DDD",
+        "line_number": "504A",
+        "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+        "missing_fields": [
+          "route_id",
+          "trip_id",
+          "direction_id",
+          "stop_id",
+          "stop_sequence",
+          "stop_times"
+        ],
+        "consulted_sources": [
+          "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+          "feeds opérationnels embarqués (ddd.json / aftu.json)"
+        ],
+        "next_action": "Obtenir de la source la preuve que la variante « 504A » emprunte bien la route au numéro nu (DDD_504) AVANT tout raccordement. Sans cette preuve, la fusion est interdite (identités publiques distinctes).",
+        "feed_route_ids_present": [],
+        "bare_number_route_ids": [
+          "DDD_504"
+        ]
+      },
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "504B",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 504B",
+      "origin": "SEBIKOTANE",
+      "destination": "GARE DIAMNIADIO",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_NOT_FOUND",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "NO_SCHEDULE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "NOT_VERIFIED",
+      "feed_route_ids": [],
+      "trip_ids_count": 0,
+      "sample_trip_ids": [],
+      "direction_ids": [],
+      "stop_times_count": 0,
+      "stop_sequence_present": false,
+      "stop_sequence_strict": false,
+      "sequence_quality": "ABSENT",
+      "served_stop_count": 0,
+      "unresolved_reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "blocking": {
+        "operator": "DDD",
+        "line_number": "504B",
+        "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+        "missing_fields": [
+          "route_id",
+          "trip_id",
+          "direction_id",
+          "stop_id",
+          "stop_sequence",
+          "stop_times"
+        ],
+        "consulted_sources": [
+          "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+          "feeds opérationnels embarqués (ddd.json / aftu.json)"
+        ],
+        "next_action": "Obtenir de la source la preuve que la variante « 504B » emprunte bien la route au numéro nu (DDD_504) AVANT tout raccordement. Sans cette preuve, la fusion est interdite (identités publiques distinctes).",
+        "feed_route_ids_present": [],
+        "bare_number_route_ids": [
+          "DDD_504"
+        ]
+      },
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "1",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 1",
+      "origin": "PARCELLES ASSAINIES",
+      "destination": "PLACE LECLERC",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "SCHEDULE_CONFIRMED",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_01"
+      ],
+      "trip_ids_count": 208,
+      "sample_trip_ids": [
+        "DDD_01_PARCELLES-ASSAINIES_LAV_1",
+        "DDD_01_PARCELLES-ASSAINIES_LAV_2",
+        "DDD_01_PARCELLES-ASSAINIES_LAV_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 8825,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 83,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "CONFIRMED"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "4",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 4",
+      "origin": "LIBERTÉ 5",
+      "destination": "PLACE LECLERC",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_04"
+      ],
+      "trip_ids_count": 156,
+      "sample_trip_ids": [
+        "DDD_04_DIEUPPEUL_LAV_1",
+        "DDD_04_DIEUPPEUL_LAV_2",
+        "DDD_04_DIEUPPEUL_LAV_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 5691,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 71,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "CONFIRMED"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "7",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 7",
+      "origin": "OUAKAM",
+      "destination": "PALAIS 2",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_07"
+      ],
+      "trip_ids_count": 298,
+      "sample_trip_ids": [
+        "DDD_07_OUAKAM_LAV_1",
+        "DDD_07_OUAKAM_LAV_2",
+        "DDD_07_OUAKAM_LAV_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 10728,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 70,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "CONFIRMED"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "8",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 8",
+      "origin": "AÉROPORT LSS",
+      "destination": "PALAIS 2",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_08"
+      ],
+      "trip_ids_count": 202,
+      "sample_trip_ids": [
+        "DDD_08_AEROPORT-LSS_LAV_1",
+        "DDD_08_AEROPORT-LSS_LAV_2",
+        "DDD_08_AEROPORT-LSS_LAV_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 9803,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 95,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "CONFIRMED"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "9",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 9",
+      "origin": "LIBERTÉ 6",
+      "destination": "PALAIS 2",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_09"
+      ],
+      "trip_ids_count": 237,
+      "sample_trip_ids": [
+        "DDD_09_LIBERTE-06_LAV_1",
+        "DDD_09_LIBERTE-06_LAV_2",
+        "DDD_09_LIBERTE-06_LAV_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 7818,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 64,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "CONFIRMED"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "10",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 10",
+      "origin": "LIBERTÉ 5",
+      "destination": "PALAIS 2",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_10"
+      ],
+      "trip_ids_count": 185,
+      "sample_trip_ids": [
+        "DDD_10_LIBERTE 5_LAV_1",
+        "DDD_10_LIBERTE 5_LAV_2",
+        "DDD_10_LIBERTE 5_LAV_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 5894,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 62,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "CONFIRMED"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "13",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 13",
+      "origin": "LIBERTÉ 5",
+      "destination": "PALAIS 2",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_13"
+      ],
+      "trip_ids_count": 206,
+      "sample_trip_ids": [
+        "DDD_13_TERMINUS-DIEUPPEUL_LAV_1",
+        "DDD_13_TERMINUS-DIEUPPEUL_LAV_2",
+        "DDD_13_TERMINUS-DIEUPPEUL_LAV_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 5052,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 47,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "CONFIRMED"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "18",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 18",
+      "origin": "DIEUPPEUL",
+      "destination": "DIEUPPEUL",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_18"
+      ],
+      "trip_ids_count": 39,
+      "sample_trip_ids": [
+        "DDD_18_DIEUPEUL_LAV_1",
+        "DDD_18_DIEUPEUL_LAV_2",
+        "DDD_18_DIEUPEUL_LAV_3"
+      ],
+      "direction_ids": [
+        "1"
+      ],
+      "stop_times_count": 1677,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 43,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "CONFIRMED"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "20",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 20",
+      "origin": "DIEUPPEUL",
+      "destination": "DIEUPPEUL",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_20"
+      ],
+      "trip_ids_count": 39,
+      "sample_trip_ids": [
+        "DDD_20_DIEUPEUL_LAV_1",
+        "DDD_20_DIEUPEUL_LAV_2",
+        "DDD_20_DIEUPEUL_LAV_3"
+      ],
+      "direction_ids": [
+        "0"
+      ],
+      "stop_times_count": 1755,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 45,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "CONFIRMED"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "23",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 23",
+      "origin": "PARCELLES ASSAINIES",
+      "destination": "PALAIS 1",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_23"
+      ],
+      "trip_ids_count": 196,
+      "sample_trip_ids": [
+        "DDD_23_PARCELLE-ASSAINIES_LAV_1",
+        "DDD_23_PARCELLE-ASSAINIES_LAV_2",
+        "DDD_23_PARCELLE-ASSAINIES_LAV_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 11082,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 104,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "CONFLICTING"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "121",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 121",
+      "origin": "SCAT URBAM",
+      "destination": "LECLERC",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_121"
+      ],
+      "trip_ids_count": 225,
+      "sample_trip_ids": [
+        "DDD_121_SCAT URBAM_LAV_1",
+        "DDD_121_SCAT URBAM_LAV_2",
+        "DDD_121_SCAT URBAM_LAV_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 7668,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 66,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "CONFIRMED"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "319",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 319",
+      "origin": "LIBERTÉ 6",
+      "destination": "OUAKAM",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_319"
+      ],
+      "trip_ids_count": 288,
+      "sample_trip_ids": [
+        "DDD_319_OUAKAM_LAV_1",
+        "DDD_319_OUAKAM_LAV_2",
+        "DDD_319_OUAKAM_LAV_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 6768,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 45,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "502",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 502",
+      "origin": "GARE DE GARE",
+      "destination": "GARE DE GARE",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_502"
+      ],
+      "trip_ids_count": 52,
+      "sample_trip_ids": [
+        "DDD_502_COLOBANE-UCAD-COLOBANE_LAV_1",
+        "DDD_502_COLOBANE-UCAD-COLOBANE_LAV_2",
+        "DDD_502_COLOBANE-UCAD-COLOBANE_LAV_3"
+      ],
+      "direction_ids": [
+        "0"
+      ],
+      "stop_times_count": 780,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 15,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "503",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 503",
+      "origin": "GARE DE GARE",
+      "destination": "GARE DE GARE",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_503"
+      ],
+      "trip_ids_count": 52,
+      "sample_trip_ids": [
+        "DDD_503_COLOBANE-BELAIR-COLOBANE_LAV_1",
+        "DDD_503_COLOBANE-BELAIR-COLOBANE_LAV_2",
+        "DDD_503_COLOBANE-BELAIR-COLOBANE_LAV_3"
+      ],
+      "direction_ids": [
+        "1"
+      ],
+      "stop_times_count": 416,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 8,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "TO1",
+      "vehicle_type": "BUS",
+      "public_label": "DDD TO1",
+      "origin": "TAF TAF OUAKAM (TO1) : OUAKAM",
+      "destination": "PALAIS 2",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "NO_SCHEDULE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "NOT_VERIFIED",
+      "feed_route_ids": [],
+      "trip_ids_count": 0,
+      "sample_trip_ids": [],
+      "direction_ids": [],
+      "stop_times_count": 0,
+      "stop_sequence_present": false,
+      "stop_sequence_strict": false,
+      "sequence_quality": "ABSENT",
+      "served_stop_count": 0,
+      "unresolved_reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "blocking": {
+        "operator": "DDD",
+        "line_number": "TO1",
+        "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+        "missing_fields": [
+          "route_id",
+          "trip_id",
+          "direction_id",
+          "stop_id",
+          "stop_sequence",
+          "stop_times"
+        ],
+        "consulted_sources": [
+          "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+          "feeds opérationnels embarqués (ddd.json / aftu.json)"
+        ],
+        "next_action": "Obtenir de DDD un feed (ou une publication) exposant la route de la ligne « TO1 ». Aucune route de ce numéro n'existe dans le feed embarqué.",
+        "feed_route_ids_present": [],
+        "bare_number_route_ids": []
+      },
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "TAF",
+      "vehicle_type": "BUS",
+      "public_label": "DDD TAF",
+      "origin": "TAF TAF : OUAKAM",
+      "destination": "AIBD",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "NO_SCHEDULE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "NOT_VERIFIED",
+      "feed_route_ids": [],
+      "trip_ids_count": 0,
+      "sample_trip_ids": [],
+      "direction_ids": [],
+      "stop_times_count": 0,
+      "stop_sequence_present": false,
+      "stop_sequence_strict": false,
+      "sequence_quality": "ABSENT",
+      "served_stop_count": 0,
+      "unresolved_reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "blocking": {
+        "operator": "DDD",
+        "line_number": "TAF",
+        "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+        "missing_fields": [
+          "route_id",
+          "trip_id",
+          "direction_id",
+          "stop_id",
+          "stop_sequence",
+          "stop_times"
+        ],
+        "consulted_sources": [
+          "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+          "feeds opérationnels embarqués (ddd.json / aftu.json)"
+        ],
+        "next_action": "Obtenir de DDD un feed (ou une publication) exposant la route de la ligne « TAF ». Aucune route de ce numéro n'existe dans le feed embarqué.",
+        "feed_route_ids_present": [],
+        "bare_number_route_ids": []
+      },
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "TAF TAF",
+      "vehicle_type": "BUS",
+      "public_label": "DDD TAF TAF",
+      "origin": "OUAKAM",
+      "destination": "AIBD / SPHÈRE MINISTÉRIELLE (Diamniadio)",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_NOT_FOUND",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "NO_SCHEDULE",
+      "published_schedule_status": "SCHEDULE_CONFIRMED",
+      "mapping_status": "NOT_VERIFIED",
+      "feed_route_ids": [],
+      "trip_ids_count": 0,
+      "sample_trip_ids": [],
+      "direction_ids": [],
+      "stop_times_count": 0,
+      "stop_sequence_present": false,
+      "stop_sequence_strict": false,
+      "sequence_quality": "ABSENT",
+      "served_stop_count": 0,
+      "unresolved_reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "blocking": {
+        "operator": "DDD",
+        "line_number": "TAF TAF",
+        "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+        "missing_fields": [
+          "route_id",
+          "trip_id",
+          "direction_id",
+          "stop_id",
+          "stop_sequence",
+          "stop_times"
+        ],
+        "consulted_sources": [
+          "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+          "feeds opérationnels embarqués (ddd.json / aftu.json)"
+        ],
+        "next_action": "Obtenir de DDD un feed (ou une publication) exposant la route de la ligne « TAF TAF ». Aucune route de ce numéro n'existe dans le feed embarqué.",
+        "feed_route_ids_present": [],
+        "bare_number_route_ids": []
+      },
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "CONFIRMED"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "2",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 2",
+      "origin": "DAROUKHANE",
+      "destination": "PLACE LECLERC",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_02"
+      ],
+      "trip_ids_count": 172,
+      "sample_trip_ids": [
+        "DDD_02_DAROUKHANE_LAV_1",
+        "DDD_02_DAROUKHANE_LAV_2",
+        "DDD_02_DAROUKHANE_LAV_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 8902,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 102,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "CONFIRMED"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "5",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 5",
+      "origin": "GUÉDIAWAYE",
+      "destination": "PALAIS 1",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_05"
+      ],
+      "trip_ids_count": 216,
+      "sample_trip_ids": [
+        "DDD_05_GUEDIAWAYE_LAV_1",
+        "DDD_05_GUEDIAWAYE_LAV_2",
+        "DDD_05_GUEDIAWAYE_LAV_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 7905,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 71,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "CONFIRMED"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "6",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 6",
+      "origin": "CAMBÉRÈNE 2",
+      "destination": "PALAIS 2",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_06"
+      ],
+      "trip_ids_count": 163,
+      "sample_trip_ids": [
+        "DDD_06_CAMBERENE_LAV_1",
+        "DDD_06_CAMBERENE_LAV_2",
+        "DDD_06_CAMBERENE_LAV_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 8986,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 108,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "CONFLICTING"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "11",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 11",
+      "origin": "KEUR MASSAR",
+      "destination": "LAT DIOR",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_11"
+      ],
+      "trip_ids_count": 186,
+      "sample_trip_ids": [
+        "DDD_11_KEUR MASSAR_LAV_1",
+        "DDD_11_KEUR MASSAR_LAV_2",
+        "DDD_11_KEUR MASSAR_LAV_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 9031,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 95,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "CONFIRMED"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "12",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 12",
+      "origin": "GUÉDIAWAYE",
+      "destination": "PALAIS 1",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_12"
+      ],
+      "trip_ids_count": 196,
+      "sample_trip_ids": [
+        "DDD_12_Guediawaye_LAV_1",
+        "DDD_12_Guediawaye_LAV_2",
+        "DDD_12_Guediawaye_LAV_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 11659,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 117,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "CONFIRMED"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "15",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 15",
+      "origin": "RUFISQUE",
+      "destination": "PALAIS 1",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_15"
+      ],
+      "trip_ids_count": 208,
+      "sample_trip_ids": [
+        "DDD_15_RUFISQUE_LAV_1",
+        "DDD_15_RUFISQUE_LAV_2",
+        "DDD_15_RUFISQUE_LAV_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 9170,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 86,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "CONFIRMED"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "15A",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 15A",
+      "origin": "RUFISQUE",
+      "destination": "PALAIS 1",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_NOT_FOUND",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "NO_SCHEDULE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "NOT_VERIFIED",
+      "feed_route_ids": [],
+      "trip_ids_count": 0,
+      "sample_trip_ids": [],
+      "direction_ids": [],
+      "stop_times_count": 0,
+      "stop_sequence_present": false,
+      "stop_sequence_strict": false,
+      "sequence_quality": "ABSENT",
+      "served_stop_count": 0,
+      "unresolved_reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "blocking": {
+        "operator": "DDD",
+        "line_number": "15A",
+        "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+        "missing_fields": [
+          "route_id",
+          "trip_id",
+          "direction_id",
+          "stop_id",
+          "stop_sequence",
+          "stop_times"
+        ],
+        "consulted_sources": [
+          "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+          "feeds opérationnels embarqués (ddd.json / aftu.json)"
+        ],
+        "next_action": "Obtenir de la source la preuve que la variante « 15A » emprunte bien la route au numéro nu (DDD_15) AVANT tout raccordement. Sans cette preuve, la fusion est interdite (identités publiques distinctes).",
+        "feed_route_ids_present": [],
+        "bare_number_route_ids": [
+          "DDD_15"
+        ]
+      },
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "15B",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 15B",
+      "origin": "RUFISQUE",
+      "destination": "PALAIS 1",
+      "identity_status": "CONFIRMED",
+      "route_status": "ROUTE_NOT_FOUND",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "NO_SCHEDULE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "NOT_VERIFIED",
+      "feed_route_ids": [],
+      "trip_ids_count": 0,
+      "sample_trip_ids": [],
+      "direction_ids": [],
+      "stop_times_count": 0,
+      "stop_sequence_present": false,
+      "stop_sequence_strict": false,
+      "sequence_quality": "ABSENT",
+      "served_stop_count": 0,
+      "unresolved_reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "blocking": {
+        "operator": "DDD",
+        "line_number": "15B",
+        "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+        "missing_fields": [
+          "route_id",
+          "trip_id",
+          "direction_id",
+          "stop_id",
+          "stop_sequence",
+          "stop_times"
+        ],
+        "consulted_sources": [
+          "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+          "feeds opérationnels embarqués (ddd.json / aftu.json)"
+        ],
+        "next_action": "Obtenir de la source la preuve que la variante « 15B » emprunte bien la route au numéro nu (DDD_15) AVANT tout raccordement. Sans cette preuve, la fusion est interdite (identités publiques distinctes).",
+        "feed_route_ids_present": [],
+        "bare_number_route_ids": [
+          "DDD_15"
+        ]
+      },
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "16A",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 16A",
+      "origin": "MALIKA",
+      "destination": "PALAIS 1",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "NO_SCHEDULE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "NOT_VERIFIED",
+      "feed_route_ids": [],
+      "trip_ids_count": 0,
+      "sample_trip_ids": [],
+      "direction_ids": [],
+      "stop_times_count": 0,
+      "stop_sequence_present": false,
+      "stop_sequence_strict": false,
+      "sequence_quality": "ABSENT",
+      "served_stop_count": 0,
+      "unresolved_reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "blocking": {
+        "operator": "DDD",
+        "line_number": "16A",
+        "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+        "missing_fields": [
+          "route_id",
+          "trip_id",
+          "direction_id",
+          "stop_id",
+          "stop_sequence",
+          "stop_times"
+        ],
+        "consulted_sources": [
+          "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+          "feeds opérationnels embarqués (ddd.json / aftu.json)"
+        ],
+        "next_action": "Obtenir de la source la preuve que la variante « 16A » emprunte bien la route au numéro nu (DDD_16) AVANT tout raccordement. Sans cette preuve, la fusion est interdite (identités publiques distinctes).",
+        "feed_route_ids_present": [],
+        "bare_number_route_ids": [
+          "DDD_16"
+        ]
+      },
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "CONFIRMED"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "16B",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 16B",
+      "origin": "MALIKA",
+      "destination": "PALAIS 1",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "NO_SCHEDULE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "NOT_VERIFIED",
+      "feed_route_ids": [],
+      "trip_ids_count": 0,
+      "sample_trip_ids": [],
+      "direction_ids": [],
+      "stop_times_count": 0,
+      "stop_sequence_present": false,
+      "stop_sequence_strict": false,
+      "sequence_quality": "ABSENT",
+      "served_stop_count": 0,
+      "unresolved_reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "blocking": {
+        "operator": "DDD",
+        "line_number": "16B",
+        "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+        "missing_fields": [
+          "route_id",
+          "trip_id",
+          "direction_id",
+          "stop_id",
+          "stop_sequence",
+          "stop_times"
+        ],
+        "consulted_sources": [
+          "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+          "feeds opérationnels embarqués (ddd.json / aftu.json)"
+        ],
+        "next_action": "Obtenir de la source la preuve que la variante « 16B » emprunte bien la route au numéro nu (DDD_16) AVANT tout raccordement. Sans cette preuve, la fusion est interdite (identités publiques distinctes).",
+        "feed_route_ids_present": [],
+        "bare_number_route_ids": [
+          "DDD_16"
+        ]
+      },
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "CONFIRMED"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "208",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 208",
+      "origin": "BAYAKH",
+      "destination": "RUFISQUE",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_208"
+      ],
+      "trip_ids_count": 170,
+      "sample_trip_ids": [
+        "DDD_208_BAYAKH_LAV_1",
+        "DDD_208_BAYAKH_LAV_2",
+        "DDD_208_BAYAKH_LAV_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 5525,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 63,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "CONFLICTING"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "213",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 213",
+      "origin": "RUFISQUE",
+      "destination": "DIEUPPEUL",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_213"
+      ],
+      "trip_ids_count": 161,
+      "sample_trip_ids": [
+        "DDD_213_RUFISQUE_LAV_1",
+        "DDD_213_RUFISQUE_LAV_2",
+        "DDD_213_RUFISQUE_LAV_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 7728,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 94,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "CONFIRMED"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "217",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 217",
+      "origin": "THIAROYE",
+      "destination": "OUAKAM",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_217"
+      ],
+      "trip_ids_count": 192,
+      "sample_trip_ids": [
+        "DDD_217_THIAROYE_LAV_1",
+        "DDD_217_THIAROYE_LAV_2",
+        "DDD_217_THIAROYE_LAV_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 11844,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 124,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "CONFLICTING"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "218",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 218",
+      "origin": "THIAROYE",
+      "destination": "AÉROPORT LSS",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_218"
+      ],
+      "trip_ids_count": 153,
+      "sample_trip_ids": [
+        "DDD_218_THIAROYE_LAV_1",
+        "DDD_218_THIAROYE_LAV_2",
+        "DDD_218_THIAROYE_LAV_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 5268,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 67,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "CONFLICTING"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "219",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 219",
+      "origin": "DAROUKHANE",
+      "destination": "OUAKAM",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_219"
+      ],
+      "trip_ids_count": 188,
+      "sample_trip_ids": [
+        "DDD_219_DAROUKHANE_LAV_1",
+        "DDD_219_DAROUKHANE_LAV_2",
+        "DDD_219_DAROUKHANE_LAV_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 11183,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 117,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "CONFIRMED"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "220",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 220",
+      "origin": "RUFISQUE",
+      "destination": "GUÉDIAWAYE",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_220"
+      ],
+      "trip_ids_count": 156,
+      "sample_trip_ids": [
+        "DDD_220_DAROUKHANE_LAV_1",
+        "DDD_220_DAROUKHANE_LAV_2",
+        "DDD_220_DAROUKHANE_LAV_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 5768,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 72,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "CONFIRMED"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "221",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 221",
+      "origin": "GADAYE",
+      "destination": "ALMADIES",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_221"
+      ],
+      "trip_ids_count": 159,
+      "sample_trip_ids": [
+        "DDD_221_GADAYE_LAV_1",
+        "DDD_221_GADAYE_LAV_2",
+        "DDD_221_GADAYE_LAV_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 8579,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 106,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "CONFIRMED"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "227",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 227",
+      "origin": "TERMINUS KEUR MASSAR",
+      "destination": "TERMINUS PARCELLES",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_227"
+      ],
+      "trip_ids_count": 181,
+      "sample_trip_ids": [
+        "DDD_227_KEUR-MASSAR_LAV_1",
+        "DDD_227_KEUR-MASSAR_LAV_2",
+        "DDD_227_KEUR-MASSAR_LAV_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 7595,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 82,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "CONFIRMED"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "228",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 228",
+      "origin": "TERMINUS RUFISQUE",
+      "destination": "YENNE",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_228"
+      ],
+      "trip_ids_count": 113,
+      "sample_trip_ids": [
+        "DDD_228_RUFISQUE_LAV_1",
+        "DDD_228_RUFISQUE_LAV_2",
+        "DDD_228_RUFISQUE_LAV_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 3164,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 54,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "CONFIRMED"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "232",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 232",
+      "origin": "BAUX MARAICHERS",
+      "destination": "AÉROPORT LSS",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_232"
+      ],
+      "trip_ids_count": 136,
+      "sample_trip_ids": [
+        "DDD_232_BAUX-MARAICHERS_LAV_1",
+        "DDD_232_BAUX-MARAICHERS_LAV_2",
+        "DDD_232_BAUX-MARAICHERS_LAV_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 4896,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 70,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "CONFLICTING"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "233",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 233",
+      "origin": "BAUX MARAICHERS",
+      "destination": "PALAIS 1",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_233"
+      ],
+      "trip_ids_count": 129,
+      "sample_trip_ids": [
+        "DDD_233_BAUX-MARAICHERS_LAV_1",
+        "DDD_233_BAUX-MARAICHERS_LAV_2",
+        "DDD_233_BAUX-MARAICHERS_LAV_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 5160,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 78,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "CONFLICTING"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "234",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 234",
+      "origin": "JAXAAY",
+      "destination": "LECLERC",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_234"
+      ],
+      "trip_ids_count": 138,
+      "sample_trip_ids": [
+        "DDD_234_JAXAAY_LAV_1",
+        "DDD_234_JAXAAY_LAV_2",
+        "DDD_234_JAXAAY_LAV_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 4768,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 67,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "CONFIRMED"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "311",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 311",
+      "origin": "LAC ROSE",
+      "destination": "CROISSEMENT KEUR MASSAR",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "SCHEDULE_AVAILABLE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
+      "feed_route_ids": [
+        "DDD_311"
+      ],
+      "trip_ids_count": 82,
+      "sample_trip_ids": [
+        "DDD_311_TIV-PEULH_LAV_1",
+        "DDD_311_TIV-PEULH_LAV_2",
+        "DDD_311_TIV-PEULH_LAV_3"
+      ],
+      "direction_ids": [
+        "0",
+        "1"
+      ],
+      "stop_times_count": 697,
+      "stop_sequence_present": true,
+      "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
+      "served_stop_count": 17,
+      "unresolved_reason": null,
+      "blocking": null,
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "327",
+      "vehicle_type": "BUS",
+      "public_label": "DDD 327",
+      "origin": "KEUR MASSAR",
+      "destination": "TERMINUS PARCELLES",
+      "identity_status": "CONFIRMED",
+      "route_status": "STOP_SEQUENCE_CONFIRMED",
+      "stops_status": "UNKNOWN",
+      "schedule_status": "NO_SCHEDULE",
+      "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "NOT_VERIFIED",
+      "feed_route_ids": [],
+      "trip_ids_count": 0,
+      "sample_trip_ids": [],
+      "direction_ids": [],
+      "stop_times_count": 0,
+      "stop_sequence_present": false,
+      "stop_sequence_strict": false,
+      "sequence_quality": "ABSENT",
+      "served_stop_count": 0,
+      "unresolved_reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "blocking": {
+        "operator": "DDD",
+        "line_number": "327",
+        "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+        "missing_fields": [
+          "route_id",
+          "trip_id",
+          "direction_id",
+          "stop_id",
+          "stop_sequence",
+          "stop_times"
+        ],
+        "consulted_sources": [
+          "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+          "feeds opérationnels embarqués (ddd.json / aftu.json)"
+        ],
+        "next_action": "Obtenir de DDD un feed (ou une publication) exposant la route de la ligne « 327 ». Aucune route de ce numéro n'existe dans le feed embarqué.",
+        "feed_route_ids_present": [],
+        "bare_number_route_ids": []
+      },
+      "source": "https://demdikk.sn/info-voyageurs/",
+      "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
+      "verified_at": "2026-09-25",
+      "canonical_status": "PARTIAL"
+    }
+  ],
+  "tata_audit": [
+    {
+      "route_id": "new_commune_11",
+      "operator": "AFTU",
+      "vehicle_type": "TATA",
+      "line_number": null,
+      "public_label": null,
+      "identity_status": "UNVERIFIED",
+      "canonical_status": "UNVERIFIED (identifiant technique : aucun numéro officiel établi — erratum 1.1 ; ⚠️ ne pas confondre avec DDD 11)",
+      "internal_short_name": "NEW 11",
+      "source": "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+      "verified_at": "2026-09-25",
+      "note": "Identité technique interne conservée pour audit. Aucun numéro officiel Tata n'est établi : cette entrée ne doit jamais être rendue comme une ligne publique."
+    },
+    {
+      "route_id": "new_commune_12",
+      "operator": "AFTU",
+      "vehicle_type": "TATA",
+      "line_number": null,
+      "public_label": null,
+      "identity_status": "UNVERIFIED",
+      "canonical_status": "UNVERIFIED (identifiant technique : aucun numéro officiel établi — erratum 1.1 ; ⚠️ ne pas confondre avec DDD 12)",
+      "internal_short_name": "NEW 12",
+      "source": "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+      "verified_at": "2026-09-25",
+      "note": "Identité technique interne conservée pour audit. Aucun numéro officiel Tata n'est établi : cette entrée ne doit jamais être rendue comme une ligne publique."
+    },
+    {
+      "route_id": "tata_218",
+      "operator": "AFTU",
+      "vehicle_type": "TATA",
+      "line_number": null,
+      "public_label": null,
+      "identity_status": "CONFLICTING",
+      "canonical_status": "CONFLICTING (numéro déjà pris : DDD 218)",
+      "internal_short_name": "Tata 218",
+      "source": "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+      "verified_at": "2026-09-25",
+      "note": "Identité technique interne conservée pour audit. Aucun numéro officiel Tata n'est établi : cette entrée ne doit jamais être rendue comme une ligne publique."
+    },
+    {
+      "route_id": "tata_219",
+      "operator": "AFTU",
+      "vehicle_type": "TATA",
+      "line_number": null,
+      "public_label": null,
+      "identity_status": "CONFLICTING",
+      "canonical_status": "CONFLICTING (numéro déjà pris : DDD 219)",
+      "internal_short_name": "Tata 219",
+      "source": "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+      "verified_at": "2026-09-25",
+      "note": "Identité technique interne conservée pour audit. Aucun numéro officiel Tata n'est établi : cette entrée ne doit jamais être rendue comme une ligne publique."
+    },
+    {
+      "route_id": "tata_50",
+      "operator": "AFTU",
+      "vehicle_type": "TATA",
+      "line_number": null,
+      "public_label": null,
+      "identity_status": "CONFLICTING",
+      "canonical_status": "CONFLICTING (numéro déjà pris : AFTU 50)",
+      "internal_short_name": "Tata 50",
+      "source": "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+      "verified_at": "2026-09-25",
+      "note": "Identité technique interne conservée pour audit. Aucun numéro officiel Tata n'est établi : cette entrée ne doit jamais être rendue comme une ligne publique."
+    },
+    {
+      "route_id": "tata_64",
+      "operator": "AFTU",
+      "vehicle_type": "TATA",
+      "line_number": null,
+      "public_label": null,
+      "identity_status": "CONFLICTING",
+      "canonical_status": "CONFLICTING (numéro déjà pris : AFTU 64)",
+      "internal_short_name": "Tata 64",
+      "source": "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+      "verified_at": "2026-09-25",
+      "note": "Identité technique interne conservée pour audit. Aucun numéro officiel Tata n'est établi : cette entrée ne doit jamais être rendue comme une ligne publique."
+    },
+    {
+      "route_id": "tata_78",
+      "operator": "AFTU",
+      "vehicle_type": "TATA",
+      "line_number": null,
+      "public_label": null,
+      "identity_status": "CONFLICTING",
+      "canonical_status": "CONFLICTING (numéro déjà pris : AFTU 78)",
+      "internal_short_name": "Tata 78",
+      "source": "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+      "verified_at": "2026-09-25",
+      "note": "Identité technique interne conservée pour audit. Aucun numéro officiel Tata n'est établi : cette entrée ne doit jamais être rendue comme une ligne publique."
+    }
+  ]
+}
