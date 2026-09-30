@@ -4103,7 +4103,7 @@ class TerminusPolePage extends StatelessWidget {
               )),
               const SizedBox(height: 12),
               _section('Source', dark, child: Text(
-                "Terminus dérivés des feeds PassBi (DDD/AFTU) — premier et dernier "
+                "Terminus dérivés des données opérationnelles DDD/AFTU — premier et dernier "
                 "arrêt réellement desservis par chaque trip. Aucun horaire, aucun "
                 "arrêt et aucune ligne ne sont inventés. Statut UNKNOWN conservé "
                 "quand la preuve manque.",
