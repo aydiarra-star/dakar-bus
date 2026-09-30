@@ -11,6 +11,7 @@ import 'models/transport_network.dart';
 import 'models/reliability.dart';
 import 'models/departure_info.dart';
 import 'models/schedule_display.dart';
+import 'models/service_availability.dart';
 import 'services/data_service.dart';
 import 'services/dakar_clock.dart';
 import 'services/documented_route_identity.dart';
@@ -376,6 +377,53 @@ String stripPassBiFromLabel(String label) {
   s = s.replaceAll(RegExp(r'^\s*[·|-]\s*'), '');
   s = s.replaceAll(RegExp(r'\s*[·|-]\s*$'), '');
   return s.replaceAll(RegExp(r'\s{2,}'), ' ').trim();
+}
+
+/// Durée restante jusqu'à [target] depuis [now] (heure de Dakar), formatée pour
+/// l'utilisateur : « dans N min » (< 1 h), « dans N h MM » (< 24 h), « le JJ/MM
+/// à HH:MM » (≥ 24 h). `''` si [target] est déjà atteint (jamais « dans -3 min »).
+///
+/// Présentation seule : aucune donnée n'est créée.
+String remainingUntilLabel(DateTime target, DateTime now) {
+  final DateTime t = now.isUtc ? now : now.toUtc();
+  final DateTime g = target.isUtc ? target : target.toUtc();
+  final int minutes = g.difference(t).inMinutes;
+  if (minutes < 1) return '';
+  if (minutes < 60) return 'dans $minutes min';
+  if (minutes < 24 * 60) {
+    final int h = minutes ~/ 60;
+    final int m = minutes % 60;
+    return 'dans $h h ${m.toString().padLeft(2, '0')}';
+  }
+  return 'le ${_two(g.day)}/${_two(g.month)} à ${_two(g.hour)}:${_two(g.minute)}';
+}
+
+String _two(int v) => v.toString().padLeft(2, '0');
+
+/// Message « Fin de service » d'une disponibilité de service, ou `null` si
+/// aucun message ne doit être affiché (service actif, indisponibilité non
+/// documentée, ou reprise déjà atteinte).
+///
+/// Règles absolues :
+///  * ne produit un message QUE si le service du jour est RÉELLEMENT terminé
+///    ([ServiceAvailabilityStatus.serviceEnded]) — jamais sur une absence de
+///    donnée, jamais sur une fréquence ;
+///  * annonce la reprise DOCUMENTÉE (« reprise à HH:MM », heure de Dakar) et le
+///    délai restant ; sans premier départ documenté, la reprise n'est pas
+///    affichée (aucune heure inventée) ;
+///  * une fois la reprise atteinte, retourne `null` (l'affichage redevient
+///    actif : « reprise automatique »).
+String? serviceNoticeFor(ServiceAvailability? availability, DateTime now) {
+  if (availability == null) return null;
+  if (availability.status != ServiceAvailabilityStatus.serviceEnded) return null;
+  if (availability.isResumedAt(now)) return null;
+  final DateTime t = now.isUtc ? now : now.toUtc();
+  final DateTime? resume = availability.resumptionAt;
+  if (resume == null) return ServiceAvailability.labelServiceEnded;
+  final String hhmm = '${_two(resume.hour)}:${_two(resume.minute)}';
+  final String remaining = remainingUntilLabel(resume, t);
+  final String suffix = remaining.isEmpty ? '' : ' ($remaining)';
+  return '${ServiceAvailability.labelServiceEnded} — reprise à $hhmm$suffix';
 }
 
 // ============================================================
@@ -939,39 +987,82 @@ class Stop {
   /// Une fréquence ne produit JAMAIS de liste de départs ; sans stop_time
   /// réel applicable la liste est vide (l'UI affiche alors « Horaire
   /// indisponible » — jamais de faux temps).
-  List<DepartureInfo> nextRealDepartures({DateTime? at, int limit = 3}) {
+  List<DepartureInfo> nextRealDepartures({DateTime? at, int limit = 3, DateTime? horizon}) {
+    final List<DepartureInfo> base;
     final String? key = passBiStopKey;
     if (key != null) {
-      return appDataService.passBiNextDeparturesForCompositeStop(
+      base = appDataService.passBiNextDeparturesForCompositeStop(
         compositeStopId: key,
         at: at,
         limit: limit,
       );
+    } else {
+      base = appDataService.nextDeparturesFor(
+        network: modeLabel,
+        routeId: scheduleRouteId,
+        stopId: stopId,
+        at: at,
+        limit: limit,
+      );
     }
-    return appDataService.nextDeparturesFor(
-      network: modeLabel,
-      routeId: scheduleRouteId,
-      stopId: stopId,
-      at: at,
-      limit: limit,
-    );
+    // Borne d'affichage : un départ du service SUIVANT (au-delà de la reprise
+    // documentée) n'est jamais présenté comme une attente du service en cours.
+    if (horizon == null) return base;
+    return base
+        .where((info) =>
+            info.scheduledTime == null || info.scheduledTime!.isBefore(horizon))
+        .toList(growable: false);
   }
 
   /// Lot 4.22 (Explorer) — Minutes d'attente (arrondi vers le haut, jamais 0)
   /// des prochains passages RÉELS : `ceil(waitSeconds / 60)`. Liste vide si
   /// aucun passage réel — un départ déjà passé est ignoré.
-  List<int> nextRealWaitingMinutes({DateTime? at, int limit = 3}) {
+  List<int> nextRealWaitingMinutes({DateTime? at, int limit = 3, DateTime? horizon}) {
     // FUSION LOT 1 (#40) : référence par défaut = heure de Dakar, jamais
     // l'heure locale du navigateur.
     final DateTime now = at == null ? DakarClock.now() : DakarClock.toDakar(at);
     final List<int> out = <int>[];
-    for (final DepartureInfo info in nextRealDepartures(at: now, limit: limit)) {
+    for (final DepartureInfo info
+        in nextRealDepartures(at: now, limit: limit, horizon: horizon)) {
       final DateTime? departureTime = info.scheduledTime;
       if (departureTime == null) continue;
       final int? minutes = waitingMinutesBetween(departureTime, now);
       if (minutes != null) out.add(minutes);
     }
     return out;
+  }
+
+  /// Repli legacy « X min » (horaire EXACT en minutes-depuis-minuit) borné par
+  /// [horizon] : un horaire du service suivant est ignoré, jamais affiché comme
+  /// une attente aberrante. Une fréquence (`estimated`) ne produit rien.
+  String? legacyRemainingWithin(DateTime? horizon, {DateTime? at}) {
+    final int? minutes = realRemainingMinutes(at: at);
+    if (minutes == null) return null;
+    final DateTime? departure = departureInfo.scheduledTime;
+    if (horizon != null && departure != null && !departure.isBefore(horizon)) {
+      return null;
+    }
+    return DepartureInfo.formatRemainingMinutes(minutes);
+  }
+
+  /// Lot fin de service — disponibilité du service journalier de la mobilité
+  /// portée par cet arrêt, à [at] (heure de Dakar).
+  ///
+  /// `null` lorsque l'arrêt ne porte aucune identité de mobilité documentée
+  /// (arrêt legacy sans réseau PassBi) : aucune fin de service n'est déduite.
+  /// Sinon, la disponibilité est calculée sur les bornes DOCUMENTÉES du réseau
+  /// ([DataService.serviceAvailabilityFor]) — jamais sur une fréquence.
+  ServiceAvailability? serviceAvailability({DateTime? at}) {
+    final String? key = passBiStopKey;
+    final String? network = key == null
+        ? (scheduleRouteId != null ? modeLabel : null)
+        : key.split(':').first;
+    if (network == null) return null;
+    if (!const <String>{'TER', 'BRT', 'DDD', 'AFTU'}.contains(network)) {
+      return null;
+    }
+    final DateTime now = at == null ? DakarClock.now() : DakarClock.toDakar(at);
+    return appDataService.serviceAvailabilityFor(network, now);
   }
 
   const Stop({
@@ -3481,7 +3572,11 @@ class _ExplorerPageState extends State<ExplorerPage> {
 // ============================================================
 class StopCard extends StatelessWidget {
   final Stop stop; final double distanceMeters;
-  const StopCard({super.key, required this.stop, required this.distanceMeters});
+  /// Instant de référence optionnel (heure de Dakar). Par défaut : l'heure
+  /// courante ([DakarClock.now]). N'est là que pour des rendus déterministes
+  /// (tests) — la production ne le renseigne jamais.
+  final DateTime? at;
+  const StopCard({super.key, required this.stop, required this.distanceMeters, this.at});
 
   @override
   Widget build(BuildContext context) {
@@ -3509,15 +3604,31 @@ class StopCard extends StatelessWidget {
         // l'heure de Dakar ([DakarClock.now], jamais `DateTime.now()` local) et
         // les minutes sont calculées par `waitingMinutesBetween` (ceil, jamais
         // 0, jamais un départ passé) — les deux règles sont conservées.
-        final DateTime now = DakarClock.now();
-        final List<DepartureInfo> prochains = stop.nextRealDepartures(at: now);
-        final List<int> waits = <int>[];
-        for (final DepartureInfo info in prochains) {
-          final DateTime? departureTime = info.scheduledTime;
-          if (departureTime == null) continue;
-          final int? minutes = waitingMinutesBetween(departureTime, now);
-          if (minutes != null) waits.add(minutes);
-        }
+        final DateTime? reference = at;
+        final DateTime now =
+            reference == null ? DakarClock.now() : DakarClock.toDakar(reference);
+        // LOT fin de service — « Fin de service » n'est posé que si le service
+        // documenté du jour est RÉELLEMENT terminé (dernier départ embarquable
+        // dépassé). Le calcul est indépendant de l'arrêt : la disponibilité
+        // `active` ne produit aucun message, même si cet arrêt n'a plus de
+        // passage propre.
+        final ServiceAvailability? availability = stop.serviceAvailability(at: now);
+        final bool serviceEnded = availability != null &&
+            availability.status == ServiceAvailabilityStatus.serviceEnded &&
+            !availability.isResumedAt(now);
+        // Après la fin de service, le prochain stop_time peut relever d'un
+        // SERVICE DE NUIT DU LENDEMAIN (ex. DDD 00:09) : ce n'est PAS le service
+        // en cours, donc aucun « X min » n'est affiché — la fin de service est
+        // annoncée, jamais masquée par un faux délai. Tant que le réseau roule
+        // (`active`), le prochain départ RÉEL documenté est affiché, même s'il
+        // appartient au service de nuit (arrêt nocturne : aucune heure
+        // fabriquée, uniquement le stop_time du feed).
+        final List<int> waits = serviceEnded
+            ? const <int>[]
+            : stop.nextRealWaitingMinutes(
+                at: now, horizon: availability?.displayHorizonAt);
+        final List<DepartureInfo> prochains = stop.nextRealDepartures(
+            at: now, horizon: availability?.displayHorizonAt);
         // Destination RÉELLE uniquement : sens du prochain trip (headsign du
         // feed), sinon la direction référentielle explicite « Dir. X ». Sans
         // direction réelle : aucun « vers » inventé.
@@ -3541,7 +3652,9 @@ class StopCard extends StatelessWidget {
         // source opérationnelle étant PassBi) conserve son compte à rebours
         // « X min » en vert. Une fréquence (`estimated`) ne produit jamais de
         // compte à rebours : `realRemainingLabel` renvoie alors `null`.
-        final String? legacyRemaining = hasWaits ? null : stop.realRemainingLabel(at: now);
+        final String? legacyRemaining =
+            hasWaits ? null : stop.legacyRemainingWithin(availability?.displayHorizonAt, at: now);
+        final String? serviceNotice = serviceNoticeFor(availability, now);
 
         return GestureDetector(
           onLongPress: () {
@@ -3577,10 +3690,15 @@ class StopCard extends StatelessWidget {
                     // Lot 4.22 : les 3 prochains temps RÉELS, numériques, en
                     // vert, immédiatement sous l'en-tête. Sinon l'indicateur
                     // neutre « Horaire indisponible » — jamais de faux temps.
+                    // Lot fin de service : si le service du jour est terminé,
+                    // le texte est « Fin de service — reprise à HH:MM (dans
+                    // N min / N h MM) » ; sinon l'indicateur neutre.
                     Text(
                       hasWaits
                           ? formatWaitingMinutes(waits)
-                          : (legacyRemaining ?? ReliabilityLabel.scheduleUnavailable),
+                          : (legacyRemaining ??
+                              (serviceNotice ??
+                                  ReliabilityLabel.scheduleUnavailable)),
                       style: TextStyle(
                         fontSize: hasWaits || legacyRemaining != null ? 13 : 11,
                         fontWeight: FontWeight.bold,
@@ -4426,6 +4544,75 @@ class AssistantReplies {
     buf.write(' Dis-moi ton départ et ton arrivée pour un itinéraire.');
     return buf.toString();
   }
+
+  /// Disponibilité du service journalier d'un mode PassBi (TER/BRT/DDD/AFTU),
+  /// calculée sur les bornes DOCUMENTÉES du feed. `null` pour un mode sans
+  /// feed (TATA) : aucune fin de service n'est alors déductible.
+  static ServiceAvailability? availabilityForMode(String operatorId) {
+    const Map<String, String> networks = <String, String>{
+      'ter': 'TER',
+      'brt': 'BRT',
+      'ddd': 'DDD',
+      'aftu': 'AFTU',
+    };
+    final String? net = networks[operatorId];
+    if (net == null) return null;
+    return appDataService.serviceAvailabilityFor(net, DakarClock.now());
+  }
+
+  /// Suffixe « service en cours / fin de service » d'un mode, ou `''` lorsque
+  /// la disponibilité n'est pas documentée (aucune affirmation inventée).
+  ///
+  /// N'annonce une fin de service QUE si le dernier départ embarquable documenté
+  /// est réellement dépassé ; la reprise est celle du premier départ documenté
+  /// du lendemain moins une heure.
+  static String serviceStatusSuffix(ServiceAvailability? availability, String label) {
+    if (availability == null) return '';
+    switch (availability.status) {
+      case ServiceAvailabilityStatus.active:
+        return '\n\n✅ Service en cours pour $label.';
+      case ServiceAvailabilityStatus.unknown:
+        return '';
+      case ServiceAvailabilityStatus.serviceEnded:
+        final DateTime? r = availability.resumptionAt;
+        if (r == null) return '\n\n🌙 Fin de service pour $label.';
+        final DateTime now = DakarClock.now();
+        final String hhmm =
+            '${r.hour.toString().padLeft(2, '0')}:${r.minute.toString().padLeft(2, '0')}';
+        final String remaining = remainingUntilLabel(r, now);
+        final String tail = remaining.isEmpty ? '' : ' ($remaining)';
+        return '\n\n🌙 Fin de service pour $label — reprise automatique ce soir '
+            'à $hhmm$tail.';
+    }
+  }
+
+  /// Réponse à une question sur le prochain départ d'un arrêt nommé.
+  ///
+  /// Construite UNIQUEMENT sur des données réelles : passages RÉELS du service
+  /// du jour (« X min ») ou message de fin de service documenté, sinon
+  /// « Horaire indisponible » — jamais d'horaire inventé.
+  static String nextDepartureForStop(Stop stop) {
+    final DateTime now = DakarClock.now();
+    final ServiceAvailability? availability = stop.serviceAvailability(at: now);
+    final bool serviceEnded = availability != null &&
+        availability.status == ServiceAvailabilityStatus.serviceEnded &&
+        !availability.isResumedAt(now);
+    // Après la fin de service documentée, le prochain stop_time peut relever du
+    // service de nuit du lendemain : il est exclu, et la fin de service est
+    // annoncée. Tant que le réseau roule, le prochain départ réel est affiché.
+    final List<int> waits = serviceEnded
+        ? const <int>[]
+        : stop.nextRealWaitingMinutes(
+            at: now, horizon: availability?.displayHorizonAt);
+    if (waits.isNotEmpty) {
+      return '🚏 ${stop.name} : prochain passage ${formatWaitingMinutes(waits)} '
+          '(horaire programmé, arrondi vers le haut).';
+    }
+    final String? notice = serviceNoticeFor(availability, now);
+    if (notice != null) return '🚏 ${stop.name} : $notice.';
+    return '🚏 ${stop.name} : ${ReliabilityLabel.scheduleUnavailable} '
+        '(aucun départ programmé connu pour cet arrêt).';
+  }
 }
 
 // ============================================================
@@ -4445,6 +4632,26 @@ class _AIChatPageState extends State<AIChatPage> {
   ];
 
   String? _dernierModeInterroge;
+
+  /// Arrêt réel mentionné dans un message naturel, `null` si aucun nom d'arrêt
+  /// documenté n'est reconnu (aucun arrêt n'est inventé).
+  ///
+  /// La correspondance est purement textuelle sur les noms RÉELS des arrêts
+  /// chargés (nom exact ou nom contenu dans le message), insensible à la casse.
+  Stop? _findStopInText(String text) {
+    final String lower = text.toLowerCase();
+    Stop? best;
+    int bestLen = 0;
+    for (final Stop s in allStops) {
+      final String name = s.name.toLowerCase();
+      if (name.length < 3 || !lower.contains(name)) continue;
+      if (name.length > bestLen) {
+        best = s;
+        bestLen = name.length;
+      }
+    }
+    return best;
+  }
 
   // Extrait départ/destination d’un message naturel
   Map<String, String?> _extractTrip(String text) {
@@ -4556,19 +4763,27 @@ class _AIChatPageState extends State<AIChatPage> {
       }
     } else if (lower.contains('ter') || lower.contains('train') || lower.contains('diamniadio')) {
       _dernierModeInterroge = 'TER';
-      aiReply = AssistantReplies.modeInfo('ter', appDataService.operators, appDataService.routes);
+      aiReply = AssistantReplies.modeInfo('ter', appDataService.operators, appDataService.routes) +
+          AssistantReplies.serviceStatusSuffix(
+              AssistantReplies.availabilityForMode('ter'), 'TER');
     } else if (lower.contains('brt') || lower.contains('guédiawaye') || lower.contains('petersen') || lower.contains('sunu')) {
       _dernierModeInterroge = 'BRT';
-      aiReply = AssistantReplies.modeInfo('brt', appDataService.operators, appDataService.routes);
+      aiReply = AssistantReplies.modeInfo('brt', appDataService.operators, appDataService.routes) +
+          AssistantReplies.serviceStatusSuffix(
+              AssistantReplies.availabilityForMode('brt'), 'SunuBRT');
     } else if (lower.contains('ddd') || lower.contains('dakar dem dikk') || lower.contains('ligne 1') || lower.contains('ligne 3')) {
       _dernierModeInterroge = 'DDD';
-      aiReply = AssistantReplies.modeInfo('ddd', appDataService.operators, appDataService.routes);
+      aiReply = AssistantReplies.modeInfo('ddd', appDataService.operators, appDataService.routes) +
+          AssistantReplies.serviceStatusSuffix(
+              AssistantReplies.availabilityForMode('ddd'), 'DDD');
     } else if (lower.contains('tata') || lower.contains('minibus') || lower.contains('ligne 50')) {
       _dernierModeInterroge = 'TATA';
       aiReply = AssistantReplies.modeInfo('tata', appDataService.operators, appDataService.routes);
     } else if (lower.contains('aftu') || lower.contains('parcelles') || lower.contains('grand yoff')) {
       _dernierModeInterroge = 'AFTU';
-      aiReply = AssistantReplies.modeInfo('aftu', appDataService.operators, appDataService.routes);
+      aiReply = AssistantReplies.modeInfo('aftu', appDataService.operators, appDataService.routes) +
+          AssistantReplies.serviceStatusSuffix(
+              AssistantReplies.availabilityForMode('aftu'), 'AFTU');
     } else if (lower.contains('où suis-je') || lower.contains('ou suis je') || lower.contains('autour de moi') || lower.contains('proche')) {
       if (GpsResolver.isWithinServiceZone(widget.userPosition)) {
         final nearby = allStops.map((s) => MapEntry(s, DistanceHelper.haversineMeters(widget.userPosition!, s.location))).toList()..sort((a,b)=>a.value.compareTo(b.value));
@@ -4584,6 +4799,21 @@ class _AIChatPageState extends State<AIChatPage> {
             'un itinéraire entre deux arrêts.';
       } else {
         aiReply = '📍 Active ton GPS via "Activer GPS" sur la carte, puis je pourrai te montrer les arrêts autour de toi et planifier un trajet.';
+      }
+    } else if (lower.contains('prochain') ||
+        lower.contains('prochain depart') ||
+        lower.contains('prochain départ') ||
+        lower.contains('quand part') ||
+        lower.contains('quand passe')) {
+      // LOT fin de service / horaires : réponse adossée aux passages RÉELS du
+      // service du jour ou au message de fin de service documenté — jamais un
+      // horaire inventé, jamais une fréquence convertie en départ.
+      final Stop? stop = _findStopInText(text);
+      if (stop != null) {
+        _dernierModeInterroge = stop.modeLabel;
+        aiReply = AssistantReplies.nextDepartureForStop(stop);
+      } else {
+        aiReply = '🚏 Précise l’arrêt : par exemple « prochain départ à Petersen ».';
       }
     } else if (lower.contains('alerte') || lower.contains('bouchon') || lower.contains('trafic') || lower.contains('direct rue')) {
       // Audit 2026-09-24 : aucun flux temps réel ni état du trafic n'existe ;
@@ -4942,8 +5172,22 @@ class SingleStopView extends StatelessWidget {
         // Lot 4.22 (Explorer) : les prochains temps d'attente RÉELS
         // (stop_times), minutes vertes ; « Horaire indisponible » sans
         // passage réel — jamais de faux temps, jamais une fréquence.
-        final List<int> ficheWaits = stop.nextRealWaitingMinutes();
+        final ServiceAvailability? ficheAvailability = stop.serviceAvailability();
+        final bool ficheServiceEnded = ficheAvailability != null &&
+            ficheAvailability.status == ServiceAvailabilityStatus.serviceEnded &&
+            !ficheAvailability.isResumedAt(DakarClock.now());
+        // LOT fin de service — après la fin du service documenté du jour, le
+        // prochain stop_time peut relever du service de nuit du lendemain : il
+        // est alors exclu de l'affichage « X min ». Tant que le réseau roule
+        // (`active`), le prochain départ réel documenté est affiché.
+        final List<int> ficheWaits = ficheServiceEnded
+            ? const <int>[]
+            : stop.nextRealWaitingMinutes(
+                horizon: ficheAvailability?.displayHorizonAt);
         final bool ficheHasWaits = ficheWaits.isNotEmpty;
+        final String? ficheServiceNotice = ficheHasWaits
+            ? null
+            : serviceNoticeFor(ficheAvailability, DakarClock.now());
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
@@ -5002,7 +5246,8 @@ class SingleStopView extends StatelessWidget {
                             Text(
                               ficheHasWaits
                                   ? formatWaitingMinutes(ficheWaits)
-                                  : ReliabilityLabel.scheduleUnavailable,
+                                  : (ficheServiceNotice ??
+                                      ReliabilityLabel.scheduleUnavailable),
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,

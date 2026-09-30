@@ -22,7 +22,30 @@ import 'package:dakar_bus/main.dart' as app;
 import 'package:dakar_bus/models/departure_info.dart';
 import 'package:dakar_bus/models/reliability.dart';
 import 'package:dakar_bus/models/schedule_display.dart';
+import 'package:dakar_bus/models/service_availability.dart';
 import 'package:dakar_bus/models/transport_network.dart';
+
+/// LOT fin de service — un texte d'attente est admis s'il porte soit les
+/// minutes réelles (« N mn · … »), soit l'indisponibilité honnête, soit le
+/// message de fin de service documenté (« Fin de service » / « Fin de service —
+/// reprise à HH:MM … »). Ces deux derniers ne sont produits que lorsque le
+/// service du jour est RÉELLEMENT terminé (bornes du feed), jamais inventés.
+bool _isDepartureOrUnavailable(Widget w) {
+  if (w is! Text || w.data == null) return false;
+  final String d = w.data!;
+  if (RegExp(r'^\d+ mn( · \d+ mn){0,2}$').hasMatch(d)) return true;
+  if (d == ReliabilityLabel.scheduleUnavailable) return true;
+  if (d == ServiceAvailability.labelServiceEnded) return true;
+  if (d.startsWith('${ServiceAvailability.labelServiceEnded} — reprise à ')) {
+    return true;
+  }
+  return false;
+}
+
+/// Vrai si [text] est le message de fin de service (jamais un délai chiffré).
+bool _isServiceEndedText(String text) =>
+    text == ServiceAvailability.labelServiceEnded ||
+    text.startsWith('${ServiceAvailability.labelServiceEnded} — reprise à ');
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -133,15 +156,12 @@ void main() {
       // Le composant rend, à l'instant Dakar courant, soit les minutes réelles
       // calculées par le pipeline (« N mn · … », vert), soit l'indicateur neutre
       // « Horaire indisponible ». Aucun autre texte n'est admis.
-      final Finder finder = find.byWidgetPredicate((w) =>
-          w is Text &&
-          w.data != null &&
-          (RegExp(r'^\d+ mn( · \d+ mn){0,2}$').hasMatch(w.data!) ||
-              w.data == ReliabilityLabel.scheduleUnavailable));
+      final Finder finder = find.byWidgetPredicate(_isDepartureOrUnavailable);
       expect(finder, findsWidgets);
       final Text rendered = t.widget<Text>(finder.first);
       final String text = rendered.data!;
-      if (text == ReliabilityLabel.scheduleUnavailable) {
+      if (_isServiceEndedText(text) ||
+          text == ReliabilityLabel.scheduleUnavailable) {
         expect(rendered.style?.color, isNot(app.AppColors.success));
       } else {
         expect(rendered.style?.color, app.AppColors.success,
@@ -188,15 +208,12 @@ void main() {
 
       // La fiche arrêt rend les minutes réelles calculées (« N mn · … », vert)
       // à l'instant Dakar courant, ou « Horaire indisponible ». Rien d'autre.
-      final Finder finder = find.byWidgetPredicate((w) =>
-          w is Text &&
-          w.data != null &&
-          (RegExp(r'^\d+ mn( · \d+ mn){0,2}$').hasMatch(w.data!) ||
-              w.data == ReliabilityLabel.scheduleUnavailable));
+      final Finder finder = find.byWidgetPredicate(_isDepartureOrUnavailable);
       expect(finder, findsWidgets);
       final Text rendered = t.widget<Text>(finder.first);
       final String text = rendered.data!;
-      if (text != ReliabilityLabel.scheduleUnavailable) {
+      if (!_isServiceEndedText(text) &&
+          text != ReliabilityLabel.scheduleUnavailable) {
         expect(rendered.style?.color, app.AppColors.success);
         for (final m in RegExp(r'\d+').allMatches(text)) {
           expect(int.parse(m.group(0)!), greaterThanOrEqualTo(1),
@@ -249,14 +266,11 @@ void main() {
       await t.pumpWidget(MaterialApp(home: Scaffold(body: app.StopCard(stop: stop, distanceMeters: 100))));
       await t.pump();
 
-      final Finder finder = find.byWidgetPredicate((w) =>
-          w is Text &&
-          w.data != null &&
-          (RegExp(r'^\d+ mn( · \d+ mn){0,2}$').hasMatch(w.data!) ||
-              w.data == ReliabilityLabel.scheduleUnavailable));
+      final Finder finder = find.byWidgetPredicate(_isDepartureOrUnavailable);
       expect(finder, findsWidgets);
       final Text rendered = t.widget<Text>(finder.first);
-      if (rendered.data != ReliabilityLabel.scheduleUnavailable) {
+      if (!_isServiceEndedText(rendered.data!) &&
+          rendered.data != ReliabilityLabel.scheduleUnavailable) {
         expect(rendered.style?.color, app.AppColors.success);
         for (final m in RegExp(r'\d+').allMatches(rendered.data!)) {
           expect(int.parse(m.group(0)!), greaterThanOrEqualTo(1));
