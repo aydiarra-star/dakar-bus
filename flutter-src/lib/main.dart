@@ -4896,11 +4896,19 @@ class TripsPage extends StatefulWidget {
   final LatLng? userPosition;
   final GpsState gpsState;
   final Future<void> Function() onRequestLocation;
+
+  /// Instant de référence optionnel (heure de Dakar) pour le calcul d'itinéraire.
+  /// Par défaut : l'heure courante ([DakarClock.now]). Sert aux rendus
+  /// déterministes (tests) — la production ne le renseigne jamais. Aucune donnée
+  /// de transport n'est modifiée : seuls les horaires lus sont datés.
+  final DateTime? at;
+
   const TripsPage({
     super.key,
     this.userPosition,
     this.gpsState = GpsState.idle,
     required this.onRequestLocation,
+    this.at,
   });
   @override
   State<TripsPage> createState() => _TripsPageState();
@@ -4920,7 +4928,8 @@ class _TripsPageState extends State<TripsPage> {
     FocusScope.of(context).unfocus();
     setState(() { _loading = true; _result = null; _fromGps = false; });
     await Future.delayed(const Duration(milliseconds: 500));
-    final res = RoutePlanner.plan(fromQuery: _fromCtrl.text, toQuery: _toCtrl.text);
+    final res = RoutePlanner.plan(
+        fromQuery: _fromCtrl.text, toQuery: _toCtrl.text, at: widget.at);
     if (!mounted) return;
     setState(() { _loading = false; _result = res; });
   }
@@ -4953,7 +4962,8 @@ class _TripsPageState extends State<TripsPage> {
     }
     setState(() { _loading = true; _result = null; _fromGps = true; });
     await Future.delayed(const Duration(milliseconds: 300));
-    final res = RoutePlanner.planFromPositions(from: pos!, to: destination);
+    final res = RoutePlanner.planFromPositions(
+        from: pos!, to: destination, at: widget.at);
     if (!mounted) return;
     setState(() { _loading = false; _result = res; });
   }
@@ -6412,7 +6422,14 @@ class DetailedRoutePage extends StatelessWidget {
 // ============================================================
 class DualStopDetailPage extends StatefulWidget {
   final Stop stop;
-  const DualStopDetailPage({super.key, required this.stop});
+
+  /// Instant de référence optionnel (heure de Dakar) pour les prochains départs
+  /// réels. Par défaut : l'heure courante ([DakarClock.now]). Sert aux rendus
+  /// déterministes (tests) — la production ne le renseigne jamais. Aucune donnée
+  /// de transport n'est modifiée : seule la lecture de `stop_times` est datée.
+  final DateTime? at;
+
+  const DualStopDetailPage({super.key, required this.stop, this.at});
 
   @override
   State<DualStopDetailPage> createState() => _DualStopDetailPageState();
@@ -6420,6 +6437,10 @@ class DualStopDetailPage extends StatefulWidget {
 
 class _DualStopDetailPageState extends State<DualStopDetailPage> {
   late final Stop _stop = widget.stop;
+
+  /// Instant de référence (heure de Dakar) : `widget.at` ou l'heure courante.
+  DateTime get _now =>
+      widget.at == null ? DakarClock.now() : DakarClock.toDakar(widget.at!);
 
   /// Sens PRIMAIRE = sens DOMINANT desservi à l'arrêt (headsign le plus fréquent
   /// parmi les prochains départs réels du feed). Choisir le départ le plus
@@ -6429,7 +6450,7 @@ class _DualStopDetailPageState extends State<DualStopDetailPage> {
   late final String? _primaryHeading = _dominantHeading();
 
   String? _dominantHeading() {
-    final List<DepartureInfo> deps = _stop.nextRealDepartures(limit: 12);
+    final List<DepartureInfo> deps = _stop.nextRealDepartures(at: _now, limit: 12);
     final Map<String, int> counts = <String, int>{};
     for (final DepartureInfo d in deps) {
       final String? h = d.direction;
@@ -6458,9 +6479,12 @@ class _DualStopDetailPageState extends State<DualStopDetailPage> {
   }
 
   bool _hasRealDepartures(bool Function(String? direction)? filter) {
-    if (filter == null) return _stop.nextRealDepartures(limit: 1).isNotEmpty;
+    if (filter == null) {
+      return _stop.nextRealDepartures(at: _now, limit: 1).isNotEmpty;
+    }
     return _stop
-        .realDeparturesWhere((DepartureInfo d) => filter(d.direction), limit: 1)
+        .realDeparturesWhere((DepartureInfo d) => filter(d.direction),
+            at: _now, limit: 1)
         .isNotEmpty;
   }
 
@@ -6491,6 +6515,7 @@ class _DualStopDetailPageState extends State<DualStopDetailPage> {
               SingleStopView(
                 stop: _stop,
                 returnDirectionFilter: _allerFilter,
+                at: widget.at,
               )
             else
               _unavailable('Aucun départ réel programmé pour le sens aller.'),
@@ -6498,6 +6523,7 @@ class _DualStopDetailPageState extends State<DualStopDetailPage> {
               SingleStopView(
                 stop: _stop,
                 returnDirectionFilter: _retourFilter,
+                at: widget.at,
               )
             else
               _unavailable(
@@ -6534,10 +6560,18 @@ class SingleStopView extends StatelessWidget {
   /// du sens aller.
   final bool Function(String? direction)? returnDirectionFilter;
 
+  /// Instant de référence optionnel (heure de Dakar) pour les prochains départs
+  /// réels. Par défaut : l'heure courante ([DakarClock.now]). Sert aux rendus
+  /// déterministes (tests) — la production ne le renseigne jamais. Aucune donnée
+  /// de transport n'est modifiée : c'est la même lecture de `stop_times`, à un
+  /// instant choisi.
+  final DateTime? at;
+
   const SingleStopView({
     super.key,
     required this.stop,
     this.returnDirectionFilter,
+    this.at,
   });
 
   @override
@@ -6555,10 +6589,12 @@ class SingleStopView extends StatelessWidget {
         // Lot 4.22 (Explorer) : les prochains temps d'attente RÉELS
         // (stop_times), minutes vertes ; « Horaire indisponible » sans
         // passage réel — jamais de faux temps, jamais une fréquence.
-        final ServiceAvailability? ficheAvailability = stop.serviceAvailability();
+        final DateTime now =
+            at == null ? DakarClock.now() : DakarClock.toDakar(at!);
+        final ServiceAvailability? ficheAvailability = stop.serviceAvailability(at: now);
         final bool ficheServiceEnded = ficheAvailability != null &&
             ficheAvailability.status == ServiceAvailabilityStatus.serviceEnded &&
-            !ficheAvailability.isResumedAt(DakarClock.now());
+            !ficheAvailability.isResumedAt(now);
         // LOT fin de service — après la fin du service documenté du jour, le
         // prochain stop_time peut relever du service de nuit du lendemain : il
         // est alors exclu de l'affichage « X min ». Tant que le réseau roule
@@ -6567,13 +6603,13 @@ class SingleStopView extends StatelessWidget {
             ? const <int>[]
             : (returnDirectionFilter == null
                 ? stop.nextRealWaitingMinutes(
-                    horizon: ficheAvailability?.displayHorizonAt)
+                    at: now, horizon: ficheAvailability?.displayHorizonAt)
                 : stop.nextRealWaitingMinutesToward(returnDirectionFilter!,
-                    horizon: ficheAvailability?.displayHorizonAt));
+                    at: now, horizon: ficheAvailability?.displayHorizonAt));
         final bool ficheHasWaits = ficheWaits.isNotEmpty;
         final String? ficheServiceNotice = ficheHasWaits
             ? null
-            : serviceNoticeFor(ficheAvailability, DakarClock.now());
+            : serviceNoticeFor(ficheAvailability, now);
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [

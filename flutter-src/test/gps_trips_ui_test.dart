@@ -31,12 +31,23 @@ void main() {
   // Position de service : Parcelles Assainies.
   const LatLng parcelles = LatLng(14.76269, -17.42431);
 
+  /// Instant de référence FIXE (heure de Dakar) pour des rendus déterministes.
+  ///
+  /// Les horaires affichés proviennent des `stop_times` RÉELS du feed : à
+  /// l'heure courante de la CI, le dernier départ réel peut être passé (le feed
+  /// BRT s'arrête à ~21 h 56), et l'écran affiche alors honnêtement « Horaire
+  /// indisponible ». Fixer l'instant de référence ne fabrique AUCUNE donnée :
+  /// c'est la même lecture du feed, datée à midi — l'assertion ne dépend plus de
+  /// l'heure d'exécution.
+  final DateTime refAt = DateTime.utc(2026, 9, 30, 12, 0);
+
   Widget bootTrips({LatLng? position, app.GpsState gpsState = app.GpsState.idle}) =>
       MaterialApp(
         home: app.TripsPage(
           userPosition: position,
           gpsState: gpsState,
           onRequestLocation: () async {},
+          at: refAt,
         ),
       );
 
