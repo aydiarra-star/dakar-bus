@@ -1,8 +1,8 @@
 {
-  "schema": "public-bus-lines-dakar/v2",
+  "schema": "public-bus-lines-dakar/v3",
   "generated_at": "2026-09-30",
   "sources_verified_at": "2026-09-25",
-  "principle": "Numéro public obligatoire (operator + line_number + public_label + origin + destination). Aucune ligne sans numéro officiel. Aucun horaire, aucun arrêt, aucune correspondance inventés. Le numéro public n’est jamais déduit du route_id. Toute ligne publique AFTU/DDD doit être raccordée aux données horaires réelles (route_id → trip_id → direction_id → stop_id → stop_sequence → stop_times) ; un défaut de raccordement est listé dans `unresolved_public_lines`, jamais masqué.",
+  "principle": "Numéro public obligatoire (operator + line_number + public_label + origin + destination). Aucune ligne sans numéro officiel. Aucun horaire, aucun arrêt, aucune correspondance inventés. Le numéro public n’est jamais déduit du route_id. Toute ligne publique AFTU/DDD doit être raccordée aux données horaires réelles (route_id → trip_id → direction_id → stop_id → stop_sequence → stop_times) ; un défaut de raccordement est listé dans `unresolved_public_lines` avec sa cause exacte et sa preuve de blocage (`blocking`), jamais masqué. `mapping_status` vaut CONNECTED uniquement si la chaîne complète existe ; sinon BLOCKED (route présente, maillon manquant) ou NOT_VERIFIED (aucune route de ce numéro). Aucune ligne n’est supprimée pour masquer un blocage, aucune identité publique distincte n’est fusionnée.",
   "sources": {
     "aftu": "https://aftu-senegal.org/infos-pratiques/",
     "ddd": "https://demdikk.sn/info-voyageurs/",
@@ -14,7 +14,12 @@
     "ddd_public": 48,
     "tata_identities": 7,
     "linked": 104,
-    "unresolved": 16
+    "unresolved": 16,
+    "connected": 104,
+    "blocked": 2,
+    "not_verified": 14,
+    "partial": 0,
+    "feed_routes_without_public_line": 20
   },
   "unresolved_public_lines": [
     {
@@ -22,6 +27,7 @@
       "line_number": "47",
       "public_label": "AFTU 47",
       "reason": "FEED_ROUTE_WITHOUT_TRIP",
+      "mapping_status": "BLOCKED",
       "feed_route_ids": [
         "AFTU_47"
       ]
@@ -31,6 +37,7 @@
       "line_number": "52",
       "public_label": "AFTU 52",
       "reason": "FEED_ROUTE_WITHOUT_STOP_TIME",
+      "mapping_status": "BLOCKED",
       "feed_route_ids": [
         "AFTU_52"
       ]
@@ -40,6 +47,7 @@
       "line_number": "502A",
       "public_label": "DDD 502A",
       "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "mapping_status": "NOT_VERIFIED",
       "feed_route_ids": []
     },
     {
@@ -47,6 +55,7 @@
       "line_number": "502B",
       "public_label": "DDD 502B",
       "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "mapping_status": "NOT_VERIFIED",
       "feed_route_ids": []
     },
     {
@@ -54,6 +63,7 @@
       "line_number": "503A",
       "public_label": "DDD 503A",
       "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "mapping_status": "NOT_VERIFIED",
       "feed_route_ids": []
     },
     {
@@ -61,6 +71,7 @@
       "line_number": "503B",
       "public_label": "DDD 503B",
       "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "mapping_status": "NOT_VERIFIED",
       "feed_route_ids": []
     },
     {
@@ -68,6 +79,7 @@
       "line_number": "504A",
       "public_label": "DDD 504A",
       "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "mapping_status": "NOT_VERIFIED",
       "feed_route_ids": []
     },
     {
@@ -75,6 +87,7 @@
       "line_number": "504B",
       "public_label": "DDD 504B",
       "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "mapping_status": "NOT_VERIFIED",
       "feed_route_ids": []
     },
     {
@@ -82,6 +95,7 @@
       "line_number": "TO1",
       "public_label": "DDD TO1",
       "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "mapping_status": "NOT_VERIFIED",
       "feed_route_ids": []
     },
     {
@@ -89,6 +103,7 @@
       "line_number": "TAF",
       "public_label": "DDD TAF",
       "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "mapping_status": "NOT_VERIFIED",
       "feed_route_ids": []
     },
     {
@@ -96,6 +111,7 @@
       "line_number": "TAF TAF",
       "public_label": "DDD TAF TAF",
       "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "mapping_status": "NOT_VERIFIED",
       "feed_route_ids": []
     },
     {
@@ -103,6 +119,7 @@
       "line_number": "15A",
       "public_label": "DDD 15A",
       "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "mapping_status": "NOT_VERIFIED",
       "feed_route_ids": []
     },
     {
@@ -110,6 +127,7 @@
       "line_number": "15B",
       "public_label": "DDD 15B",
       "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "mapping_status": "NOT_VERIFIED",
       "feed_route_ids": []
     },
     {
@@ -117,6 +135,7 @@
       "line_number": "16A",
       "public_label": "DDD 16A",
       "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "mapping_status": "NOT_VERIFIED",
       "feed_route_ids": []
     },
     {
@@ -124,6 +143,7 @@
       "line_number": "16B",
       "public_label": "DDD 16B",
       "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "mapping_status": "NOT_VERIFIED",
       "feed_route_ids": []
     },
     {
@@ -131,9 +151,37 @@
       "line_number": "327",
       "public_label": "DDD 327",
       "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "mapping_status": "NOT_VERIFIED",
       "feed_route_ids": []
     }
   ],
+  "feed_routes_without_public_line": {
+    "note": "Routes présentes dans le feed opérationnel PassBi dont le numéro public n’est PAS établi par le référentiel canonique publié. Aucune ligne n’est fabriquée et aucune n’est fusionnée avec une ligne existante.",
+    "DDD": [
+      "DDD_102",
+      "DDD_103",
+      "DDD_105",
+      "DDD_111",
+      "DDD_16",
+      "DDD_210",
+      "DDD_223",
+      "DDD_231",
+      "DDD_301",
+      "DDD_305",
+      "DDD_308",
+      "DDD_315",
+      "DDD_323",
+      "DDD_401",
+      "DDD_402",
+      "DDD_403",
+      "DDD_404",
+      "DDD_405",
+      "DDD_504"
+    ],
+    "AFTU": [
+      "AFTU_90"
+    ]
+  },
   "aftu": [
     {
       "operator": "AFTU",
@@ -147,6 +195,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_1"
       ],
@@ -163,8 +212,10 @@
       "stop_times_count": 5250,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 90,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -181,6 +232,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_2"
       ],
@@ -197,8 +249,10 @@
       "stop_times_count": 7447,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 98,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -215,6 +269,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_3"
       ],
@@ -231,8 +286,10 @@
       "stop_times_count": 10592,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 119,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -249,6 +306,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_4"
       ],
@@ -265,8 +323,10 @@
       "stop_times_count": 6840,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 78,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -283,6 +343,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_5"
       ],
@@ -299,8 +360,10 @@
       "stop_times_count": 7857,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 91,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -317,6 +380,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_24"
       ],
@@ -333,8 +397,10 @@
       "stop_times_count": 7440,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 96,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -351,6 +417,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_25"
       ],
@@ -367,8 +434,10 @@
       "stop_times_count": 7503,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 80,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -385,6 +454,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_26"
       ],
@@ -401,8 +471,10 @@
       "stop_times_count": 7374,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 80,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -419,6 +491,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_27"
       ],
@@ -435,8 +508,10 @@
       "stop_times_count": 4760,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 74,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -453,6 +528,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_28"
       ],
@@ -469,8 +545,10 @@
       "stop_times_count": 4162,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 60,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -487,6 +565,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_29"
       ],
@@ -503,8 +582,10 @@
       "stop_times_count": 10444,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 113,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -521,6 +602,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_30"
       ],
@@ -537,8 +619,10 @@
       "stop_times_count": 9109,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 133,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -555,6 +639,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_31"
       ],
@@ -571,8 +656,10 @@
       "stop_times_count": 3525,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 47,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -589,6 +676,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_32"
       ],
@@ -605,8 +693,10 @@
       "stop_times_count": 8300,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 118,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -623,6 +713,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_33"
       ],
@@ -639,8 +730,10 @@
       "stop_times_count": 7871,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 122,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -657,6 +750,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_34"
       ],
@@ -673,8 +767,10 @@
       "stop_times_count": 8236,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 95,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -691,6 +787,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_35"
       ],
@@ -707,8 +804,10 @@
       "stop_times_count": 8695,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 96,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -725,6 +824,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_36"
       ],
@@ -741,8 +841,10 @@
       "stop_times_count": 12616,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 150,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -759,6 +861,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_37"
       ],
@@ -775,8 +878,10 @@
       "stop_times_count": 10437,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 201,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -793,6 +898,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_38"
       ],
@@ -809,8 +915,10 @@
       "stop_times_count": 3965,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 61,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -827,6 +935,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_39"
       ],
@@ -843,8 +952,10 @@
       "stop_times_count": 8496,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 133,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -861,6 +972,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_40"
       ],
@@ -877,8 +989,10 @@
       "stop_times_count": 5813,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 101,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -895,6 +1009,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_41"
       ],
@@ -911,8 +1026,10 @@
       "stop_times_count": 3180,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 60,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -929,6 +1046,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_42"
       ],
@@ -945,8 +1063,10 @@
       "stop_times_count": 10712,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 131,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -963,6 +1083,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_43"
       ],
@@ -979,8 +1100,10 @@
       "stop_times_count": 11234,
       "stop_sequence_present": true,
       "stop_sequence_strict": false,
+      "sequence_quality": "UNORDERED_IN_FEED",
       "served_stop_count": 162,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -997,6 +1120,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_44"
       ],
@@ -1013,8 +1137,10 @@
       "stop_times_count": 10547,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 109,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -1031,6 +1157,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_45"
       ],
@@ -1047,8 +1174,10 @@
       "stop_times_count": 13831,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 191,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -1065,6 +1194,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_46"
       ],
@@ -1081,8 +1211,10 @@
       "stop_times_count": 4623,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 69,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -1099,6 +1231,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "NO_SCHEDULE",
+      "mapping_status": "BLOCKED",
       "feed_route_ids": [
         "AFTU_47"
       ],
@@ -1108,8 +1241,29 @@
       "stop_times_count": 0,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 0,
       "unresolved_reason": "FEED_ROUTE_WITHOUT_TRIP",
+      "blocking": {
+        "operator": "AFTU",
+        "line_number": "47",
+        "reason": "FEED_ROUTE_WITHOUT_TRIP",
+        "missing_fields": [
+          "trip_id",
+          "direction_id",
+          "stop_id",
+          "stop_sequence",
+          "stop_times"
+        ],
+        "consulted_sources": [
+          "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+          "feeds PassBi embarqués (ddd.json / aftu.json)"
+        ],
+        "next_action": "La route AFTU_47 existe dans le feed mais ne porte aucun trip : obtenir les trips (et leurs stop_times) auprès de la source.",
+        "feed_route_ids_present": [
+          "AFTU_47"
+        ]
+      },
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -1126,6 +1280,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_48"
       ],
@@ -1142,8 +1297,10 @@
       "stop_times_count": 11902,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 101,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -1160,6 +1317,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_49"
       ],
@@ -1176,8 +1334,10 @@
       "stop_times_count": 13370,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 179,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -1194,6 +1354,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_50"
       ],
@@ -1210,8 +1371,10 @@
       "stop_times_count": 7416,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 108,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -1228,6 +1391,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_51"
       ],
@@ -1244,8 +1408,10 @@
       "stop_times_count": 11301,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 142,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -1262,6 +1428,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "NO_SCHEDULE",
+      "mapping_status": "BLOCKED",
       "feed_route_ids": [
         "AFTU_52"
       ],
@@ -1278,8 +1445,26 @@
       "stop_times_count": 0,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 0,
       "unresolved_reason": "FEED_ROUTE_WITHOUT_STOP_TIME",
+      "blocking": {
+        "operator": "AFTU",
+        "line_number": "52",
+        "reason": "FEED_ROUTE_WITHOUT_STOP_TIME",
+        "missing_fields": [
+          "stop_times",
+          "stop_sequence"
+        ],
+        "consulted_sources": [
+          "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+          "feeds PassBi embarqués (ddd.json / aftu.json)"
+        ],
+        "next_action": "La route AFTU_52 porte des trips mais AUCUN stop_time : obtenir les stop_times auprès de la source.",
+        "feed_route_ids_present": [
+          "AFTU_52"
+        ]
+      },
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -1296,6 +1481,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_53"
       ],
@@ -1312,8 +1498,10 @@
       "stop_times_count": 7569,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 87,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -1330,6 +1518,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_54"
       ],
@@ -1346,8 +1535,10 @@
       "stop_times_count": 12324,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 122,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -1364,6 +1555,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_55"
       ],
@@ -1380,8 +1572,10 @@
       "stop_times_count": 7852,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 82,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -1398,6 +1592,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_56"
       ],
@@ -1414,8 +1609,10 @@
       "stop_times_count": 7434,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 85,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -1432,6 +1629,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_57"
       ],
@@ -1448,8 +1646,10 @@
       "stop_times_count": 4374,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 54,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -1466,6 +1666,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_58"
       ],
@@ -1482,8 +1683,10 @@
       "stop_times_count": 7611,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 88,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -1500,6 +1703,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_59"
       ],
@@ -1516,8 +1720,10 @@
       "stop_times_count": 17991,
       "stop_sequence_present": true,
       "stop_sequence_strict": false,
+      "sequence_quality": "UNORDERED_IN_FEED",
       "served_stop_count": 219,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -1534,6 +1740,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_60"
       ],
@@ -1550,8 +1757,10 @@
       "stop_times_count": 8326,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 90,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -1568,6 +1777,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_61"
       ],
@@ -1584,8 +1794,10 @@
       "stop_times_count": 11423,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 125,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -1602,6 +1814,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_62"
       ],
@@ -1618,8 +1831,10 @@
       "stop_times_count": 11555,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 164,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -1636,6 +1851,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_63"
       ],
@@ -1652,8 +1868,10 @@
       "stop_times_count": 8540,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 144,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -1670,6 +1888,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_64"
       ],
@@ -1686,8 +1905,10 @@
       "stop_times_count": 13359,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 159,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -1704,6 +1925,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_65"
       ],
@@ -1720,8 +1942,10 @@
       "stop_times_count": 8990,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 126,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -1738,6 +1962,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_66"
       ],
@@ -1754,8 +1979,10 @@
       "stop_times_count": 14214,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 204,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -1772,6 +1999,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_67"
       ],
@@ -1788,8 +2016,10 @@
       "stop_times_count": 8731,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 150,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -1806,6 +2036,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_68"
       ],
@@ -1822,8 +2053,10 @@
       "stop_times_count": 12474,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 130,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -1840,6 +2073,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_69"
       ],
@@ -1856,8 +2090,10 @@
       "stop_times_count": 3705,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 65,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -1874,6 +2110,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_70"
       ],
@@ -1890,8 +2127,10 @@
       "stop_times_count": 9171,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 111,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -1908,6 +2147,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_71"
       ],
@@ -1924,8 +2164,10 @@
       "stop_times_count": 7530,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 103,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -1942,6 +2184,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_72"
       ],
@@ -1958,8 +2201,10 @@
       "stop_times_count": 14209,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 179,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -1976,6 +2221,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_73"
       ],
@@ -1992,8 +2238,10 @@
       "stop_times_count": 18051,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 155,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -2010,6 +2258,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_74"
       ],
@@ -2026,8 +2275,10 @@
       "stop_times_count": 13224,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 172,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -2044,6 +2295,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_75"
       ],
@@ -2060,8 +2312,10 @@
       "stop_times_count": 10304,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 152,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -2078,6 +2332,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_76"
       ],
@@ -2094,8 +2349,10 @@
       "stop_times_count": 10123,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 133,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -2112,6 +2369,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_77"
       ],
@@ -2128,8 +2386,10 @@
       "stop_times_count": 9039,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 107,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -2146,6 +2406,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_78"
       ],
@@ -2162,8 +2423,10 @@
       "stop_times_count": 7406,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 104,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -2180,6 +2443,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_79"
       ],
@@ -2196,8 +2460,10 @@
       "stop_times_count": 12707,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 192,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -2214,6 +2480,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_80"
       ],
@@ -2230,8 +2497,10 @@
       "stop_times_count": 14207,
       "stop_sequence_present": true,
       "stop_sequence_strict": false,
+      "sequence_quality": "UNORDERED_IN_FEED",
       "served_stop_count": 207,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -2248,6 +2517,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_81"
       ],
@@ -2264,8 +2534,10 @@
       "stop_times_count": 11085,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 165,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -2282,6 +2554,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_82"
       ],
@@ -2298,8 +2571,10 @@
       "stop_times_count": 6631,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 96,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -2316,6 +2591,7 @@
       "route_status": "ROUTE_DOCUMENTED",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_83"
       ],
@@ -2332,8 +2608,10 @@
       "stop_times_count": 20679,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 181,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL"
@@ -2350,6 +2628,7 @@
       "route_status": "ROUTE_NOT_FOUND",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_84"
       ],
@@ -2366,8 +2645,10 @@
       "stop_times_count": 14189,
       "stop_sequence_present": true,
       "stop_sequence_strict": false,
+      "sequence_quality": "UNORDERED_IN_FEED",
       "served_stop_count": 148,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "UNVERIFIED"
@@ -2384,6 +2665,7 @@
       "route_status": "ROUTE_NOT_FOUND",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_85"
       ],
@@ -2400,8 +2682,10 @@
       "stop_times_count": 17117,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 98,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "UNVERIFIED"
@@ -2418,6 +2702,7 @@
       "route_status": "ROUTE_NOT_FOUND",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_86"
       ],
@@ -2434,8 +2719,10 @@
       "stop_times_count": 8652,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 131,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "UNVERIFIED"
@@ -2452,6 +2739,7 @@
       "route_status": "ROUTE_NOT_FOUND",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_87"
       ],
@@ -2468,8 +2756,10 @@
       "stop_times_count": 6944,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 137,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "UNVERIFIED"
@@ -2486,6 +2776,7 @@
       "route_status": "ROUTE_NOT_FOUND",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_88"
       ],
@@ -2502,8 +2793,10 @@
       "stop_times_count": 8331,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 157,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "UNVERIFIED"
@@ -2520,6 +2813,7 @@
       "route_status": "ROUTE_NOT_FOUND",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_89"
       ],
@@ -2536,8 +2830,10 @@
       "stop_times_count": 7079,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 106,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "UNVERIFIED"
@@ -2554,6 +2850,7 @@
       "route_status": "ROUTE_NOT_FOUND",
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "AFTU_91"
       ],
@@ -2570,8 +2867,10 @@
       "stop_times_count": 7210,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 139,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "UNVERIFIED"
@@ -2590,6 +2889,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_501"
       ],
@@ -2606,8 +2906,10 @@
       "stop_times_count": 2700,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 16,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -2625,6 +2927,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "NO_SCHEDULE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "NOT_VERIFIED",
       "feed_route_ids": [],
       "trip_ids_count": 0,
       "sample_trip_ids": [],
@@ -2632,8 +2935,31 @@
       "stop_times_count": 0,
       "stop_sequence_present": false,
       "stop_sequence_strict": false,
+      "sequence_quality": "ABSENT",
       "served_stop_count": 0,
       "unresolved_reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "blocking": {
+        "operator": "DDD",
+        "line_number": "502A",
+        "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+        "missing_fields": [
+          "route_id",
+          "trip_id",
+          "direction_id",
+          "stop_id",
+          "stop_sequence",
+          "stop_times"
+        ],
+        "consulted_sources": [
+          "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+          "feeds PassBi embarqués (ddd.json / aftu.json)"
+        ],
+        "next_action": "Obtenir de la source la preuve que la variante « 502A » emprunte bien la route au numéro nu (DDD_502) AVANT tout raccordement. Sans cette preuve, la fusion est interdite (identités publiques distinctes).",
+        "feed_route_ids_present": [],
+        "bare_number_route_ids": [
+          "DDD_502"
+        ]
+      },
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -2651,6 +2977,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "NO_SCHEDULE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "NOT_VERIFIED",
       "feed_route_ids": [],
       "trip_ids_count": 0,
       "sample_trip_ids": [],
@@ -2658,8 +2985,31 @@
       "stop_times_count": 0,
       "stop_sequence_present": false,
       "stop_sequence_strict": false,
+      "sequence_quality": "ABSENT",
       "served_stop_count": 0,
       "unresolved_reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "blocking": {
+        "operator": "DDD",
+        "line_number": "502B",
+        "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+        "missing_fields": [
+          "route_id",
+          "trip_id",
+          "direction_id",
+          "stop_id",
+          "stop_sequence",
+          "stop_times"
+        ],
+        "consulted_sources": [
+          "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+          "feeds PassBi embarqués (ddd.json / aftu.json)"
+        ],
+        "next_action": "Obtenir de la source la preuve que la variante « 502B » emprunte bien la route au numéro nu (DDD_502) AVANT tout raccordement. Sans cette preuve, la fusion est interdite (identités publiques distinctes).",
+        "feed_route_ids_present": [],
+        "bare_number_route_ids": [
+          "DDD_502"
+        ]
+      },
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -2677,6 +3027,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "NO_SCHEDULE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "NOT_VERIFIED",
       "feed_route_ids": [],
       "trip_ids_count": 0,
       "sample_trip_ids": [],
@@ -2684,8 +3035,31 @@
       "stop_times_count": 0,
       "stop_sequence_present": false,
       "stop_sequence_strict": false,
+      "sequence_quality": "ABSENT",
       "served_stop_count": 0,
       "unresolved_reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "blocking": {
+        "operator": "DDD",
+        "line_number": "503A",
+        "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+        "missing_fields": [
+          "route_id",
+          "trip_id",
+          "direction_id",
+          "stop_id",
+          "stop_sequence",
+          "stop_times"
+        ],
+        "consulted_sources": [
+          "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+          "feeds PassBi embarqués (ddd.json / aftu.json)"
+        ],
+        "next_action": "Obtenir de la source la preuve que la variante « 503A » emprunte bien la route au numéro nu (DDD_503) AVANT tout raccordement. Sans cette preuve, la fusion est interdite (identités publiques distinctes).",
+        "feed_route_ids_present": [],
+        "bare_number_route_ids": [
+          "DDD_503"
+        ]
+      },
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -2703,6 +3077,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "NO_SCHEDULE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "NOT_VERIFIED",
       "feed_route_ids": [],
       "trip_ids_count": 0,
       "sample_trip_ids": [],
@@ -2710,8 +3085,31 @@
       "stop_times_count": 0,
       "stop_sequence_present": false,
       "stop_sequence_strict": false,
+      "sequence_quality": "ABSENT",
       "served_stop_count": 0,
       "unresolved_reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "blocking": {
+        "operator": "DDD",
+        "line_number": "503B",
+        "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+        "missing_fields": [
+          "route_id",
+          "trip_id",
+          "direction_id",
+          "stop_id",
+          "stop_sequence",
+          "stop_times"
+        ],
+        "consulted_sources": [
+          "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+          "feeds PassBi embarqués (ddd.json / aftu.json)"
+        ],
+        "next_action": "Obtenir de la source la preuve que la variante « 503B » emprunte bien la route au numéro nu (DDD_503) AVANT tout raccordement. Sans cette preuve, la fusion est interdite (identités publiques distinctes).",
+        "feed_route_ids_present": [],
+        "bare_number_route_ids": [
+          "DDD_503"
+        ]
+      },
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -2729,6 +3127,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "NO_SCHEDULE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "NOT_VERIFIED",
       "feed_route_ids": [],
       "trip_ids_count": 0,
       "sample_trip_ids": [],
@@ -2736,8 +3135,31 @@
       "stop_times_count": 0,
       "stop_sequence_present": false,
       "stop_sequence_strict": false,
+      "sequence_quality": "ABSENT",
       "served_stop_count": 0,
       "unresolved_reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "blocking": {
+        "operator": "DDD",
+        "line_number": "504A",
+        "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+        "missing_fields": [
+          "route_id",
+          "trip_id",
+          "direction_id",
+          "stop_id",
+          "stop_sequence",
+          "stop_times"
+        ],
+        "consulted_sources": [
+          "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+          "feeds PassBi embarqués (ddd.json / aftu.json)"
+        ],
+        "next_action": "Obtenir de la source la preuve que la variante « 504A » emprunte bien la route au numéro nu (DDD_504) AVANT tout raccordement. Sans cette preuve, la fusion est interdite (identités publiques distinctes).",
+        "feed_route_ids_present": [],
+        "bare_number_route_ids": [
+          "DDD_504"
+        ]
+      },
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -2755,6 +3177,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "NO_SCHEDULE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "NOT_VERIFIED",
       "feed_route_ids": [],
       "trip_ids_count": 0,
       "sample_trip_ids": [],
@@ -2762,8 +3185,31 @@
       "stop_times_count": 0,
       "stop_sequence_present": false,
       "stop_sequence_strict": false,
+      "sequence_quality": "ABSENT",
       "served_stop_count": 0,
       "unresolved_reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "blocking": {
+        "operator": "DDD",
+        "line_number": "504B",
+        "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+        "missing_fields": [
+          "route_id",
+          "trip_id",
+          "direction_id",
+          "stop_id",
+          "stop_sequence",
+          "stop_times"
+        ],
+        "consulted_sources": [
+          "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+          "feeds PassBi embarqués (ddd.json / aftu.json)"
+        ],
+        "next_action": "Obtenir de la source la preuve que la variante « 504B » emprunte bien la route au numéro nu (DDD_504) AVANT tout raccordement. Sans cette preuve, la fusion est interdite (identités publiques distinctes).",
+        "feed_route_ids_present": [],
+        "bare_number_route_ids": [
+          "DDD_504"
+        ]
+      },
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -2781,6 +3227,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "SCHEDULE_CONFIRMED",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_01"
       ],
@@ -2797,8 +3244,10 @@
       "stop_times_count": 8825,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 83,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -2816,6 +3265,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_04"
       ],
@@ -2832,8 +3282,10 @@
       "stop_times_count": 5691,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 71,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -2851,6 +3303,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_07"
       ],
@@ -2867,8 +3320,10 @@
       "stop_times_count": 10728,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 70,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -2886,6 +3341,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_08"
       ],
@@ -2902,8 +3358,10 @@
       "stop_times_count": 9803,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 95,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -2921,6 +3379,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_09"
       ],
@@ -2937,8 +3396,10 @@
       "stop_times_count": 7818,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 64,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -2956,6 +3417,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_10"
       ],
@@ -2972,8 +3434,10 @@
       "stop_times_count": 5894,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 62,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -2991,6 +3455,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_13"
       ],
@@ -3007,8 +3472,10 @@
       "stop_times_count": 5052,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 47,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -3026,6 +3493,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_18"
       ],
@@ -3041,8 +3509,10 @@
       "stop_times_count": 1677,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 43,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -3060,6 +3530,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_20"
       ],
@@ -3075,8 +3546,10 @@
       "stop_times_count": 1755,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 45,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -3094,6 +3567,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_23"
       ],
@@ -3110,8 +3584,10 @@
       "stop_times_count": 11082,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 104,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -3129,6 +3605,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_121"
       ],
@@ -3145,8 +3622,10 @@
       "stop_times_count": 7668,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 66,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -3164,6 +3643,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_319"
       ],
@@ -3180,8 +3660,10 @@
       "stop_times_count": 6768,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 45,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -3199,6 +3681,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_502"
       ],
@@ -3214,8 +3697,10 @@
       "stop_times_count": 780,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 15,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -3233,6 +3718,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_503"
       ],
@@ -3248,8 +3734,10 @@
       "stop_times_count": 416,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 8,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -3267,6 +3755,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "NO_SCHEDULE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "NOT_VERIFIED",
       "feed_route_ids": [],
       "trip_ids_count": 0,
       "sample_trip_ids": [],
@@ -3274,8 +3763,29 @@
       "stop_times_count": 0,
       "stop_sequence_present": false,
       "stop_sequence_strict": false,
+      "sequence_quality": "ABSENT",
       "served_stop_count": 0,
       "unresolved_reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "blocking": {
+        "operator": "DDD",
+        "line_number": "TO1",
+        "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+        "missing_fields": [
+          "route_id",
+          "trip_id",
+          "direction_id",
+          "stop_id",
+          "stop_sequence",
+          "stop_times"
+        ],
+        "consulted_sources": [
+          "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+          "feeds PassBi embarqués (ddd.json / aftu.json)"
+        ],
+        "next_action": "Obtenir de DDD un feed (ou une publication) exposant la route de la ligne « TO1 ». Aucune route de ce numéro n'existe dans le feed embarqué.",
+        "feed_route_ids_present": [],
+        "bare_number_route_ids": []
+      },
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -3293,6 +3803,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "NO_SCHEDULE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "NOT_VERIFIED",
       "feed_route_ids": [],
       "trip_ids_count": 0,
       "sample_trip_ids": [],
@@ -3300,8 +3811,29 @@
       "stop_times_count": 0,
       "stop_sequence_present": false,
       "stop_sequence_strict": false,
+      "sequence_quality": "ABSENT",
       "served_stop_count": 0,
       "unresolved_reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "blocking": {
+        "operator": "DDD",
+        "line_number": "TAF",
+        "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+        "missing_fields": [
+          "route_id",
+          "trip_id",
+          "direction_id",
+          "stop_id",
+          "stop_sequence",
+          "stop_times"
+        ],
+        "consulted_sources": [
+          "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+          "feeds PassBi embarqués (ddd.json / aftu.json)"
+        ],
+        "next_action": "Obtenir de DDD un feed (ou une publication) exposant la route de la ligne « TAF ». Aucune route de ce numéro n'existe dans le feed embarqué.",
+        "feed_route_ids_present": [],
+        "bare_number_route_ids": []
+      },
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -3319,6 +3851,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "NO_SCHEDULE",
       "published_schedule_status": "SCHEDULE_CONFIRMED",
+      "mapping_status": "NOT_VERIFIED",
       "feed_route_ids": [],
       "trip_ids_count": 0,
       "sample_trip_ids": [],
@@ -3326,8 +3859,29 @@
       "stop_times_count": 0,
       "stop_sequence_present": false,
       "stop_sequence_strict": false,
+      "sequence_quality": "ABSENT",
       "served_stop_count": 0,
       "unresolved_reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "blocking": {
+        "operator": "DDD",
+        "line_number": "TAF TAF",
+        "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+        "missing_fields": [
+          "route_id",
+          "trip_id",
+          "direction_id",
+          "stop_id",
+          "stop_sequence",
+          "stop_times"
+        ],
+        "consulted_sources": [
+          "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+          "feeds PassBi embarqués (ddd.json / aftu.json)"
+        ],
+        "next_action": "Obtenir de DDD un feed (ou une publication) exposant la route de la ligne « TAF TAF ». Aucune route de ce numéro n'existe dans le feed embarqué.",
+        "feed_route_ids_present": [],
+        "bare_number_route_ids": []
+      },
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -3345,6 +3899,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_02"
       ],
@@ -3361,8 +3916,10 @@
       "stop_times_count": 8902,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 102,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -3380,6 +3937,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_05"
       ],
@@ -3396,8 +3954,10 @@
       "stop_times_count": 7905,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 71,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -3415,6 +3975,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_06"
       ],
@@ -3431,8 +3992,10 @@
       "stop_times_count": 8986,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 108,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -3450,6 +4013,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_11"
       ],
@@ -3466,8 +4030,10 @@
       "stop_times_count": 9031,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 95,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -3485,6 +4051,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_12"
       ],
@@ -3501,8 +4068,10 @@
       "stop_times_count": 11659,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 117,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -3520,6 +4089,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_15"
       ],
@@ -3536,8 +4106,10 @@
       "stop_times_count": 9170,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 86,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -3555,6 +4127,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "NO_SCHEDULE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "NOT_VERIFIED",
       "feed_route_ids": [],
       "trip_ids_count": 0,
       "sample_trip_ids": [],
@@ -3562,8 +4135,31 @@
       "stop_times_count": 0,
       "stop_sequence_present": false,
       "stop_sequence_strict": false,
+      "sequence_quality": "ABSENT",
       "served_stop_count": 0,
       "unresolved_reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "blocking": {
+        "operator": "DDD",
+        "line_number": "15A",
+        "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+        "missing_fields": [
+          "route_id",
+          "trip_id",
+          "direction_id",
+          "stop_id",
+          "stop_sequence",
+          "stop_times"
+        ],
+        "consulted_sources": [
+          "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+          "feeds PassBi embarqués (ddd.json / aftu.json)"
+        ],
+        "next_action": "Obtenir de la source la preuve que la variante « 15A » emprunte bien la route au numéro nu (DDD_15) AVANT tout raccordement. Sans cette preuve, la fusion est interdite (identités publiques distinctes).",
+        "feed_route_ids_present": [],
+        "bare_number_route_ids": [
+          "DDD_15"
+        ]
+      },
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -3581,6 +4177,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "NO_SCHEDULE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "NOT_VERIFIED",
       "feed_route_ids": [],
       "trip_ids_count": 0,
       "sample_trip_ids": [],
@@ -3588,8 +4185,31 @@
       "stop_times_count": 0,
       "stop_sequence_present": false,
       "stop_sequence_strict": false,
+      "sequence_quality": "ABSENT",
       "served_stop_count": 0,
       "unresolved_reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "blocking": {
+        "operator": "DDD",
+        "line_number": "15B",
+        "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+        "missing_fields": [
+          "route_id",
+          "trip_id",
+          "direction_id",
+          "stop_id",
+          "stop_sequence",
+          "stop_times"
+        ],
+        "consulted_sources": [
+          "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+          "feeds PassBi embarqués (ddd.json / aftu.json)"
+        ],
+        "next_action": "Obtenir de la source la preuve que la variante « 15B » emprunte bien la route au numéro nu (DDD_15) AVANT tout raccordement. Sans cette preuve, la fusion est interdite (identités publiques distinctes).",
+        "feed_route_ids_present": [],
+        "bare_number_route_ids": [
+          "DDD_15"
+        ]
+      },
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -3607,6 +4227,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "NO_SCHEDULE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "NOT_VERIFIED",
       "feed_route_ids": [],
       "trip_ids_count": 0,
       "sample_trip_ids": [],
@@ -3614,8 +4235,31 @@
       "stop_times_count": 0,
       "stop_sequence_present": false,
       "stop_sequence_strict": false,
+      "sequence_quality": "ABSENT",
       "served_stop_count": 0,
       "unresolved_reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "blocking": {
+        "operator": "DDD",
+        "line_number": "16A",
+        "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+        "missing_fields": [
+          "route_id",
+          "trip_id",
+          "direction_id",
+          "stop_id",
+          "stop_sequence",
+          "stop_times"
+        ],
+        "consulted_sources": [
+          "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+          "feeds PassBi embarqués (ddd.json / aftu.json)"
+        ],
+        "next_action": "Obtenir de la source la preuve que la variante « 16A » emprunte bien la route au numéro nu (DDD_16) AVANT tout raccordement. Sans cette preuve, la fusion est interdite (identités publiques distinctes).",
+        "feed_route_ids_present": [],
+        "bare_number_route_ids": [
+          "DDD_16"
+        ]
+      },
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -3633,6 +4277,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "NO_SCHEDULE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "NOT_VERIFIED",
       "feed_route_ids": [],
       "trip_ids_count": 0,
       "sample_trip_ids": [],
@@ -3640,8 +4285,31 @@
       "stop_times_count": 0,
       "stop_sequence_present": false,
       "stop_sequence_strict": false,
+      "sequence_quality": "ABSENT",
       "served_stop_count": 0,
       "unresolved_reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "blocking": {
+        "operator": "DDD",
+        "line_number": "16B",
+        "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+        "missing_fields": [
+          "route_id",
+          "trip_id",
+          "direction_id",
+          "stop_id",
+          "stop_sequence",
+          "stop_times"
+        ],
+        "consulted_sources": [
+          "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+          "feeds PassBi embarqués (ddd.json / aftu.json)"
+        ],
+        "next_action": "Obtenir de la source la preuve que la variante « 16B » emprunte bien la route au numéro nu (DDD_16) AVANT tout raccordement. Sans cette preuve, la fusion est interdite (identités publiques distinctes).",
+        "feed_route_ids_present": [],
+        "bare_number_route_ids": [
+          "DDD_16"
+        ]
+      },
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -3659,6 +4327,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_208"
       ],
@@ -3675,8 +4344,10 @@
       "stop_times_count": 5525,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 63,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -3694,6 +4365,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_213"
       ],
@@ -3710,8 +4382,10 @@
       "stop_times_count": 7728,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 94,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -3729,6 +4403,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_217"
       ],
@@ -3745,8 +4420,10 @@
       "stop_times_count": 11844,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 124,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -3764,6 +4441,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_218"
       ],
@@ -3780,8 +4458,10 @@
       "stop_times_count": 5268,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 67,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -3799,6 +4479,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_219"
       ],
@@ -3815,8 +4496,10 @@
       "stop_times_count": 11183,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 117,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -3834,6 +4517,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_220"
       ],
@@ -3850,8 +4534,10 @@
       "stop_times_count": 5768,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 72,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -3869,6 +4555,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_221"
       ],
@@ -3885,8 +4572,10 @@
       "stop_times_count": 8579,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 106,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -3904,6 +4593,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_227"
       ],
@@ -3920,8 +4610,10 @@
       "stop_times_count": 7595,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 82,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -3939,6 +4631,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_228"
       ],
@@ -3955,8 +4648,10 @@
       "stop_times_count": 3164,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 54,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -3974,6 +4669,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_232"
       ],
@@ -3990,8 +4686,10 @@
       "stop_times_count": 4896,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 70,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -4009,6 +4707,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_233"
       ],
@@ -4025,8 +4724,10 @@
       "stop_times_count": 5160,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 78,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -4044,6 +4745,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_234"
       ],
@@ -4060,8 +4762,10 @@
       "stop_times_count": 4768,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 67,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -4079,6 +4783,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "SCHEDULE_AVAILABLE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "CONNECTED",
       "feed_route_ids": [
         "DDD_311"
       ],
@@ -4095,8 +4800,10 @@
       "stop_times_count": 697,
       "stop_sequence_present": true,
       "stop_sequence_strict": true,
+      "sequence_quality": "STRICT",
       "served_stop_count": 17,
       "unresolved_reason": null,
+      "blocking": null,
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
@@ -4114,6 +4821,7 @@
       "stops_status": "UNKNOWN",
       "schedule_status": "NO_SCHEDULE",
       "published_schedule_status": "NO_SCHEDULE",
+      "mapping_status": "NOT_VERIFIED",
       "feed_route_ids": [],
       "trip_ids_count": 0,
       "sample_trip_ids": [],
@@ -4121,8 +4829,29 @@
       "stop_times_count": 0,
       "stop_sequence_present": false,
       "stop_sequence_strict": false,
+      "sequence_quality": "ABSENT",
       "served_stop_count": 0,
       "unresolved_reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+      "blocking": {
+        "operator": "DDD",
+        "line_number": "327",
+        "reason": "NO_FEED_ROUTE_FOR_LINE_NUMBER",
+        "missing_fields": [
+          "route_id",
+          "trip_id",
+          "direction_id",
+          "stop_id",
+          "stop_sequence",
+          "stop_times"
+        ],
+        "consulted_sources": [
+          "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
+          "feeds PassBi embarqués (ddd.json / aftu.json)"
+        ],
+        "next_action": "Obtenir de DDD un feed (ou une publication) exposant la route de la ligne « 327 ». Aucune route de ce numéro n'existe dans le feed embarqué.",
+        "feed_route_ids_present": [],
+        "bare_number_route_ids": []
+      },
       "source": "https://demdikk.sn/info-voyageurs/",
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",

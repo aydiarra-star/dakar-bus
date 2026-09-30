@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:dakar_bus/main.dart' as app;
 import 'package:dakar_bus/models/public_bus_line.dart';
+import 'package:dakar_bus/services/gtfs/passbi_source.dart';
 import 'package:dakar_bus/services/network_search.dart';
 
 void main() {
@@ -112,13 +113,12 @@ void main() {
         'aveuglément au numéro nu du feed', () {
       for (final l in app.appDataService.publicBusLineCatalog.reference!.ddd) {
         if (!RegExp(r'[A-Za-z]').hasMatch(l.lineNumber)) continue;
-        // Exception documentée : « TAF TAF » est le seul libellé lettré dont
-        // l'horaire est CONFIRMÉ par la source (canonique §L). Toutes les
-        // autres variantes (15A/15B, 502A…) restent non raccordées.
-        if (l.publishedScheduleStatus == 'SCHEDULE_CONFIRMED') continue;
-        expect(l.scheduleStatus, 'NO_SCHEDULE',
+        // Le feed n'expose aucune route pour ces identités lettrées : aucune ne
+        // peut être CONNECTED, et aucune ne fusionne avec la route au numéro nu.
+        expect(l.mappingStatus, isNot(LineMappingStatus.connected),
             reason: '${l.publicLabel} : variante lettrée raccordée à tort');
         expect(l.feedRouteIds, isEmpty);
+        expect(l.unresolvedReason, 'NO_FEED_ROUTE_FOR_LINE_NUMBER');
       }
     });
   });
@@ -126,7 +126,7 @@ void main() {
   group('Référentiel public — intégrité (aucune invention)', () {
     test('chaque ligne raccordée expose la chaîne horaire vérifiable', () {
       for (final l in app.appDataService.publicBusLineCatalog.publicLines) {
-        if (l.scheduleStatus != 'SCHEDULE_AVAILABLE') continue;
+        if (l.mappingStatus != LineMappingStatus.connected) continue;
         expect(l.feedRouteIds, isNotEmpty, reason: '${l.publicLabel} : route_id');
         expect(l.tripIdsCount, greaterThan(0), reason: '${l.publicLabel} : trip_id');
         expect(l.directionIds, isNotEmpty, reason: '${l.publicLabel} : direction_id');
@@ -134,7 +134,53 @@ void main() {
         expect(l.servedStopCount, greaterThan(0), reason: '${l.publicLabel} : stop_id');
         expect(l.stopSequencePresent, isTrue, reason: '${l.publicLabel} : stop_sequence');
         expect(l.isScheduleLinked, isTrue);
+        expect(l.hasRealSchedule, isTrue);
         expect(l.unresolvedReason, isNull);
+        expect(l.blocking, isNull);
+      }
+    });
+
+    test('mapping_status n’est jamais optimiste (CONNECTED exige la chaîne)', () {
+      for (final l in app.appDataService.publicBusLineCatalog.publicLines) {
+        if (l.mappingStatus == LineMappingStatus.connected) {
+          expect(l.hasRealSchedule, isTrue, reason: '${l.publicLabel} : CONNECTED creux');
+          expect(l.scheduleStatus, 'SCHEDULE_AVAILABLE');
+        } else {
+          expect(l.hasRealSchedule, isFalse, reason: '${l.publicLabel} : faux horaire');
+          expect(l.scheduleStatus, 'NO_SCHEDULE');
+          expect(l.unresolvedReason, isNotNull,
+              reason: '${l.publicLabel} : cause absente');
+          expect(l.blocking, isNotNull,
+              reason: '${l.publicLabel} : preuve de blocage absente');
+        }
+      }
+    });
+
+    test('toute ligne non raccordée porte une preuve de blocage exploitable', () {
+      final List<PublicBusLine> unresolved =
+          app.appDataService.publicBusLineCatalog.reference!.unresolvedPublicLines;
+      expect(unresolved, isNotEmpty);
+      for (final l in unresolved) {
+        final LineBlocking b = l.blocking!;
+        expect(b.reason, l.unresolvedReason);
+        expect(b.missingFields, isNotEmpty,
+            reason: '${l.publicLabel} : champs manquants non listés');
+        expect(b.nextAction, isNotEmpty,
+            reason: '${l.publicLabel} : prochaine action absente');
+        expect(b.consultedSources, isNotEmpty);
+      }
+    });
+
+    test('une variante lettrée documente la route au numéro nu SANS la fusionner',
+        () {
+      for (final num in <String>['502A', '502B', '503A', '504B']) {
+        final PublicBusLine l = app.appDataService.publicBusLineCatalog.reference!
+            .ddd
+            .firstWhere((x) => x.lineNumber == num);
+        expect(l.mappingStatus, LineMappingStatus.notVerified);
+        expect(l.feedRouteIds, isEmpty);
+        expect(l.blocking!.bareNumberRouteIds, isNotEmpty,
+            reason: 'DDD $num : route au numéro nu non documentée');
       }
     });
 
@@ -217,6 +263,43 @@ void main() {
       // 266 lignes de feed + les lignes publiques : strictement plus.
       expect(lineCount, greaterThan(266),
           reason: 'les lignes publiques doivent enrichir le catalogue');
+    });
+  });
+
+  group('Fiche ligne — arrêts ordonnés (stop_sequence réels)', () {
+    test('une ligne CONNECTED expose ses arrêts réels ordonnés par stop_sequence',
+        () {
+      final PublicBusLine line = app.appDataService.publicBusLineCatalog.publicLines
+          .firstWhere((l) => l.hasRealSchedule);
+      final PassBiRouteStopSequence? seq =
+          app.appDataService.publicLineStopSequence(line);
+      expect(seq, isNotNull);
+      expect(seq!.stops, isNotEmpty);
+      expect(seq.stops.length, greaterThan(1));
+      expect(seq.routeId, line.feedRouteIds.first);
+      expect(seq.tripId, isNotEmpty);
+    });
+
+    test('la séquence d’arrêts correspond aux stop_times réels de la route', () {
+      final PublicBusLine line = app.appDataService.publicBusLineCatalog.publicLines
+          .firstWhere((l) => l.hasRealSchedule);
+      final PassBiRouteStopSequence seq =
+          app.appDataService.publicLineStopSequence(line)!;
+      final int served =
+          app.appDataService.passBiSource.routeSummary(line.operator, seq.routeId)!
+              .servedStops;
+      // Le trip le plus complet couvre au plus l'ensemble des arrêts desservis,
+      // et au moins une partie : aucun arrêt inventé, aucun arrêt en trop.
+      expect(seq.stops.length, lessThanOrEqualTo(served));
+      expect(seq.stops.length, greaterThan(0));
+    });
+
+    test('une ligne non raccordée n’a AUCUNE fiche d’arrêts fabriquée', () {
+      for (final l in app.appDataService.publicBusLineCatalog.reference!
+          .unresolvedPublicLines) {
+        expect(app.appDataService.publicLineStopSequence(l), isNull,
+            reason: '${l.publicLabel} : fiche fabriquée pour une ligne non raccordée');
+      }
     });
   });
 }

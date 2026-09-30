@@ -258,6 +258,40 @@ function scheduleFor(feed, number) {
   };
 }
 
+/** Route(s) du feed portant le numéro NU (ex. `502A` → `DDD_502`).
+ *
+ *  Sert UNIQUEMENT de preuve d'audit : on documente qu'une route au numéro nu
+ *  existe mais que la rattacher à une variante lettrée serait une fusion non
+ *  prouvée (identités publiques distinctes). Le résultat n'est JAMAIS utilisé
+ *  pour raccorder. */
+function bareNumberRouteIds(feed, number) {
+  const bare = /^(\d+)/.exec(number);
+  if (!bare) return [];
+  return feed.byNumber.get(String(Number(bare[1]))) ?? [];
+}
+
+/** Statut de raccordement explicite (§9).
+ *
+ *  - `CONNECTED`    : les 6 maillons de la chaîne existent réellement ;
+ *  - `BLOCKED`      : une route du feed porte ce numéro, mais un maillon
+ *                     manque (cause exacte dans `blocking`) ;
+ *  - `NOT_VERIFIED` : aucune route du feed ne porte ce numéro public ;
+ *  - `PARTIAL`      : réservé (aucune ligne dans cet état aujourd'hui).
+ *
+ *  `CONNECTED` est IMPOSSIBLE sans la chaîne complète : jamais de statut
+ *  optimiste. */
+function mappingStatus(sch) {
+  if (sch.complete) return 'CONNECTED';
+  if (sch.routeIds.length > 0) return 'BLOCKED';
+  return 'NOT_VERIFIED';
+}
+
+/** Qualité de l'ordre des arrêts dans le feed (≠ raccordement). */
+function sequenceQuality(sch) {
+  if (!sch.stopSequencePresent) return 'ABSENT';
+  return sch.stopSequenceStrict ? 'STRICT' : 'UNORDERED_IN_FEED';
+}
+
 /** Origine/destination : la donnée structurée si présente, sinon la seule
  *  source officielle disponible (libellé publié « A - B »). Jamais inventées. */
 function endpoints(origin, destination, officialName) {
@@ -293,6 +327,7 @@ const aftuLines = aftu.map((l) => {
     route_status: l.route_status,
     stops_status: l.stops_status,
     schedule_status: sch.status,
+    mapping_status: mappingStatus(sch),
     feed_route_ids: sch.routeIds,
     trip_ids_count: sch.tripIds.length,
     sample_trip_ids: sch.tripIds.slice(0, 3),
@@ -300,8 +335,10 @@ const aftuLines = aftu.map((l) => {
     stop_times_count: sch.stopTimes,
     stop_sequence_present: sch.stopSequencePresent,
     stop_sequence_strict: sch.stopSequenceStrict,
+    sequence_quality: sequenceQuality(sch),
     served_stop_count: sch.stopCount,
     unresolved_reason: sch.complete ? null : unresolvedReason(sch),
+    blocking: sch.complete ? null : blockingFor('AFTU', l.number, sch),
     source: SOURCES.aftu,
     verified_at: VERIFIED_AT,
     canonical_status: l.canonical_status,
@@ -312,7 +349,9 @@ const dddLines = ddd.map((l) => {
   // Variantes lettrées (15A/15B, 16A/16B, 502A…) et services TAF TAF : le feed
   // n'expose AUCUNE route portant ce numéro — aucun raccordement n'est possible
   // sans fabriquer un mapping (interdit). Le raccordement reste donc vide, avec
-  // la cause documentée dans `unresolved_reason`.
+  // la cause documentée dans `unresolved_reason`. On documente en plus, pour
+  // audit, les routes au numéro NU (ex. `DDD_502`) qui existent mais ne doivent
+  // PAS être fusionnées avec la variante.
   const hasLetter = /[A-Za-z]/.test(l.number);
   const sch = hasLetter
     ? { routeIds: [], tripIds: [], directionIds: [], stopCount: 0, stopTimes: 0,
@@ -332,6 +371,7 @@ const dddLines = ddd.map((l) => {
     stops_status: l.stops_status,
     schedule_status: sch.status, // dérivé du feed (raccordement réel)
     published_schedule_status: l.schedule_status, // publié (canonique)
+    mapping_status: mappingStatus(sch),
     feed_route_ids: sch.routeIds,
     trip_ids_count: sch.tripIds.length,
     sample_trip_ids: sch.tripIds.slice(0, 3),
@@ -339,16 +379,85 @@ const dddLines = ddd.map((l) => {
     stop_times_count: sch.stopTimes,
     stop_sequence_present: sch.stopSequencePresent,
     stop_sequence_strict: sch.stopSequenceStrict,
+    sequence_quality: sequenceQuality(sch),
     served_stop_count: sch.stopCount,
     unresolved_reason: sch.complete
       ? null
       : unresolvedReason(sch, hasLetter ? 'NO_FEED_ROUTE_FOR_LINE_NUMBER' : null),
+    blocking: sch.complete
+      ? null
+      : blockingFor('DDD', l.number, sch, {
+          bareNumberRouteIds: hasLetter ? bareNumberRouteIds(dddFeed, l.number) : [],
+        }),
     source: SOURCES.ddd,
     itinerary_source: SOURCES.dddItineraries,
     verified_at: VERIFIED_AT,
     canonical_status: l.canonical_status,
   };
 });
+
+/** Preuve de blocage : ce qui manque, pourquoi, et ce qu'il faudrait (§8).
+ *
+ *  Aucune donnée n'est inventée ici : on ne fait que consigner l'absence
+ *  constatée dans le feed et la source qu'il faudrait obtenir. */
+function blockingFor(operator, number, sch, extra = {}) {
+  const reason = unresolvedReason(sch, extra.bareNumberRouteIds ? 'NO_FEED_ROUTE_FOR_LINE_NUMBER' : null);
+  const common = {
+    operator,
+    line_number: number,
+    reason,
+    missing_fields: [],
+    consulted_sources: [SOURCES.canonical, 'feeds PassBi embarqués (ddd.json / aftu.json)'],
+    next_action: '',
+  };
+  if (sch.routeIds.length === 0) {
+    const bare = extra.bareNumberRouteIds ?? [];
+    return {
+      ...common,
+      feed_route_ids_present: [],
+      bare_number_route_ids: bare,
+      missing_fields: ['route_id', 'trip_id', 'direction_id', 'stop_id', 'stop_sequence', 'stop_times'],
+      next_action: bare.length > 0
+        ? `Obtenir de la source la preuve que la variante « ${number} » emprunte bien la route ` +
+          `au numéro nu (${bare.join(', ')}) AVANT tout raccordement. Sans cette preuve, la ` +
+          'fusion est interdite (identités publiques distinctes).'
+        : `Obtenir de ${operator} un feed (ou une publication) exposant la route de la ligne ` +
+          `« ${number} ». Aucune route de ce numéro n'existe dans le feed embarqué.`,
+    };
+  }
+  if (sch.tripIds.length === 0) {
+    return {
+      ...common,
+      feed_route_ids_present: sch.routeIds,
+      missing_fields: ['trip_id', 'direction_id', 'stop_id', 'stop_sequence', 'stop_times'],
+      next_action: `La route ${sch.routeIds.join(', ')} existe dans le feed mais ne porte aucun trip : ` +
+        'obtenir les trips (et leurs stop_times) auprès de la source.',
+    };
+  }
+  if (sch.stopTimes === 0) {
+    return {
+      ...common,
+      feed_route_ids_present: sch.routeIds,
+      missing_fields: ['stop_times', 'stop_sequence'],
+      next_action: `La route ${sch.routeIds.join(', ')} porte des trips mais AUCUN stop_time : ` +
+        'obtenir les stop_times auprès de la source.',
+    };
+  }
+  if (sch.stopCount === 0) {
+    return {
+      ...common,
+      feed_route_ids_present: sch.routeIds,
+      missing_fields: ['stop_id'],
+      next_action: 'Aucun arrêt réellement desservi : obtenir les stop_times nommés.',
+    };
+  }
+  return {
+    ...common,
+    feed_route_ids_present: sch.routeIds,
+    missing_fields: ['stop_sequence'],
+    next_action: 'stop_sequence absente du feed : obtenir une séquence d\'arrêts ordonnée.',
+  };
+}
 
 /** Cause exacte d'un défaut de raccordement — jamais un simple « NO_SCHEDULE ». */
 function unresolvedReason(sch, override = null) {
@@ -393,6 +502,7 @@ const unresolved = allPublic
     line_number: l.line_number,
     public_label: l.public_label,
     reason: l.unresolved_reason,
+    mapping_status: l.mapping_status,
     feed_route_ids: l.feed_route_ids,
   }));
 
@@ -411,8 +521,34 @@ function isLinked(l) {
   );
 }
 
+const countStatus = (s) => allPublic.filter((l) => l.mapping_status === s).length;
+
+// ---------------------------------------------------------------------------
+// Audit §9 — routes du feed SANS ligne publique correspondante.
+//
+// Le feed opérationnel contient des routes dont le numéro public n'apparaît pas
+// dans le référentiel canonique publié (ex. `DDD_102`, `DDD_401`, `AFTU_90`).
+// Ce n'est PAS un défaut de raccordement : ces routes n'ont aucune identité
+// publique établie par une source. On les DOCUMENTE (jamais on ne les fusionne
+// avec une ligne publique existante, jamais on ne fabrique une ligne).
+// ---------------------------------------------------------------------------
+function feedRoutesWithoutPublicLine(feed, publicRoutes, tataRoutes) {
+  const orphans = [];
+  for (const rid of feed.evidence.keys()) {
+    if (publicRoutes.has(rid)) continue;
+    if (tataRoutes.has(rid)) continue;
+    orphans.push(rid);
+  }
+  return orphans.sort();
+}
+
+const publicRouteIds = new Set(allPublic.flatMap((l) => l.feed_route_ids));
+const tataRouteIds = new Set(tataAudit.map((t) => t.route_id));
+const dddFeedOrphans = feedRoutesWithoutPublicLine(dddFeed, publicRouteIds, tataRouteIds);
+const aftuFeedOrphans = feedRoutesWithoutPublicLine(aftuFeed, publicRouteIds, tataRouteIds);
+
 const ref = {
-  schema: 'public-bus-lines-dakar/v2',
+  schema: 'public-bus-lines-dakar/v3',
   generated_at: GENERATED_AT,
   sources_verified_at: VERIFIED_AT,
   principle:
@@ -421,7 +557,11 @@ const ref = {
     'aucune correspondance inventés. Le numéro public n’est jamais déduit du route_id. ' +
     'Toute ligne publique AFTU/DDD doit être raccordée aux données horaires réelles ' +
     '(route_id → trip_id → direction_id → stop_id → stop_sequence → stop_times) ; ' +
-    'un défaut de raccordement est listé dans `unresolved_public_lines`, jamais masqué.',
+    'un défaut de raccordement est listé dans `unresolved_public_lines` avec sa cause ' +
+    'exacte et sa preuve de blocage (`blocking`), jamais masqué. `mapping_status` vaut ' +
+    'CONNECTED uniquement si la chaîne complète existe ; sinon BLOCKED (route présente, ' +
+    'maillon manquant) ou NOT_VERIFIED (aucune route de ce numéro). Aucune ligne n’est ' +
+    'supprimée pour masquer un blocage, aucune identité publique distincte n’est fusionnée.',
   sources: SOURCES,
   counts: {
     aftu_official: aftuLines.length,
@@ -429,8 +569,23 @@ const ref = {
     tata_identities: tataAudit.length,
     linked: allPublic.length - unresolved.length,
     unresolved: unresolved.length,
+    connected: countStatus('CONNECTED'),
+    blocked: countStatus('BLOCKED'),
+    not_verified: countStatus('NOT_VERIFIED'),
+    partial: countStatus('PARTIAL'),
+    feed_routes_without_public_line:
+      dddFeedOrphans.length + aftuFeedOrphans.length,
   },
   unresolved_public_lines: unresolved,
+  // Routes du feed sans identité publique : constat documenté, jamais fusionné.
+  feed_routes_without_public_line: {
+    note:
+      'Routes présentes dans le feed opérationnel PassBi dont le numéro public ' +
+      'n’est PAS établi par le référentiel canonique publié. Aucune ligne n’est ' +
+      'fabriquée et aucune n’est fusionnée avec une ligne existante.',
+    DDD: dddFeedOrphans,
+    AFTU: aftuFeedOrphans,
+  },
   aftu: aftuLines,
   ddd: dddLines,
   tata_audit: tataAudit,
@@ -449,10 +604,13 @@ const withSchedule = (arr) => arr.filter((l) => l.schedule_status !== 'NO_SCHEDU
 console.log(`AFTU : ${aftuLines.length} lignes officielles (${withSchedule(aftuLines)} reliées aux horaires).`);
 console.log(`DDD  : ${dddLines.length} lignes publiques (${withSchedule(dddLines)} reliées aux horaires).`);
 console.log(`Tata : ${tataAudit.length} identités en audit (0 ligne publique — aucun numéro officiel).`);
+console.log(`Statuts : CONNECTED=${countStatus('CONNECTED')} BLOCKED=${countStatus('BLOCKED')} ` +
+  `NOT_VERIFIED=${countStatus('NOT_VERIFIED')} PARTIAL=${countStatus('PARTIAL')}`);
 if (unresolved.length > 0) {
   console.log('');
   console.log(`NON RACCORDÉES : ${unresolved.length} / ${allPublic.length} lignes publiques AFTU/DDD`);
   for (const u of unresolved) {
-    console.log(`  - ${u.public_label} : ${u.reason} (feed_route_ids=${JSON.stringify(u.feed_route_ids)})`);
+    console.log(`  - ${u.public_label} : ${u.reason} [${u.mapping_status}] ` +
+      `(feed_route_ids=${JSON.stringify(u.feed_route_ids)})`);
   }
 }

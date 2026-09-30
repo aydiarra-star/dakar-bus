@@ -62,16 +62,30 @@ npm run validate:data
   `line_number → operator → route_id → trip_id → direction_id → stop_id →
   stop_sequence → stop_times`. Le raccordement se fait **uniquement** par la
   numérotation de l'opérateur (`AFTU_<n>`, `DDD_<nn>`), jamais par similarité de
-  terminus/nom. Schéma `public-bus-lines-dakar/v2` (`counts.linked`,
-  `counts.unresolved`, `unresolved_public_lines`).
+  terminus/nom. Schéma `public-bus-lines-dakar/v3`.
+- Statut de raccordement explicite `mapping_status` — **jamais optimiste** :
+  `CONNECTED` (les 6 maillons existent), `BLOCKED` (une route du feed porte le
+  numéro, un maillon manque), `NOT_VERIFIED` (aucune route de ce numéro),
+  `PARTIAL` (réservé). Toute ligne non `CONNECTED` porte `unresolved_reason` ET
+  une preuve de blocage `blocking` (`reason`, `missing_fields`,
+  `feed_route_ids_present`, `bare_number_route_ids`, `consulted_sources`,
+  `next_action`). Compteurs : `counts.connected/blocked/not_verified/partial`.
+- Ne jamais fusionner une variante lettrée avec la route au numéro nu
+  (`502A` ≠ `DDD_502`) : la route au numéro nu est seulement **citée** dans
+  `blocking.bare_number_route_ids`, avec la prochaine action requise.
+- Ne jamais supprimer une ligne publique du référentiel pour masquer un blocage.
 - Contrôle fort : `npm run validate:public-lines`
-  (`scripts/validate-public-bus-lines.mjs`) re-dérive la chaîne et **échoue
-  (exit 1)** en listant chaque ligne non raccordée. Les suites Node
-  (`tests/public-bus-lines.test.js`) et Dart
+  (`scripts/validate-public-bus-lines.mjs`) re-dérive la chaîne ET la cohérence
+  de `mapping_status`, puis **échoue (exit 1)** en listant chaque ligne non
+  raccordée. Les suites Node (`tests/public-bus-lines.test.js`) et Dart
   (`flutter-src/test/public_bus_lines_test.dart`) portent la même « porte de
   complétude » — l'écart restant est matérialisé, jamais masqué.
 - Ne jamais dé-raccorder une ligne pour cause de `stop_sequence` dupliquée :
-  c'est une qualité de donnée (`stop_sequence_strict=false`), pas un motif.
-- État 2026-09-30 : 104/120 raccordées ; 16 non raccordées faute de données
-  publiées (AFTU 47 sans trip, AFTU 52 sans stop_time, 14 lignes DDD sans route
-  au feed). Le chantier n'est terminé que quand cette liste est vide.
+  c'est une qualité de donnée (`sequence_quality=UNORDERED_IN_FEED`), pas un
+  motif.
+- La fiche ligne (`PublicLineDetailPage`) lit les arrêts RÉELS ordonnés par
+  `stop_sequence` via `PassBiSource.routeStopSequence` (trip le plus complet) ;
+  une ligne non raccordée n'a **aucune** fiche d'arrêts fabriquée.
+- État 2026-09-30 : 104/120 raccordées (CONNECTED) ; 2 BLOCKED (AFTU 47 sans
+  trip, AFTU 52 sans stop_time) et 14 NOT_VERIFIED (lignes DDD sans route au
+  feed). Le chantier n'est terminé que quand cette liste est vide.

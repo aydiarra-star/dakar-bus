@@ -29,6 +29,8 @@ function feedRouteIds(path) {
 const AFTU_ROUTES = feedRouteIds(resolve(ROOT, 'flutter-src/assets/data/passbi/aftu.json'));
 const DDD_ROUTES = feedRouteIds(resolve(ROOT, 'flutter-src/assets/data/passbi/ddd.json'));
 
+const ALL = [...REF.aftu, ...REF.ddd];
+
 test('le référentiel public est identique entre data/ et l’asset Flutter', () => {
   assert.deepEqual(REF, ASSET);
 });
@@ -69,14 +71,15 @@ test('le raccordement horaire pointe vers des route_id réellement présents', (
 });
 
 test('une ligne sans raccordement horaire ne déclare aucun arrêt desservi', () => {
-  for (const l of [...REF.aftu, ...REF.ddd]) {
-    if (l.schedule_status === 'NO_SCHEDULE') {
-      // Un route_id peut exister dans le feed sans aucun stop_time : la ligne
-      // reste alors sans horaire et sans arrêt desservi (jamais d'invention).
-      assert.equal(l.served_stop_count, 0, `${l.public_label} : arrêts sans horaire`);
-    } else {
+  for (const l of ALL) {
+    if (l.mapping_status === 'CONNECTED') {
       assert.ok(l.served_stop_count > 0);
       assert.ok(l.feed_route_ids.length > 0);
+    } else {
+      // Une route peut exister dans le feed sans aucun stop_time (AFTU 47/52) :
+      // la ligne reste alors sans horaire et sans arrêt desservi (jamais
+      // d'invention).
+      assert.equal(l.served_stop_count, 0, `${l.public_label} : arrêts sans horaire`);
     }
   }
 });
@@ -99,9 +102,12 @@ test('aucune identité Tata n’est exposée comme ligne publique', () => {
 test('les variantes lettrées DDD ne sont pas raccordées au numéro nu du feed', () => {
   for (const l of REF.ddd) {
     if (!/[A-Za-z]/.test(l.line_number)) continue;
-    if (l.published_schedule_status === 'SCHEDULE_CONFIRMED') continue; // TAF TAF
-    assert.equal(l.schedule_status, 'NO_SCHEDULE', `${l.public_label} raccordée à tort`);
+    // Le feed n'expose aucune route pour ces identités lettrées : aucune ne peut
+    // être CONNECTED, et aucune ne fusionne avec la route au numéro nu.
+    assert.notEqual(l.mapping_status, 'CONNECTED',
+      `${l.public_label} raccordée à tort`);
     assert.equal(l.feed_route_ids.length, 0);
+    assert.equal(l.unresolved_reason, 'NO_FEED_ROUTE_FOR_LINE_NUMBER');
   }
 });
 
@@ -109,6 +115,77 @@ test('les compteurs déclarés correspondent aux listes', () => {
   assert.equal(REF.counts.aftu_official, REF.aftu.length);
   assert.equal(REF.counts.ddd_public, REF.ddd.length);
   assert.equal(REF.counts.tata_identities, REF.tata_audit.length);
+  const byStatus = (s) => ALL.filter((l) => l.mapping_status === s).length;
+  assert.equal(REF.counts.connected, byStatus('CONNECTED'));
+  assert.equal(REF.counts.blocked, byStatus('BLOCKED'));
+  assert.equal(REF.counts.not_verified, byStatus('NOT_VERIFIED'));
+  assert.equal(REF.counts.partial, byStatus('PARTIAL'));
+  assert.equal(
+    REF.counts.connected + REF.counts.blocked + REF.counts.not_verified + REF.counts.partial,
+    ALL.length);
+});
+
+test('mapping_status est dérivé de la chaîne, jamais optimiste', () => {
+  for (const l of ALL) {
+    if (l.mapping_status === 'CONNECTED') {
+      assert.ok(l.feed_route_ids.length > 0, `${l.public_label} : route_id`);
+      assert.ok(l.trip_ids_count > 0, `${l.public_label} : trip_id`);
+      assert.ok(l.direction_ids.length > 0, `${l.public_label} : direction_id`);
+      assert.ok(l.stop_times_count > 0, `${l.public_label} : stop_times`);
+      assert.ok(l.served_stop_count > 0, `${l.public_label} : stop_id`);
+      assert.equal(l.stop_sequence_present, true, `${l.public_label} : stop_sequence`);
+      assert.equal(l.schedule_status, 'SCHEDULE_AVAILABLE');
+      assert.equal(l.unresolved_reason, null);
+      assert.equal(l.blocking, null);
+    } else {
+      // BLOCKED (route présente, maillon manquant) ou NOT_VERIFIED (aucune
+      // route). Jamais CONNECTED sans la chaîne complète.
+      assert.ok(['BLOCKED', 'NOT_VERIFIED', 'PARTIAL'].includes(l.mapping_status));
+      assert.equal(l.schedule_status, 'NO_SCHEDULE');
+      assert.ok(l.unresolved_reason, `${l.public_label} : cause absente`);
+    }
+  }
+});
+
+test('toute ligne non raccordée porte une preuve de blocage exploitable', () => {
+  for (const l of ALL) {
+    if (l.mapping_status === 'CONNECTED') continue;
+    assert.ok(l.blocking, `${l.public_label} : preuve de blocage absente`);
+    assert.equal(l.blocking.reason, l.unresolved_reason);
+    assert.ok(l.blocking.missing_fields.length > 0,
+      `${l.public_label} : champs manquants non listés`);
+    assert.ok(l.blocking.next_action.length > 0,
+      `${l.public_label} : prochaine action absente`);
+    assert.ok(l.blocking.consulted_sources.length > 0,
+      `${l.public_label} : sources consultées absentes`);
+    if (l.mapping_status === 'BLOCKED') {
+      assert.ok(l.blocking.feed_route_ids_present.length > 0,
+        `${l.public_label} : route présente non documentée`);
+    }
+    if (l.mapping_status === 'NOT_VERIFIED') {
+      assert.equal(l.blocking.feed_route_ids_present.length, 0);
+    }
+  }
+});
+
+test('aucune route du feed ne reste orpheline sans être documentée (audit §9)', () => {
+  // Toute route du feed est soit rattachée à une ligne publique, soit une
+  // identité Tata, soit listée comme route SANS identité publique établie. Rien
+  // n'est perdu silencieusement et rien n'est fusionné de force.
+  const publicRoutes = new Set(ALL.flatMap((l) => l.feed_route_ids));
+  const tataRoutes = new Set(REF.tata_audit.map((t) => t.route_id));
+  const documented = new Set([
+    ...REF.feed_routes_without_public_line.DDD,
+    ...REF.feed_routes_without_public_line.AFTU,
+  ]);
+  const known = (rid) =>
+    publicRoutes.has(rid) || tataRoutes.has(rid) || documented.has(rid);
+  for (const rid of DDD_ROUTES) assert.ok(known(rid), `route DDD non documentée : ${rid}`);
+  for (const rid of AFTU_ROUTES) assert.ok(known(rid), `route AFTU non documentée : ${rid}`);
+  assert.equal(
+    REF.counts.feed_routes_without_public_line,
+    REF.feed_routes_without_public_line.DDD.length +
+      REF.feed_routes_without_public_line.AFTU.length);
 });
 
 test('aucune ligne publique sans source ni date de vérification', () => {
@@ -130,8 +207,8 @@ function expectedRouteId(network, number) {
 }
 
 test('chaque ligne raccordée expose les 6 maillons de la chaîne horaire', () => {
-  for (const l of [...REF.aftu, ...REF.ddd]) {
-    if (l.schedule_status !== 'SCHEDULE_AVAILABLE') continue;
+  for (const l of ALL) {
+    if (l.mapping_status !== 'CONNECTED') continue;
     assert.ok(l.feed_route_ids.length > 0, `${l.public_label} : route_id`);
     assert.ok(l.trip_ids_count > 0, `${l.public_label} : trip_id`);
     assert.ok(l.direction_ids.length > 0, `${l.public_label} : direction_id`);
@@ -145,7 +222,7 @@ test('chaque ligne raccordée expose les 6 maillons de la chaîne horaire', () =
 test('aucun raccordement n’est fabriqué par similarité de numéro', () => {
   // Le route_id raccordé doit être exactement celui de la numérotation de
   // l’opérateur pour ce numéro public — jamais une route « proche ».
-  for (const l of [...REF.aftu, ...REF.ddd]) {
+  for (const l of ALL) {
     const expected = expectedRouteId(l.operator, l.line_number);
     for (const rid of l.feed_route_ids) {
       assert.equal(rid, expected,
@@ -155,12 +232,12 @@ test('aucun raccordement n’est fabriqué par similarité de numéro', () => {
 });
 
 test('une ligne NON raccordée porte une cause exacte, jamais NO_SCHEDULE nu', () => {
-  for (const l of [...REF.aftu, ...REF.ddd]) {
-    if (l.schedule_status === 'SCHEDULE_AVAILABLE') continue;
+  for (const l of ALL) {
+    if (l.mapping_status === 'CONNECTED') continue;
     assert.ok(l.unresolved_reason, `${l.public_label} : cause de non-raccordement absente`);
     assert.notEqual(l.unresolved_reason, 'UNRESOLVED_UNKNOWN',
       `${l.public_label} : cause non identifiée`);
-    // Un route_id peut exister dans le feed sans aucun stop_time (AFTU_47/52) :
+    // Un route_id peut exister dans le feed sans aucun stop_time (AFTU 47/52) :
     // la ligne reste alors sans horaire et sans arrêt desservi, jamais inventé.
     assert.equal(l.served_stop_count, 0, `${l.public_label} : arrêts sans horaire`);
     assert.equal(l.stop_times_count, 0, `${l.public_label} : stop_times sans horaire`);
@@ -168,22 +245,58 @@ test('une ligne NON raccordée porte une cause exacte, jamais NO_SCHEDULE nu', (
 });
 
 test('les compteurs de raccordement du référentiel sont exacts', () => {
-  const all = [...REF.aftu, ...REF.ddd];
-  const linkedCount = all.filter((l) => l.schedule_status === 'SCHEDULE_AVAILABLE').length;
+  const linkedCount = ALL.filter((l) => l.mapping_status === 'CONNECTED').length;
   assert.equal(REF.counts.linked, linkedCount);
-  assert.equal(REF.counts.unresolved, all.length - linkedCount);
+  assert.equal(REF.counts.unresolved, ALL.length - linkedCount);
   assert.equal(REF.unresolved_public_lines.length, REF.counts.unresolved);
+});
+
+test('une ligne BLOCKED documente la route présente sans stop_times exploitables', () => {
+  // AFTU 47 (aucun trip) et AFTU 52 (trips sans stop_time) : la route existe
+  // dans le feed, mais la chaîne est incomplète. La cause ET la preuve de
+  // blocage doivent être exactes — jamais un statut optimiste.
+  const blocked = ALL.filter((l) => l.mapping_status === 'BLOCKED');
+  assert.ok(blocked.length > 0, 'au moins une ligne BLOCKED attendue (AFTU 47/52)');
+  for (const l of blocked) {
+    assert.ok(l.blocking.feed_route_ids_present.length > 0);
+    assert.ok(l.blocking.missing_fields.includes('trip_id') ||
+      l.blocking.missing_fields.includes('stop_times'),
+      `${l.public_label} : maillon manquant non documenté`);
+  }
+  const byNumber = Object.fromEntries(blocked.map((l) => [l.line_number, l]));
+  assert.ok(byNumber['47'], 'AFTU 47 attendue BLOCKED (FEED_ROUTE_WITHOUT_TRIP)');
+  assert.equal(byNumber['47'].unresolved_reason, 'FEED_ROUTE_WITHOUT_TRIP');
+  assert.ok(byNumber['52'], 'AFTU 52 attendue BLOCKED (FEED_ROUTE_WITHOUT_STOP_TIME)');
+  assert.equal(byNumber['52'].unresolved_reason, 'FEED_ROUTE_WITHOUT_STOP_TIME');
+});
+
+test('une variante lettrée documente la route au numéro nu SANS la fusionner', () => {
+  // DDD 502A/502B : le feed porte `DDD_502` (numéro nu) mais AUCUNE route
+  // « 502A/502B ». La fusion est interdite : la preuve de blocage cite la route
+  // au numéro nu comme À NE PAS fusionner, et `feed_route_ids` reste vide.
+  for (const num of ['502A', '502B', '503A', '503B', '504A', '504B']) {
+    const l = REF.ddd.find((x) => x.line_number === num);
+    assert.ok(l, `DDD ${num} absente`);
+    assert.equal(l.mapping_status, 'NOT_VERIFIED');
+    assert.equal(l.feed_route_ids.length, 0);
+    assert.ok(l.blocking.bare_number_route_ids.length > 0,
+      `DDD ${num} : route au numéro nu non documentée`);
+  }
 });
 
 // ---------------------------------------------------------------------------
 // TEST CRITIQUE (§15) — TOUTES LES LIGNES PUBLIQUES AFTU/DDD DOIVENT ÊTRE
 // RACCORDÉES AUX DONNÉES HORAIRES.
+//
+// Porte de complétude : elle reste ROUGE tant qu'une seule ligne publique n'est
+// pas raccordée. Le message liste, pour chaque ligne, la cause EXACTE et la
+// prochaine action à mener — on ne masque jamais un blocage.
 // ---------------------------------------------------------------------------
 
 test('TEST CRITIQUE — 100 % des lignes publiques AFTU/DDD raccordées aux horaires',
   () => {
     const unresolved = REF.unresolved_public_lines.map(
-      (u) => `${u.public_label} (${u.reason})`);
+      (u) => `${u.public_label} [${u.mapping_status}] (${u.reason})`);
     assert.equal(
       REF.unresolved_public_lines.length,
       0,

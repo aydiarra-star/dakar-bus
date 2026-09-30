@@ -19,9 +19,17 @@ class PublicBusLineCatalog {
 
   PublicBusLineReference? _reference;
   bool _loaded = false;
+  String? _loadError;
 
   bool get isLoaded => _loaded;
   PublicBusLineReference? get reference => _reference;
+
+  /// Cause d'un échec de chargement (asset illisible), sinon `null`. Sert à
+  /// distinguer « référentiel vide » de « référentiel non chargé » dans l'UI.
+  String? get loadError => _loadError;
+
+  /// Le référentiel est-il exploitable (chargé ET non vide) ?
+  bool get isAvailable => _loaded && publicLines.isNotEmpty;
 
   /// Lignes publiques (DDD + AFTU) — toutes ont un numéro officiel.
   List<PublicBusLine> get publicLines =>
@@ -37,7 +45,11 @@ class PublicBusLineCatalog {
       _reference = PublicBusLineReference.fromJson(
           json.decode(raw) as Map<String, dynamic>);
       _loaded = true;
+      _loadError = null;
     } catch (e) {
+      // Un asset illisible laisse le référentiel vide — jamais de ligne
+      // fabriquée, jamais de plantage. La cause est conservée pour l'UI.
+      _loadError = e.toString();
       // ignore: avoid_print
       print('⚠️ Référentiel public des lignes AFTU/DDD indisponible : $e');
     }

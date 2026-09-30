@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import '../models/departure_info.dart';
+import '../models/public_bus_line.dart';
 import '../models/service_availability.dart';
 import '../models/transport_network.dart';
 import 'data_provider.dart';
@@ -56,6 +57,22 @@ class DataService {
 
   /// Chargement du référentiel public des lignes AFTU/DDD. Non bloquant.
   Future<void> loadPublicBusLineCatalog() => publicBusLineCatalog.load();
+
+  /// Fiche ligne — séquence d'arrêts ORDONNÉE d'une ligne publique raccordée.
+  ///
+  /// Lit la route PassBi RÉELLE de la ligne (`feed_route_ids`) et ses
+  /// `stop_times` réels, ordonnés par `stop_sequence`. Retourne `null` si la
+  /// ligne n'est pas raccordée à une route réelle : aucune fiche n'est
+  /// fabriquée pour une ligne BLOCKED / NOT_VERIFIED.
+  PassBiRouteStopSequence? publicLineStopSequence(PublicBusLine line) {
+    if (!line.hasRealSchedule) return null;
+    final network = line.operator; // DDD | AFTU — clés de feed PassBi
+    for (final routeId in line.feedRouteIds) {
+      final seq = passBiSource.routeStopSequence(network, routeId);
+      if (seq != null && !seq.isEmpty) return seq;
+    }
+    return null;
+  }
 
   /// Chargement des horaires PassBi (distinct de loadNetworkData).
   /// En cas d'échec, l'app reste sur les données legacy — jamais de plantage.

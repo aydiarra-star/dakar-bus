@@ -110,6 +110,32 @@ class PassBiStopRef {
   String get compositeKey => '$network:$stopId';
 }
 
+/// Séquence d'arrêts ORDONNÉE d'une route du feed (fiche ligne).
+///
+/// Construite depuis les `stop_times` RÉELS : on choisit le trip le plus
+/// complet (le plus grand nombre d'arrêts) de la route, puis on lit ses
+/// `stop_sequence` dans l'ordre. Aucun arrêt n'est ajouté, retiré ou réordonné
+/// autrement que par `stop_sequence`.
+class PassBiRouteStopSequence {
+  final String network;
+  final String routeId;
+  final String tripId; // trip de référence (le plus complet)
+  final String direction; // direction_id réel du trip ('' si absent)
+  final List<PassBiStopRef> stops; // ordonnés par stop_sequence
+  final bool ordered; // true si les stop_sequence sont strictement croissantes
+
+  const PassBiRouteStopSequence({
+    required this.network,
+    required this.routeId,
+    required this.tripId,
+    required this.direction,
+    required this.stops,
+    required this.ordered,
+  });
+
+  bool get isEmpty => stops.isEmpty;
+}
+
 /// Lot 4.21 §6 — Disponibilité d'un réseau comme feed GTFS PassBi autonome.
 enum PassBiNetworkAvailability {
   /// Feed présent et exploitable (TER, BRT, DDD, AFTU).
@@ -536,6 +562,64 @@ class PassBiSource {
       if (s.routeId == pbRouteId) return s;
     }
     return null;
+  }
+
+  /// Fiche ligne — séquence d'arrêts ORDONNÉE d'une route (par `stop_sequence`).
+  ///
+  /// Choisit le trip RÉEL le plus complet de la route (plus grand nombre
+  /// d'arrêts) et lit ses `stop_times` dans l'ordre de `stop_sequence`. Aucun
+  /// arrêt n'est inventé, aucun tri arbitraire n'est appliqué : si la séquence
+  /// du feed n'est pas strictement croissante, [PassBiRouteStopSequence.ordered]
+  /// vaut `false` et l'appelant le signale. Retourne `null` si la route est
+  /// inconnue ou sans aucun `stop_time` (jamais de fiche vide fabriquée).
+  PassBiRouteStopSequence? routeStopSequence(
+      String networkKey, String pbRouteId) {
+    final net = networks[networkKey];
+    if (net == null) return null;
+    final routeIndex = net.routeIndexById[pbRouteId];
+    if (routeIndex == null) return null;
+    final tripIndexes = net.tripsByRoute[routeIndex] ?? const <int>[];
+    if (tripIndexes.isEmpty) return null;
+
+    List<GtfsStopTime>? best;
+    int bestTrip = -1;
+    for (final ti in tripIndexes) {
+      final rows = net.stopTimesByTrip[ti];
+      if (rows == null || rows.isEmpty) continue;
+      if (best == null || rows.length > best.length) {
+        best = rows;
+        bestTrip = ti;
+      }
+    }
+    if (best == null || bestTrip < 0) return null;
+
+    final ordered = <bool>[true];
+    final stops = <PassBiStopRef>[];
+    int? previous;
+    for (final st in best) {
+      if (previous != null && st.sequence <= previous) ordered[0] = false;
+      previous = st.sequence;
+      if (st.stopIndex < 0 || st.stopIndex >= net.stops.length) continue;
+      final s = net.stops[st.stopIndex];
+      stops.add(PassBiStopRef(
+        network: networkKey,
+        stopId: s.id,
+        name: s.name,
+        lat: s.lat,
+        lon: s.lon,
+        routeCount: net.routeIndexesCalling(st.stopIndex).length,
+      ));
+    }
+    if (stops.isEmpty) return null;
+    final trip = net.trips[bestTrip];
+    return PassBiRouteStopSequence(
+      network: networkKey,
+      routeId: pbRouteId,
+      tripId: trip.id,
+      direction: trip.direction,
+      stops: List<PassBiStopRef>.unmodifiable(stops),
+      ordered: ordered[0],
+    );
   }
 
   /// Nombre de routes du feed dont un prochain départ est calculable.

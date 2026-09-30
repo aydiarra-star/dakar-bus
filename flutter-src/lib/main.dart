@@ -3511,6 +3511,20 @@ class _ExplorerPageState extends State<ExplorerPage> {
   void _openCatalogEntry(NetworkSearchEntry e) {
     _searchCtrl.text = e.label;
     setState(() => _searchFocused = false);
+    // Une entrée LIGNE ouvre une VRAIE fiche ligne (aucun bouton mort). Le
+    // route_id du catalogue pointe la ligne publique correspondante ; à défaut
+    // d'identité publique, l'entrée reste un simple recentrage (jamais de fiche
+    // fabriquée pour une route de feed sans numéro public).
+    if (e.kind == NetworkSearchKind.line) {
+      final PublicBusLine? line = _publicLineForEntry(e);
+      if (line != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => PublicLineDetailPage(line: line)),
+        );
+        return;
+      }
+    }
     if (e.lat != null && e.lon != null) {
       try {
         _mapController.move(LatLng(e.lat!, e.lon!), _zoomOnStop);
@@ -3518,6 +3532,18 @@ class _ExplorerPageState extends State<ExplorerPage> {
         debugPrint('centerOnCatalogEntry skipped (map not ready): $err');
       }
     }
+  }
+
+  /// Ligne publique correspondant à une entrée de recherche de nature LIGNE.
+  ///
+  /// Appariement STRICT par libellé public (« AFTU 26 », « DDD 221 ») : le
+  /// numéro public n'est jamais déduit d'un route_id. Retourne `null` si
+  /// l'entrée est une ligne de feed sans identité publique.
+  PublicBusLine? _publicLineForEntry(NetworkSearchEntry e) {
+    for (final l in appDataService.publicBusLineCatalog.publicLines) {
+      if (l.publicLabel == e.label) return l;
+    }
+    return null;
   }
 
   void _centerOnStop(Stop s) {
@@ -3887,10 +3913,30 @@ class _ExplorerPageState extends State<ExplorerPage> {
                           Text('numéros officiels AFTU/DDD', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
                         ]),
                         const SizedBox(height: 10),
-                        ..._publicLines.map((l) => Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: PublicLineCard(line: l),
-                            )),
+                        if (_publicLines.isEmpty)
+                          // Le filtre ne doit JAMAIS être vide si le JSON contient
+                          // des lignes : on distingue « non chargé » de « vide ».
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: AppColors.surface(dark),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: AppColors.divider(dark)),
+                            ),
+                            child: Text(
+                              appDataService.publicBusLineCatalog.isLoaded
+                                  ? 'Aucune ligne publique dans le référentiel chargé.'
+                                  : 'Référentiel public non chargé — les lignes AFTU/DDD '
+                                      'seront affichées dès que l’asset sera disponible.',
+                              style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark)),
+                            ),
+                          )
+                        else
+                          ..._publicLines.map((l) => Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: PublicLineCard(line: l),
+                              )),
                       ] else if (_selectedFilter == 'Pôles') ...[
                         Row(children: [
                           Text('${_poles.length} pôles DDD/AFTU', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
@@ -4001,9 +4047,12 @@ class _ExplorerPageState extends State<ExplorerPage> {
 // ============================================================
 //
 // Carte d'une ligne PUBLIQUE : numéro officiel, terminus publiés, statut
-// d'identité et raccordement horaire. Présentation seule : aucune donnée n'est
-// recalculée ici, tout provient du référentiel généré. Une identité Tata n'est
-// jamais rendue comme une ligne (TATA est un type de véhicule).
+// d'identité et raccordement horaire RÉEL. Présentation seule : aucune donnée
+// n'est recalculée ici, tout provient du référentiel généré. Une identité Tata
+// n'est jamais rendue comme une ligne (TATA est un type de véhicule).
+//
+// La carte est CLIQUABLE et ouvre une vraie fiche ligne ([PublicLineDetailPage]).
+// Aucun bouton mort : un tap effectue toujours la navigation.
 class PublicLineCard extends StatelessWidget {
   final PublicBusLine line;
   const PublicLineCard({super.key, required this.line});
@@ -4012,63 +4061,331 @@ class PublicLineCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final dark = globalState.darkMode;
     final Color color = line.operator == 'DDD' ? AppColors.ddd : AppColors.aftu;
-    final bool hasSchedule = line.scheduleStatus != 'NO_SCHEDULE';
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.surface(dark),
+    // Statut RÉEL : une ligne BLOCKED/NOT_VERIFIED n'est jamais présentée comme
+    // horairée. `hasRealSchedule` exige la chaîne de raccordement complète.
+    final bool connected = line.hasRealSchedule;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider(dark)),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => PublicLineDetailPage(line: line)),
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppColors.surface(dark),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+                color: connected ? AppColors.success : AppColors.divider(dark)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                      color: color.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(8)),
+                  child: Text(line.operator,
+                      style: TextStyle(
+                          fontSize: 10, fontWeight: FontWeight.bold, color: color)),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(line.publicLabel,
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary(dark))),
+                ),
+                Icon(Icons.chevron_right, size: 20,
+                    color: AppColors.textSecondary(dark)),
+              ]),
+              const SizedBox(height: 6),
+              Text(
+                line.hasPublishedTerminus
+                    ? '${line.origin} ➔ ${line.destination}'
+                    : 'Terminus non publiés par la source',
+                style: TextStyle(fontSize: 13, color: AppColors.textPrimary(dark)),
+              ),
+              const SizedBox(height: 6),
+              Row(children: [
+                Icon(
+                  connected ? Icons.check_circle : Icons.info_outline,
+                  size: 14,
+                  color: connected
+                      ? AppColors.success
+                      : AppColors.textSecondary(dark),
+                ),
+                const SizedBox(width: 5),
+                Expanded(
+                  child: Text(
+                    connected
+                        ? '${line.mappingStatus.label} · ${line.servedStopCount} arrêts réels'
+                        : '${line.mappingStatus.label} — ${line.unresolvedReason ?? 'raccordement incomplet'}',
+                    style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: connected
+                            ? AppColors.success
+                            : AppColors.textSecondary(dark)),
+                  ),
+                ),
+              ]),
+            ],
+          ),
+        ),
       ),
-      child: Column(
+    );
+  }
+}
+
+// ============================================================
+// FICHE LIGNE — LIGNE PUBLIQUE AFTU / DDD
+// ============================================================
+//
+// Fiche d'une ligne publique. Affiche les données RÉELLEMENT disponibles :
+// opérateur, numéro, origine, destination, terminus, directions, arrêts
+// ORDONNÉS par `stop_sequence` et statut de raccordement. Pour une ligne non
+// raccordée, la fiche explique le blocage (preuve de non-raccordement) au lieu
+// d'inventer un itinéraire ou des horaires.
+class PublicLineDetailPage extends StatelessWidget {
+  final PublicBusLine line;
+  const PublicLineDetailPage({super.key, required this.line});
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: globalState,
+      builder: (context, _) {
+        final dark = globalState.darkMode;
+        final Color color =
+            line.operator == 'DDD' ? AppColors.ddd : AppColors.aftu;
+        final bool connected = line.hasRealSchedule;
+        final PassBiRouteStopSequence? seq =
+            appDataService.publicLineStopSequence(line);
+        return Scaffold(
+          backgroundColor: AppColors.background(dark),
+          appBar: AppBar(
+            backgroundColor: color,
+            foregroundColor: Colors.white,
+            title: Text(line.publicLabel, style: const TextStyle(fontSize: 16)),
+          ),
+          body: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              _header(dark, color, connected),
+              const SizedBox(height: 12),
+              _section('Identité', dark, Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _kv('Opérateur', line.operator, dark),
+                  _kv('Numéro public', line.lineNumber, dark),
+                  _kv('Type de véhicule', line.vehicleType, dark),
+                  if (line.officialName.isNotEmpty)
+                    _kv('Nom officiel', line.officialName, dark),
+                ],
+              )),
+              const SizedBox(height: 12),
+              _section('Terminus publiés', dark, Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _kv('Origine', line.origin, dark),
+                  _kv('Destination', line.destination, dark),
+                  if (seq != null && seq.direction.isNotEmpty)
+                    _kv('Direction (feed)', seq.direction, dark),
+                ],
+              )),
+              const SizedBox(height: 12),
+              _section('Statut des données', dark, Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _kv('Statut de raccordement', line.mappingStatus.code, dark),
+                  _kv('Statut horaire', line.scheduleStatus, dark),
+                  if (line.publishedScheduleStatus.isNotEmpty)
+                    _kv('Statut publié (source)', line.publishedScheduleStatus, dark),
+                  _kv('Identité', line.identityStatus, dark),
+                  _kv('Itinéraire', line.routeStatus, dark),
+                  _kv('Arrêts', line.stopsStatus, dark),
+                  _kv('Ordre des arrêts (feed)', line.sequenceQuality.code, dark),
+                  _kv('Source', line.source, dark),
+                  _kv('Vérifié le', line.verifiedAt, dark),
+                ],
+              )),
+              const SizedBox(height: 12),
+              if (connected)
+                _section('Données horaires raccordées', dark, Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _kv('Route(s) feed', line.feedRouteIds.join(', '), dark),
+                    _kv('Trips réels', '${line.tripIdsCount}', dark),
+                    _kv('Directions', line.directionIds.join(', '), dark),
+                    _kv('stop_times', '${line.stopTimesCount}', dark),
+                    _kv('Arrêts desservis', '${line.servedStopCount}', dark),
+                    if (line.sampleTripIds.isNotEmpty)
+                      _kv('Exemple de trip', line.sampleTripIds.first, dark),
+                  ],
+                ))
+              else
+                _blockedSection(dark),
+              const SizedBox(height: 12),
+              _stopsSection(dark, color, seq),
+              const SizedBox(height: 24),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _header(bool dark, Color color, bool connected) => Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.10),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withOpacity(0.4)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              Icon(connected ? Icons.check_circle : Icons.info_outline,
+                  color: connected ? AppColors.success : AppColors.warning,
+                  size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(line.mappingStatus.label,
+                    style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary(dark))),
+              ),
+            ]),
+            const SizedBox(height: 8),
+            Text(
+              line.hasPublishedTerminus
+                  ? '${line.origin} ➔ ${line.destination}'
+                  : 'Terminus non publiés par la source',
+              style: TextStyle(fontSize: 14, color: AppColors.textPrimary(dark)),
+            ),
+          ],
+        ),
+      );
+
+  /// Blocage explicité : ce qui manque, sources consultées, prochaine action.
+  Widget _blockedSection(bool dark) {
+    final LineBlocking? b = line.blocking;
+    return _section('Pourquoi les horaires ne sont pas raccordés', dark, Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _kv('Cause', line.unresolvedReason ?? 'raccordement incomplet', dark),
+        if (b != null) ...[
+          if (b.missingFields.isNotEmpty)
+            _kv('Champs manquants', b.missingFields.join(', '), dark),
+          if (b.bareNumberRouteIds.isNotEmpty)
+            _kv('Route au numéro nu (NON fusionnée)', b.bareNumberRouteIds.join(', '), dark),
+          if (b.consultedSources.isNotEmpty)
+            _kv('Sources consultées', b.consultedSources.join(' · '), dark),
+          if (b.nextAction.isNotEmpty)
+            _kv('Prochaine action', b.nextAction, dark),
+        ],
+      ],
+    ));
+  }
+
+  /// Arrêts ORDONNÉS par `stop_sequence`. Aucune fiche fabriquée : si la ligne
+  /// n'est pas raccordée, la section l'explique au lieu d'afficher une liste.
+  Widget _stopsSection(bool dark, Color color, PassBiRouteStopSequence? seq) {
+    if (seq == null || seq.isEmpty) {
+      return _section('Arrêts', dark, Text(
+        line.hasRealSchedule
+            ? 'Séquence d’arrêts indisponible dans le feed.'
+            : 'Aucun arrêt : la ligne n’est pas raccordée à une route réelle du feed.',
+        style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark)),
+      ));
+    }
+    return _section(
+      'Arrêts (${seq.stops.length}, ordre stop_sequence)',
+      dark,
+      Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                  color: color.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(8)),
-              child: Text(line.operator,
-                  style: TextStyle(
-                      fontSize: 10, fontWeight: FontWeight.bold, color: color)),
+          if (!seq.ordered)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Text(
+                'Ordre du feed non strictement croissant (artefact de donnée source).',
+                style: TextStyle(fontSize: 11, color: AppColors.warning),
+              ),
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(line.publicLabel,
-                  style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary(dark))),
-            ),
-            Text(
-              hasSchedule ? 'HORAIRES DISPONIBLES' : 'HORAIRES INDISPONIBLES',
-              style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: hasSchedule
-                      ? AppColors.success
-                      : AppColors.textSecondary(dark)),
-            ),
-          ]),
-          const SizedBox(height: 6),
-          Text(
-            line.hasPublishedTerminus
-                ? '${line.origin} ➔ ${line.destination}'
-                : 'Terminus non publiés par la source',
-            style: TextStyle(fontSize: 13, color: AppColors.textPrimary(dark)),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            hasSchedule
-                ? '${line.servedStopCount} arrêts réellement desservis'
-                : 'Itinéraire non raccordé au feed (aucun horaire)',
-            style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark)),
-          ),
+          ...List<Widget>.generate(seq.stops.length, (i) {
+            final PassBiStopRef s = seq.stops[i];
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 3),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 22,
+                    alignment: Alignment.topRight,
+                    child: Text('${i + 1}.',
+                        style: TextStyle(
+                            fontSize: 11, color: AppColors.textSecondary(dark))),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(s.name,
+                        style: TextStyle(
+                            fontSize: 13, color: AppColors.textPrimary(dark))),
+                  ),
+                ],
+              ),
+            );
+          }),
         ],
       ),
     );
   }
+
+  Widget _kv(String k, String v, bool dark) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: RichText(
+          text: TextSpan(
+            style: TextStyle(fontSize: 12, color: AppColors.textPrimary(dark)),
+            children: [
+              TextSpan(
+                  text: '$k : ',
+                  style: TextStyle(color: AppColors.textSecondary(dark))),
+              TextSpan(text: v, style: const TextStyle(fontWeight: FontWeight.w600)),
+            ],
+          ),
+        ),
+      );
+
+  Widget _section(String title, bool dark, Widget child) => Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.surface(dark),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.divider(dark)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title,
+                style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary(dark))),
+            const SizedBox(height: 8),
+            child,
+          ],
+        ),
+      );
 }
 
 // ============================================================
