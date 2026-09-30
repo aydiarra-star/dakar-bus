@@ -2,7 +2,7 @@
 //
 // Pour CHAQUE ligne publique AFTU / DDD du référentiel
 // (`data/reference/public_bus_lines_dakar.json`), on re-dérive la chaîne de
-// raccordement horaire directement depuis les feeds PassBi embarqués et on
+// raccordement horaire directement depuis les feeds opérationnels embarqués et on
 // vérifie qu'elle est réellement complète :
 //
 //   line_number → operator → route_id → trip_id → direction_id → stop_id

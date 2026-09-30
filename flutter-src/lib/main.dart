@@ -1029,6 +1029,36 @@ class Stop {
         .toList(growable: false);
   }
 
+  /// PRÉSENTATION — Sous-liste des prochains passages RÉELS satisfaisant
+  /// [keep]. Aucun horaire n'est créé : [keep] ne fait que RESTREINDRE les
+  /// départs réels déjà calculés (ex. filtrer un sens via `DepartureInfo.direction`).
+  /// Un pool plus large que [limit] est lu pour ne pas rater un sens desservi
+  /// moins fréquemment ; l'ordre chronologique réel est conservé.
+  List<DepartureInfo> realDeparturesWhere(bool Function(DepartureInfo) keep,
+      {DateTime? at, int limit = 3, DateTime? horizon}) {
+    final int pool = limit > 24 ? limit : 24;
+    final List<DepartureInfo> base =
+        nextRealDepartures(at: at, limit: pool, horizon: horizon);
+    return base.where(keep).take(limit).toList(growable: false);
+  }
+
+  /// PRÉSENTATION — Minutes d'attente des prochains passages RÉELS satisfaisant
+  /// [keep]. Mêmes règles que [nextRealWaitingMinutes] (ceil, jamais 0, jamais
+  /// un départ passé) ; liste vide si aucun passage réel ne satisfait [keep].
+  List<int> realWaitingMinutesWhere(bool Function(DepartureInfo) keep,
+      {DateTime? at, int limit = 3, DateTime? horizon}) {
+    final DateTime now = at == null ? DakarClock.now() : DakarClock.toDakar(at);
+    final List<int> out = <int>[];
+    for (final DepartureInfo info in realDeparturesWhere(keep,
+        at: now, limit: limit, horizon: horizon)) {
+      final DateTime? departureTime = info.scheduledTime;
+      if (departureTime == null) continue;
+      final int? minutes = waitingMinutesBetween(departureTime, now);
+      if (minutes != null) out.add(minutes);
+    }
+    return out;
+  }
+
   /// Lot 4.22 (Explorer) — Minutes d'attente (arrondi vers le haut, jamais 0)
   /// des prochains passages RÉELS : `ceil(waitSeconds / 60)`. Liste vide si
   /// aucun passage réel — un départ déjà passé est ignoré.
@@ -1039,6 +1069,30 @@ class Stop {
     final List<int> out = <int>[];
     for (final DepartureInfo info
         in nextRealDepartures(at: now, limit: limit, horizon: horizon)) {
+      final DateTime? departureTime = info.scheduledTime;
+      if (departureTime == null) continue;
+      final int? minutes = waitingMinutesBetween(departureTime, now);
+      if (minutes != null) out.add(minutes);
+    }
+    return out;
+  }
+
+  /// PRÉSENTATION — Minutes d'attente des prochains passages RÉELS du SENS
+  /// documenté [toward] (`headsign` du feed). Mêmes règles que
+  /// [nextRealWaitingMinutes] (ceil, jamais 0, jamais un départ passé) ;
+  /// liste vide si le sens n'est pas desservi à cet arrêt.
+  List<int> nextRealWaitingMinutesToward(
+      bool Function(String? direction) toward,
+      {DateTime? at,
+      int limit = 3,
+      DateTime? horizon}) {
+    final DateTime now = at == null ? DakarClock.now() : DakarClock.toDakar(at);
+    final List<int> out = <int>[];
+    for (final DepartureInfo info in realDeparturesWhere(
+        (DepartureInfo d) => toward(d.direction),
+        at: now,
+        limit: limit,
+        horizon: horizon)) {
       final DateTime? departureTime = info.scheduledTime;
       if (departureTime == null) continue;
       final int? minutes = waitingMinutesBetween(departureTime, now);
@@ -6356,43 +6410,70 @@ class DetailedRoutePage extends StatelessWidget {
 // ============================================================
 // DETAIL ARRET — ALLER / RETOUR SYNCHRONISE
 // ============================================================
-class DualStopDetailPage extends StatelessWidget {
+class DualStopDetailPage extends StatefulWidget {
   final Stop stop;
   const DualStopDetailPage({super.key, required this.stop});
 
   @override
+  State<DualStopDetailPage> createState() => _DualStopDetailPageState();
+}
+
+class _DualStopDetailPageState extends State<DualStopDetailPage> {
+  late final Stop _stop = widget.stop;
+
+  /// Sens PRIMAIRE = sens DOMINANT desservi à l'arrêt (headsign le plus fréquent
+  /// parmi les prochains départs réels du feed). Choisir le départ le plus
+  /// proche ferait basculer les onglets au gré des passages ; le mode est stable
+  /// et reste 100 % documenté. `null` si aucun passage réel : les onglets
+  /// affichent alors l'indisponibilité honnête, sans rien inventer.
+  late final String? _primaryHeading = _dominantHeading();
+
+  String? _dominantHeading() {
+    final List<DepartureInfo> deps = _stop.nextRealDepartures(limit: 12);
+    final Map<String, int> counts = <String, int>{};
+    for (final DepartureInfo d in deps) {
+      final String? h = d.direction;
+      if (h == null || h.isEmpty) continue;
+      counts[h] = (counts[h] ?? 0) + 1;
+    }
+    if (counts.isEmpty) return null;
+    final List<String> keys = counts.keys.toList()
+      ..sort((a, b) => counts[b]!.compareTo(counts[a]!));
+    return keys.first;
+  }
+
+  /// Sens ALLER = sens dominant réel. Sens RETOUR = tout AUTRE sens
+  /// réellement desservi à cet arrêt. Aucun libellé n'est inversé, aucun départ
+  /// n'est fabriqué : chaque onglet lit les `trips` réels du feed de son sens.
+  bool Function(String? direction)? get _allerFilter {
+    final String? h = _primaryHeading;
+    if (h == null) return null;
+    return (String? d) => d != null && d == h;
+  }
+
+  bool Function(String? direction)? get _retourFilter {
+    final String? h = _primaryHeading;
+    if (h == null) return null;
+    return (String? d) => d != null && d != h;
+  }
+
+  bool _hasRealDepartures(bool Function(String? direction)? filter) {
+    if (filter == null) return _stop.nextRealDepartures(limit: 1).isNotEmpty;
+    return _stop
+        .realDeparturesWhere((DepartureInfo d) => filter(d.direction), limit: 1)
+        .isNotEmpty;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final allerStop = stop.copyWith(
-      direction: stop.direction.contains('Dir.') ? stop.direction : 'Dir. Diamniadio (Embarquement)',
-      stopType: StopType.boarding,
-    );
-
-    // GROUPE 3 (§10, §12) — AVANT : l'absence de correspondance fiable était
-    // masquée par un arrêt FABRIQUÉ, `stop.copyWith(direction: 'Dir. Dakar /
-    // Centre')` : le MÊME arrêt, affublé d'un libellé de sens inventé, présenté
-    // dans l'onglet « Sens Retour » comme un vis-à-vis réel. C'est forcer une
-    // correspondance, ce que le §12 interdit.
-    // APRÈS : le `null` renvoyé par le service est conservé tel quel et l'onglet
-    // affiche un état « non identifié » explicite.
-    //
-    // Limite structurelle portée au rapport : `dakar_network.json` ne contient
-    // AUCUN champ de sens — un arrêt n'y porte que id, name, latitude,
-    // longitude et data_trust. La « direction » que compare la passe 2 est donc
-    // un libellé synthétisé par `_integrateNetworkData` d'après la position de
-    // l'arrêt dans sa ligne, et non un sens réel issu de la source unique.
-    // L'algorithme de production `adD` fonctionnait déjà sur ce même champ ; il
-    // est réintégré à l'identique, et cette limite est documentée plutôt que
-    // corrigée ici (la correction exigerait de créer un sens que la donnée ne
-    // fournit pas, ce qui serait une invention).
-    final Stop? retourStop =
-        OppositeStopService.findOppositeStop(currentStop: stop, allStops: allStops);
-
+    final bool allerAvailable = _hasRealDepartures(_allerFilter);
+    final bool retourAvailable = _hasRealDepartures(_retourFilter);
     return DefaultTabController(
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(stop.name),
-          backgroundColor: stop.color,
+          title: Text(_stop.name),
+          backgroundColor: _stop.color,
           foregroundColor: Colors.white,
           bottom: const TabBar(
             labelColor: Colors.white,
@@ -6406,32 +6487,38 @@ class DualStopDetailPage extends StatelessWidget {
         ),
         body: TabBarView(
           children: [
-            SingleStopView(stop: allerStop),
-            // §12 : aucune correspondance fiable -> état explicite, jamais un
-            // arrêt inventé. L'architecture à deux onglets, leurs libellés et
-            // les styles sont conservés à l'identique (§21) : seul le contenu
-            // de l'onglet « Sens Retour » cesse d'être fabriqué.
-            if (retourStop != null)
-              SingleStopView(stop: retourStop)
+            if (allerAvailable)
+              SingleStopView(
+                stop: _stop,
+                returnDirectionFilter: _allerFilter,
+              )
             else
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Text(
-                    'Arrêt en face non identifié\n\n'
-                    'Aucune correspondance fiable dans les données réseau '
-                    'pour « ${stop.name} ».',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        color: AppColors.textSecondary(globalState.darkMode)),
-                  ),
-                ),
-              ),
+              _unavailable('Aucun départ réel programmé pour le sens aller.'),
+            if (retourAvailable)
+              SingleStopView(
+                stop: _stop,
+                returnDirectionFilter: _retourFilter,
+              )
+            else
+              _unavailable(
+                  'Aucun départ réel programmé dans le sens retour à cet arrêt.'),
           ],
         ),
       ),
     );
   }
+
+  Widget _unavailable(String message) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            '$message\n\nAucun horaire n\'est affiché plutôt que d\'en inventer un.',
+            textAlign: TextAlign.center,
+            style:
+                TextStyle(color: AppColors.textSecondary(globalState.darkMode)),
+          ),
+        ),
+      );
 }
 
 // ============================================================
@@ -6439,7 +6526,19 @@ class DualStopDetailPage extends StatelessWidget {
 // ============================================================
 class SingleStopView extends StatelessWidget {
   final Stop stop;
-  const SingleStopView({super.key, required this.stop});
+
+  /// PRÉSENTATION — Filtre de sens DOCUMENTÉ (`headsign` du feed) appliqué aux
+  /// horaires affichés. `null` = prochain départ toutes directions confondues
+  /// (comportement historique). Utilisé par l'onglet « Sens Retour » : les
+  /// horaires sont ceux du SENS opposé réellement desservi, jamais l'inversion
+  /// du sens aller.
+  final bool Function(String? direction)? returnDirectionFilter;
+
+  const SingleStopView({
+    super.key,
+    required this.stop,
+    this.returnDirectionFilter,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -6466,8 +6565,11 @@ class SingleStopView extends StatelessWidget {
         // (`active`), le prochain départ réel documenté est affiché.
         final List<int> ficheWaits = ficheServiceEnded
             ? const <int>[]
-            : stop.nextRealWaitingMinutes(
-                horizon: ficheAvailability?.displayHorizonAt);
+            : (returnDirectionFilter == null
+                ? stop.nextRealWaitingMinutes(
+                    horizon: ficheAvailability?.displayHorizonAt)
+                : stop.nextRealWaitingMinutesToward(returnDirectionFilter!,
+                    horizon: ficheAvailability?.displayHorizonAt));
         final bool ficheHasWaits = ficheWaits.isNotEmpty;
         final String? ficheServiceNotice = ficheHasWaits
             ? null
@@ -6581,3 +6683,4 @@ class SingleStopView extends StatelessWidget {
     );
   }
 }
+

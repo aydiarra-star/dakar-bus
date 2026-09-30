@@ -156,7 +156,7 @@
     }
   ],
   "feed_routes_without_public_line": {
-    "note": "Routes présentes dans le feed opérationnel PassBi dont le numéro public n’est PAS établi par le référentiel canonique publié. Aucune ligne n’est fabriquée et aucune n’est fusionnée avec une ligne existante.",
+    "note": "Routes présentes dans le feed opérationnel dont le numéro public n’est PAS établi par le référentiel canonique publié. Aucune ligne n’est fabriquée et aucune n’est fusionnée avec une ligne existante.",
     "DDD": [
       "DDD_102",
       "DDD_103",
@@ -1257,7 +1257,7 @@
         ],
         "consulted_sources": [
           "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
-          "feeds PassBi embarqués (ddd.json / aftu.json)"
+          "feeds opérationnels embarqués (ddd.json / aftu.json)"
         ],
         "next_action": "La route AFTU_47 existe dans le feed mais ne porte aucun trip : obtenir les trips (et leurs stop_times) auprès de la source.",
         "feed_route_ids_present": [
@@ -1458,7 +1458,7 @@
         ],
         "consulted_sources": [
           "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
-          "feeds PassBi embarqués (ddd.json / aftu.json)"
+          "feeds opérationnels embarqués (ddd.json / aftu.json)"
         ],
         "next_action": "La route AFTU_52 porte des trips mais AUCUN stop_time : obtenir les stop_times auprès de la source.",
         "feed_route_ids_present": [
@@ -2952,7 +2952,7 @@
         ],
         "consulted_sources": [
           "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
-          "feeds PassBi embarqués (ddd.json / aftu.json)"
+          "feeds opérationnels embarqués (ddd.json / aftu.json)"
         ],
         "next_action": "Obtenir de la source la preuve que la variante « 502A » emprunte bien la route au numéro nu (DDD_502) AVANT tout raccordement. Sans cette preuve, la fusion est interdite (identités publiques distinctes).",
         "feed_route_ids_present": [],
@@ -3002,7 +3002,7 @@
         ],
         "consulted_sources": [
           "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
-          "feeds PassBi embarqués (ddd.json / aftu.json)"
+          "feeds opérationnels embarqués (ddd.json / aftu.json)"
         ],
         "next_action": "Obtenir de la source la preuve que la variante « 502B » emprunte bien la route au numéro nu (DDD_502) AVANT tout raccordement. Sans cette preuve, la fusion est interdite (identités publiques distinctes).",
         "feed_route_ids_present": [],
@@ -3052,7 +3052,7 @@
         ],
         "consulted_sources": [
           "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
-          "feeds PassBi embarqués (ddd.json / aftu.json)"
+          "feeds opérationnels embarqués (ddd.json / aftu.json)"
         ],
         "next_action": "Obtenir de la source la preuve que la variante « 503A » emprunte bien la route au numéro nu (DDD_503) AVANT tout raccordement. Sans cette preuve, la fusion est interdite (identités publiques distinctes).",
         "feed_route_ids_present": [],
@@ -3102,7 +3102,7 @@
         ],
         "consulted_sources": [
           "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
-          "feeds PassBi embarqués (ddd.json / aftu.json)"
+          "feeds opérationnels embarqués (ddd.json / aftu.json)"
         ],
         "next_action": "Obtenir de la source la preuve que la variante « 503B » emprunte bien la route au numéro nu (DDD_503) AVANT tout raccordement. Sans cette preuve, la fusion est interdite (identités publiques distinctes).",
         "feed_route_ids_present": [],
@@ -3152,7 +3152,7 @@
         ],
         "consulted_sources": [
           "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
-          "feeds PassBi embarqués (ddd.json / aftu.json)"
+          "feeds opérationnels embarqués (ddd.json / aftu.json)"
         ],
         "next_action": "Obtenir de la source la preuve que la variante « 504A » emprunte bien la route au numéro nu (DDD_504) AVANT tout raccordement. Sans cette preuve, la fusion est interdite (identités publiques distinctes).",
         "feed_route_ids_present": [],
@@ -3202,7 +3202,7 @@
         ],
         "consulted_sources": [
           "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
-          "feeds PassBi embarqués (ddd.json / aftu.json)"
+          "feeds opérationnels embarqués (ddd.json / aftu.json)"
         ],
         "next_action": "Obtenir de la source la preuve que la variante « 504B » emprunte bien la route au numéro nu (DDD_504) AVANT tout raccordement. Sans cette preuve, la fusion est interdite (identités publiques distinctes).",
         "feed_route_ids_present": [],
@@ -3780,7 +3780,7 @@
         ],
         "consulted_sources": [
           "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
-          "feeds PassBi embarqués (ddd.json / aftu.json)"
+          "feeds opérationnels embarqués (ddd.json / aftu.json)"
         ],
         "next_action": "Obtenir de DDD un feed (ou une publication) exposant la route de la ligne « TO1 ». Aucune route de ce numéro n'existe dans le feed embarqué.",
         "feed_route_ids_present": [],
@@ -3828,7 +3828,7 @@
         ],
         "consulted_sources": [
           "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
-          "feeds PassBi embarqués (ddd.json / aftu.json)"
+          "feeds opérationnels embarqués (ddd.json / aftu.json)"
         ],
         "next_action": "Obtenir de DDD un feed (ou une publication) exposant la route de la ligne « TAF ». Aucune route de ce numéro n'existe dans le feed embarqué.",
         "feed_route_ids_present": [],
@@ -3876,7 +3876,7 @@
         ],
         "consulted_sources": [
           "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
-          "feeds PassBi embarqués (ddd.json / aftu.json)"
+          "feeds opérationnels embarqués (ddd.json / aftu.json)"
         ],
         "next_action": "Obtenir de DDD un feed (ou une publication) exposant la route de la ligne « TAF TAF ». Aucune route de ce numéro n'existe dans le feed embarqué.",
         "feed_route_ids_present": [],
@@ -4152,7 +4152,7 @@
         ],
         "consulted_sources": [
           "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
-          "feeds PassBi embarqués (ddd.json / aftu.json)"
+          "feeds opérationnels embarqués (ddd.json / aftu.json)"
         ],
         "next_action": "Obtenir de la source la preuve que la variante « 15A » emprunte bien la route au numéro nu (DDD_15) AVANT tout raccordement. Sans cette preuve, la fusion est interdite (identités publiques distinctes).",
         "feed_route_ids_present": [],
@@ -4202,7 +4202,7 @@
         ],
         "consulted_sources": [
           "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
-          "feeds PassBi embarqués (ddd.json / aftu.json)"
+          "feeds opérationnels embarqués (ddd.json / aftu.json)"
         ],
         "next_action": "Obtenir de la source la preuve que la variante « 15B » emprunte bien la route au numéro nu (DDD_15) AVANT tout raccordement. Sans cette preuve, la fusion est interdite (identités publiques distinctes).",
         "feed_route_ids_present": [],
@@ -4252,7 +4252,7 @@
         ],
         "consulted_sources": [
           "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
-          "feeds PassBi embarqués (ddd.json / aftu.json)"
+          "feeds opérationnels embarqués (ddd.json / aftu.json)"
         ],
         "next_action": "Obtenir de la source la preuve que la variante « 16A » emprunte bien la route au numéro nu (DDD_16) AVANT tout raccordement. Sans cette preuve, la fusion est interdite (identités publiques distinctes).",
         "feed_route_ids_present": [],
@@ -4302,7 +4302,7 @@
         ],
         "consulted_sources": [
           "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
-          "feeds PassBi embarqués (ddd.json / aftu.json)"
+          "feeds opérationnels embarqués (ddd.json / aftu.json)"
         ],
         "next_action": "Obtenir de la source la preuve que la variante « 16B » emprunte bien la route au numéro nu (DDD_16) AVANT tout raccordement. Sans cette preuve, la fusion est interdite (identités publiques distinctes).",
         "feed_route_ids_present": [],
@@ -4846,7 +4846,7 @@
         ],
         "consulted_sources": [
           "docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md",
-          "feeds PassBi embarqués (ddd.json / aftu.json)"
+          "feeds opérationnels embarqués (ddd.json / aftu.json)"
         ],
         "next_action": "Obtenir de DDD un feed (ou une publication) exposant la route de la ligne « 327 ». Aucune route de ce numéro n'existe dans le feed embarqué.",
         "feed_route_ids_present": [],

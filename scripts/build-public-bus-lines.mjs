@@ -6,7 +6,7 @@
 //   * identités officielles AFTU/DDD : docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md
 //     (§A.2 pour les 72 AFTU ; §L pour les lignes DDD et les 7 identités Tata),
 //     lui-même dérivé des publications officielles aftu-senegal.org / demdikk.sn ;
-//   * raccordement horaire : feeds PassBi déjà embarqués (ddd.json / aftu.json)
+//   * raccordement horaire : feeds opérationnels déjà embarqués (ddd.json / aftu.json)
 //     via route_id → trip_id → direction_id → stop_id → stop_sequence.
 //
 // Règles strictes :
@@ -135,7 +135,7 @@ function parseTataIdentities() {
 }
 
 // ---------------------------------------------------------------------------
-// Raccordement horaire (feeds PassBi).
+// Raccordement horaire (feeds opérationnels).
 //
 // On construit, par route du feed, la CHAÎNE DE RACCORDEMENT VÉRIFIABLE :
 //   route_id → trip_id → direction_id → stop_id → stop_sequence → stop_times
@@ -407,7 +407,7 @@ function blockingFor(operator, number, sch, extra = {}) {
     line_number: number,
     reason,
     missing_fields: [],
-    consulted_sources: [SOURCES.canonical, 'feeds PassBi embarqués (ddd.json / aftu.json)'],
+    consulted_sources: [SOURCES.canonical, 'feeds opérationnels embarqués (ddd.json / aftu.json)'],
     next_action: '',
   };
   if (sch.routeIds.length === 0) {
@@ -580,7 +580,7 @@ const ref = {
   // Routes du feed sans identité publique : constat documenté, jamais fusionné.
   feed_routes_without_public_line: {
     note:
-      'Routes présentes dans le feed opérationnel PassBi dont le numéro public ' +
+      'Routes présentes dans le feed opérationnel dont le numéro public ' +
       'n’est PAS établi par le référentiel canonique publié. Aucune ligne n’est ' +
       'fabriquée et aucune n’est fusionnée avec une ligne existante.',
     DDD: dddFeedOrphans,

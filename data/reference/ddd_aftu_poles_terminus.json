@@ -8876,7 +8876,7 @@
         "lat": 14.6738,
         "lon": -17.4381
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Petersen 2 » (A_1559)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Petersen 2 » (A_1559)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 493,
@@ -8970,7 +8970,7 @@
         "lat": 14.7735,
         "lon": -17.3977
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Terminus Guédiawayee » (D_1082)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Terminus Guédiawayee » (D_1082)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 918,
@@ -9129,7 +9129,7 @@
         "lat": 14.70035,
         "lon": -17.44165
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Colobane » (A_1564)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Colobane » (A_1564)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 418,
@@ -9236,7 +9236,7 @@
         "lat": 14.73971,
         "lon": -17.40361
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Gare Des Baux MaraichéRs » (D_1254)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Gare Des Baux MaraichéRs » (D_1254)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 202,
@@ -9309,7 +9309,7 @@
         "lat": 14.71606,
         "lon": -17.19845
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Terminus Diamniadio » (D_1216)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Terminus Diamniadio » (D_1216)",
       "coordinateConfidence": "LOW",
       "coordinatesStatus": "CONFLICTING",
       "distanceToAnchor": 3162,
@@ -9383,7 +9383,7 @@
         "lat": 14.758,
         "lon": -17.425
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Terminus Parcelles Assaines » (D_805)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Terminus Parcelles Assaines » (D_805)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 1491,
@@ -9476,7 +9476,7 @@
         "lat": 14.79,
         "lon": -17.325
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Terminus Keur Massar » (D_989)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Terminus Keur Massar » (D_989)",
       "coordinateConfidence": "LOW",
       "coordinatesStatus": "CONFLICTING",
       "distanceToAnchor": 1770,
@@ -9692,7 +9692,7 @@
         "lat": 14.75877,
         "lon": -17.3803
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Terminus Poste Thiaroye » (D_686)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Terminus Poste Thiaroye » (D_686)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 1315,
@@ -9789,7 +9789,7 @@
         "lat": 14.71596,
         "lon": -17.27
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Terminus Rufisque P15 » (D_961)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Terminus Rufisque P15 » (D_961)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 482,
@@ -9944,7 +9944,7 @@
         "lat": 14.672107,
         "lon": -17.427493
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Terminus Leclerc » (D_140)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Terminus Leclerc » (D_140)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 0,
@@ -10003,7 +10003,7 @@
         "lat": 14.651017,
         "lon": -17.433384
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Terminus Palais 1 » (D_709)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Terminus Palais 1 » (D_709)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 0,
@@ -10059,7 +10059,7 @@
         "lat": 14.652759,
         "lon": -17.43347
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Terminus Palais 2 » (D_708)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Terminus Palais 2 » (D_708)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 0,
@@ -10128,7 +10128,7 @@
         "lat": 14.674378,
         "lon": -17.432178
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Port De Dakar » (D_1275)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Port De Dakar » (D_1275)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 0,
@@ -10176,7 +10176,7 @@
         "lat": 14.7604,
         "lon": -17.4681
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Yoff » (A_1250)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Yoff » (A_1250)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 704,
@@ -10262,7 +10262,7 @@
         "lat": 14.724,
         "lon": -17.491
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Ouakam Terminus 67 » (A_378)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Ouakam Terminus 67 » (A_378)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 537,
@@ -10322,7 +10322,7 @@
         "lat": 14.747,
         "lon": -17.521
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Garage Ngor » (A_1751)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Garage Ngor » (A_1751)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 651,
@@ -10439,7 +10439,7 @@
         "lat": 14.723514703544378,
         "lon": -17.458753275146375
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Terminus Liberté 5 » (D_713)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Terminus Liberté 5 » (D_713)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 0,
@@ -10514,7 +10514,7 @@
         "lat": 14.732509344552485,
         "lon": -17.492942671416415
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Terminus 7218 219 » (D_23)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Terminus 7218 219 » (D_23)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 0,
@@ -10570,7 +10570,7 @@
         "lat": 14.668811209981788,
         "lon": -17.441550404324836
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Lat Dior » (A_1601)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Lat Dior » (A_1601)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 72,
@@ -10635,7 +10635,7 @@
         "lat": 14.745911998054977,
         "lon": -17.489361325306174
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « AéRoport LéOpold SéDar Senghor » (D_1229)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « AéRoport LéOpold SéDar Senghor » (D_1229)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 0,
@@ -10695,7 +10695,7 @@
         "lat": 14.781474354207054,
         "lon": -17.372028393085348
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Terminus Daroukhane » (D_1056)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Terminus Daroukhane » (D_1056)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 0,
@@ -10745,7 +10745,7 @@
         "lat": 14.774489549214922,
         "lon": -17.418587251011985
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Terminus Canberene 2 » (D_1227)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Terminus Canberene 2 » (D_1227)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 0,
@@ -10795,7 +10795,7 @@
         "lat": 14.787128385914423,
         "lon": -17.365783875108658
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Terminus 30 49 » (A_453)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Terminus 30 49 » (A_453)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 0,
@@ -10846,7 +10846,7 @@
         "lat": 14.685885482094157,
         "lon": -17.45259522895191
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Sham Terminus 32  31 » (A_890)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Sham Terminus 32  31 » (A_890)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 0,
@@ -10899,7 +10899,7 @@
         "lat": 14.781205294147028,
         "lon": -17.3730607538886
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Serigne Assane Terminus 36 46 70 » (A_527)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Serigne Assane Terminus 36 46 70 » (A_527)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 0,
@@ -10949,7 +10949,7 @@
         "lat": 14.682980701497312,
         "lon": -17.461524452298818
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Terminus 37 71 » (A_1557)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Terminus 37 71 » (A_1557)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 0,
@@ -10999,7 +10999,7 @@
         "lat": 14.763646249347415,
         "lon": -17.45054507845356
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Terminus 59-39-69-80 Près De La Plage De Diamalaye » (A_299)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Terminus 59-39-69-80 Près De La Plage De Diamalaye » (A_299)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 0,
@@ -11049,7 +11049,7 @@
         "lat": 14.77862776439598,
         "lon": -17.340200728539976
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Terminus 43 Yeumbeul Nord » (A_1697)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Terminus 43 Yeumbeul Nord » (A_1697)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 0,
@@ -11107,7 +11107,7 @@
         "lat": 14.77665210360253,
         "lon": -17.28231372075849
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Terminus La LinguèRe » (D_1181)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Terminus La LinguèRe » (D_1181)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 0,
@@ -11155,7 +11155,7 @@
         "lat": 14.701292633056614,
         "lon": -17.442488616943326
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Gare Ter Hlm » (D_1273)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Gare Ter Hlm » (D_1273)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 0,
@@ -11204,7 +11204,7 @@
         "lat": 14.77414004195559,
         "lon": -17.389707297526634
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Terminus 24 64 » (A_1560)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Terminus 24 64 » (A_1560)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 0,
@@ -11255,7 +11255,7 @@
         "lat": 14.74711236637636,
         "lon": -17.37807039100156
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Station Ciel Oil » (A_586)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Station Ciel Oil » (A_586)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 0,
@@ -11317,7 +11317,7 @@
         "lat": 14.770797759400871,
         "lon": -17.425384747576732
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Terminus 29 » (A_1563)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Terminus 29 » (A_1563)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 0,
@@ -11369,7 +11369,7 @@
         "lat": 14.761597462073912,
         "lon": -17.385820142650818
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Texaco » (A_447)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Texaco » (A_447)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 0,
@@ -11428,7 +11428,7 @@
         "lat": 14.78215020276626,
         "lon": -17.372921699415517
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Serigne Assane Terminus 32 33 » (A_420)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Serigne Assane Terminus 32 33 » (A_420)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 0,
@@ -11479,7 +11479,7 @@
         "lat": 14.802669539247134,
         "lon": -17.290921887957925
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Terminus 37 50 » (A_1565)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Terminus 37 50 » (A_1565)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 0,
@@ -11527,7 +11527,7 @@
         "lat": 14.775793055598728,
         "lon": -17.403182927596358
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Pai Terminus 38 » (A_1566)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Pai Terminus 38 » (A_1566)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 0,
@@ -11575,7 +11575,7 @@
         "lat": 14.728792632039552,
         "lon": -17.32412038403185
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Terminus Grand Mbao » (A_623)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Terminus Grand Mbao » (A_623)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 0,
@@ -11624,7 +11624,7 @@
         "lat": 14.730411836537893,
         "lon": -17.493755597356305
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Terminus 43 » (A_6)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Terminus 43 » (A_6)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 0,
@@ -11674,7 +11674,7 @@
         "lat": 14.6687119,
         "lon": -17.4415046
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Garage Lat Dior » (A_50)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Garage Lat Dior » (A_50)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 0,
@@ -11722,7 +11722,7 @@
         "lat": 14.735269508175303,
         "lon": -17.151598979985703
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Terminus 53 » (A_1572)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Terminus 53 » (A_1572)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 0,
@@ -11770,7 +11770,7 @@
         "lat": 14.763438099207468,
         "lon": -17.260468801967235
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Kounoune École Mbaba » (A_245)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Kounoune École Mbaba » (A_245)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 0,
@@ -11819,7 +11819,7 @@
         "lat": 14.775094831030849,
         "lon": -17.3596727517458
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Yeumbeul » (A_1542)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Yeumbeul » (A_1542)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 0,
@@ -11870,7 +11870,7 @@
         "lat": 14.832244714198202,
         "lon": -17.248091675460557
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Terminus De La Ligne 73 » (A_559)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Terminus De La Ligne 73 » (A_559)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 0,
@@ -11918,7 +11918,7 @@
         "lat": 14.810591152522203,
         "lon": -17.260808899719606
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Terminus 74 81 » (A_1544)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Terminus 74 81 » (A_1544)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 0,
@@ -11966,7 +11966,7 @@
         "lat": 14.802756880698517,
         "lon": -17.185292626445467
       },
-      "coordinateSource": "PassBi feed — arrêt terminus « Terminus 79 87 » (A_1548)",
+      "coordinateSource": "feed opérationnel — arrêt terminus « Terminus 79 87 » (A_1548)",
       "coordinateConfidence": "HIGH",
       "coordinatesStatus": "CONFIRMED_VS_FEED",
       "distanceToAnchor": 0,

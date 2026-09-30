@@ -1,6 +1,6 @@
 // Chantier DDD / AFTU / TATA — GÉNÉRATEUR du référentiel pôles & terminus.
 //
-// Lit les feeds PassBi déjà intégrés et écrit :
+// Lit les feeds opérationnels déjà intégrés et écrit :
 //   * data/reference/ddd_aftu_poles_terminus.json      (rapport/source de vérité)
 //   * flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json (asset app)
 //

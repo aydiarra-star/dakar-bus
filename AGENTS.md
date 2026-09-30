@@ -89,3 +89,19 @@ npm run validate:data
 - État 2026-09-30 : 104/120 raccordées (CONNECTED) ; 2 BLOCKED (AFTU 47 sans
   trip, AFTU 52 sans stop_time) et 14 NOT_VERIFIED (lignes DDD sans route au
   feed). Le chantier n'est terminé que quand cette liste est vide.
+
+## Fiche arrêt « Sens Aller / Sens Retour » (aucune fabrication)
+
+- L'onglet « Sens Retour » ne fabrique **jamais** d'arrêt opposé ni n'inverse le
+  sens aller. Les deux onglets lisent les mêmes `trips` RÉELS du feed et
+  filtrent sur le `headsign` réel (`DepartureInfo.direction`) : sens ALLER = sens
+  DOMINANT (mode des prochains départs), sens RETOUR = tout autre sens réellement
+  desservi. Un sens non desservi affiche l'indisponibilité explicite.
+- Filtrage côté présentation via `Stop.realDeparturesWhere` /
+  `Stop.realWaitingMinutesToward` : ces méthodes **restreignent** des départs
+  déjà réels (pool plus large que `limit`, jamais de nouvel horaire). Aucun
+  `direction_id` ni horaire n'est inventé. Guarded by
+  `flutter-src/test/dual_stop_direction_test.dart`.
+- Le bouton « Voir la ligne complète & stations » reste désactivé quand la ligne
+  est indérivable des données courantes : un « inconnu » honnête, pas de fiche
+  fabriquée.
