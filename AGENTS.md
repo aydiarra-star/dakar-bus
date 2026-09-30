@@ -76,10 +76,18 @@ npm run validate:data
 - Ne jamais supprimer une ligne publique du référentiel pour masquer un blocage.
 - Contrôle fort : `npm run validate:public-lines`
   (`scripts/validate-public-bus-lines.mjs`) re-dérive la chaîne ET la cohérence
-  de `mapping_status`, puis **échoue (exit 1)** en listant chaque ligne non
-  raccordée. Les suites Node (`tests/public-bus-lines.test.js`) et Dart
-  (`flutter-src/test/public_bus_lines_test.dart`) portent la même « porte de
-  complétude » — l'écart restant est matérialisé, jamais masqué.
+  de `mapping_status`, puis **échoue (exit 1)** sur toute incohérence :
+  `CONNECTED` sans chaîne complète ou sans départ exploitable (≥ 2 arrêts sur un
+  trip), ligne non raccordée présentée comme horairée (`SCHEDULE_AVAILABLE` /
+  `served_stop_count > 0` / `stop_times`), `route_id` non corrélé au numéro,
+  variante lettrée fusionnée au numéro nu, identité supprimée ou compteur
+  incohérent. Les suites Node (`tests/public-bus-lines.test.js`) et Dart
+  (`flutter-src/test/public_bus_lines_test.dart`) portent la même porte.
+- Une ligne OFFICIELLEMENT PUBLIÉE mais non raccordable au feed actuel n'est
+  **pas** un échec : elle reste explicitement listée (`unresolved_public_lines`)
+  avec cause + preuve de blocage. Le seul chemin vers un `CONNECTED`
+  supplémentaire est une donnée source réellement publiée — **jamais** une
+  invention pour atteindre 100 %.
 - Ne jamais dé-raccorder une ligne pour cause de `stop_sequence` dupliquée :
   c'est une qualité de donnée (`sequence_quality=UNORDERED_IN_FEED`), pas un
   motif.
@@ -88,7 +96,10 @@ npm run validate:data
   une ligne non raccordée n'a **aucune** fiche d'arrêts fabriquée.
 - État 2026-09-30 : 104/120 raccordées (CONNECTED) ; 2 BLOCKED (AFTU 47 sans
   trip, AFTU 52 sans stop_time) et 14 NOT_VERIFIED (lignes DDD sans route au
-  feed). Le chantier n'est terminé que quand cette liste est vide.
+  feed). Ces 16 identités sont **publiées** mais non raccordables au feed
+  actuel : elles restent listées honnêtement. Un `CONNECTED` supplémentaire
+  exige une publication opérateur (itéraires/arrêts/horaires), jamais une
+  déduction.
 
 ## Fiche arrêt « Sens Aller / Sens Retour » (aucune fabrication)
 

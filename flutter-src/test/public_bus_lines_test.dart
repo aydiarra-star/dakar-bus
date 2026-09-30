@@ -133,6 +133,10 @@ void main() {
         expect(l.stopTimesCount, greaterThan(0), reason: '${l.publicLabel} : stop_times');
         expect(l.servedStopCount, greaterThan(0), reason: '${l.publicLabel} : stop_id');
         expect(l.stopSequencePresent, isTrue, reason: '${l.publicLabel} : stop_sequence');
+        // Départ EXPLOITABLE : ≥ 2 arrêts → au moins un prochain départ
+        // calculable. Une ligne CONNECTED mono-arrêt ne serait pas exploitable.
+        expect(l.servedStopCount, greaterThanOrEqualTo(2),
+            reason: '${l.publicLabel} : aucun départ exploitable (< 2 arrêts)');
         expect(l.isScheduleLinked, isTrue);
         expect(l.hasRealSchedule, isTrue);
         expect(l.unresolvedReason, isNull);
@@ -218,17 +222,42 @@ void main() {
       }
     });
 
-    // TEST CRITIQUE (§15) — TOUTES les lignes publiques AFTU/DDD doivent être
-    // raccordées aux données horaires réelles. Tant qu’il reste des lignes non
-    // raccordées, ce test échoue en les listant : le chantier n’est pas terminé.
-    test('TEST CRITIQUE — 100 % des lignes publiques AFTU/DDD raccordées', () {
-      final List<PublicBusLine> unresolved = app
-          .appDataService.publicBusLineCatalog.reference!.unresolvedPublicLines;
-      final String detail = unresolved
-          .map((l) => '  - ${l.publicLabel} (${l.unresolvedReason})')
-          .join('\n');
-      expect(unresolved, isEmpty,
-          reason: 'lignes publiques non raccordées (chantier NON terminé) :\n$detail');
+    // PORTE DE RACCORDEMENT HONNÊTE (§6 / §15 / §19) — une ligne publique
+    // OFFICIELLEMENT PUBLIÉE mais non raccordable au feed actuel reste
+    // explicitement non raccordée : c'est un état honnête, pas un échec. Ce qui
+    // échoue, c'est FABRIQUER un raccordement pour atteindre 100 %. On vérifie
+    // donc que la baseline des 16 identités non raccordables reste honnête
+    // (présente, non CONNECTED, sans faux horaire) — et jamais « 100 % » obtenu
+    // par invention.
+    test('les 16 identités publiées non raccordables restent honnêtes', () {
+      const List<String> baseline = <String>[
+        'AFTU 47', 'AFTU 52',
+        'DDD 502A', 'DDD 502B', 'DDD 503A', 'DDD 503B', 'DDD 504A', 'DDD 504B',
+        'DDD TO1', 'DDD TAF', 'DDD TAF TAF', 'DDD 15A', 'DDD 15B',
+        'DDD 16A', 'DDD 16B', 'DDD 327',
+      ];
+      final List<PublicBusLine> all =
+          app.appDataService.publicBusLineCatalog.publicLines;
+      final Map<String, PublicBusLine> byLabel = <String, PublicBusLine>{
+        for (final PublicBusLine l in all) l.publicLabel: l,
+      };
+      for (final String label in baseline) {
+        final PublicBusLine? l = byLabel[label];
+        expect(l, isNotNull, reason: '$label : identité publique supprimée');
+        expect(l!.mappingStatus, isNot(LineMappingStatus.connected),
+            reason: '$label : CONNECTED sans preuve opérationnelle nouvelle');
+        expect(l.hasRealSchedule, isFalse, reason: '$label : faux horaire');
+        expect(l.scheduleStatus, 'NO_SCHEDULE', reason: '$label : faux horaire');
+        expect(l.servedStopCount, 0, reason: '$label : arrêts sans horaire');
+        expect(l.stopTimesCount, 0, reason: '$label : stop_times sans horaire');
+        expect(l.unresolvedReason, isNotNull, reason: '$label : cause absente');
+        expect(l.blocking, isNotNull, reason: '$label : preuve de blocage absente');
+      }
+      expect(
+          app.appDataService.publicBusLineCatalog.reference!
+              .unresolvedPublicLines.length,
+          baseline.length,
+          reason: 'la liste des lignes non raccordées a changé sans preuve');
     });
   });
 

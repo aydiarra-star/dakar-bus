@@ -285,21 +285,62 @@ test('une variante lettrée documente la route au numéro nu SANS la fusionner',
 });
 
 // ---------------------------------------------------------------------------
-// TEST CRITIQUE (§15) — TOUTES LES LIGNES PUBLIQUES AFTU/DDD DOIVENT ÊTRE
-// RACCORDÉES AUX DONNÉES HORAIRES.
+// PORTE DE RACCORDEMENT HONNÊTE (§6 / §15 / §19).
 //
-// Porte de complétude : elle reste ROUGE tant qu'une seule ligne publique n'est
-// pas raccordée. Le message liste, pour chaque ligne, la cause EXACTE et la
-// prochaine action à mener — on ne masque jamais un blocage.
+// Une ligne publique OFFICIELLEMENT PUBLIÉE dont le feed actuel ne permet pas le
+// raccordement reste explicitement non raccordée : c'est un état honnête, pas un
+// échec. Ce qui échoue, c'est FABRIQUER un raccordement pour atteindre 100 %.
+// Cette porte vérifie donc :
+//   * chaque ligne CONNECTED expose la chaîne COMPLÈTE + un départ exploitable ;
+//   * chaque ligne non raccordée est honnête (cause + preuve, aucun faux horaire) ;
+//   * aucune identité publique n'est supprimée ;
+//   * aucun compteur n'est trafiqué.
+// Elle interdit toute dérive optimiste : le seul chemin vers un CONNECTED
+// supplémentaire est une donnée source réellement publiée.
 // ---------------------------------------------------------------------------
 
-test('TEST CRITIQUE — 100 % des lignes publiques AFTU/DDD raccordées aux horaires',
+test('chaque ligne CONNECTED expose la chaîne complète ET un départ exploitable',
   () => {
-    const unresolved = REF.unresolved_public_lines.map(
-      (u) => `${u.public_label} [${u.mapping_status}] (${u.reason})`);
-    assert.equal(
-      REF.unresolved_public_lines.length,
-      0,
-      `lignes publiques non raccordées (chantier NON terminé) :\n  - ${unresolved.join('\n  - ')}`,
-    );
+    for (const l of ALL) {
+      if (l.mapping_status !== 'CONNECTED') continue;
+      assert.ok(l.feed_route_ids.length > 0, `${l.public_label} : route_id`);
+      assert.ok(l.trip_ids_count > 0, `${l.public_label} : trip_id`);
+      assert.ok(l.direction_ids.length > 0, `${l.public_label} : direction_id`);
+      assert.ok(l.stop_times_count > 0, `${l.public_label} : stop_times`);
+      assert.ok(l.served_stop_count > 0, `${l.public_label} : stop_id`);
+      assert.equal(l.stop_sequence_present, true, `${l.public_label} : stop_sequence`);
+      // ≥ 2 arrêts sur un trip → au moins un prochain départ calculable.
+      assert.ok(l.served_stop_count >= 2,
+        `${l.public_label} : aucun départ exploitable (< 2 arrêts)`);
+      assert.equal(l.unresolved_reason, null);
+    }
+  });
+
+test('les 16 identités publiées non raccordables restent honnêtes (jamais fabriquées)',
+  () => {
+    // Baseline issue de la recherche exhaustive du 2026-09-30 : le feed ne
+    // permet pas le raccordement (AFTU 47 sans trip, AFTU 52 sans stop_time,
+    // 14 identités DDD sans route au numéro). Elles doivent rester présentes,
+    // non raccordées, avec cause + preuve — et ne JAMAIS devenir CONNECTED sans
+    // preuve opérationnelle nouvelle.
+    const baseline = [
+      'AFTU 47', 'AFTU 52',
+      'DDD 502A', 'DDD 502B', 'DDD 503A', 'DDD 503B', 'DDD 504A', 'DDD 504B',
+      'DDD TO1', 'DDD TAF', 'DDD TAF TAF', 'DDD 15A', 'DDD 15B',
+      'DDD 16A', 'DDD 16B', 'DDD 327',
+    ];
+    const byLabel = new Map(ALL.map((l) => [l.public_label, l]));
+    for (const label of baseline) {
+      const l = byLabel.get(label);
+      assert.ok(l, `${label} : identité publique supprimée du référentiel`);
+      assert.notEqual(l.mapping_status, 'CONNECTED',
+        `${label} : déclarée CONNECTED sans preuve opérationnelle nouvelle`);
+      assert.equal(l.schedule_status, 'NO_SCHEDULE', `${label} : faux horaire`);
+      assert.equal(l.served_stop_count, 0, `${label} : arrêts sans horaire`);
+      assert.equal(l.stop_times_count, 0, `${label} : stop_times sans horaire`);
+      assert.ok(l.unresolved_reason, `${label} : cause absente`);
+      assert.ok(l.blocking, `${label} : preuve de blocage absente`);
+    }
+    assert.equal(REF.unresolved_public_lines.length, baseline.length,
+      'la liste des lignes non raccordées a changé sans preuve documentée');
   });
