@@ -13,6 +13,7 @@ import 'models/departure_info.dart';
 import 'models/schedule_display.dart';
 import 'models/service_availability.dart';
 import 'models/terminus_pole.dart';
+import 'models/public_bus_line.dart';
 import 'services/data_service.dart';
 import 'services/dakar_clock.dart';
 import 'services/documented_route_identity.dart';
@@ -52,6 +53,9 @@ Future<void> main() async {
     // Chantier DDD/AFTU/TATA : référentiel pôles & terminus (dérivé des mêmes
     // feeds, aucune donnée TER/BRT/horaire/routage touchée).
     await appDataService.loadTerminusCatalog();
+    // MISSION — référentiel public des lignes AFTU/TATA/DDD (numéros officiels,
+    // terminus publiés, raccordement horaire). Chargement non bloquant.
+    await appDataService.loadPublicBusLineCatalog();
     // Chantier « Recherche + GPS + Routage » : catalogue de recherche unique
     // (mobilités, lignes, arrêts, gares, terminus, pôles, destinations),
     // construit depuis les données déjà chargées. La recherche et le GPS
@@ -1999,8 +2003,13 @@ void integrateNetworkSearchCatalog() {
   }
   final List<NetworkSearchEntry> poles =
       NetworkSearchCatalogBuilder.fromPoles(appDataService.terminusCatalog.poles);
-  _networkSearchCatalog =
-      NetworkSearchCatalogBuilder.build(passBi: passBi, poles: poles);
+  // MISSION — lignes PUBLIQUES AFTU/DDD (numéros officiels) : mêmes entrées
+  // pour la recherche textuelle et pour le GPS, dans le MÊME catalogue.
+  final List<NetworkSearchEntry> publicLines =
+      NetworkSearchCatalogBuilder.fromPublicLines(
+          appDataService.publicBusLineCatalog.publicLines);
+  _networkSearchCatalog = NetworkSearchCatalogBuilder.build(
+      passBi: passBi, poles: poles, extra: publicLines);
 }
 
 /// Couture de test : même construction que [main], sans passer par `main()`.
@@ -3463,6 +3472,54 @@ class _ExplorerPageState extends State<ExplorerPage> {
     return <Stop>[...dakar, ...natifs].take(8).toList();
   }
 
+  /// MISSION — suggestions issues du CATALOGUE réseau (lignes publiques
+  /// AFTU/DDD, mobilités, terminus, pôles, destinations), en complément des
+  /// arrêts. Les arrêts restent affichés par [_searchResults] : on exclut donc
+  /// les natures arrêt/gare pour éviter un doublon visuel. Aucune entrée
+  /// inventée : le catalogue ne contient que des données réellement chargées.
+  List<NetworkSearchEntry> get _catalogResults {
+    final q = _searchCtrl.text.trim();
+    if (q.length < 2) return const <NetworkSearchEntry>[];
+    return searchNetworkCatalog(q, limit: 12)
+        .where((e) =>
+            e.kind != NetworkSearchKind.stop &&
+            e.kind != NetworkSearchKind.station)
+        .take(8)
+        .toList();
+  }
+
+  static String _kindLabel(NetworkSearchKind k) => switch (k) {
+        NetworkSearchKind.mobility => 'Mobilité',
+        NetworkSearchKind.line => 'Ligne',
+        NetworkSearchKind.terminus => 'Terminus',
+        NetworkSearchKind.pole => 'Pôle',
+        NetworkSearchKind.destination => 'Destination',
+        NetworkSearchKind.station => 'Gare / station',
+        NetworkSearchKind.stop => 'Arrêt',
+      };
+
+  static IconData _kindIcon(NetworkSearchKind k) => switch (k) {
+        NetworkSearchKind.mobility => Icons.directions_bus_filled,
+        NetworkSearchKind.line => Icons.route,
+        NetworkSearchKind.terminus => Icons.flag_rounded,
+        NetworkSearchKind.pole => Icons.alt_route_rounded,
+        NetworkSearchKind.destination => Icons.place_rounded,
+        NetworkSearchKind.station => Icons.train_rounded,
+        NetworkSearchKind.stop => Icons.location_on,
+      };
+
+  void _openCatalogEntry(NetworkSearchEntry e) {
+    _searchCtrl.text = e.label;
+    setState(() => _searchFocused = false);
+    if (e.lat != null && e.lon != null) {
+      try {
+        _mapController.move(LatLng(e.lat!, e.lon!), _zoomOnStop);
+      } catch (err) {
+        debugPrint('centerOnCatalogEntry skipped (map not ready): $err');
+      }
+    }
+  }
+
   void _centerOnStop(Stop s) {
     try {
       _mapController.move(s.location, _zoomOnStop);
@@ -3475,6 +3532,11 @@ class _ExplorerPageState extends State<ExplorerPage> {
   /// généré — jamais une position devinée.
   List<TerminusPole> get _poles =>
       appDataService.terminusCatalog.mappablePoles();
+
+  /// Lignes PUBLIQUES AFTU/DDD (filtre « Lignes »). Chaque entrée possède un
+  /// numéro officiel établi par une source — jamais un identifiant de feed.
+  List<PublicBusLine> get _publicLines =>
+      appDataService.publicBusLineCatalog.publicLines;
 
   void _centerOnPole(TerminusPole p) {
     try {
@@ -3786,10 +3848,50 @@ class _ExplorerPageState extends State<ExplorerPage> {
                           child: Column(children: _searchResults.map((s) => ListTile(dense: true, leading: Icon(s.icon, color: s.color, size: 22), title: Text(s.name, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textPrimary(dark))), subtitle: Text(s.direction, style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark))), onTap: () { _searchCtrl.text = s.name; setState(() => _searchFocused = false); _centerOnStop(s); })).toList()),
                         ),
                       ],
+                      // MISSION — suggestions du CATALOGUE (lignes publiques
+                      // AFTU/DDD, mobilités, terminus, pôles, destinations) :
+                      // la barre de recherche est une porte d'entrée du réseau.
+                      if (_searchFocused && _catalogResults.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.divider(dark))),
+                          child: Column(
+                            children: _catalogResults
+                                .map((e) => ListTile(
+                                      dense: true,
+                                      leading: Icon(_kindIcon(e.kind),
+                                          color: AppColors.beanGreen, size: 20),
+                                      title: Text(e.label,
+                                          style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600,
+                                              color: AppColors.textPrimary(dark))),
+                                      subtitle: Text(
+                                          '${_kindLabel(e.kind)}${e.network.isEmpty ? '' : ' · ${e.network}'}',
+                                          style: TextStyle(
+                                              fontSize: 11,
+                                              color: AppColors.textSecondary(dark))),
+                                      onTap: () => _openCatalogEntry(e),
+                                    ))
+                                .toList(),
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 12),
-                      SizedBox(height: 40, child: ListView(scrollDirection: Axis.horizontal, children: [_chip('Tous'), _chip('⭐ Favoris'), _chip('TER'), _chip('BRT'), _chip('DDD'), _chip('TATA'), _chip('AFTU'), _chip('Pôles')])),
+                      SizedBox(height: 40, child: ListView(scrollDirection: Axis.horizontal, children: [_chip('Tous'), _chip('⭐ Favoris'), _chip('TER'), _chip('BRT'), _chip('DDD'), _chip('TATA'), _chip('AFTU'), _chip('Lignes'), _chip('Pôles')])),
                       const SizedBox(height: 16),
-                      if (_selectedFilter == 'Pôles') ...[
+                      if (_selectedFilter == 'Lignes') ...[
+                        Row(children: [
+                          Text('${_publicLines.length} lignes publiques', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
+                          const SizedBox(width: 8),
+                          Text('numéros officiels AFTU/DDD', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
+                        ]),
+                        const SizedBox(height: 10),
+                        ..._publicLines.map((l) => Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: PublicLineCard(line: l),
+                            )),
+                      ] else if (_selectedFilter == 'Pôles') ...[
                         Row(children: [
                           Text('${_poles.length} pôles DDD/AFTU', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
                           const SizedBox(width: 8),
@@ -3887,9 +3989,85 @@ class _ExplorerPageState extends State<ExplorerPage> {
       case 'DDD': return AppColors.ddd;
       case 'TATA': return AppColors.tata;
       case 'AFTU': return AppColors.aftu;
+      case 'Lignes': return AppColors.primary;
       case 'Pôles': return AppColors.beanGreen;
       default: return AppColors.primary;
     }
+  }
+}
+
+// ============================================================
+// MISSION — RÉFÉRENTIEL PUBLIC DES LIGNES AFTU / TATA / DDD
+// ============================================================
+//
+// Carte d'une ligne PUBLIQUE : numéro officiel, terminus publiés, statut
+// d'identité et raccordement horaire. Présentation seule : aucune donnée n'est
+// recalculée ici, tout provient du référentiel généré. Une identité Tata n'est
+// jamais rendue comme une ligne (TATA est un type de véhicule).
+class PublicLineCard extends StatelessWidget {
+  final PublicBusLine line;
+  const PublicLineCard({super.key, required this.line});
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = globalState.darkMode;
+    final Color color = line.operator == 'DDD' ? AppColors.ddd : AppColors.aftu;
+    final bool hasSchedule = line.scheduleStatus != 'NO_SCHEDULE';
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.surface(dark),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.divider(dark)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                  color: color.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(8)),
+              child: Text(line.operator,
+                  style: TextStyle(
+                      fontSize: 10, fontWeight: FontWeight.bold, color: color)),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(line.publicLabel,
+                  style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary(dark))),
+            ),
+            Text(
+              hasSchedule ? 'HORAIRES DISPONIBLES' : 'HORAIRES INDISPONIBLES',
+              style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: hasSchedule
+                      ? AppColors.success
+                      : AppColors.textSecondary(dark)),
+            ),
+          ]),
+          const SizedBox(height: 6),
+          Text(
+            line.hasPublishedTerminus
+                ? '${line.origin} ➔ ${line.destination}'
+                : 'Terminus non publiés par la source',
+            style: TextStyle(fontSize: 13, color: AppColors.textPrimary(dark)),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            hasSchedule
+                ? '${line.servedStopCount} arrêts réellement desservis'
+                : 'Itinéraire non raccordé au feed (aucun horaire)',
+            style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark)),
+          ),
+        ],
+      ),
+    );
   }
 }
 

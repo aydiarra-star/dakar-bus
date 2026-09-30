@@ -11,6 +11,7 @@
 /// catalogue, et l'autocomplétion ne propose donc rien pour elle.
 library;
 
+import '../models/public_bus_line.dart';
 import '../models/terminus_pole.dart';
 import 'gtfs/passbi_source.dart';
 
@@ -232,6 +233,47 @@ class NetworkSearchCatalogBuilder {
         lon: p.longitude,
         source: 'Référentiel pôles & terminus (généré depuis les feeds)',
       ));
+    }
+    return out;
+  }
+
+  /// Lignes PUBLIQUES AFTU / DDD (référentiel public, numéros officiels).
+  ///
+  /// Le libellé recherchable est « AFTU 26 » / « DDD 221 » — un NUMÉRO PUBLIC
+  /// établi par une source, jamais un identifiant de feed. Le nom officiel et
+  /// les terminus publiés complètent la recherche (mobilité, ligne, arrêt).
+  /// Aucune identité Tata n'est exposée : TATA est un type de véhicule.
+  static List<NetworkSearchEntry> fromPublicLines(List<PublicBusLine> lines) {
+    final List<NetworkSearchEntry> out = <NetworkSearchEntry>[];
+    for (final l in lines) {
+      if (!l.isPublic) continue; // un numéro public est obligatoire
+      final String net = l.operator.toUpperCase();
+      out.add(NetworkSearchEntry(
+        kind: NetworkSearchKind.line,
+        label: l.publicLabel,
+        network: net,
+        routeId: l.feedRouteIds.isNotEmpty ? l.feedRouteIds.first : null,
+        source: l.source,
+      ));
+      // Mobilité : la ligne publique prouve que l'opérateur est réellement
+      // présent (l'entrée de mobilité du feed reste par ailleurs conservée).
+      out.add(NetworkSearchEntry(
+        kind: NetworkSearchKind.mobility,
+        label: net,
+        network: net,
+        source: l.source,
+      ));
+      // Terminus publiés (origine / destination) = lieux atteignables.
+      if (l.hasPublishedTerminus) {
+        for (final String t in <String>{l.origin, l.destination}) {
+          out.add(NetworkSearchEntry(
+            kind: NetworkSearchKind.destination,
+            label: t,
+            network: net,
+            source: l.source,
+          ));
+        }
+      }
     }
     return out;
   }

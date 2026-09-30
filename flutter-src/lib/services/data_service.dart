@@ -10,6 +10,7 @@ import 'gtfs/network_access.dart';
 import 'gtfs/passbi_source.dart';
 import 'gtfs/routing_engine.dart';
 import 'schedule_provider.dart';
+import 'public_bus_line_catalog.dart';
 import 'terminus_catalog.dart';
 
 /// Service de chargement du réseau Dakar
@@ -39,6 +40,11 @@ class DataService {
   /// Chantier DDD/AFTU/TATA — référentiel pôles & terminus (lecture seule).
   final TerminusCatalog terminusCatalog = TerminusCatalog();
 
+  /// MISSION — référentiel public des lignes AFTU / TATA / DDD (lecture seule).
+  /// Numéros officiels, terminus publiés, raccordement horaire. Aucun horaire,
+  /// aucun arrêt, aucune correspondance n'y est fabriqué.
+  final PublicBusLineCatalog publicBusLineCatalog = PublicBusLineCatalog();
+
   /// Chantier « Recherche + GPS + Routage » — accès au réseau depuis une
   /// position : arrêts réels accessibles à pied, réseau par réseau.
   late final NetworkAccessIndex networkAccessIndex =
@@ -47,6 +53,9 @@ class DataService {
   /// Chargement du référentiel pôles/terminus DDD/AFTU. Non bloquant :
   /// un échec laisse le catalogue vide sans impacter TER/BRT ni les horaires.
   Future<void> loadTerminusCatalog() => terminusCatalog.load();
+
+  /// Chargement du référentiel public des lignes AFTU/DDD. Non bloquant.
+  Future<void> loadPublicBusLineCatalog() => publicBusLineCatalog.load();
 
   /// Chargement des horaires PassBi (distinct de loadNetworkData).
   /// En cas d'échec, l'app reste sur les données legacy — jamais de plantage.
