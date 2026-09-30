@@ -54,3 +54,24 @@ npm run validate:data
   type, not an operator — Tata identities stay in `tata_audit` and are never
   rendered as lines. Guarded by `flutter-src/test/public_bus_lines_test.dart`
   and `tests/public-bus-lines.test.js`.
+
+## Raccordement horaire du référentiel public (AFTU/DDD)
+
+- Toute ligne publique AFTU/DDD **doit** être raccordée aux données horaires
+  réelles du feed, via la chaîne vérifiable
+  `line_number → operator → route_id → trip_id → direction_id → stop_id →
+  stop_sequence → stop_times`. Le raccordement se fait **uniquement** par la
+  numérotation de l'opérateur (`AFTU_<n>`, `DDD_<nn>`), jamais par similarité de
+  terminus/nom. Schéma `public-bus-lines-dakar/v2` (`counts.linked`,
+  `counts.unresolved`, `unresolved_public_lines`).
+- Contrôle fort : `npm run validate:public-lines`
+  (`scripts/validate-public-bus-lines.mjs`) re-dérive la chaîne et **échoue
+  (exit 1)** en listant chaque ligne non raccordée. Les suites Node
+  (`tests/public-bus-lines.test.js`) et Dart
+  (`flutter-src/test/public_bus_lines_test.dart`) portent la même « porte de
+  complétude » — l'écart restant est matérialisé, jamais masqué.
+- Ne jamais dé-raccorder une ligne pour cause de `stop_sequence` dupliquée :
+  c'est une qualité de donnée (`stop_sequence_strict=false`), pas un motif.
+- État 2026-09-30 : 104/120 raccordées ; 16 non raccordées faute de données
+  publiées (AFTU 47 sans trip, AFTU 52 sans stop_time, 14 lignes DDD sans route
+  au feed). Le chantier n'est terminé que quand cette liste est vide.
