@@ -117,3 +117,76 @@ test('aucune ligne publique sans source ni date de vérification', () => {
     assert.ok(l.verified_at.length > 0);
   }
 });
+
+// ---------------------------------------------------------------------------
+// §6 / §15 — Chaîne de raccordement horaire vérifiable.
+// ---------------------------------------------------------------------------
+
+/** route_id attendu pour un numéro public, par numérotation de l'opérateur. */
+function expectedRouteId(network, number) {
+  if (network === 'AFTU') return `AFTU_${Number(number)}`;
+  const n = Number(number);
+  return `DDD_${n < 100 ? String(n).padStart(2, '0') : String(n)}`;
+}
+
+test('chaque ligne raccordée expose les 6 maillons de la chaîne horaire', () => {
+  for (const l of [...REF.aftu, ...REF.ddd]) {
+    if (l.schedule_status !== 'SCHEDULE_AVAILABLE') continue;
+    assert.ok(l.feed_route_ids.length > 0, `${l.public_label} : route_id`);
+    assert.ok(l.trip_ids_count > 0, `${l.public_label} : trip_id`);
+    assert.ok(l.direction_ids.length > 0, `${l.public_label} : direction_id`);
+    assert.ok(l.stop_times_count > 0, `${l.public_label} : stop_times`);
+    assert.ok(l.served_stop_count > 0, `${l.public_label} : stop_id`);
+    assert.equal(l.stop_sequence_present, true, `${l.public_label} : stop_sequence`);
+    assert.equal(l.unresolved_reason, null, `${l.public_label} : unresolved_reason`);
+  }
+});
+
+test('aucun raccordement n’est fabriqué par similarité de numéro', () => {
+  // Le route_id raccordé doit être exactement celui de la numérotation de
+  // l’opérateur pour ce numéro public — jamais une route « proche ».
+  for (const l of [...REF.aftu, ...REF.ddd]) {
+    const expected = expectedRouteId(l.operator, l.line_number);
+    for (const rid of l.feed_route_ids) {
+      assert.equal(rid, expected,
+        `${l.public_label} : route_id ${rid} ≠ numérotation attendue ${expected}`);
+    }
+  }
+});
+
+test('une ligne NON raccordée porte une cause exacte, jamais NO_SCHEDULE nu', () => {
+  for (const l of [...REF.aftu, ...REF.ddd]) {
+    if (l.schedule_status === 'SCHEDULE_AVAILABLE') continue;
+    assert.ok(l.unresolved_reason, `${l.public_label} : cause de non-raccordement absente`);
+    assert.notEqual(l.unresolved_reason, 'UNRESOLVED_UNKNOWN',
+      `${l.public_label} : cause non identifiée`);
+    // Un route_id peut exister dans le feed sans aucun stop_time (AFTU_47/52) :
+    // la ligne reste alors sans horaire et sans arrêt desservi, jamais inventé.
+    assert.equal(l.served_stop_count, 0, `${l.public_label} : arrêts sans horaire`);
+    assert.equal(l.stop_times_count, 0, `${l.public_label} : stop_times sans horaire`);
+  }
+});
+
+test('les compteurs de raccordement du référentiel sont exacts', () => {
+  const all = [...REF.aftu, ...REF.ddd];
+  const linkedCount = all.filter((l) => l.schedule_status === 'SCHEDULE_AVAILABLE').length;
+  assert.equal(REF.counts.linked, linkedCount);
+  assert.equal(REF.counts.unresolved, all.length - linkedCount);
+  assert.equal(REF.unresolved_public_lines.length, REF.counts.unresolved);
+});
+
+// ---------------------------------------------------------------------------
+// TEST CRITIQUE (§15) — TOUTES LES LIGNES PUBLIQUES AFTU/DDD DOIVENT ÊTRE
+// RACCORDÉES AUX DONNÉES HORAIRES.
+// ---------------------------------------------------------------------------
+
+test('TEST CRITIQUE — 100 % des lignes publiques AFTU/DDD raccordées aux horaires',
+  () => {
+    const unresolved = REF.unresolved_public_lines.map(
+      (u) => `${u.public_label} (${u.reason})`);
+    assert.equal(
+      REF.unresolved_public_lines.length,
+      0,
+      `lignes publiques non raccordées (chantier NON terminé) :\n  - ${unresolved.join('\n  - ')}`,
+    );
+  });

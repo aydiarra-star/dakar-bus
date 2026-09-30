@@ -124,6 +124,20 @@ void main() {
   });
 
   group('Référentiel public — intégrité (aucune invention)', () {
+    test('chaque ligne raccordée expose la chaîne horaire vérifiable', () {
+      for (final l in app.appDataService.publicBusLineCatalog.publicLines) {
+        if (l.scheduleStatus != 'SCHEDULE_AVAILABLE') continue;
+        expect(l.feedRouteIds, isNotEmpty, reason: '${l.publicLabel} : route_id');
+        expect(l.tripIdsCount, greaterThan(0), reason: '${l.publicLabel} : trip_id');
+        expect(l.directionIds, isNotEmpty, reason: '${l.publicLabel} : direction_id');
+        expect(l.stopTimesCount, greaterThan(0), reason: '${l.publicLabel} : stop_times');
+        expect(l.servedStopCount, greaterThan(0), reason: '${l.publicLabel} : stop_id');
+        expect(l.stopSequencePresent, isTrue, reason: '${l.publicLabel} : stop_sequence');
+        expect(l.isScheduleLinked, isTrue);
+        expect(l.unresolvedReason, isNull);
+      }
+    });
+
     test('le numéro public n’est jamais un identifiant de feed', () {
       for (final l in app.appDataService.publicBusLineCatalog.publicLines) {
         expect(l.lineNumber.contains('_'), isFalse,
@@ -156,6 +170,19 @@ void main() {
         expect(l.isPublic, isTrue,
             reason: 'ligne sans numéro public : ${l.publicLabel}');
       }
+    });
+
+    // TEST CRITIQUE (§15) — TOUTES les lignes publiques AFTU/DDD doivent être
+    // raccordées aux données horaires réelles. Tant qu’il reste des lignes non
+    // raccordées, ce test échoue en les listant : le chantier n’est pas terminé.
+    test('TEST CRITIQUE — 100 % des lignes publiques AFTU/DDD raccordées', () {
+      final List<PublicBusLine> unresolved = app
+          .appDataService.publicBusLineCatalog.reference!.unresolvedPublicLines;
+      final String detail = unresolved
+          .map((l) => '  - ${l.publicLabel} (${l.unresolvedReason})')
+          .join('\n');
+      expect(unresolved, isEmpty,
+          reason: 'lignes publiques non raccordées (chantier NON terminé) :\n$detail');
     });
   });
 

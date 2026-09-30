@@ -136,6 +136,12 @@ function parseTataIdentities() {
 
 // ---------------------------------------------------------------------------
 // Raccordement horaire (feeds PassBi).
+//
+// On construit, par route du feed, la CHAÎNE DE RACCORDEMENT VÉRIFIABLE :
+//   route_id → trip_id → direction_id → stop_id → stop_sequence → stop_times
+// (le format compact stocke trips = [tripId, routeIndex, serviceIndex,
+// directionId, headsign] et stop_times = [tripIndex, stopIndex, stopSequence,
+// arrivalSec, departureSec]).
 // ---------------------------------------------------------------------------
 function feedSchedule(feedPath, prefix) {
   const feed = JSON.parse(readFileSync(feedPath, 'utf8'));
@@ -147,18 +153,56 @@ function feedSchedule(feedPath, prefix) {
     if (!byNumber.has(num)) byNumber.set(num, []);
     byNumber.get(num).push(r.id);
   }
-  // Le feed stocke les `stop_times` en tableaux :
-  //   [tripIndex, stopIndex, stopSequence, arrivalSec, departureSec]
-  // et les `trips` en tableaux : [tripId, routeIndex, serviceIndex, directionId, headsign].
   const routeIdByIndex = feed.routes.map((r) => r.id);
   const tripRouteIndex = feed.trips.map((t) => t[1]);
-  const servedByRoute = new Map();
+
+  // Evidence par route : trips réels, directions réelles, stop_times, arrêts,
+  // et qualité de stop_sequence (présence + unicité).
+  const evidence = new Map();
+  const ensure = (routeId) => {
+    if (!evidence.has(routeId)) {
+      evidence.set(routeId, {
+        tripIds: [],
+        directionIds: new Set(),
+        stopIndexes: new Set(),
+        stopTimes: 0,
+        stopSequencePresent: true,
+        stopSequenceValid: true,
+      });
+    }
+    return evidence.get(routeId);
+  };
+  for (const r of routeIdByIndex) ensure(r);
+  // 1) trips → route
+  for (const t of feed.trips) {
+    const ev = ensure(routeIdByIndex[t[1]]);
+    ev.tripIds.push(t[0]);
+    ev.directionIds.add(String(t[3]));
+  }
+  // 2) stop_times → trip → route ; présence et ordre de stop_sequence
+  const perTripSeq = new Map();
   for (const st of feed.stop_times) {
     const routeId = routeIdByIndex[tripRouteIndex[st[0]]];
-    if (!servedByRoute.has(routeId)) servedByRoute.set(routeId, new Set());
-    servedByRoute.get(routeId).add(st[1]);
+    const ev = ensure(routeId);
+    ev.stopTimes += 1;
+    ev.stopIndexes.add(st[1]);
+    if (st[2] === null || st[2] === undefined || Number.isNaN(Number(st[2]))) {
+      ev.stopSequencePresent = false;
+    }
+    if (!perTripSeq.has(st[0])) perTripSeq.set(st[0], []);
+    perTripSeq.get(st[0]).push(Number(st[2]));
   }
-  return { byNumber, servedByRoute };
+  // stop_sequence strictement croissante au sein d'un trip (unicité/ordre).
+  const seqStrictByRoute = new Map();
+  for (const [tripIndex, seqs] of perTripSeq) {
+    const routeId = routeIdByIndex[tripRouteIndex[tripIndex]];
+    const strict = seqs.every((v, i) => i === 0 || v > seqs[i - 1]);
+    if (!strict) seqStrictByRoute.set(routeId, false);
+  }
+  for (const [routeId, ev] of evidence) {
+    ev.stopSequenceValid = seqStrictByRoute.get(routeId) !== false;
+  }
+  return { byNumber, evidence };
 }
 
 const dddFeed = feedSchedule(DDD_FEED, 'DDD');
@@ -174,14 +218,43 @@ const network = JSON.parse(readFileSync(NETWORK, 'utf8'));
 
 function scheduleFor(feed, number) {
   const routeIds = feed.byNumber.get(String(Number(number))) ?? [];
-  const served = new Set();
+  const tripIds = [];
+  const directionIds = new Set();
+  const stopIndexes = new Set();
+  let stopTimes = 0;
+  let stopSequencePresent = routeIds.length > 0;
+  let stopSequenceStrict = routeIds.length > 0;
   for (const rid of routeIds) {
-    for (const s of feed.servedByRoute.get(rid) ?? []) served.add(s);
+    const ev = feed.evidence.get(rid);
+    if (!ev) continue;
+    for (const t of ev.tripIds) tripIds.push(t);
+    for (const d of ev.directionIds) directionIds.add(d);
+    for (const s of ev.stopIndexes) stopIndexes.add(s);
+    stopTimes += ev.stopTimes;
+    if (!ev.stopSequencePresent) stopSequencePresent = false;
+    if (!ev.stopSequenceValid) stopSequenceStrict = false;
   }
+  // La chaîne est VÉRIFIABLE (raccordée) si les 6 maillons existent réellement :
+  // route_id, trip_id, direction_id, stop_id, stop_sequence (présente),
+  // stop_times. L'unicité/ordre strict de stop_sequence est une qualité
+  // ADDITIONNELLE, rapportée séparément — jamais un prétexte pour dé-raccorder.
+  const complete =
+    routeIds.length > 0 &&
+    tripIds.length > 0 &&
+    directionIds.size > 0 &&
+    stopIndexes.size > 0 &&
+    stopTimes > 0 &&
+    stopSequencePresent;
   return {
     routeIds,
-    stopCount: served.size,
-    status: routeIds.length > 0 && served.size > 0 ? 'SCHEDULE_AVAILABLE' : 'NO_SCHEDULE',
+    tripIds,
+    directionIds: [...directionIds].sort(),
+    stopCount: stopIndexes.size,
+    stopTimes,
+    stopSequencePresent,
+    stopSequenceStrict,
+    complete,
+    status: complete ? 'SCHEDULE_AVAILABLE' : 'NO_SCHEDULE',
   };
 }
 
@@ -221,7 +294,14 @@ const aftuLines = aftu.map((l) => {
     stops_status: l.stops_status,
     schedule_status: sch.status,
     feed_route_ids: sch.routeIds,
+    trip_ids_count: sch.tripIds.length,
+    sample_trip_ids: sch.tripIds.slice(0, 3),
+    direction_ids: sch.directionIds,
+    stop_times_count: sch.stopTimes,
+    stop_sequence_present: sch.stopSequencePresent,
+    stop_sequence_strict: sch.stopSequenceStrict,
     served_stop_count: sch.stopCount,
+    unresolved_reason: sch.complete ? null : unresolvedReason(sch),
     source: SOURCES.aftu,
     verified_at: VERIFIED_AT,
     canonical_status: l.canonical_status,
@@ -229,11 +309,15 @@ const aftuLines = aftu.map((l) => {
 });
 
 const dddLines = ddd.map((l) => {
-  // Variantes lettrées (15A/15B, 16A/16B, 502A…) : le numéro nu du feed ne
-  // permet pas de trancher A/B → aucun raccordement horaire (UNKNOWN).
+  // Variantes lettrées (15A/15B, 16A/16B, 502A…) et services TAF TAF : le feed
+  // n'expose AUCUNE route portant ce numéro — aucun raccordement n'est possible
+  // sans fabriquer un mapping (interdit). Le raccordement reste donc vide, avec
+  // la cause documentée dans `unresolved_reason`.
   const hasLetter = /[A-Za-z]/.test(l.number);
   const sch = hasLetter
-    ? { routeIds: [], stopCount: 0, status: 'NO_SCHEDULE' }
+    ? { routeIds: [], tripIds: [], directionIds: [], stopCount: 0, stopTimes: 0,
+        stopSequencePresent: false, stopSequenceStrict: false, complete: false,
+        status: 'NO_SCHEDULE' }
     : scheduleFor(dddFeed, l.number);
   const { origin, destination } = endpoints(l.origin, l.destination, '');
   return {
@@ -249,13 +333,33 @@ const dddLines = ddd.map((l) => {
     schedule_status: sch.status, // dérivé du feed (raccordement réel)
     published_schedule_status: l.schedule_status, // publié (canonique)
     feed_route_ids: sch.routeIds,
+    trip_ids_count: sch.tripIds.length,
+    sample_trip_ids: sch.tripIds.slice(0, 3),
+    direction_ids: sch.directionIds,
+    stop_times_count: sch.stopTimes,
+    stop_sequence_present: sch.stopSequencePresent,
+    stop_sequence_strict: sch.stopSequenceStrict,
     served_stop_count: sch.stopCount,
+    unresolved_reason: sch.complete
+      ? null
+      : unresolvedReason(sch, hasLetter ? 'NO_FEED_ROUTE_FOR_LINE_NUMBER' : null),
     source: SOURCES.ddd,
     itinerary_source: SOURCES.dddItineraries,
     verified_at: VERIFIED_AT,
     canonical_status: l.canonical_status,
   };
 });
+
+/** Cause exacte d'un défaut de raccordement — jamais un simple « NO_SCHEDULE ». */
+function unresolvedReason(sch, override = null) {
+  if (override) return override;
+  if (sch.routeIds.length === 0) return 'NO_FEED_ROUTE_FOR_LINE_NUMBER';
+  if (sch.tripIds.length === 0) return 'FEED_ROUTE_WITHOUT_TRIP';
+  if (sch.stopTimes === 0) return 'FEED_ROUTE_WITHOUT_STOP_TIME';
+  if (sch.stopCount === 0) return 'FEED_ROUTE_WITHOUT_STOP';
+  if (!sch.stopSequencePresent) return 'STOP_SEQUENCE_MISSING';
+  return 'UNRESOLVED_UNKNOWN';
+}
 
 // Registre d'audit Tata : AUCUN numéro public, jamais une ligne visible.
 const tataAudit = tataIdentities.map((t) => {
@@ -277,20 +381,56 @@ const tataAudit = tataIdentities.map((t) => {
   };
 });
 
+// ---------------------------------------------------------------------------
+// Porte de complétude (§6 / §15) : TOUTE ligne publique AFTU/DDD doit être
+// raccordée aux données horaires réelles. On ne masque jamais un défaut.
+// ---------------------------------------------------------------------------
+const allPublic = [...aftuLines, ...dddLines];
+const unresolved = allPublic
+  .filter((l) => !isLinked(l))
+  .map((l) => ({
+    operator: l.operator,
+    line_number: l.line_number,
+    public_label: l.public_label,
+    reason: l.unresolved_reason,
+    feed_route_ids: l.feed_route_ids,
+  }));
+
+/** Vrai si les 6 maillons de la chaîne de raccordement existent réellement. */
+function isLinked(l) {
+  return (
+    l.line_number != null &&
+    l.operator != null &&
+    Array.isArray(l.feed_route_ids) && l.feed_route_ids.length > 0 &&
+    l.trip_ids_count > 0 &&
+    Array.isArray(l.direction_ids) && l.direction_ids.length > 0 &&
+    l.stop_times_count > 0 &&
+    l.served_stop_count > 0 &&
+    l.stop_sequence_present === true &&
+    l.schedule_status === 'SCHEDULE_AVAILABLE'
+  );
+}
+
 const ref = {
-  schema: 'public-bus-lines-dakar/v1',
+  schema: 'public-bus-lines-dakar/v2',
   generated_at: GENERATED_AT,
   sources_verified_at: VERIFIED_AT,
   principle:
     'Numéro public obligatoire (operator + line_number + public_label + origin + ' +
     'destination). Aucune ligne sans numéro officiel. Aucun horaire, aucun arrêt, ' +
-    'aucune correspondance inventés. Le numéro public n’est jamais déduit du route_id.',
+    'aucune correspondance inventés. Le numéro public n’est jamais déduit du route_id. ' +
+    'Toute ligne publique AFTU/DDD doit être raccordée aux données horaires réelles ' +
+    '(route_id → trip_id → direction_id → stop_id → stop_sequence → stop_times) ; ' +
+    'un défaut de raccordement est listé dans `unresolved_public_lines`, jamais masqué.',
   sources: SOURCES,
   counts: {
     aftu_official: aftuLines.length,
     ddd_public: dddLines.length,
     tata_identities: tataAudit.length,
+    linked: allPublic.length - unresolved.length,
+    unresolved: unresolved.length,
   },
+  unresolved_public_lines: unresolved,
   aftu: aftuLines,
   ddd: dddLines,
   tata_audit: tataAudit,
@@ -309,3 +449,10 @@ const withSchedule = (arr) => arr.filter((l) => l.schedule_status !== 'NO_SCHEDU
 console.log(`AFTU : ${aftuLines.length} lignes officielles (${withSchedule(aftuLines)} reliées aux horaires).`);
 console.log(`DDD  : ${dddLines.length} lignes publiques (${withSchedule(dddLines)} reliées aux horaires).`);
 console.log(`Tata : ${tataAudit.length} identités en audit (0 ligne publique — aucun numéro officiel).`);
+if (unresolved.length > 0) {
+  console.log('');
+  console.log(`NON RACCORDÉES : ${unresolved.length} / ${allPublic.length} lignes publiques AFTU/DDD`);
+  for (const u of unresolved) {
+    console.log(`  - ${u.public_label} : ${u.reason} (feed_route_ids=${JSON.stringify(u.feed_route_ids)})`);
+  }
+}

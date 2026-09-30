@@ -37,7 +37,14 @@ class PublicBusLine {
   final String scheduleStatus; // dérivé du feed (raccordement réel)
   final String publishedScheduleStatus; // publié par la source (DDD), sinon ''
   final List<String> feedRouteIds; // route_id PassBi raccordés (peut être vide)
+  final int tripIdsCount; // trips réels raccordés (0 si non raccordé)
+  final List<String> sampleTripIds; // échantillon vérifiable de trip_id
+  final List<String> directionIds; // direction_id réels (0/1)
+  final int stopTimesCount; // stop_times réels de la ligne
+  final bool stopSequencePresent; // stop_sequence présente dans le feed
+  final bool stopSequenceStrict; // stop_sequence strictement croissante
   final int servedStopCount; // arrêts réellement desservis (0 si non raccordé)
+  final String? unresolvedReason; // cause exacte si non raccordé (sinon null)
   final String source;
   final String verifiedAt;
 
@@ -57,10 +64,28 @@ class PublicBusLine {
     required this.source,
     required this.verifiedAt,
     this.publishedScheduleStatus = '',
+    this.tripIdsCount = 0,
+    this.sampleTripIds = const <String>[],
+    this.directionIds = const <String>[],
+    this.stopTimesCount = 0,
+    this.stopSequencePresent = false,
+    this.stopSequenceStrict = false,
+    this.unresolvedReason,
   });
 
   /// Une ligne est recherchable/affichable dès qu'elle a un numéro public.
   bool get isPublic => lineNumber.isNotEmpty && publicLabel.isNotEmpty;
+
+  /// La chaîne de raccordement horaire est-elle complète et vérifiable ?
+  /// (route_id → trip_id → direction_id → stop_id → stop_sequence → stop_times)
+  bool get isScheduleLinked =>
+      feedRouteIds.isNotEmpty &&
+      tripIdsCount > 0 &&
+      directionIds.isNotEmpty &&
+      stopTimesCount > 0 &&
+      servedStopCount > 0 &&
+      stopSequencePresent &&
+      scheduleStatus == 'SCHEDULE_AVAILABLE';
 
   /// Le terminus publié est-il exploitable (≠ constat de non-publication) ?
   bool get hasPublishedTerminus =>
@@ -80,7 +105,16 @@ class PublicBusLine {
         publishedScheduleStatus: (json['published_schedule_status'] ?? '') as String,
         feedRouteIds:
             List<String>.from(json['feed_route_ids'] as List? ?? const []),
+        tripIdsCount: (json['trip_ids_count'] as num?)?.toInt() ?? 0,
+        sampleTripIds:
+            List<String>.from(json['sample_trip_ids'] as List? ?? const []),
+        directionIds:
+            List<String>.from(json['direction_ids'] as List? ?? const []),
+        stopTimesCount: (json['stop_times_count'] as num?)?.toInt() ?? 0,
+        stopSequencePresent: (json['stop_sequence_present'] ?? false) as bool,
+        stopSequenceStrict: (json['stop_sequence_strict'] ?? false) as bool,
         servedStopCount: (json['served_stop_count'] as num?)?.toInt() ?? 0,
+        unresolvedReason: json['unresolved_reason'] as String?,
         source: (json['source'] ?? '') as String,
         verifiedAt: (json['verified_at'] ?? '') as String,
       );
@@ -133,6 +167,11 @@ class PublicBusLineReference {
 
   /// Toutes les lignes publiques (DDD + AFTU), tous réseaux confondus.
   List<PublicBusLine> get publicLines => <PublicBusLine>[...ddd, ...aftu];
+
+  /// Lignes publiques NON raccordées aux données horaires réelles.
+  /// Doit rester vide pour un chantier terminé (§6/§15/§19).
+  List<PublicBusLine> get unresolvedPublicLines =>
+      publicLines.where((l) => !l.isScheduleLinked).toList(growable: false);
 
   factory PublicBusLineReference.fromJson(Map<String, dynamic> json) {
     List<PublicBusLine> parse(String key) => ((json[key] as List?) ?? const [])
