@@ -16,8 +16,10 @@ import 'models/terminus_pole.dart';
 import 'services/data_service.dart';
 import 'services/dakar_clock.dart';
 import 'services/documented_route_identity.dart';
+import 'services/gtfs/network_access.dart';
 import 'services/gtfs/passbi_source.dart';
 import 'services/gtfs/routing_engine.dart';
+import 'services/network_search.dart';
 import 'services/schedule_provider.dart';
 
 // ============================================================
@@ -50,6 +52,11 @@ Future<void> main() async {
     // Chantier DDD/AFTU/TATA : référentiel pôles & terminus (dérivé des mêmes
     // feeds, aucune donnée TER/BRT/horaire/routage touchée).
     await appDataService.loadTerminusCatalog();
+    // Chantier « Recherche + GPS + Routage » : catalogue de recherche unique
+    // (mobilités, lignes, arrêts, gares, terminus, pôles, destinations),
+    // construit depuis les données déjà chargées. La recherche et le GPS
+    // interrogent le même référentiel.
+    integrateNetworkSearchCatalog();
   } catch (e, st) {
     debugPrint('⚠️ DataService init failed: $e');
     debugPrint('$st');
@@ -1960,6 +1967,51 @@ List<Stop> explorerStopSource({
 }
 
 // ============================================================
+// CHANTIER « RECHERCHE + GPS + ROUTAGE » — CATALOGUE DE RECHERCHE UNIQUE
+// ============================================================
+//
+// La barre de recherche et le GPS interrogent le MÊME catalogue, construit à
+// partir des données réellement chargées (feeds PassBi + référentiel pôles et
+// terminus généré). Aucune entrée n'est fabriquée : l'autocomplétion ne peut
+// proposer que des mobilités, lignes, arrêts, gares, terminus, pôles et
+// destinations RÉELLEMENT présents dans le référentiel.
+
+/// Catalogue de recherche du réseau (voir [NetworkSearchCatalogBuilder]).
+///
+/// Construit après le chargement des feeds et du référentiel pôles/terminus.
+/// Vide tant que les données ne sont pas chargées — jamais d'entrée inventée.
+NetworkSearchCatalog _networkSearchCatalog =
+    const NetworkSearchCatalog(<NetworkSearchEntry>[]);
+
+/// Catalogue de recherche actuellement construit (accès lecture).
+NetworkSearchCatalog get currentNetworkSearchCatalog => _networkSearchCatalog;
+
+/// Construit le catalogue de recherche depuis les données déjà chargées.
+///
+/// Idempotent : un second appel reconstruit le catalogue à l'identique.
+/// Aucune donnée réseau n'est modifiée — seules des entrées de recherche sont
+/// dérivées des feeds et du référentiel généré.
+void integrateNetworkSearchCatalog() {
+  final List<NetworkSearchEntry> passBi = <NetworkSearchEntry>[];
+  if (appDataService.passBiActive) {
+    passBi.addAll(
+        NetworkSearchCatalogBuilder.fromPassBi(appDataService.passBiSource));
+  }
+  final List<NetworkSearchEntry> poles =
+      NetworkSearchCatalogBuilder.fromPoles(appDataService.terminusCatalog.poles);
+  _networkSearchCatalog =
+      NetworkSearchCatalogBuilder.build(passBi: passBi, poles: poles);
+}
+
+/// Couture de test : même construction que [main], sans passer par `main()`.
+@visibleForTesting
+void integrateNetworkSearchCatalogForTest() => integrateNetworkSearchCatalog();
+
+/// Recherche exhaustive dans le catalogue réseau (autocomplétion).
+List<NetworkSearchEntry> searchNetworkCatalog(String query, {int limit = 12}) =>
+    _networkSearchCatalog.search(query, limit: limit);
+
+// ============================================================
 // TRACES DES ROUTES — POLYLIGNES DE LA CARTE EXPLORER
 // ============================================================
 /// Tracés de lignes dessinés sur la carte Explorer.
@@ -2016,6 +2068,176 @@ final List<TransitRoute> demoRoutes = <TransitRoute>[];
 // MOTEUR D ITINERAIRES INTELLIGENT
 // ============================================================
 class RoutePlanner {
+  /// Chantier « Recherche + GPS + Routage » — le GPS comme entrée DIRECTE du
+  /// routage.
+  ///
+  /// À partir d'une position de départ et d'une position d'arrivée, le moteur :
+  ///  1. recherche un ENSEMBLE de points d'accès réels autour du départ
+  ///     (arrêts DDD, AFTU, BRT, gares TER — jamais un seul arrêt) ;
+  ///  2. recherche un ENSEMBLE de points de sortie réels autour de la
+  ///     destination ;
+  ///  3. fait explorer au moteur PassBi les trajets `route → trip → service →
+  ///     stop_sequence` entre ces ensembles, correspondances documentées
+  ///     comprises ;
+  ///  4. compare les candidats sur la durée **porte-à-porte** (marche d'accès +
+  ///     transport + marche de sortie).
+  ///
+  /// Aucune correspondance n'est créée par proximité : les points d'accès
+  /// servent d'entrée/sortie, jamais de preuve de relation entre deux lignes.
+  /// Sans chemin documenté, la liste est vide — jamais un itinéraire inventé.
+  static RouteSearchResult planFromPositions({
+    required LatLng from,
+    required LatLng to,
+    DateTime? at,
+    int maxResults = 4,
+  }) {
+    final DateTime now = at == null ? DakarClock.now() : DakarClock.toDakar(at);
+    if (!appDataService.passBiActive) {
+      return const RouteSearchResult(
+          errorMessage: 'Réseau indisponible : aucune donnée de service chargée.');
+    }
+    final List<PassBiJourney> journeys =
+        appDataService.planJourneysFromPositions(
+      fromLat: from.latitude,
+      fromLon: from.longitude,
+      toLat: to.latitude,
+      toLon: to.longitude,
+      at: now,
+      maxResults: maxResults,
+    );
+    if (journeys.isEmpty) {
+      final List<NetworkAccessPoint> origins = appDataService.accessPointsNear(
+          lat: from.latitude, lon: from.longitude);
+      if (origins.isEmpty) {
+        return const RouteSearchResult(
+            errorMessage:
+                'Aucun arrêt du réseau à proximité de votre position.');
+      }
+      return const RouteSearchResult(
+          errorMessage: 'Aucun itinéraire documenté entre ces deux points.');
+    }
+    final List<PlannedRoute> candidates = <PlannedRoute>[];
+    for (final journey in journeys) {
+      candidates.add(_plannedFromPassBiPosition(journey, now));
+    }
+    candidates.sort((a, b) => a.totalMinutes.compareTo(b.totalMinutes));
+    return RouteSearchResult(routes: candidates);
+  }
+
+  /// Conversion d'un trajet porte-à-porte (position → arrêt → … → arrêt →
+  /// position) en candidat d'itinéraire, avec tronçons de marche RÉELS.
+  ///
+  /// Les segments de transport sont construits exactement comme le chemin natif
+  /// ([_plannedFromPassBi] : route/trip/stop_time réels, ETA SCHEDULED) ; les
+  /// deux tronçons de marche encadrants portent la distance mesurée depuis la
+  /// position GPS et la destination — aucune distance estimée.
+  static PlannedRoute _plannedFromPassBiPosition(
+      PassBiJourney journey, DateTime at) {
+    final PlannedRoute transport = _plannedFromPassBi(
+      journey,
+      _accessStopFor(journey.originKey),
+      _accessStopFor(journey.destinationKey),
+      at,
+      useFeedNames: true,
+    );
+    final List<RouteSegment> segments = <RouteSegment>[];
+    if (journey.originAccessMeters > 0 && transport.segments.isNotEmpty) {
+      segments.add(RouteSegment(
+        modeLabel: 'Marche',
+        color: Colors.grey,
+        icon: Icons.directions_walk,
+        from: 'Ma position',
+        to: transport.segments.first.from,
+        durationMinutes: (journey.originWalkSeconds / 60).ceil(),
+        status: DataStatus.estimated,
+        isWalk: true,
+      ));
+    }
+    segments.addAll(transport.segments);
+    if (journey.destinationAccessMeters > 0 && transport.segments.isNotEmpty) {
+      segments.add(RouteSegment(
+        modeLabel: 'Marche',
+        color: Colors.grey,
+        icon: Icons.directions_walk,
+        from: transport.segments.last.to,
+        to: 'Destination',
+        durationMinutes: (journey.destinationWalkSeconds / 60).ceil(),
+        status: DataStatus.estimated,
+        isWalk: true,
+      ));
+    }
+    return PlannedRoute(
+      fromName: 'Ma position',
+      toName: 'Destination',
+      segments: segments,
+      // Durée porte-à-porte : marche d'accès + transport + marche de sortie.
+      totalMinutes: journey.doorToDoorMinutes,
+      transferCount: journey.transferCount,
+      status: DataStatus.scheduled,
+    );
+  }
+
+  /// Arrêt « support » d'une clé composite : un [Stop] minimal dont seuls le
+  /// nom et le mode sont lus par [_plannedFromPassBi] (les extrémités
+  /// affichées proviennent des arrêts réels du feed). Aucune donnée réseau
+  /// n'est modifiée ni inventée.
+  static Stop _accessStopFor(String compositeKey) {
+    final List<String>? parts = PassBiSource.splitComposite(compositeKey);
+    final String network = parts?[0] ?? 'Bus';
+    final String name = parts == null
+        ? compositeKey
+        : _stopNameOf(network, parts[1]);
+    return Stop(
+      name: name,
+      direction: 'Dir. réseau',
+      distanceMeters: 0,
+      departureMinutesFromMidnight: const <int>[],
+      icon: Icons.directions_bus,
+      color: _passBiStyle(network).$2,
+      location: const LatLng(0, 0),
+      modeLabel: network,
+    );
+  }
+
+  static String _stopNameOf(String network, String stopId) {
+    final net = appDataService.passBiSource.network(network);
+    final int? idx = net?.stopIndexById[stopId];
+    if (net != null && idx != null) return net.stops[idx].name;
+    return stopId;
+  }
+
+  /// Position d'un lieu saisi par l'utilisateur (destination du flux GPS).
+  ///
+  /// Résolution STRICTE, dans l'ordre :
+  ///  1. arrêt du référentiel dakar (nom contient la requête) → sa position ;
+  ///  2. arrêt réel du feed PassBi (nom contient la requête, via
+  ///     [PassBiSource.searchNativeStops]) → sa position exacte ;
+  ///  3. pôle/terminus documenté (nom contient la requête) → sa position.
+  ///
+  /// `null` si rien ne correspond : l'appelant répond alors « lieu
+  /// introuvable » — jamais une position de repli inventée.
+  static LatLng? positionForQuery(String query) {
+    final q = query.trim().toLowerCase();
+    if (q.isEmpty) return null;
+    for (final s in allStops) {
+      if (s.name.toLowerCase().contains(q)) return s.location;
+    }
+    if (appDataService.passBiActive) {
+      final refs = appDataService.passBiStopSearch(query);
+      if (refs.isNotEmpty) {
+        return LatLng(refs.first.lat, refs.first.lon);
+      }
+    }
+    for (final p in appDataService.terminusCatalog.poles) {
+      if (p.name.toLowerCase().contains(q)) {
+        return LatLng(p.latitude, p.longitude);
+      }
+    }
+    return null;
+  }
+
+  /// Planification PassBi entre arrêts du référentiel dakar (via crosswalk).
+  /// Retourne les trajets triés par heure d'arrivée (≤ [maxResults]).
   static RouteSearchResult plan({
     required String fromQuery,
     required String toQuery,
@@ -2495,6 +2717,9 @@ class RoutePlanner {
         return ('Bus', AppColors.primary, Icons.directions_bus);
     }
   }
+
+  /// Couleur d'affichage d'un réseau (mêmes teintes que les tronçons).
+  static Color modeColorFor(String network) => _passBiStyle(network).$2;
 }
 
 // ============================================================
@@ -2972,7 +3197,7 @@ class _MainShellState extends State<MainShell> {
     final dark = globalState.darkMode;
     final pages = [
       ExplorerPage(userPosition: _userPosition, gpsState: _gpsState, gpsMessage: _gpsMessage, onRequestLocation: _requestLocation),
-      const TripsPage(),
+      TripsPage(userPosition: _userPosition, gpsState: _gpsState, onRequestLocation: _requestLocation),
       const AlertsPage(),
       const CommunityAlertsPage(),
       const SettingsPage(),
@@ -4117,7 +4342,17 @@ class StopCard extends StatelessWidget {
 // ONGLET TRAJETS
 // ============================================================
 class TripsPage extends StatefulWidget {
-  const TripsPage({super.key});
+  /// Chantier « Recherche + GPS + Routage » : position GPS de l'usager,
+  /// transmise par [MainShell] pour servir d'origine directe au routage.
+  final LatLng? userPosition;
+  final GpsState gpsState;
+  final Future<void> Function() onRequestLocation;
+  const TripsPage({
+    super.key,
+    this.userPosition,
+    this.gpsState = GpsState.idle,
+    required this.onRequestLocation,
+  });
   @override
   State<TripsPage> createState() => _TripsPageState();
 }
@@ -4128,11 +4363,48 @@ class _TripsPageState extends State<TripsPage> {
   bool _loading = false;
   RouteSearchResult? _result;
 
+  /// Chantier GPS — l'itinéraire a été calculé depuis la position GPS (et non
+  /// depuis la saisie texte du champ « Départ »).
+  bool _fromGps = false;
+
   Future<void> _search() async {
     FocusScope.of(context).unfocus();
-    setState(() { _loading = true; _result = null; });
+    setState(() { _loading = true; _result = null; _fromGps = false; });
     await Future.delayed(const Duration(milliseconds: 500));
     final res = RoutePlanner.plan(fromQuery: _fromCtrl.text, toQuery: _toCtrl.text);
+    if (!mounted) return;
+    setState(() { _loading = false; _result = res; });
+  }
+
+  /// Recherche depuis la position GPS : le moteur cherche les points d'accès
+  /// réels autour de l'usager, puis les points de sortie autour de la
+  /// destination saisie, et compare les itinéraires candidats.
+  Future<void> _searchFromGps() async {
+    FocusScope.of(context).unfocus();
+    final LatLng? pos = widget.userPosition;
+    if (!GpsResolver.isWithinServiceZone(pos)) {
+      if (!mounted) return;
+      setState(() {
+        _result = const RouteSearchResult(
+            errorMessage:
+                'Activez le GPS pour calculer un itinéraire depuis votre position.');
+        _fromGps = false;
+      });
+      return;
+    }
+    final LatLng? destination = RoutePlanner.positionForQuery(_toCtrl.text);
+    if (destination == null) {
+      if (!mounted) return;
+      setState(() {
+        _result = const RouteSearchResult(
+            errorMessage: 'Destination introuvable.');
+        _fromGps = false;
+      });
+      return;
+    }
+    setState(() { _loading = true; _result = null; _fromGps = true; });
+    await Future.delayed(const Duration(milliseconds: 300));
+    final res = RoutePlanner.planFromPositions(from: pos!, to: destination);
     if (!mounted) return;
     setState(() { _loading = false; _result = res; });
   }
@@ -4169,9 +4441,51 @@ class _TripsPageState extends State<TripsPage> {
                         style: ElevatedButton.styleFrom(backgroundColor: AppColors.beanGreen, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 52), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)), elevation: 2),
                         child: _loading ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5)) : const Text('Rechercher mon itinéraire', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       ),
+                      const SizedBox(height: 10),
+                      // Chantier GPS — le GPS est une ENTRÉE du routage : ce
+                      // bouton calcule l'itinéraire depuis la position mesurée
+                      // (points d'accès réels autour de l'usager) et non depuis
+                      // le texte du champ « Départ ».
+                      OutlinedButton.icon(
+                        onPressed: _loading ? null : _searchFromGps,
+                        icon: Icon(
+                          widget.gpsState == GpsState.granted
+                              ? Icons.my_location
+                              : Icons.gps_not_fixed,
+                          size: 18,
+                        ),
+                        label: const Text('Partir de ma position (GPS)',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.beanGreen,
+                          minimumSize: const Size(double.infinity, 48),
+                          side: const BorderSide(color: AppColors.beanGreen),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14)),
+                        ),
+                      ),
+                      if (widget.gpsState != GpsState.granted) ...[
+                        const SizedBox(height: 8),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: TextButton.icon(
+                            onPressed: widget.onRequestLocation,
+                            icon: const Icon(Icons.location_searching, size: 16),
+                            label: const Text('Activer le GPS'),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
+
+                // Chantier GPS — mobilités réellement disponibles autour de
+                // l'usager : « quelles mobilités puis-je prendre d'ici ? ».
+                if (GpsResolver.isWithinServiceZone(widget.userPosition) &&
+                    !_loading) ...[
+                  const SizedBox(height: 16),
+                  _buildNearbyMobilities(dark),
+                ],
 
                 if (_result == null && !_loading) ...[
                   const SizedBox(height: 24),
@@ -4212,6 +4526,16 @@ class _TripsPageState extends State<TripsPage> {
                     Text('${_result!.routes.length} résultat(s)', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark)))
                   ]),
                   const SizedBox(height: 12),
+                  // Chantier GPS — itinéraire calculé depuis la position : les
+                  // tronçons de marche d'accès/sortie encadrent le transport.
+                  if (_fromGps && _result!.hasRoutes) ...[
+                    Text(
+                      'Calculé depuis votre position GPS (marche d\'accès incluse).',
+                      style: TextStyle(
+                          fontSize: 12, color: AppColors.textSecondary(dark)),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
                   if (_result!.hasRoutes)
                     ..._result!.routes.map((r) => _buildRouteCard(r, dark))
                   else
@@ -4246,6 +4570,80 @@ class _TripsPageState extends State<TripsPage> {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.divider(dark)), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4)]),
         child: Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.textPrimary(dark)))
+      ),
+    );
+  }
+
+  /// Chantier GPS — mobilités et arrêts RÉELS accessibles à pied depuis la
+  /// position de l'usager. Aucune donnée n'est inventée : chaque ligne de la
+  /// liste est un arrêt réel du feed, avec sa distance mesurée.
+  Widget _buildNearbyMobilities(bool dark) {
+    final LatLng pos = widget.userPosition!;
+    final List<NetworkAccessPoint> points = appDataService.accessPointsNear(
+        lat: pos.latitude, lon: pos.longitude);
+    if (points.isEmpty) {
+      return Text(
+        'Aucun arrêt du réseau dans un rayon de '
+        '${(NetworkAccess.defaultRadiusMeters / 1000).round()} km.',
+        style: TextStyle(fontSize: 13, color: AppColors.textSecondary(dark)),
+      );
+    }
+    final List<String> mobilities = <String>[];
+    for (final p in points) {
+      if (!mobilities.contains(p.network)) mobilities.add(p.network);
+    }
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface(dark),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.divider(dark)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            const Icon(Icons.my_location, size: 16, color: AppColors.beanGreen),
+            const SizedBox(width: 6),
+            Text('Autour de vous',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: AppColors.textPrimary(dark))),
+          ]),
+          const SizedBox(height: 4),
+          Text(
+            '${points.length} arrêts réels • mobilités : ${mobilities.join(', ')}',
+            style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark)),
+          ),
+          const SizedBox(height: 10),
+          ...points.take(6).map((p) => Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Row(children: [
+                  Icon(
+                    p.network == 'TER'
+                        ? Icons.train_rounded
+                        : Icons.directions_bus,
+                    size: 15,
+                    color: RoutePlanner.modeColorFor(p.network),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '${p.name} • ${p.network}',
+                      style: TextStyle(
+                          fontSize: 13, color: AppColors.textPrimary(dark)),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Text(DistanceHelper.format(p.distanceMeters),
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textSecondary(dark))),
+                ]),
+              )),
+        ],
       ),
     );
   }
@@ -5105,16 +5503,10 @@ class _AIChatPageState extends State<AIChatPage> {
       //    repli sur « Dakar » (ci-dessous) au lieu d'une origine trompeuse.
       if ((from == null || from.isEmpty) &&
           GpsResolver.isWithinServiceZone(widget.userPosition)) {
-        // trouve l'arrêt le plus proche de la position
-        Stop? nearest;
-        double best = double.infinity;
-        for (final s in allStops) {
-          final d = DistanceHelper.haversineMeters(widget.userPosition!, s.location);
-          if (d < best) { best = d; nearest = s; }
-        }
-        if (nearest != null) {
-          from = nearest.name;
-        }
+        // Chantier GPS — le GPS est une entrée DIRECTE du routage : l'origine
+        // n'est plus un unique arrêt « le plus proche », mais l'ENSEMBLE des
+        // points d'accès réels autour de l'usager, exploité par le moteur.
+        from = 'Ma position';
       }
       if (from == null || from.isEmpty) {
         from = "Dakar";
@@ -5122,11 +5514,25 @@ class _AIChatPageState extends State<AIChatPage> {
       if (to == null || to.isEmpty) {
         aiReply = '🧭 Pour calculer ton itinéraire, précise ta destination. Exemple : "Je suis à Petersen, je veux aller à Keur Mbaye Fall" ou "De Colobane à Yoff"';
       } else {
-        final res = RoutePlanner.plan(fromQuery: from, toQuery: to);
-        aiReply = _formatRouteResult(res, from, to);
-        // Mémorise le mode du premier segment
-        if (res.hasRoutes && res.routes.first.segments.isNotEmpty) {
-          _dernierModeInterroge = res.routes.first.segments.first.modeLabel;
+        final bool fromGps = from == 'Ma position' &&
+            GpsResolver.isWithinServiceZone(widget.userPosition);
+        final LatLng? gpsTarget =
+            fromGps ? RoutePlanner.positionForQuery(to) : null;
+        if (fromGps && gpsTarget == null) {
+          aiReply = '🧭 Destination introuvable : « $to » ne correspond à aucun '
+              'arrêt, gare, pôle ou terminus du référentiel.';
+        } else {
+          final RouteSearchResult res = fromGps
+              ? RoutePlanner.planFromPositions(
+                  from: widget.userPosition!,
+                  to: gpsTarget!,
+                )
+              : RoutePlanner.plan(fromQuery: from, toQuery: to);
+          aiReply = _formatRouteResult(res, from, to);
+          // Mémorise le mode du premier segment
+          if (res.hasRoutes && res.routes.first.segments.isNotEmpty) {
+            _dernierModeInterroge = res.routes.first.segments.first.modeLabel;
+          }
         }
       }
     } else if (lower.contains('ter') || lower.contains('train') || lower.contains('diamniadio')) {
@@ -5154,9 +5560,24 @@ class _AIChatPageState extends State<AIChatPage> {
               AssistantReplies.availabilityForMode('aftu'), 'AFTU');
     } else if (lower.contains('où suis-je') || lower.contains('ou suis je') || lower.contains('autour de moi') || lower.contains('proche')) {
       if (GpsResolver.isWithinServiceZone(widget.userPosition)) {
-        final nearby = allStops.map((s) => MapEntry(s, DistanceHelper.haversineMeters(widget.userPosition!, s.location))).toList()..sort((a,b)=>a.value.compareTo(b.value));
-        final top = nearby.take(3).map((e)=> '- ${e.key.name} (${DistanceHelper.format(e.value)} • ${e.key.modeLabel})').join('\n');
-        aiReply = '📍 Tu es près de :\n$top\n\nJe peux te guider vers une destination. Où veux-tu aller ?';
+        // Chantier GPS — plusieurs arrêts candidats, tous réseaux réels
+        // (DDD, AFTU, BRT, TER), avec la distance mesurée.
+        final List<NetworkAccessPoint> near = appDataService.accessPointsNear(
+            lat: widget.userPosition!.latitude,
+            lon: widget.userPosition!.longitude);
+        final List<String> mobilities = <String>[];
+        for (final p in near) {
+          if (!mobilities.contains(p.network)) mobilities.add(p.network);
+        }
+        final top = near
+            .take(5)
+            .map((p) =>
+                '- ${p.name} (${DistanceHelper.format(p.distanceMeters)} • ${p.network})')
+            .join('\n');
+        aiReply = '📍 Tu es près de :\n$top\n\n'
+            'Mobilités disponibles : ${mobilities.join(', ')}.\n'
+            'Où veux-tu aller ? Je peux calculer un itinéraire depuis ta '
+            'position.';
       } else if (widget.userPosition != null) {
         // ✅ CORRECTION HORS ZONE : position réelle mais hors de la zone de
         //    service — aucune distance de proximité n'est calculée (elle

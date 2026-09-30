@@ -6,6 +6,7 @@ import '../models/transport_network.dart';
 import 'data_provider.dart';
 import 'dakar_clock.dart';
 import 'eta_calculator.dart';
+import 'gtfs/network_access.dart';
 import 'gtfs/passbi_source.dart';
 import 'gtfs/routing_engine.dart';
 import 'schedule_provider.dart';
@@ -37,6 +38,11 @@ class DataService {
 
   /// Chantier DDD/AFTU/TATA — référentiel pôles & terminus (lecture seule).
   final TerminusCatalog terminusCatalog = TerminusCatalog();
+
+  /// Chantier « Recherche + GPS + Routage » — accès au réseau depuis une
+  /// position : arrêts réels accessibles à pied, réseau par réseau.
+  late final NetworkAccessIndex networkAccessIndex =
+      NetworkAccessIndex(passBiSource);
 
   /// Chargement du référentiel pôles/terminus DDD/AFTU. Non bloquant :
   /// un échec laisse le catalogue vide sans impacter TER/BRT ni les horaires.
@@ -72,6 +78,80 @@ class DataService {
   /// Clés PassBi (composite) correspondant à un arrêt dakar — tous réseaux.
   Set<String> passBiStopKeysForDakarStop(String dakarStopId) =>
       passBiSource.compositeStopsForDakarStop(dakarStopId);
+
+  // ======================================================================
+  // CHANTIER « RECHERCHE + GPS + ROUTAGE » — le GPS, entrée du routage
+  // ======================================================================
+
+  /// Arrêts RÉELS accessibles à pied autour d'une position, tous réseaux
+  /// (DDD, AFTU, BRT, TER). Retourne un ENSEMBLE de candidats — jamais un seul
+  /// arrêt — avec leur distance mesurée. Aucun arrêt n'est fabriqué.
+  List<NetworkAccessPoint> accessPointsNear({
+    required double lat,
+    required double lon,
+    double? radiusMeters,
+  }) {
+    if (radiusMeters == null) {
+      return networkAccessIndex.accessPointsNear(lat: lat, lon: lon);
+    }
+    return NetworkAccessIndex(passBiSource, radiusMeters: radiusMeters)
+        .accessPointsNear(lat: lat, lon: lon);
+  }
+
+  /// Mobilités (TER, BRT, DDD, AFTU) réellement disponibles autour d'une
+  /// position : « quelles mobilités puis-je prendre depuis ici ? ».
+  Set<String> mobilitiesNear({required double lat, required double lon}) =>
+      networkAccessIndex.networksNear(lat: lat, lon: lon);
+
+  /// Points de sortie accessibles à pied autour d'une destination.
+  List<NetworkAccessPoint> exitPointsNear({
+    required double lat,
+    required double lon,
+    double? radiusMeters,
+  }) =>
+      accessPointsNear(lat: lat, lon: lon, radiusMeters: radiusMeters);
+
+  /// Planning **porte-à-porte** entre une position de départ et une position
+  /// d'arrivée : les points d'accès et de sortie sont dérivés des coordonnées
+  /// réelles, puis le moteur PassBi explore `route → trip → service →
+  /// stop_sequence` (correspondances documentées uniquement).
+  ///
+  /// Retourne plusieurs itinéraires candidats, comparés sur la durée totale
+  /// (marche + transport). Liste vide si aucun chemin documenté n'existe —
+  /// jamais d'itinéraire inventé.
+  List<PassBiJourney> planJourneysFromPositions({
+    required double fromLat,
+    required double fromLon,
+    required double toLat,
+    required double toLon,
+    required DateTime at,
+    int maxResults = 4,
+    double? radiusMeters,
+  }) {
+    final origins = accessPointsNear(
+        lat: fromLat, lon: fromLon, radiusMeters: radiusMeters);
+    final exits = exitPointsNear(
+        lat: toLat, lon: toLon, radiusMeters: radiusMeters);
+    if (origins.isEmpty || exits.isEmpty) return const <PassBiJourney>[];
+    final originWalk = <String, int>{
+      for (final p in origins) p.compositeKey: p.walkSeconds,
+    };
+    final originMeters = <String, double>{
+      for (final p in origins) p.compositeKey: p.distanceMeters,
+    };
+    final exitMeters = <String, double>{
+      for (final p in exits) p.compositeKey: p.distanceMeters,
+    };
+    return routingEngine.planJourneysWithAccess(
+      fromKeys: origins.map((p) => p.compositeKey).toSet(),
+      toKeys: exits.map((p) => p.compositeKey).toSet(),
+      at: at,
+      originWalkSeconds: originWalk,
+      originAccessMeters: originMeters,
+      destinationAccessMeters: exitMeters,
+      maxResults: maxResults,
+    );
+  }
 
   // ======================================================================
   // LOT 4.21 — PASSBI NATIF (DDD / AFTU) : identité ≠ exploitation horaire

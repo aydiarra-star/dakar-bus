@@ -22,6 +22,7 @@
 /// sont traitées uniformément grâce aux liens de transfert du crosswalk.
 library;
 
+import 'network_access.dart';
 import 'passbi_source.dart';
 
 class PassBiLeg {
@@ -62,6 +63,22 @@ class PassBiJourney {
   final int departureSec;
   final int arrivalSec;
 
+  /// Chantier GPS — marche d'accès depuis la position de l'usager jusqu'au
+  /// point d'entrée (secondes), 0 lorsque le trajet est calculé entre arrêts
+  /// du référentiel (aucune position GPS). Valeur **mesurée** (distance réelle
+  /// entre la position et l'arrêt), jamais estimée.
+  final int originWalkSeconds;
+
+  /// Chantier GPS — marche de sortie entre le point de débarquement et la
+  /// destination (secondes), 0 hors contexte GPS.
+  final int destinationWalkSeconds;
+
+  /// Chantier GPS — distance d'accès à pied (mètres) depuis la position.
+  final double originAccessMeters;
+
+  /// Chantier GPS — distance de sortie à pied (mètres) vers la destination.
+  final double destinationAccessMeters;
+
   const PassBiJourney({
     required this.originKey,
     required this.destinationKey,
@@ -69,9 +86,23 @@ class PassBiJourney {
     required this.transferCount,
     required this.departureSec,
     required this.arrivalSec,
+    this.originWalkSeconds = 0,
+    this.destinationWalkSeconds = 0,
+    this.originAccessMeters = 0,
+    this.destinationAccessMeters = 0,
   });
 
+  /// Durée à bord + correspondances (hors marche d'accès).
   int get totalMinutes => ((arrivalSec - departureSec) / 60).ceil();
+
+  /// Durée totale porte-à-porte : marche d'accès + transport + marche de
+  /// sortie. C'est le critère de comparaison du chantier GPS (le plus proche
+  /// n'est pas automatiquement le meilleur).
+  int get doorToDoorMinutes =>
+      totalMinutes + (originWalkSeconds + destinationWalkSeconds) ~/ 60;
+
+  /// Distance d'accès totale à pied (mètres).
+  double get totalAccessMeters => originAccessMeters + destinationAccessMeters;
 }
 
 class _SearchState {
@@ -115,6 +146,7 @@ class PassBiRoutingEngine {
     required Set<String> toKeys,
     required DateTime at,
     int maxResults = 4,
+    Map<String, int> originWalkSecondsByKey = const <String, int>{},
   }) {
     if (!source.isActive || fromKeys.isEmpty || toKeys.isEmpty) {
       return const <PassBiJourney>[];
@@ -136,11 +168,68 @@ class PassBiRoutingEngine {
         offset: shift * 86400,
         startSec: startSec,
         maxResults: maxResults,
+        originWalkSecondsByKey: originWalkSecondsByKey,
       ));
     }
 
     results.sort((a, b) => a.arrivalSec.compareTo(b.arrivalSec));
     return results.take(maxResults).toList(growable: false);
+  }
+
+  /// Chantier GPS — planning **porte-à-porte** depuis une position d'usager.
+  ///
+  /// [originWalkSeconds] décale l'embarquement au point d'accès réel (marche
+  /// mesurée depuis la position) ; [originAccessMeters] / [destinationAccessMeters]
+  /// documentent les distances d'accès. Le tri final se fait sur la durée
+  /// **totale** (marche + transport), de sorte qu'un arrêt plus proche mais
+  /// menant à un trajet plus long n'est pas retenu par défaut.
+  ///
+  /// Les trajets retournés restent produits par le même moteur
+  /// (`route → trip → service → stop_sequence` + transferts documentés) :
+  /// la proximité ne crée aucune correspondance.
+  List<PassBiJourney> planJourneysWithAccess({
+    required Set<String> fromKeys,
+    required Set<String> toKeys,
+    required DateTime at,
+    required Map<String, int> originWalkSeconds,
+    required Map<String, double> originAccessMeters,
+    required Map<String, double> destinationAccessMeters,
+    int maxResults = 4,
+  }) {
+    final journeys = planJourneys(
+      fromKeys: fromKeys,
+      toKeys: toKeys,
+      at: at,
+      maxResults: maxResults,
+      originWalkSecondsByKey: originWalkSeconds,
+    );
+    if (journeys.isEmpty) return journeys;
+    final out = <PassBiJourney>[];
+    for (final j in journeys) {
+      final double om = originAccessMeters[j.originKey] ?? 0;
+      final double dm = destinationAccessMeters[j.destinationKey] ?? 0;
+      out.add(PassBiJourney(
+        originKey: j.originKey,
+        destinationKey: j.destinationKey,
+        legs: j.legs,
+        transferCount: j.transferCount,
+        departureSec: j.departureSec,
+        arrivalSec: j.arrivalSec,
+        originWalkSeconds: originWalkSeconds[j.originKey] ?? 0,
+        destinationWalkSeconds:
+            NetworkAccess.walkSecondsFor(dm),
+        originAccessMeters: om,
+        destinationAccessMeters: dm,
+      ));
+    }
+    out.sort((a, b) {
+      final int byDoor = a.doorToDoorMinutes.compareTo(b.doorToDoorMinutes);
+      if (byDoor != 0) return byDoor;
+      final int byTransfers = a.transferCount.compareTo(b.transferCount);
+      if (byTransfers != 0) return byTransfers;
+      return a.arrivalSec.compareTo(b.arrivalSec);
+    });
+    return out.take(maxResults).toList(growable: false);
   }
 
   /// Une passe de recherche sur [day] ; toutes les heures sont exprimées en
@@ -152,6 +241,7 @@ class PassBiRoutingEngine {
     required int offset,
     required int startSec,
     required int maxResults,
+    Map<String, int> originWalkSecondsByKey = const <String, int>{},
   }) {
     final int deadline = startSec + horizonSec;
 
@@ -162,7 +252,11 @@ class PassBiRoutingEngine {
     // File d'expansion triée par heure (BFS temporel borné).
     var frontier = <_SearchState>[];
     for (final key in fromKeys) {
-      frontier.add(_SearchState(key, startSec, const <PassBiLeg>[]));
+      // Chantier GPS : la marche d'accès décale l'heure d'embarquement réelle
+      // à ce point d'entrée. Hors contexte GPS, le décalage est nul et le
+      // comportement du Lot 4.19 est strictement inchangé.
+      final int walk = originWalkSecondsByKey[key] ?? 0;
+      frontier.add(_SearchState(key, startSec + walk, const <PassBiLeg>[]));
     }
 
     // Meilleur temps vu par arrêt — évite les boucles et les doublons.
