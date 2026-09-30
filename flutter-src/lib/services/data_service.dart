@@ -8,6 +8,7 @@ import 'eta_calculator.dart';
 import 'gtfs/passbi_source.dart';
 import 'gtfs/routing_engine.dart';
 import 'schedule_provider.dart';
+import 'terminus_catalog.dart';
 
 /// Service de chargement du réseau Dakar
 /// CORRIGE : respecte le modèle TransportRoute (operatorId, type, stopIds)
@@ -32,6 +33,13 @@ class DataService {
   );
   late final PassBiRoutingEngine routingEngine =
       PassBiRoutingEngine(passBiSource);
+
+  /// Chantier DDD/AFTU/TATA — référentiel pôles & terminus (lecture seule).
+  final TerminusCatalog terminusCatalog = TerminusCatalog();
+
+  /// Chargement du référentiel pôles/terminus DDD/AFTU. Non bloquant :
+  /// un échec laisse le catalogue vide sans impacter TER/BRT ni les horaires.
+  Future<void> loadTerminusCatalog() => terminusCatalog.load();
 
   /// Chargement des horaires PassBi (distinct de loadNetworkData).
   /// En cas d'échec, l'app reste sur les données legacy — jamais de plantage.

@@ -11,6 +11,7 @@ import 'models/transport_network.dart';
 import 'models/reliability.dart';
 import 'models/departure_info.dart';
 import 'models/schedule_display.dart';
+import 'models/terminus_pole.dart';
 import 'services/data_service.dart';
 import 'services/dakar_clock.dart';
 import 'services/documented_route_identity.dart';
@@ -45,6 +46,9 @@ Future<void> main() async {
     // Lot 4.21 : référentiel natif PassBi (DDD/AFTU) — arrêts réellement
     // desservis, horaires SCHEDULED calculables, identité publique distincte.
     _integratePassBiNativeStops();
+    // Chantier DDD/AFTU/TATA : référentiel pôles & terminus (dérivé des mêmes
+    // feeds, aucune donnée TER/BRT/horaire/routage touchée).
+    await appDataService.loadTerminusCatalog();
   } catch (e, st) {
     debugPrint('⚠️ DataService init failed: $e');
     debugPrint('$st');
@@ -3150,6 +3154,19 @@ class _ExplorerPageState extends State<ExplorerPage> {
       debugPrint('centerOnStop skipped (map not ready): $e');
     }
   }
+
+  /// Pôles DDD/AFTU documentés (filtre « Pôles »). Coordonnées du référentiel
+  /// généré — jamais une position devinée.
+  List<TerminusPole> get _poles =>
+      appDataService.terminusCatalog.mappablePoles();
+
+  void _centerOnPole(TerminusPole p) {
+    try {
+      _mapController.move(LatLng(p.latitude, p.longitude), _zoomOnStop);
+    } catch (e) {
+      debugPrint('centerOnPole skipped (map not ready): $e');
+    }
+  }
   void _openAI() => Navigator.push(context, MaterialPageRoute(builder: (_) => AIChatPage(userPosition: widget.userPosition)));
 
   @override
@@ -3316,6 +3333,41 @@ class _ExplorerPageState extends State<ExplorerPage> {
                                 );
                               }).toList(),
                             ),
+                            // Chantier DDD/AFTU/TATA — pôles/terminus documentés
+                            // affichés UNIQUEMENT sur le filtre « Pôles » : aucune
+                            // ligne n'y est présentée comme terminant si elle ne
+                            // fait qu'y passer (le marqueur dit le pôle, la fiche
+                            // dit les lignes terminus ET les lignes en transit).
+                            if (_selectedFilter == 'Pôles')
+                              MarkerLayer(
+                                markers: _poles
+                                    .map((p) => Marker(
+                                          point: LatLng(p.latitude, p.longitude),
+                                          width: 26,
+                                          height: 26,
+                                          child: GestureDetector(
+                                            onTap: () => Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (_) => TerminusPolePage(pole: p))),
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                color: AppColors.beanGreen,
+                                                shape: BoxShape.circle,
+                                                border: Border.all(color: Colors.white, width: 2),
+                                                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.25), blurRadius: 3)],
+                                              ),
+                                              child: Icon(
+                                                  p.isTerminal
+                                                      ? Icons.flag_rounded
+                                                      : Icons.alt_route_rounded,
+                                                  color: Colors.white,
+                                                  size: 13),
+                                            ),
+                                          ),
+                                        ))
+                                    .toList(),
+                              ),
                             if (widget.userPosition != null && PositionValidity.isPlausible(widget.userPosition!))
                               MarkerLayer(markers: [Marker(point: widget.userPosition!, width: 22, height: 22, child: Container(decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 3), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 4)])))]),
                           ],
@@ -3419,18 +3471,40 @@ class _ExplorerPageState extends State<ExplorerPage> {
                         ),
                       ],
                       const SizedBox(height: 12),
-                      SizedBox(height: 40, child: ListView(scrollDirection: Axis.horizontal, children: [_chip('Tous'), _chip('⭐ Favoris'), _chip('TER'), _chip('BRT'), _chip('DDD'), _chip('TATA'), _chip('AFTU')])),
+                      SizedBox(height: 40, child: ListView(scrollDirection: Axis.horizontal, children: [_chip('Tous'), _chip('⭐ Favoris'), _chip('TER'), _chip('BRT'), _chip('DDD'), _chip('TATA'), _chip('AFTU'), _chip('Pôles')])),
                       const SizedBox(height: 16),
-                      Row(children: [
-                        Text('${stops.length} arrêts', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-                        const SizedBox(width: 8),
-                        if (_isLoadingRoutes)
-                          const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.beanGreen))
-                        else
-                          Text('à proximité (Maintenez un arrêt pour l\'ajouter aux favoris)', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark)))
-                      ]),
-                      const SizedBox(height: 10),
-                      ...stops.map((s) => Padding(padding: const EdgeInsets.only(bottom: 12), child: GestureDetector(onTap: () => _centerOnStop(s), child: StopCard(stop: s, distanceMeters: _distanceTo(s))))),
+                      if (_selectedFilter == 'Pôles') ...[
+                        Row(children: [
+                          Text('${_poles.length} pôles DDD/AFTU', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
+                          const SizedBox(width: 8),
+                          Text('terminus documentés', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
+                        ]),
+                        const SizedBox(height: 10),
+                        ..._poles.map((p) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: GestureDetector(
+                                onTap: () => _centerOnPole(p),
+                                child: TerminusPoleCard(
+                                  pole: p,
+                                  onOpen: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (_) => TerminusPolePage(pole: p))),
+                                ),
+                              ),
+                            )),
+                      ] else ...[
+                        Row(children: [
+                          Text('${stops.length} arrêts', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
+                          const SizedBox(width: 8),
+                          if (_isLoadingRoutes)
+                            const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.beanGreen))
+                          else
+                            Text('à proximité (Maintenez un arrêt pour l\'ajouter aux favoris)', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark)))
+                        ]),
+                        const SizedBox(height: 10),
+                        ...stops.map((s) => Padding(padding: const EdgeInsets.only(bottom: 12), child: GestureDetector(onTap: () => _centerOnStop(s), child: StopCard(stop: s, distanceMeters: _distanceTo(s))))),
+                      ],
                     ],
                   ),
                 ),
@@ -3463,6 +3537,32 @@ class _ExplorerPageState extends State<ExplorerPage> {
     );
   }
 
+  // ==========================================================
+  // CHANTIER DDD/AFTU/TATA — PÔLES, GARES ROUTIÈRES, TERMINUS
+  // ==========================================================
+  //
+  // Présentation seule. La carte et la fiche lisent le référentiel GÉNÉRÉ
+  // (`assets/data/reference/ddd_aftu_poles_terminus.json`) : un pôle n'y est
+  // TERMINUS que si une ligne du feed y commence/finit réellement. Une ligne
+  // qui ne fait que passer apparaît en TRANSIT — jamais en terminus.
+
+  /// Libellé court d'une ligne (identifiant feed → mode + numéro public
+  /// documenté quand il existe, sinon le mode seul).
+  static String poleRouteLabel(String routeId) {
+    final String mode = routeId.startsWith('DDD_') ? 'DDD' : 'AFTU';
+    final String num = routeId.replaceFirst(RegExp(r'^(DDD|AFTU)_'), '');
+    return '$mode $num';
+  }
+
+  static const Map<String, String> _roleLabels = <String, String>{
+    'TERMINUS': 'Terminus',
+    'TRANSIT': 'Transit',
+    'GARE_ROUTIERE': 'Gare routière',
+    'POLE_ECHANGE': "Pôle d'échange",
+  };
+
+  static String roleLabel(String role) => _roleLabels[role] ?? role;
+
   Color _colorFor(String label) {
     switch (label) {
       case '⭐ Favoris': return Colors.amber;
@@ -3471,9 +3571,277 @@ class _ExplorerPageState extends State<ExplorerPage> {
       case 'DDD': return AppColors.ddd;
       case 'TATA': return AppColors.tata;
       case 'AFTU': return AppColors.aftu;
+      case 'Pôles': return AppColors.beanGreen;
       default: return AppColors.primary;
     }
   }
+}
+
+// ============================================================
+// CHANTIER DDD/AFTU/TATA — FICHE PÔLE / GARE ROUTIÈRE / TERMINUS
+// ============================================================
+//
+// Affiche un pôle documenté : rôle(s), lignes DDD/AFTU qui y TERMINENT
+// (départ / arrivée) et lignes qui n'y font que TRANSITER. Une ligne n'est
+// jamais présentée comme terminant à un pôle si elle ne fait qu'y passer.
+class TerminusPoleCard extends StatelessWidget {
+  final TerminusPole pole;
+  final VoidCallback onOpen;
+  const TerminusPoleCard({super.key, required this.pole, required this.onOpen});
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = globalState.darkMode;
+    final bool terminal = pole.isTerminal;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.surface(dark),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+            color: terminal ? AppColors.beanGreen : AppColors.divider(dark),
+            width: terminal ? 2 : 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            Icon(terminal ? Icons.flag_rounded : Icons.alt_route_rounded,
+                size: 16, color: terminal ? AppColors.beanGreen : AppColors.textSecondary(dark)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(pole.name,
+                  style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary(dark))),
+            ),
+            Text(pole.status.toLabel(),
+                style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: pole.status == PoleStatus.confirmed
+                        ? AppColors.beanGreen
+                        : AppColors.textSecondary(dark))),
+          ]),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            children: pole.roles
+                .map((r) => Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppColors.beanGreen.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(_ExplorerPageState.roleLabel(r),
+                          style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.beanGreen)),
+                    ))
+                .toList(),
+          ),
+          const SizedBox(height: 8),
+          if (pole.dddRoutes.isNotEmpty)
+            _poleLineRow('DDD', pole.dddRoutes, AppColors.ddd, dark),
+          if (pole.aftuRoutes.isNotEmpty)
+            _poleLineRow('AFTU', pole.aftuRoutes, AppColors.aftu, dark),
+          if (!terminal && (pole.dddTransitRoutes.isNotEmpty || pole.aftuTransitRoutes.isNotEmpty))
+            Text('Aucun terminus DDD/AFTU documenté — desserte en transit',
+                style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
+          const SizedBox(height: 8),
+          GestureDetector(
+            onTap: onOpen,
+            child: Row(children: [
+              Text('Voir la fiche du pôle',
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.beanGreen)),
+              const SizedBox(width: 4),
+              const Icon(Icons.chevron_right, size: 14, color: AppColors.beanGreen),
+            ]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _poleLineRow(String mode, List<String> routes, Color color, bool dark) {
+    final shown = routes.take(6).map(_ExplorerPageState.poleRouteLabel).join(' · ');
+    final more = routes.length > 6 ? ' +${routes.length - 6}' : '';
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 3),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Container(
+          margin: const EdgeInsets.only(top: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          decoration: BoxDecoration(
+              color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(6)),
+          child: Text(mode,
+              style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: color)),
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text('$shown$more',
+              style: TextStyle(fontSize: 11, color: AppColors.textPrimary(dark))),
+        ),
+      ]),
+    );
+  }
+}
+
+/// Fiche détaillée d'un pôle : terminus (départ/arrivée) par ligne, lignes en
+/// transit, arrêts terminus réels et provenance.
+class TerminusPolePage extends StatelessWidget {
+  final TerminusPole pole;
+  const TerminusPolePage({super.key, required this.pole});
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: globalState,
+      builder: (context, _) {
+        final dark = globalState.darkMode;
+        return Scaffold(
+          backgroundColor: AppColors.background(dark),
+          appBar: AppBar(
+            backgroundColor: AppColors.beanGreen,
+            foregroundColor: Colors.white,
+            title: Text(pole.name, style: const TextStyle(fontSize: 16)),
+          ),
+          body: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              _section('Rôle', dark, child: Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: pole.roles
+                    .map((r) => Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                              color: AppColors.beanGreen.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(10)),
+                          child: Text(_ExplorerPageState.roleLabel(r),
+                              style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.beanGreen)),
+                        ))
+                    .toList(),
+              )),
+              const SizedBox(height: 12),
+              _section('Statut', dark, child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Pôle : ${pole.status.toLabel()}',
+                      style: TextStyle(fontSize: 12, color: AppColors.textPrimary(dark))),
+                  Text('Coordonnées : ${pole.coordinatesStatus.toLabel()}',
+                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark))),
+                  Text('${pole.latitude.toStringAsFixed(5)}, ${pole.longitude.toStringAsFixed(5)}',
+                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark))),
+                  if (pole.note != null)
+                    Text(pole.note!,
+                        style: TextStyle(fontSize: 11, color: AppColors.warning)),
+                ],
+              )),
+              const SizedBox(height: 12),
+              if (pole.isTerminal)
+                _section('Terminus (départ / arrivée)', dark, child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (pole.dddRoutes.isNotEmpty)
+                      _lineList('DDD', pole.dddRoutes, AppColors.ddd, dark),
+                    if (pole.aftuRoutes.isNotEmpty)
+                      _lineList('AFTU', pole.aftuRoutes, AppColors.aftu, dark),
+                  ],
+                )),
+              if (pole.isTransit) ...[
+                const SizedBox(height: 12),
+                _section('Transit (ne terminent pas ici)', dark, child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (pole.dddTransitRoutes.isNotEmpty)
+                      _lineList('DDD', pole.dddTransitRoutes, AppColors.ddd, dark),
+                    if (pole.aftuTransitRoutes.isNotEmpty)
+                      _lineList('AFTU', pole.aftuTransitRoutes, AppColors.aftu, dark),
+                  ],
+                )),
+              ],
+              const SizedBox(height: 12),
+              _section('Arrêts terminus réels (feed)', dark, child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: pole.terminusStops.isEmpty
+                    ? [Text('Aucun arrêt terminus rattaché.',
+                        style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark)))]
+                    : pole.terminusStops
+                        .map((s) => Padding(
+                              padding: const EdgeInsets.only(bottom: 4),
+                              child: Text(
+                                  '${s.stopName} — ${s.routeIds.length} ligne(s)',
+                                  style: TextStyle(fontSize: 12, color: AppColors.textPrimary(dark))),
+                            ))
+                        .toList(),
+              )),
+              const SizedBox(height: 12),
+              _section('Source', dark, child: Text(
+                "Terminus dérivés des feeds PassBi (DDD/AFTU) — premier et dernier "
+                "arrêt réellement desservis par chaque trip. Aucun horaire, aucun "
+                "arrêt et aucune ligne ne sont inventés. Statut UNKNOWN conservé "
+                "quand la preuve manque.",
+                style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark)),
+              )),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _section(String title, bool dark, {required Widget child}) => Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.surface(dark),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.divider(dark)),
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(title,
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary(dark))),
+          const SizedBox(height: 8),
+          child,
+        ]),
+      );
+
+  Widget _lineList(String mode, List<String> routes, Color color, bool dark) => Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(mode,
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: color)),
+          const SizedBox(height: 2),
+          Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            children: routes
+                .map((r) => Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                          color: color.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(8)),
+                      child: Text(_ExplorerPageState.poleRouteLabel(r),
+                          style: TextStyle(
+                              fontSize: 11, fontWeight: FontWeight.bold, color: color)),
+                    ))
+                .toList(),
+          ),
+        ]),
+      );
 }
 
 // ============================================================
