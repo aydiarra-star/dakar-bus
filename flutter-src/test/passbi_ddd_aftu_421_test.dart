@@ -810,8 +810,7 @@ void main() {
       // à l'instant réel du rendu (StopCard interroge l'horloge).
       app.Stop? cible;
       for (final s in app.passBiNativeStops.take(200)) {
-        if (s.departureInfoAt(at: lundi12).status == ScheduleStatus.scheduled &&
-            s.departureInfo.status == ScheduleStatus.scheduled) {
+        if (s.departureInfoAt(at: lundi12).status == ScheduleStatus.scheduled) {
           cible = s;
           break;
         }
@@ -820,7 +819,7 @@ void main() {
           reason: 'au moins un arrêt natif expose un départ');
 
       await tester.pumpWidget(MaterialApp(
-        home: Scaffold(body: app.StopCard(stop: cible!, distanceMeters: 250)),
+        home: Scaffold(body: app.StopCard(stop: cible!, distanceMeters: 250, at: lundi12)),
       ));
       await tester.pump();
 

@@ -41,6 +41,46 @@ class GtfsService {
   const GtfsService({required this.id, required this.mask, required this.start, required this.end});
 }
 
+/// Bornes horaires DOCUMENTÉES d'un `service_id` (Lot fin de service).
+///
+/// Calculées au chargement à partir des `stop_times` RÉELS de tous les trips
+/// du service, en secondes depuis minuit du jour de service. Uniquement des
+/// départs EMBARQUABLES (le trip continue après l'arrêt) — un terminus
+/// n'est jamais une fin de service.
+///
+/// Aucune moyenne, aucune estimation : ce sont des extremums du feed.
+class GtfsServiceBounds {
+  /// Premier départ embarquable du service (secondes depuis minuit).
+  final int firstSec;
+
+  /// Dernier départ embarquable du service (secondes depuis minuit).
+  final int lastSec;
+
+  const GtfsServiceBounds({required this.firstSec, required this.lastSec});
+}
+
+/// Bornes du SERVICE JOURNALIER d'un réseau pour une date donnée : réunion des
+/// services actifs ce jour-là, toutes routes, toutes directions et variantes
+/// confondues.
+///
+/// [daySec] est le plus grand `departureSec` du feed entier : il borne la
+/// fenêtre horaire réellement documentée. Un premier départ ≥ [daySec] n'est
+/// pas une heure suffisamment étayée pour une reprise automatique et est
+/// laissé `null`.
+class NetworkServiceBounds {
+  final int? firstSec;
+  final int lastSec;
+  final int daySec;
+  final int dayOffset;
+
+  const NetworkServiceBounds({
+    required this.firstSec,
+    required this.lastSec,
+    required this.daySec,
+    required this.dayOffset,
+  });
+}
+
 class GtfsTrip {
   final String id;
   final int routeIndex;
@@ -99,6 +139,13 @@ class GtfsNetwork {
   /// est cherché parmi les lignes qui le desservent effectivement.
   final Map<int, Set<int>> routeIndexesByStop;
 
+  /// Lot fin de service — serviceIndex → bornes horaires documentées (premier
+  /// et dernier départ EMBARQUABLE du `service_id`), calculées au chargement.
+  final Map<int, GtfsServiceBounds> serviceBounds;
+
+  /// Plus grand `departureSec` du feed : borne la fenêtre horaire documentée.
+  final int daySec;
+
   const GtfsNetwork._({
     required this.key,
     required this.meta,
@@ -116,6 +163,8 @@ class GtfsNetwork {
     required this.stopTimesByTrip,
     required this.tripsByRoute,
     required this.routeIndexesByStop,
+    required this.serviceBounds,
+    required this.daySec,
   });
 
   factory GtfsNetwork.fromJson(String key, String jsonString) {
@@ -220,6 +269,32 @@ class GtfsNetwork {
       list.sort((a, b) => a.sequence.compareTo(b.sequence));
     }
 
+    // Lot fin de service — bornes horaires documentées par `service_id`,
+    // calculées une seule fois au chargement. Seuls les départs EMBARQUABLES
+    // comptent (`_tripContinuesPast`) : un trip terminé à l'arrêt n'est jamais
+    // une fin de service. Aucune moyenne, aucune estimation — que des
+    // extremums réels du feed.
+    final serviceBounds = <int, GtfsServiceBounds>{};
+    int daySec = 0;
+    for (final st in stopTimes) {
+      if (st.departureSec > daySec) daySec = st.departureSec;
+      if (!_tripContinuesPastStatic(st, stopTimesByTrip)) continue;
+      final trip = trips[st.tripIndex];
+      if (trip.serviceIndex < 0) continue;
+      final existing = serviceBounds[trip.serviceIndex];
+      if (existing == null) {
+        serviceBounds[trip.serviceIndex] = GtfsServiceBounds(
+          firstSec: st.departureSec,
+          lastSec: st.departureSec,
+        );
+      } else {
+        serviceBounds[trip.serviceIndex] = GtfsServiceBounds(
+          firstSec: st.departureSec < existing.firstSec ? st.departureSec : existing.firstSec,
+          lastSec: st.departureSec > existing.lastSec ? st.departureSec : existing.lastSec,
+        );
+      }
+    }
+
     return GtfsNetwork._(
       key: key,
       meta: meta,
@@ -237,6 +312,8 @@ class GtfsNetwork {
       stopTimesByTrip: stopTimesByTrip,
       tripsByRoute: tripsByRoute,
       routeIndexesByStop: routeIndexesByStop,
+      serviceBounds: serviceBounds,
+      daySec: daySec,
     );
   }
 
@@ -261,9 +338,116 @@ class GtfsNetwork {
   int activeServiceCountOn(DateTime day) =>
       services.asMap().entries.where((e) => serviceActiveOn(e.key, day)).length;
 
+  /// Lot fin de service — bornes du service journalier du réseau pour [day].
+  ///
+  /// Réunion de tous les `service_id` actifs ce jour-là (calendar +
+  /// calendar_dates), toutes routes, directions et variantes confondues :
+  ///   * [NetworkServiceBounds.lastSec] — dernier départ embarquable documenté ;
+  ///   * [NetworkServiceBounds.firstSec] — premier départ documenté (brut, peut
+  ///     valoir 0 pour un service de nuit type DDD) ;
+  ///   * [NetworkServiceBounds.daySec] — borne du feed entier ;
+  ///   * [NetworkServiceBounds.dayOffset] — décalage (1..7) vers le prochain
+  ///     jour de service documenté lorsque [day] lui-même n'en a aucun
+  ///     (reprise honnête, sans heure inventée).
+  ///
+  /// Aucune heure n'est inventée : une valeur absente reste `null`.
+  NetworkServiceBounds networkServiceBounds(DateTime day) {
+    final int? first = firstDepartureSecOn(day);
+    final int last = lastDepartureSecOn(day);
+    if (last >= 0) {
+      return NetworkServiceBounds(
+        firstSec: first,
+        lastSec: last,
+        daySec: daySec,
+        dayOffset: 0,
+      );
+    }
+    // Aucun service actif ce jour-là : on cherche le prochain jour de service
+    // documenté (jusqu'à 7 jours) pour une reprise honnête — aucune heure n'est
+    // inventée si rien n'est trouvé.
+    final resumption = nextServiceResumption(day);
+    return NetworkServiceBounds(
+      firstSec: resumption?.firstSec,
+      lastSec: resumption == null ? -1 : lastDepartureSecOn(resumption.day),
+      daySec: daySec,
+      dayOffset: resumption?.dayOffset ?? 0,
+    );
+  }
+
+  /// Premier départ EMBARQUABLE documenté du service actif de [day], `null` si
+  /// ce jour n'a aucun service actif. Peut valoir `0` — un service de nuit qui
+  /// commence à 00:00 n'est jamais écarté.
+  int? firstDepartureSecOn(DateTime day) {
+    if (!_hasActiveServiceOn(day)) return null;
+    return _firstSec((int si) => serviceActiveOn(si, day));
+  }
+
+  /// Dernier départ EMBARQUABLE documenté du service actif de [day], `-1` si
+  /// ce jour n'a aucun service actif.
+  int lastDepartureSecOn(DateTime day) {
+    if (!_hasActiveServiceOn(day)) return -1;
+    return _lastSec((int si) => serviceActiveOn(si, day));
+  }
+
+  bool _hasActiveServiceOn(DateTime day) {
+    for (int i = 0; i < services.length; i++) {
+      if (serviceActiveOn(i, day)) return true;
+    }
+    return false;
+  }
+
+  /// Prochain jour de service STRICTEMENT postérieur à [afterDay] (jusqu'à
+  /// [maxDays] jours) avec son premier départ documenté : base de la reprise
+  /// T-1h. `null` si aucun service documenté n'est trouvé — jamais inventé.
+  ({DateTime day, int firstSec, int dayOffset})? nextServiceResumption(
+    DateTime afterDay, {
+    int maxDays = 7,
+  }) {
+    for (int d = 1; d <= maxDays; d++) {
+      final day = DateTime.utc(afterDay.year, afterDay.month, afterDay.day + d);
+      final int? first = firstDepartureSecOn(day);
+      if (first != null) {
+        return (day: day, firstSec: first, dayOffset: d);
+      }
+    }
+    return null;
+  }
+
+  /// Plus petit premier départ documenté parmi les services sélectionnés par
+  /// [active], `null` si aucun.
+  int? _firstSec(bool Function(int) active) {
+    int? best;
+    for (final e in serviceBounds.entries) {
+      if (!active(e.key)) continue;
+      final f = e.value.firstSec;
+      if (best == null || f < best) best = f;
+    }
+    return best;
+  }
+
+  /// Plus grand dernier départ documenté parmi les services sélectionnés par
+  /// [active], `-1` si aucun.
+  int _lastSec(bool Function(int) active) {
+    int last = -1;
+    for (final e in serviceBounds.entries) {
+      if (!active(e.key)) continue;
+      if (e.value.lastSec > last) last = e.value.lastSec;
+    }
+    return last;
+  }
+
   static DateTime _dakarDay(DateTime at) {
     final t = at.isUtc ? at : at.toUtc();
     return DateTime.utc(t.year, t.month, t.day);
+  }
+
+  /// Variante statique de [_tripContinuesPast], utilisée au chargement des
+  /// bornes de service (avant que les maps ne soient des champs d'instance).
+  static bool _tripContinuesPastStatic(
+      GtfsStopTime st, Map<int, List<GtfsStopTime>> byTrip) {
+    final rows = byTrip[st.tripIndex];
+    if (rows == null || rows.isEmpty) return false;
+    return st.sequence < rows.last.sequence;
   }
 
   /// Prochain départ (secondes depuis minuit du jour de service) pour une
@@ -366,6 +550,43 @@ class GtfsNetwork {
           dayOffset: d,
         );
       }
+    }
+    return null;
+  }
+
+  /// Lot fin de service — prochain départ EMBARQUABLE d'un ensemble de routes
+  /// et d'un arrêt, **limité au SEUL jour de service de [at]** (aucun balayage
+  /// multi-jours). C'est la primitive du pipeline d'affichage : un départ du
+  /// service SUIVANT (lendemain, jour de service suivant) ne doit jamais être
+  /// présenté comme une attente du service en cours (c'est l'origine des
+  /// attentes aberrantes de plusieurs centaines de minutes, ex. 508 min).
+  ///
+  /// Le service applicable et le service suivant sont traités séparément par
+  /// [ServiceAvailability] (fin de service + reprise T-1h).
+  ({int sec, int routeIndex, int tripIndex, int dayOffset})?
+      nextDepartureAmongWithin({
+    required Set<int> routeIndexes,
+    required int stopIndex,
+    required DateTime at,
+  }) {
+    if (routeIndexes.isEmpty) return null;
+    final list = stopTimesByStop[stopIndex];
+    if (list == null) return null;
+    final since = at.isUtc ? at : at.toUtc();
+    final day0 = _dakarDay(since);
+    final minOfDay0 = since.difference(day0).inSeconds;
+    for (final st in list) {
+      if (st.departureSec < minOfDay0) continue;
+      final trip = trips[st.tripIndex];
+      if (!routeIndexes.contains(trip.routeIndex)) continue;
+      if (!serviceActiveOn(trip.serviceIndex, day0)) continue;
+      if (!_tripContinuesPast(st)) continue;
+      return (
+        sec: st.departureSec,
+        routeIndex: trip.routeIndex,
+        tripIndex: st.tripIndex,
+        dayOffset: 0,
+      );
     }
     return null;
   }

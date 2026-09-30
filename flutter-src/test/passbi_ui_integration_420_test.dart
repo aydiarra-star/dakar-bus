@@ -97,7 +97,7 @@ void main() {
         routeId: 'ter_dakar_diamniadio',
       );
       await tester.pumpWidget(MaterialApp(
-        home: Scaffold(body: app.StopCard(stop: s, distanceMeters: 120)),
+        home: Scaffold(body: app.StopCard(stop: s, distanceMeters: 120, at: lundi12)),
       ));
       await tester.pump();
       final texts = tester

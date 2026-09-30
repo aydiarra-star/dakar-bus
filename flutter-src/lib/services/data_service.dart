@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import '../models/departure_info.dart';
+import '../models/service_availability.dart';
 import '../models/transport_network.dart';
 import 'data_provider.dart';
 import 'dakar_clock.dart';
@@ -104,6 +105,23 @@ class DataService {
   /// §8 — Recherche d'arrêts PassBi natifs par nom réel (saisie utilisateur).
   List<PassBiStopRef> passBiStopSearch(String query, {Set<String>? networks}) =>
       passBiSource.searchNativeStops(query, networksFilter: networks);
+
+  /// Lot fin de service — disponibilité du service journalier d'une mobilité
+  /// PassBi (TER, BRT, DDD, AFTU) à [at] (heure de Dakar).
+  ///
+  /// S'appuie EXCLUSIVEMENT sur les bornes documentées du feed (premier et
+  /// dernier départ embarquable du service actif). Ne fabrique aucune heure :
+  /// un réseau sans feed (TATA) ou sans `stop_time` reste `unknown`. Le calcul
+  /// est indépendant de l'arrêt consulté (un arrêt peut ne plus avoir de départ
+  /// alors que le réseau roule encore).
+  ServiceAvailability serviceAvailabilityFor(String networkKey, DateTime at) {
+    return computeNetworkServiceAvailability(
+      network: passBiSource.network(networkKey),
+      at: at,
+      isScheduleAvailable: (net) =>
+          passBiSource.schedulableRouteCount(net.key) > 0,
+    );
+  }
 
   /// §4/§5/§9 — Prochain départ sur le référentiel natif PassBi.
   /// SCHEDULED (départ réel d'un trip/stop_time) ou UNKNOWN motivé.
