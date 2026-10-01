@@ -58,6 +58,13 @@ class DataService {
   /// Chargement du référentiel public des lignes AFTU/DDD. Non bloquant.
   Future<void> loadPublicBusLineCatalog() => publicBusLineCatalog.load();
 
+  /// Identité d'affichage d'un `route_id` de feed pour une fiche de pôle :
+  /// « DDD 5 », « AFTU 2 » — UNIQUEMENT si le référentiel public documente ce
+  /// raccordement. Sinon `null` : l'appelant n'affiche que le mode, jamais le
+  /// numéro interne (`DDD_05` → « DDD 05 » serait un numéro public inventé).
+  String? documentedLabelForFeedRouteId(String feedRouteId) =>
+      publicBusLineCatalog.publicLabelForFeedRouteId(feedRouteId);
+
   /// Fiche ligne — séquence d'arrêts ORDONNÉE d'une ligne publique raccordée.
   ///
   /// Lit la route PassBi RÉELLE de la ligne (`feed_route_ids`) et ses

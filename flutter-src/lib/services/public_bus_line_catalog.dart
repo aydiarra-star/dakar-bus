@@ -20,6 +20,7 @@ class PublicBusLineCatalog {
   PublicBusLineReference? _reference;
   bool _loaded = false;
   String? _loadError;
+  Map<String, String>? _labelByFeedRouteId;
 
   bool get isLoaded => _loaded;
   PublicBusLineReference? get reference => _reference;
@@ -39,6 +40,28 @@ class PublicBusLineCatalog {
   List<TataIdentityAudit> get tataAudit =>
       _reference?.tataAudit ?? const <TataIdentityAudit>[];
 
+  /// Libellé public DOCUMENTÉ d'un `route_id` de feed (ex. « DDD 5 » pour
+  /// `DDD_05`), `null` si aucune ligne publique ne le documente.
+  ///
+  /// Un `route_id` interne n'est jamais converti en numéro public : seul le
+  /// raccordement établi par le référentiel ([PublicBusLine.feedRouteIds]) est
+  /// une preuve. Sans raccordement → `null` (l'appelant n'affiche que le mode).
+  String? publicLabelForFeedRouteId(String feedRouteId) {
+    final Map<String, String>? index = _labelByFeedRouteId;
+    if (index == null) return null;
+    return index[feedRouteId];
+  }
+
+  void _indexLabels() {
+    final Map<String, String> index = <String, String>{};
+    for (final PublicBusLine line in publicLines) {
+      for (final String feedRouteId in line.feedRouteIds) {
+        index[feedRouteId] = line.publicLabel;
+      }
+    }
+    _labelByFeedRouteId = index;
+  }
+
   Future<void> load() async {
     try {
       final String raw = await rootBundle.loadString(assetPath);
@@ -46,10 +69,14 @@ class PublicBusLineCatalog {
           json.decode(raw) as Map<String, dynamic>);
       _loaded = true;
       _loadError = null;
+      _indexLabels();
     } catch (e) {
       // Un asset illisible laisse le référentiel vide — jamais de ligne
       // fabriquée, jamais de plantage. La cause est conservée pour l'UI.
       _loadError = e.toString();
+      _reference = null;
+      _loaded = false;
+      _labelByFeedRouteId = null;
       // ignore: avoid_print
       print('⚠️ Référentiel public des lignes AFTU/DDD indisponible : $e');
     }

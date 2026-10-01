@@ -4064,12 +4064,28 @@ class _ExplorerPageState extends State<ExplorerPage> {
   // TERMINUS que si une ligne du feed y commence/finit réellement. Une ligne
   // qui ne fait que passer apparaît en TRANSIT — jamais en terminus.
 
-  /// Libellé court d'une ligne (identifiant feed → mode + numéro public
-  /// documenté quand il existe, sinon le mode seul).
+  /// Identité d'affichage d'une ligne de pôle. Le numéro public n'apparaît QUE
+  /// s'il est documenté par le référentiel ([PublicBusLineCatalog]) : `DDD_05`
+  /// → « DDD 5 » (et non « DDD 05 », numéro public inventé). Sans
+  /// raccordement documenté, seul le mode est affiché — jamais le numéro
+  /// interne extrait du `route_id`.
   static String poleRouteLabel(String routeId) {
     final String mode = routeId.startsWith('DDD_') ? 'DDD' : 'AFTU';
-    final String num = routeId.replaceFirst(RegExp(r'^(DDD|AFTU)_'), '');
-    return '$mode $num';
+    final String? documented =
+        appDataService.documentedLabelForFeedRouteId(routeId);
+    return documented ?? mode;
+  }
+
+  /// Libellés PUBLICS documentés des lignes d'un pôle : identité publique
+  /// documentée uniquement, dédupliquée. Un `route_id` interne non raccordé
+  /// n'apparaît jamais comme numéro de ligne (le mode seul ne compte pas).
+  static List<String> _documentedLabels(String mode, List<String> routes) {
+    final List<String> labels = <String>[];
+    for (final String routeId in routes) {
+      final String label = poleRouteLabel(routeId);
+      if (label != mode && !labels.contains(label)) labels.add(label);
+    }
+    return labels;
   }
 
   static const Map<String, String> _roleLabels = <String, String>{
@@ -4535,8 +4551,10 @@ class TerminusPoleCard extends StatelessWidget {
   }
 
   Widget _poleLineRow(String mode, List<String> routes, Color color, bool dark) {
-    final shown = routes.take(6).map(_ExplorerPageState.poleRouteLabel).join(' · ');
-    final more = routes.length > 6 ? ' +${routes.length - 6}' : '';
+    final List<String> labels =
+        _ExplorerPageState._documentedLabels(mode, routes);
+    final shown = labels.take(6).join(' · ');
+    final more = labels.length > 6 ? ' +${labels.length - 6}' : '';
     return Padding(
       padding: const EdgeInsets.only(bottom: 3),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -4550,8 +4568,11 @@ class TerminusPoleCard extends StatelessWidget {
         ),
         const SizedBox(width: 6),
         Expanded(
-          child: Text('$shown$more',
-              style: TextStyle(fontSize: 11, color: AppColors.textPrimary(dark))),
+          child: labels.isEmpty
+              ? Text('Lignes non documentées par la source',
+                  style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark)))
+              : Text('$shown$more',
+                  style: TextStyle(fontSize: 11, color: AppColors.textPrimary(dark))),
         ),
       ]),
     );
@@ -4684,29 +4705,37 @@ class TerminusPolePage extends StatelessWidget {
         ]),
       );
 
-  Widget _lineList(String mode, List<String> routes, Color color, bool dark) => Padding(
+  Widget _lineList(String mode, List<String> routes, Color color, bool dark) {
+    final List<String> labels =
+        _ExplorerPageState._documentedLabels(mode, routes);
+    return Padding(
         padding: const EdgeInsets.only(bottom: 6),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(mode,
               style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: color)),
           const SizedBox(height: 2),
-          Wrap(
-            spacing: 6,
-            runSpacing: 4,
-            children: routes
-                .map((r) => Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                          color: color.withOpacity(0.12),
-                          borderRadius: BorderRadius.circular(8)),
-                      child: Text(_ExplorerPageState.poleRouteLabel(r),
-                          style: TextStyle(
-                              fontSize: 11, fontWeight: FontWeight.bold, color: color)),
-                    ))
-                .toList(),
-          ),
+          if (labels.isEmpty)
+            Text('Lignes non documentées par la source',
+                style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark)))
+          else
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: labels
+                  .map((label) => Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                            color: color.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(8)),
+                        child: Text(label,
+                            style: TextStyle(
+                                fontSize: 11, fontWeight: FontWeight.bold, color: color)),
+                      ))
+                  .toList(),
+            ),
         ]),
       );
+  }
 }
 
 // ============================================================
