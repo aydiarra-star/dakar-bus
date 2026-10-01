@@ -42,6 +42,21 @@ String formatWaitingMinute(int minutes) => '${minutes < 1 ? 1 : minutes} mn';
 String formatWaitingMinutes(List<int> waitingMinutes) =>
     waitingMinutes.map(formatWaitingMinute).join(' · ');
 
+/// Libellé court d'un passage ESTIMÉ à partir d'une donnée documentée (fenêtre
+/// de fréquence publiée) : « Passage estimé · N mn ».
+///
+/// Distinct de la liste « N mn · … » (qui n'affiche que de VRAIS stop_times) et
+/// du libellé long `DepartureInfo.label` (« Passage estimé dans N min ») : ce
+/// format court ne fixe jamais la phase du prochain véhicule — la borne `N` est
+/// la fréquence documentée, jamais un départ fabriqué.
+///
+/// `null` si aucune fréquence n'est documentée : l'appelant reste alors sur
+/// « Horaire indisponible » (jamais de faux temps).
+String? formatEstimatedWaitLabel(int? frequencyMinutes) {
+  if (frequencyMinutes == null || frequencyMinutes <= 0) return null;
+  return 'Passage estimé · $frequencyMinutes mn';
+}
+
 // L'alternative la plus longue doit précéder la plus courte : « dir » avant
 // « direction » rognerait « Direction » en « ection » (bug CI du 2026-09-28).
 final RegExp _directionPrefix =

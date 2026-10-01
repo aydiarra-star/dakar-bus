@@ -151,3 +151,23 @@ npm run validate:data
   (PEM Petersen, PEM Guédiawaye, Gare TER Dakar, Colobane, Rufisque) n'est plus
   affiché « INTERM. » par accident. Aucune donnée ajoutée.
   Guarded by `flutter-src/test/explorer_stop_role_integrity_test.dart`.
+
+## Horaires — verrou d'affichage des cinq mobilités (aucune donnée fabriquée)
+
+- Règle produit : ne jamais inventer de donnée, mais ne jamais afficher
+  « Horaire indisponible » lorsqu'une estimation **réellement calculable** depuis
+  une source **documentée** existe.
+- Hiérarchie d'affichage (inchangée) : fin de service documentée > compte à
+  rebours « X mn · … » (vrais `stop_time`) > estimation documentée > neutre.
+- Estimation courte : `formatEstimatedWaitLabel(frequencyMinutes)` →
+  « Passage estimé · N mn » (jamais « 0 mn », jamais une heure de passage). La
+  borne `N` est la fréquence **publiée** ; elle ne fixe pas la phase du prochain
+  véhicule. Utilisée par `StopCard` (Explorer) et `SingleStopView` (fiche arrêt)
+  lorsque `nextRealWaitingMinutes` est vide mais que `departureInfoAt().status`
+  est `estimated` (arrêt desservi par une ligne mappée à fréquence documentée,
+  ex. BRT B1 `brt_b1_guediawaye_petersen`, sans `stop_time` propre).
+- Sans fréquence documentée (DDD/AFTU non mappés `IDENTITE_NON_CONFIRMEE`, TATA
+  absent du feed), l'indicateur neutre « Horaire indisponible » est conservé :
+  aucune estimation n'est inventée.
+- Données GTFS/PassBi, routage et `servedInOrder()` strictement inchangés.
+  Guarded by `flutter-src/test/schedule_display_lock_test.dart`.

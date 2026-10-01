@@ -34,6 +34,8 @@ bool _isDepartureOrUnavailable(Widget w) {
   if (w is! Text || w.data == null) return false;
   final String d = w.data!;
   if (RegExp(r'^\d+ mn( · \d+ mn){0,2}$').hasMatch(d)) return true;
+  // Passage estimé depuis une fréquence DOCUMENTÉE (jamais un stop_time réel).
+  if (RegExp(r'^Passage estimé · \d+ mn$').hasMatch(d)) return true;
   if (d == ReliabilityLabel.scheduleUnavailable) return true;
   if (d == ServiceAvailability.labelServiceEnded) return true;
   if (d.startsWith('${ServiceAvailability.labelServiceEnded} — reprise à ')) {

@@ -4911,6 +4911,19 @@ class StopCard extends StatelessWidget {
         final String? legacyRemaining =
             hasWaits ? null : stop.legacyRemainingWithin(availability?.displayHorizonAt, at: now);
         final String? serviceNotice = serviceNoticeFor(availability, now);
+        // Règle produit (verrouillage horaires) — une estimation réellement
+        // calculable depuis une fréquence DOCUMENTÉE ne doit pas être masquée
+        // par « Horaire indisponible » : un arrêt desservi (route mappée) mais
+        // sans stop_time propre pour l'instant demandé affiche « Passage estimé
+        // · N mn ». Données strictement inchangées ; un arrêt sans fréquence
+        // documentée (ex. DDD/AFTU non mappés, TATA) reste « Horaire
+        // indisponible ». La fin de service et le compte à rebours legacy
+        // restent prioritaires.
+        final String? estimatedShort = (hasWaits ||
+                legacyRemaining != null ||
+                serviceNotice != null)
+            ? null
+            : formatEstimatedWaitLabel(stop.departureInfoAt(at: now).frequencyMinutes);
 
         return GestureDetector(
           onLongPress: () {
@@ -4959,7 +4972,8 @@ class StopCard extends StatelessWidget {
                           ? formatWaitingMinutes(waits)
                           : (legacyRemaining ??
                               (serviceNotice ??
-                                  ReliabilityLabel.scheduleUnavailable)),
+                                  (estimatedShort ??
+                                      ReliabilityLabel.scheduleUnavailable))),
                       style: TextStyle(
                         fontSize: hasWaits || legacyRemaining != null ? 13 : 11,
                         fontWeight: FontWeight.bold,
@@ -6726,6 +6740,15 @@ class SingleStopView extends StatelessWidget {
         final String? ficheServiceNotice = ficheHasWaits
             ? null
             : serviceNoticeFor(ficheAvailability, now);
+        // Règle produit — même verrou que l'Explorer : une estimation réellement
+        // calculable depuis une fréquence documentée est affichée (« Passage
+        // estimé · N mn ») plutôt que masquée par « Horaire indisponible ».
+        // Aucune donnée n'est créée ; sans fréquence documentée l'indicateur
+        // neutre reste.
+        final String? ficheEstimatedShort = (ficheHasWaits ||
+                ficheServiceNotice != null)
+            ? null
+            : formatEstimatedWaitLabel(stop.departureInfoAt(at: now).frequencyMinutes);
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
@@ -6785,7 +6808,8 @@ class SingleStopView extends StatelessWidget {
                               ficheHasWaits
                                   ? formatWaitingMinutes(ficheWaits)
                                   : (ficheServiceNotice ??
-                                      ReliabilityLabel.scheduleUnavailable),
+                                      (ficheEstimatedShort ??
+                                          ReliabilityLabel.scheduleUnavailable)),
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
