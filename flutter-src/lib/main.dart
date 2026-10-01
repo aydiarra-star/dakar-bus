@@ -415,14 +415,14 @@ String remainingUntilLabel(DateTime target, DateTime now) {
 
 String _two(int v) => v.toString().padLeft(2, '0');
 
-/// Message « Fin de service » d'une disponibilité de service, ou `null` si
-/// aucun message ne doit être affiché (service actif, indisponibilité non
-/// documentée, ou reprise déjà atteinte).
+/// Message « Fin de service / reprise » d'une disponibilité de service, ou
+/// `null` si aucun message ne doit être affiché.
 ///
 /// Règles absolues :
-///  * ne produit un message QUE si le service du jour est RÉELLEMENT terminé
-///    ([ServiceAvailabilityStatus.serviceEnded]) — jamais sur une absence de
-///    donnée, jamais sur une fréquence ;
+///  * un message n'est produit QUE sur un état de service DOCUMENTÉ : service
+///    du jour réellement terminé ([ServiceAvailabilityStatus.serviceEnded]) OU
+///    service pas encore repris (l'instant précède la reprise T-1h documentée)
+///    — jamais sur une absence de donnée, jamais sur une fréquence ;
 ///  * annonce la reprise DOCUMENTÉE (« reprise à HH:MM », heure de Dakar) et le
 ///    délai restant ; sans premier départ documenté, la reprise n'est pas
 ///    affichée (aucune heure inventée) ;
@@ -430,10 +430,48 @@ String _two(int v) => v.toString().padLeft(2, '0');
 ///    actif : « reprise automatique »).
 String? serviceNoticeFor(ServiceAvailability? availability, DateTime now) {
   if (availability == null) return null;
-  if (availability.status != ServiceAvailabilityStatus.serviceEnded) return null;
-  if (availability.isResumedAt(now)) return null;
   final DateTime t = now.isUtc ? now : now.toUtc();
-  final DateTime? resume = availability.resumptionAt;
+  switch (availability.status) {
+    case ServiceAvailabilityStatus.unknown:
+      return null;
+    case ServiceAvailabilityStatus.serviceEnded:
+      if (availability.isResumedAt(now)) return null;
+      return _resumptionNotice(availability.resumptionAt, t);
+    case ServiceAvailabilityStatus.active:
+      final DateTime? resume = availability.resumptionAt;
+      // Service encore actif mais PAS ENCORE REPRIS (l'instant précède la
+      // reprise T-1h documentée) : le prochain stop_time relève du service à
+      // venir. On annonce la reprise documentée — jamais une attente aberrante
+      // du service courant (ex. 137 mn à 03:00).
+      if (resume != null && t.isBefore(resume)) {
+        return _resumptionNotice(resume, t);
+      }
+      return null;
+  }
+}
+
+/// Vrai lorsque l'affichage ne doit présenter AUCUN temps d'attente du service
+/// en cours pour [availability] à [now] :
+///  * service documenté du jour réellement terminé, ou
+///  * service pas encore repris (instant antérieur à la reprise T-1h).
+///
+/// Le prochain `stop_time` peut alors appartenir à un service qui n'a pas
+/// repris : l'afficher comme « X min » produirait une attente aberrante.
+bool serviceDisplayBlocked(ServiceAvailability? availability, DateTime now) {
+  if (availability == null) return false;
+  final DateTime t = now.isUtc ? now : now.toUtc();
+  switch (availability.status) {
+    case ServiceAvailabilityStatus.unknown:
+      return false;
+    case ServiceAvailabilityStatus.serviceEnded:
+      return !availability.isResumedAt(now);
+    case ServiceAvailabilityStatus.active:
+      final DateTime? resume = availability.resumptionAt;
+      return resume != null && t.isBefore(resume);
+  }
+}
+
+String _resumptionNotice(DateTime? resume, DateTime t) {
   if (resume == null) return ServiceAvailability.labelServiceEnded;
   final String hhmm = '${_two(resume.hour)}:${_two(resume.minute)}';
   final String remaining = remainingUntilLabel(resume, t);
@@ -2689,6 +2727,8 @@ class RoutePlanner {
           shortName: appDataService.passBiSource
               .routeSummary(leg.network, leg.routeId)
               ?.shortName,
+          documentedCatalogLabel:
+              appDataService.documentedLabelForFeedRouteId(leg.routeId),
         ),
       );
       segments.add(RouteSegment(
@@ -2737,8 +2777,9 @@ class RoutePlanner {
     if (net == null) return null;
     for (final t in net.trips) {
       if (t.id == leg.tripId) {
+        // `headsign` réel uniquement : le `direction_id` GTFS (« 0 »/« 1 ») est
+        // un indicateur binaire, jamais un libellé de destination.
         if (t.headsign.isNotEmpty) return t.headsign;
-        if (t.direction.isNotEmpty) return t.direction;
         return null;
       }
     }
@@ -2757,6 +2798,11 @@ class RoutePlanner {
       if (id.startsWith(network.toUpperCase())) return routeId;
       if (network == 'BRT') return 'BRT $routeId';
       return network;
+    }
+    final String? catalogLabel =
+        appDataService.documentedLabelForFeedRouteId(routeId);
+    if (catalogLabel != null && catalogLabel.startsWith('$network ')) {
+      return catalogLabel;
     }
     final DocumentedRouteIdentity documented =
         DocumentedRouteRegistry.resolveRouteId(network, routeId);
@@ -4784,9 +4830,7 @@ class StopCard extends StatelessWidget {
         // `active` ne produit aucun message, même si cet arrêt n'a plus de
         // passage propre.
         final ServiceAvailability? availability = stop.serviceAvailability(at: now);
-        final bool serviceEnded = availability != null &&
-            availability.status == ServiceAvailabilityStatus.serviceEnded &&
-            !availability.isResumedAt(now);
+        final bool serviceEnded = serviceDisplayBlocked(availability, now);
         // Après la fin de service, le prochain stop_time peut relever d'un
         // SERVICE DE NUIT DU LENDEMAIN (ex. DDD 00:09) : ce n'est PAS le service
         // en cours, donc aucun « X min » n'est affiché — la fin de service est
@@ -4816,6 +4860,9 @@ class StopCard extends StatelessWidget {
         final bool hasWaits = waits.isNotEmpty;
         final String? rawLineLabel =
             prochains.isEmpty ? null : prochains.first.lineLabel;
+        // Identité de ligne du feed, jamais la source de données (PassBi) : le
+        // libellé peut être le MODE seul (« DDD ») lorsque le numéro public n'est
+        // pas documenté — c'est l'identité réelle du feed, conservée telle quelle.
         final String? lineLabel =
             rawLineLabel == null ? null : stripPassBiFromLabel(rawLineLabel);
         // FUSION LOT 1 (#40) — repli legacy : un arrêt porteur d'un horaire
@@ -4850,7 +4897,12 @@ class StopCard extends StatelessWidget {
                 children: [
                   Expanded(child: Text(header, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))),
                   if (isFav) const Padding(padding: EdgeInsets.only(right: 6), child: Icon(Icons.star, size: 16, color: Colors.amber)),
-                  _buildStopTypeBadge(stop.stopType),
+                  // Un arrêt natif PassBi (DDD/AFTU) n'a AUCUN rôle d'arrêt
+                  // documenté : son `stopType` est un défaut technique
+                  // (« INTERM. »), jamais un fait de réseau. Le badge n'est donc
+                  // posé que sur les arrêts dont le rôle est réellement établi.
+                  if (stop.passBiStopKey == null)
+                    _buildStopTypeBadge(stop.stopType),
                 ],
               ),
               subtitle: Padding(
@@ -5948,9 +6000,7 @@ class AssistantReplies {
   static String nextDepartureForStop(Stop stop) {
     final DateTime now = DakarClock.now();
     final ServiceAvailability? availability = stop.serviceAvailability(at: now);
-    final bool serviceEnded = availability != null &&
-        availability.status == ServiceAvailabilityStatus.serviceEnded &&
-        !availability.isResumedAt(now);
+    final bool serviceEnded = serviceDisplayBlocked(availability, now);
     // Après la fin de service documentée, le prochain stop_time peut relever du
     // service de nuit du lendemain : il est exclu, et la fin de service est
     // annoncée. Tant que le réseau roule, le prochain départ réel est affiché.
@@ -6621,9 +6671,8 @@ class SingleStopView extends StatelessWidget {
         final DateTime now =
             at == null ? DakarClock.now() : DakarClock.toDakar(at!);
         final ServiceAvailability? ficheAvailability = stop.serviceAvailability(at: now);
-        final bool ficheServiceEnded = ficheAvailability != null &&
-            ficheAvailability.status == ServiceAvailabilityStatus.serviceEnded &&
-            !ficheAvailability.isResumedAt(now);
+        final bool ficheServiceEnded =
+            serviceDisplayBlocked(ficheAvailability, now);
         // LOT fin de service — après la fin du service documenté du jour, le
         // prochain stop_time peut relever du service de nuit du lendemain : il
         // est alors exclu de l'affichage « X min ». Tant que le réseau roule

@@ -125,3 +125,22 @@ npm run validate:data
 - Le bouton « Voir la ligne complète & stations » reste désactivé quand la ligne
   est indérivable des données courantes : un « inconnu » honnête, pas de fiche
   fabriquée.
+
+## Explorer — verrous d'affichage (aucune donnée fabriquée)
+
+- `direction_id` GTFS (« 0 »/« 1 ») est un **indicateur binaire**, jamais une
+  destination : seul le `headsign` réel est affiché (`vers …`). Sans `headsign`,
+  aucune direction n'est présentée.
+- Un arrêt natif PassBi (`passBiStopKey != null`) n'a **aucun rôle d'arrêt**
+  documenté : son `stopType` par défaut (`INTERM.`) est un défaut technique, donc
+  le badge de rôle n'est posé que sur les arrêts dont le rôle est établi.
+- Avant la reprise T-1h du service (`ServiceAvailability.active` +
+  `resumptionAt` futur), aucun « X mn » n'est affiché : le prochain `stop_time`
+  relève d'un service non repris. Prédicat partagé `serviceDisplayBlocked` +
+  `serviceNoticeFor` (Explorer, assistant, fiche arrêt). Le libellé « Fin de
+  service » historique est conservé.
+- Identité de ligne : `ScheduleProvider.identityLabelFor` préfère le libellé
+  public **documenté** du catalogue (`PublicBusLineCatalog`, ex. « DDD 311 »),
+  qui rattrape les variantes de `route_id` (`DDD_15`) ; sinon registre documenté,
+  sinon mode seul. Source unique partagée par la recherche, le GPS et les fiches.
+- Guarded by `flutter-src/test/explorer_display_integrity_test.dart`.

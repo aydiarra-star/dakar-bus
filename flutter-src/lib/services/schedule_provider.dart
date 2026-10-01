@@ -14,11 +14,25 @@ import '../models/transport_network.dart';
 import 'documented_route_identity.dart';
 import 'gtfs/gtfs_source.dart';
 import 'gtfs/passbi_source.dart';
+import 'public_bus_line_catalog.dart';
 
 class ScheduleProvider {
   final PassBiSource passBi;
 
-  const ScheduleProvider(this.passBi);
+  /// Catalogue des lignes publiques fournissant les libellés DOCUMENTÉS d'un
+  /// `route_id` de feed (ex. « DDD 311 »). Renseigné par `DataService` avec le
+  /// catalogue global : source UNIQUE partagée par la recherche, le GPS et les
+  /// fiches — jamais un numéro inventé. `null` (tests unitaires) → aucun libellé
+  /// de catalogue, repli sur le registre documenté puis sur le mode seul.
+  final PublicBusLineCatalog? catalog;
+
+  ScheduleProvider(this.passBi, {this.catalog});
+
+  /// Libellé public DOCUMENTÉ d'un `route_id` de feed, ou `null` si le catalogue
+  /// n'est pas fourni / pas chargé / ne raccorde pas ce `route_id`. L'appelant
+  /// retombe alors sur le registre documenté, puis sur le mode seul.
+  String? documentedCatalogLabelForFeedRouteId(String feedRouteId) =>
+      catalog?.publicLabelForFeedRouteId(feedRouteId);
 
   /// Le provider est opérationnel uniquement après le chargement des feeds.
   bool get isActive => passBi.isActive;
@@ -303,7 +317,9 @@ class ScheduleProvider {
               '(route + trip + stop + stop_time + service actif). '
               'Affichage : métadonnées réelles du feed.',
       lineLabel: identityLabelFor(networkKey, routeId, identity,
-          shortName: summary?.shortName),
+          shortName: summary?.shortName,
+          documentedCatalogLabel:
+              documentedCatalogLabelForFeedRouteId(routeId)),
       unresolvedReason: null,
     );
   }
@@ -405,13 +421,15 @@ class ScheduleProvider {
     return out;
   }
 
-  /// Sens réel d'un trip (`direction_id` du feed). `null` si le feed n'en
-  /// fournit pas : jamais inventé.
+  /// Sens réel d'un trip : le `headsign` du feed s'il existe, sinon `null`.
+  ///
+  /// Le `direction_id` GTFS (« 0 »/« 1 ») est un INDICATEUR BINAIRE, jamais un
+  /// libellé de destination : il n'est jamais affiché comme « vers 0 ». Sans
+  /// `headsign`, aucune direction n'est présentée (jamais inventée).
   static String? _tripDirection(GtfsNetwork net, String tripId) {
     for (final t in net.trips) {
       if (t.id == tripId) {
         if (t.headsign.isNotEmpty) return t.headsign;
-        if (t.direction.isNotEmpty) return t.direction;
         return null;
       }
     }
@@ -419,27 +437,52 @@ class ScheduleProvider {
   }
 
   /// §2 — Identité d'affichage d'une ligne, construite UNIQUEMENT à partir
-  /// d'une identité PUBLIQUE DOCUMENTÉE ([DocumentedRouteRegistry]). Le nom de
-  /// la source de données (PassBi) n'apparaît jamais.
+  /// d'une identité PUBLIQUE DOCUMENTÉE. Le nom de la source de données
+  /// (PassBi) n'apparaît jamais.
   ///
   ///  * identité publique confirmée par le référentiel documenté
   ///    ([RouteMapping.isMapped], ex. « BRT B1 ») → cette identité ;
+  ///  * libellé public DOCUMENTÉ par le catalogue ([documentedCatalogLabel],
+  ///    ex. « DDD 311 », « AFTU 3 ») → ce libellé ;
   ///  * numéro public DOCUMENTÉ (DDD/AFTU, via [DocumentedRouteRegistry]) →
   ///    « DDD 217 », « AFTU 54 » ;
   ///  * sinon → le MODE du réseau seul (« DDD », « AFTU »), sans numéro.
   ///
   /// Un identifiant interne (`DDD_217`, `tata_218`) n'est JAMAIS présenté comme
-  /// un numéro public : il est confronté au registre documenté, et sans preuve
-  /// seul le mode est affiché. Aucun nom commercial inventé, aucune
+  /// un numéro public : il est confronté au référentiel documenté, et sans
+  /// preuve seul le mode est affiché. Aucun nom commercial inventé, aucune
   /// origine/destination déduite du numéro, aucune identité fabriquée.
+  ///
+  /// [documentedCatalogLabel] (optionnel) permet à l'appelant de fournir le
+  /// libellé public raccordé au `route_id` de feed par le catalogue des lignes
+  /// publiques (`PublicBusLineCatalog`). C'est une PREUVE documentaire plus
+  /// complète que le seul numéro final du `route_id` : elle rattrape les lignes
+  /// dont le `route_id` porte une variante (« DDD_15 » = « DDD 15 ») que le
+  /// registre à numéro final ne saurait résoudre. Le libellé fourni est validé
+  /// (mode + numéro) avant usage : un libellé qui ne porte pas le mode attendu
+  /// est ignoré.
   static String identityLabelFor(
     String networkKey,
     String pbRouteId,
     IdentityStatus identity, {
     String? shortName,
+    String? documentedCatalogLabel,
   }) {
     if (identity == IdentityStatus.confirmed) {
       return pbRouteId.startsWith(networkKey) ? pbRouteId : '$networkKey $pbRouteId';
+    }
+    // Libellé public DOCUMENTÉ par le catalogue des lignes publiques.
+    if (documentedCatalogLabel != null) {
+      final String label = documentedCatalogLabel.trim();
+      if (label.startsWith('$networkKey ')) {
+        final String number = label.substring(networkKey.length + 1).trim();
+        if (number.isNotEmpty) {
+          final String? tata = DocumentedRouteRegistry.confirmedTataLabel(
+              networkKey, number);
+          if (tata != null) return tata;
+          return label;
+        }
+      }
     }
     // Identité publique documentée, adossée à une source vérifiable.
     final DocumentedRouteIdentity documented =

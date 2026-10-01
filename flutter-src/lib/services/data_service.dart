@@ -30,7 +30,7 @@ class DataService {
   /// Source opérationnelle PassBi (quatre feeds GTFS, un seul lecteur).
   final PassBiSource passBiSource = PassBiSource();
   late final ScheduleProvider scheduleProvider =
-      ScheduleProvider(passBiSource);
+      ScheduleProvider(passBiSource, catalog: publicBusLineCatalog);
   late final EtaCalculator etaCalculator = EtaCalculator(
     scheduleProvider: scheduleProvider,
     frequencyProvider: _dataProvider,
