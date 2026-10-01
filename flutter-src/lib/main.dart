@@ -1774,6 +1774,31 @@ String? networkOfRoute(String routeId) {
 @visibleForTesting
 void integrateNetworkDataForTest() => _integrateNetworkData();
 
+/// Rôle d'arrêt issu de l'ENSEMBLE des itinéraires qui desservent l'arrêt.
+///
+/// Un arrêt desservi par plusieurs lignes ne doit pas hériter du rôle que lui
+/// donne le PREMIER itinéraire rencontré : un pôle d'échange (PEM Petersen,
+/// PEM Guédiawaye, Colobane, Rufisque) desservi par vingt lignes était affiché
+/// « INTERM. » dès que le premier itinéraire du fichier le traversait, et
+/// « TERMINUS » dès que le premier itinéraire y finissait — un rôle instable,
+/// sans rapport avec la fonction réelle de l'arrêt.
+///
+/// Le rôle est ici dérivé de TOUS les `stop_sequence` du référentiel, par
+/// preuve décroissante : `terminus` (dernier arrêt d'au moins une ligne) >
+/// `boarding` (premier arrêt d'au moins une ligne) > `intermediate` (aucune
+/// extrémité). Aucune donnée n'est ajoutée : le rôle reste entièrement dérivé
+/// du `stop_sequence` déjà présent.
+@visibleForTesting
+StopType strongerStopRole(StopType? current, StopType candidate) {
+  int rank(StopType t) => switch (t) {
+        StopType.terminus => 2,
+        StopType.boarding => 1,
+        _ => 0,
+      };
+  if (current == null) return candidate;
+  return rank(candidate) > rank(current) ? candidate : current;
+}
+
 void _integrateNetworkData() {
   if (!appDataService.isLoaded) return;
   if (appDataService.stops.isEmpty || appDataService.routes.isEmpty) return;
@@ -1830,6 +1855,18 @@ void _integrateNetworkData() {
     return StopType.intermediate;
   }
 
+  // Rôle agrégé par arrêt, sur TOUS les itinéraires qui le desservent (voir
+  // [strongerStopRole]). Corrige les pôles d'échange affichés « INTERM. » ou
+  // « TERMINUS » selon le premier itinéraire rencontré, sans ajouter de donnée.
+  final Map<String, StopType> aggregatedRoles = <String, StopType>{};
+  for (final route in appDataService.routes) {
+    final List<String> ids = route.stopIds;
+    for (int i = 0; i < ids.length; i++) {
+      aggregatedRoles[ids[i]] = strongerStopRole(
+          aggregatedRoles[ids[i]], stopTypeForIndex(i, ids.length));
+    }
+  }
+
   for (final route in appDataService.routes) {
     final stopIds = route.stopIds;
     for (int i = 0; i < stopIds.length; i++) {
@@ -1869,7 +1906,8 @@ void _integrateNetworkData() {
         location: LatLng(busStop.latitude, busStop.longitude),
         modeLabel: label,
         source: source,
-        stopType: stopTypeForIndex(i, stopIds.length),
+        stopType: aggregatedRoles[busStop.id] ??
+            stopTypeForIndex(i, stopIds.length),
       );
       allStops.add(stop);
       existingKeys.add(key);

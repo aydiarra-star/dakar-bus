@@ -144,3 +144,10 @@ npm run validate:data
   qui rattrape les variantes de `route_id` (`DDD_15`) ; sinon registre documenté,
   sinon mode seul. Source unique partagée par la recherche, le GPS et les fiches.
 - Guarded by `flutter-src/test/explorer_display_integrity_test.dart`.
+- Rôle d'arrêt (badge `EMBARQ.` / `TERMINUS` / `INTERM.`) : dérivé de
+  l'ENSEMBLE des itinéraires qui desservent l'arrêt, jamais du premier rencontré
+  (`strongerStopRole` : `terminus` > `boarding` > `intermediate`, preuve
+  décroissante sur les `stop_sequence` réels). Un pôle d'échange multi-lignes
+  (PEM Petersen, PEM Guédiawaye, Gare TER Dakar, Colobane, Rufisque) n'est plus
+  affiché « INTERM. » par accident. Aucune donnée ajoutée.
+  Guarded by `flutter-src/test/explorer_stop_role_integrity_test.dart`.
