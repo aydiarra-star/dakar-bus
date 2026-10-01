@@ -37,13 +37,21 @@ void main() {
   app.Stop stopNamed(String name) =>
       app.allStops.firstWhere((app.Stop s) => s.name == name);
 
+  /// Instant de référence FIXE (heure de Dakar) pour des rendus déterministes.
+  ///
+  /// Les horaires proviennent des `stop_times` RÉELS : à l'heure d'exécution, le
+  /// dernier départ réel peut être passé (le feed BRT s'arrête à ~21 h 56) et
+  /// l'écran affiche alors honnêtement l'indisponibilité. Fixer l'instant ne
+  /// fabrique AUCUNE donnée : même feed, daté en heure pleine de service.
+  final DateTime refAt = DateTime.utc(2026, 9, 30, 15, 0);
+
   test('filtre de sens : ne restreint QUE des départs réels, jamais ne crée',
       () {
     final app.Stop s = stopNamed('Gare TER Dakar');
-    final List<DepartureInfo> all = s.nextRealDepartures(limit: 6);
+    final List<DepartureInfo> all = s.nextRealDepartures(at: refAt, limit: 6);
     expect(all, isNotEmpty, reason: 'TER Gare Dakar doit avoir des départs réels');
 
-    final String dominant = s.nextRealDepartures(limit: 12)
+    final String dominant = s.nextRealDepartures(at: refAt, limit: 12)
         .map((d) => d.direction ?? '')
         .where((d) => d.isNotEmpty)
         .fold<Map<String, int>>(<String, int>{}, (m, d) {
@@ -58,9 +66,11 @@ void main() {
     // ALLER = dominant ; RETOUR = tout autre sens réel.
     final List<DepartureInfo> aller = s.realDeparturesWhere(
         (d) => d.direction == dominant,
+        at: refAt,
         limit: 3);
     final List<DepartureInfo> retour = s.realDeparturesWhere(
         (d) => d.direction != null && d.direction != dominant,
+        at: refAt,
         limit: 3);
 
     expect(aller, isNotEmpty);
@@ -84,9 +94,10 @@ void main() {
   test('minutes d\'attente filtrées par sens : cohérentes avec le sens', () {
     final app.Stop s = stopNamed('Gare TER Dakar');
     final List<int> aller =
-        s.nextRealWaitingMinutesToward((d) => d == 'Diamniadio');
-    final List<int> retour =
-        s.nextRealWaitingMinutesToward((d) => d != null && d != 'Diamniadio');
+        s.nextRealWaitingMinutesToward((d) => d == 'Diamniadio', at: refAt);
+    final List<int> retour = s.nextRealWaitingMinutesToward(
+        (d) => d != null && d != 'Diamniadio',
+        at: refAt);
     expect(aller, isNotEmpty);
     expect(retour, isNotEmpty);
     for (final m in <int>[...aller, ...retour]) {
@@ -97,7 +108,9 @@ void main() {
   testWidgets('TER Gare Dakar : les DEUX onglets affichent des horaires réels',
       (WidgetTester tester) async {
     await tester.pumpWidget(
-        MaterialApp(home: app.DualStopDetailPage(stop: stopNamed('Gare TER Dakar'))));
+        MaterialApp(
+            home: app.DualStopDetailPage(
+                stop: stopNamed('Gare TER Dakar'), at: refAt)));
     await tester.pumpAndSettle();
 
     // Onglet ALLER : ni placeholder « non identifié », ni sens fabriqué, des
@@ -119,7 +132,7 @@ void main() {
       (WidgetTester tester) async {
     await tester.pumpWidget(MaterialApp(
         home: app.DualStopDetailPage(
-            stop: stopNamed('Préfecture Guédiawaye - PEM BRT'))));
+            stop: stopNamed('Préfecture Guédiawaye - PEM BRT'), at: refAt)));
     await tester.pumpAndSettle();
 
     // L'aller (PETERSEN) est desservi : horaires réels présents.
