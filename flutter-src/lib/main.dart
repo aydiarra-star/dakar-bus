@@ -362,6 +362,54 @@ class AppColors {
   static Color textSecondary(bool dark) => dark ? const Color(0xFFAAAAAA) : const Color(0xFF555555);
   static Color divider(bool dark) => dark ? const Color(0xFF2C2C2C) : const Color(0xFFD4EDE2);
 
+  // ────────────────────────────────────────────────────────────
+  // RÔLES DE COULEUR VERTE (identité Dakar Bus)
+  //
+  // Le vert est l'accent principal : actions, sélections actives, marqueurs,
+  // prochains passages disponibles, badges de statut positifs. Les ALIAS
+  // ci-dessous ne créent AUCUNE nouvelle teinte : ils nomment les rôles à
+  // partir des teintes déjà verrouillées par les tests (`beanGreen`, `primary`),
+  // ce qui rend l'usage du vert explicite et cohérent dans toute l'UI.
+  //
+  //  * [accent]        — vert d'action principal (boutons, onglet actif,
+  //                      sélection). Teinte haricot documentée.
+  //  * [accentStrong]  — vert historique, réservé à la carte/GPS et aux
+  //                      palettes de réseau (contraste fort sur tuiles).
+  //  * [accentSurface] — surface de confirmation très claire (fonds de badge).
+  // ────────────────────────────────────────────────────────────
+  static const accent = beanGreen;
+  static const accentStrong = primary;
+  static const accentSurface = beanGreenLight;
+
+  // ────────────────────────────────────────────────────────────
+  // PROFONDEUR / SURFACES (design premium)
+  //
+  // Ombres douces et cohérentes (pas d'ombre lourde), bordures fines, rayons
+  // harmonisés. Ce sont des constantes de PRÉSENTATION : elles ne portent
+  // aucune donnée.
+  // ────────────────────────────────────────────────────────────
+  static const double radiusCard = 20;
+  static const double radiusField = 16;
+  static const double radiusPill = 26;
+
+  /// Ombre douce de carte posée au-dessus du fond clair/sombre.
+  static List<BoxShadow> cardShadow(bool dark) => <BoxShadow>[
+        BoxShadow(
+          color: Colors.black.withOpacity(dark ? 0.28 : 0.05),
+          blurRadius: 18,
+          offset: const Offset(0, 6),
+        ),
+      ];
+
+  /// Ombre légère pour les surfaces secondaires (champs, pastilles).
+  static List<BoxShadow> softShadow(bool dark) => <BoxShadow>[
+        BoxShadow(
+          color: Colors.black.withOpacity(dark ? 0.20 : 0.04),
+          blurRadius: 10,
+          offset: const Offset(0, 3),
+        ),
+      ];
+
   /// Vert positif des départs (« X min », statut SCHEDULED/ESTIMATED) et des
   /// indicateurs favorables. Rendu homogène avec le vert haricot : la RÈGLE
   /// horaire qui décide QUAND ce vert s'affiche reste strictement inchangée
@@ -2975,6 +3023,92 @@ class DirectionHelper {
 // ============================================================
 // APP SHELL
 // ============================================================
+/// Thème Material 3 de Dakar Bus — présentation seule.
+///
+/// L'identité verte est portée par les composants d'ACTION (bouton principal,
+/// onglet actif, sélection) et non par des surfaces décoratives. Aucun statut,
+/// aucune donnée et aucune règle métier ne dépendent de ce thème.
+ThemeData _buildTheme(bool dark) {
+  final ColorScheme scheme = ColorScheme.fromSeed(
+    seedColor: AppColors.accent,
+    brightness: dark ? Brightness.dark : Brightness.light,
+  ).copyWith(primary: AppColors.accent, secondary: AppColors.accent);
+  final RoundedRectangleBorder actionShape =
+      RoundedRectangleBorder(borderRadius: BorderRadius.circular(14));
+  return ThemeData(
+    useMaterial3: true,
+    scaffoldBackgroundColor: AppColors.background(dark),
+    colorScheme: scheme,
+    splashFactory: InkSparkle.splashFactory,
+    appBarTheme: const AppBarTheme(
+      backgroundColor: AppColors.accent,
+      foregroundColor: Colors.white,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      centerTitle: false,
+      titleTextStyle: TextStyle(
+          color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
+    ),
+    navigationBarTheme: NavigationBarThemeData(
+      backgroundColor: AppColors.surface(dark),
+      indicatorColor: AppColors.accent.withOpacity(0.18),
+      elevation: 0,
+      labelTextStyle: WidgetStateProperty.resolveWith((Set<WidgetState> s) =>
+          TextStyle(
+            fontSize: 11,
+            fontWeight:
+                s.contains(WidgetState.selected) ? FontWeight.w700 : FontWeight.w500,
+            color: s.contains(WidgetState.selected)
+                ? AppColors.accent
+                : AppColors.textSecondary(dark),
+          )),
+      iconTheme: WidgetStateProperty.resolveWith((Set<WidgetState> s) => IconThemeData(
+          size: 24,
+          color: s.contains(WidgetState.selected)
+              ? AppColors.accent
+              : AppColors.textSecondary(dark))),
+    ),
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        backgroundColor: AppColors.accent,
+        foregroundColor: Colors.white,
+        shape: actionShape,
+        textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+      ),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.accent,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        shape: actionShape,
+      ),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: AppColors.surface(dark),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      hintStyle: TextStyle(color: AppColors.textSecondary(dark)),
+      border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppColors.radiusField),
+          borderSide: BorderSide(color: AppColors.divider(dark))),
+      enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppColors.radiusField),
+          borderSide: BorderSide(color: AppColors.divider(dark))),
+      focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppColors.radiusField),
+          borderSide: const BorderSide(color: AppColors.accent, width: 1.6)),
+    ),
+    dividerTheme: DividerThemeData(color: AppColors.divider(dark), space: 1),
+    snackBarTheme: SnackBarThemeData(
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: dark ? const Color(0xFF2A2A2A) : const Color(0xFF1F2937),
+      contentTextStyle: const TextStyle(color: Colors.white, fontSize: 13),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    ),
+  );
+}
+
 class DakarBusApp extends StatelessWidget {
   const DakarBusApp({super.key});
   @override
@@ -2986,12 +3120,7 @@ class DakarBusApp extends StatelessWidget {
         return MaterialApp(
           title: 'Dakar Bus',
           debugShowCheckedModeBanner: false,
-          theme: ThemeData(
-            useMaterial3: true,
-            scaffoldBackgroundColor: AppColors.background(dark),
-            colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary, brightness: dark ? Brightness.dark : Brightness.light),
-            appBarTheme: const AppBarTheme(backgroundColor: AppColors.primary, foregroundColor: Colors.white, elevation: 0),
-          ),
+          theme: _buildTheme(dark),
           home: const MainShell(),
         );
       },
@@ -3353,7 +3482,11 @@ class _MainShellState extends State<MainShell> {
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: pages),
       bottomNavigationBar: Container(
-        decoration: BoxDecoration(color: AppColors.surface(dark), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 8, offset: const Offset(0, -2))]),
+        decoration: BoxDecoration(
+          color: AppColors.surface(dark),
+          border: Border(top: BorderSide(color: AppColors.divider(dark))),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(dark ? 0.35 : 0.06), blurRadius: 20, offset: const Offset(0, -6))],
+        ),
         child: SafeArea(
           top: false,
           minimum: const EdgeInsets.only(bottom: 4),
@@ -3798,10 +3931,23 @@ class _ExplorerPageState extends State<ExplorerPage> {
                       ],
                     ),
                   ),
+                // Contenant premium : la carte devient une surface flottante
+                // (rayon généreux, ombre douce, bordure fine) au-dessus du
+                // fond. Présentation seule — tuiles, marqueurs et tracés
+                // strictement inchangés.
                 AnimatedContainer(
-                  duration: const Duration(milliseconds: 250),
+                  duration: const Duration(milliseconds: 260),
+                  curve: Curves.easeOutCubic,
                   height: _mapHeight.toDouble(),
-                  decoration: const BoxDecoration(),
+                  // Marge verticale seule : la carte conserve toute la largeur
+                  // disponible (le viewport détermine le culling flutter_map —
+                  // un rétrécissement latéral évincerait des gares de la vue).
+                  margin: const EdgeInsets.only(top: 10),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(AppColors.radiusCard),
+                    border: Border.all(color: AppColors.divider(dark)),
+                    boxShadow: AppColors.cardShadow(dark),
+                  ),
                   clipBehavior: Clip.antiAlias,
                   child: Stack(
                     children: [
@@ -3865,7 +4011,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                                           decoration: BoxDecoration(
                                             color: s.color, shape: BoxShape.circle,
                                             border: Border.all(color: Colors.white, width: 2),
-                                            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.25), blurRadius: 3)],
+                                            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.32), blurRadius: 6, offset: const Offset(0, 2))],
                                           ),
                                           child: Icon(s.icon, color: Colors.white, size: 10),
                                         ),
@@ -3932,9 +4078,9 @@ class _ExplorerPageState extends State<ExplorerPage> {
                                 children: [
                                   widget.gpsState == GpsState.loading
                                     ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                                    : Icon(widget.gpsState == GpsState.granted ? Icons.my_location : Icons.location_searching, color: AppColors.primary, size: 18),
+                                    : Icon(widget.gpsState == GpsState.granted ? Icons.my_location : Icons.location_searching, color: AppColors.accent, size: 18),
                                   const SizedBox(width: 6),
-                                  Text(widget.gpsState == GpsState.granted ? 'Position GPS' : 'Activer GPS', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                                  Text(widget.gpsState == GpsState.granted ? 'Position GPS' : 'Activer GPS', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.accent)),
                                 ],
                               ),
                             ),
@@ -3964,9 +4110,9 @@ class _ExplorerPageState extends State<ExplorerPage> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(_mapHeight == 160 ? Icons.expand_more : Icons.expand_less, color: AppColors.primary, size: 18),
+                                  Icon(_mapHeight == 160 ? Icons.expand_more : Icons.expand_less, color: AppColors.accent, size: 18),
                                   const SizedBox(width: 4),
-                                  Text(_mapHeight == 160 ? 'Agrandir' : 'Réduire', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                                  Text(_mapHeight == 160 ? 'Agrandir' : 'Réduire', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.accent)),
                                 ],
                               ),
                             ),
@@ -3981,66 +4127,94 @@ class _ExplorerPageState extends State<ExplorerPage> {
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
                     children: [
                       Row(children: [
-                        Container(width: 40, height: 40, decoration: BoxDecoration(color: AppColors.beanGreen.withOpacity(0.12), borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.directions_bus, color: AppColors.beanGreen, size: 22)),
+                        Container(width: 44, height: 44, decoration: BoxDecoration(color: AppColors.accent.withOpacity(0.14), borderRadius: BorderRadius.circular(14)), child: const Icon(Icons.directions_bus, color: AppColors.accent, size: 24)),
                         const SizedBox(width: 12),
                         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Text('Dakar Bus', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
+                          Text('Dakar Bus', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w800, letterSpacing: -0.2, color: AppColors.textPrimary(dark))),
                           Text('TER / BRT / DDD / TATA / AFTU', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark)))
                         ])),
                       ]),
                       const SizedBox(height: 14),
-                      Container(
-                        decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider(dark)), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)]),
+                      // Champ de recherche premium : grand, confortable au
+                      // toucher (≥ 56 px), halo d'accent au focus, ombre douce.
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface(dark),
+                          borderRadius: BorderRadius.circular(AppColors.radiusField),
+                          border: Border.all(
+                              color: _searchFocused
+                                  ? AppColors.accent
+                                  : AppColors.divider(dark),
+                              width: _searchFocused ? 1.6 : 1),
+                          boxShadow: _searchFocused
+                              ? AppColors.cardShadow(dark)
+                              : AppColors.softShadow(dark),
+                        ),
                         child: TextField(
                           controller: _searchCtrl,
                           onChanged: (_) => setState(() => _searchFocused = true),
-                          style: TextStyle(color: AppColors.textPrimary(dark)),
+                          style: TextStyle(color: AppColors.textPrimary(dark), fontSize: 15),
                           decoration: InputDecoration(
                             hintText: 'Où voulez-vous aller ? (ex: Colobane, Yoff...)',
                             hintStyle: TextStyle(color: AppColors.textSecondary(dark)),
-                            prefixIcon: const Icon(Icons.search, color: AppColors.beanGreen, size: 22),
+                            prefixIcon: const Icon(Icons.search, color: AppColors.accent, size: 22),
                             suffixIcon: _searchFocused ? IconButton(icon: Icon(Icons.close, size: 20, color: AppColors.textSecondary(dark)), onPressed: () { _searchCtrl.clear(); setState(() => _searchFocused = false); }) : null,
                             border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14)
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16)
                           ),
                         ),
                       ),
-                      if (_searchFocused && _searchResults.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        Container(
-                          decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.divider(dark))),
-                          child: Column(children: _searchResults.map((s) => ListTile(dense: true, leading: Icon(s.icon, color: s.color, size: 22), title: Text(s.name, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textPrimary(dark))), subtitle: Text(s.direction, style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark))), onTap: () { _searchCtrl.text = s.name; setState(() => _searchFocused = false); _centerOnStop(s); })).toList()),
+                      // Résultats : apparition douce (transition, pas d'animation
+                      // permanente) et hiérarchie « Ligne / Arrêt / Destination /
+                      // Pôle » portée par les sous-titres de type.
+                      AnimatedSize(
+                        duration: const Duration(milliseconds: 220),
+                        curve: Curves.easeOutCubic,
+                        alignment: Alignment.topCenter,
+                        child: Column(
+                          children: [
+                            if (_searchFocused && _searchResults.isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              Container(
+                                decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(AppColors.radiusField), border: Border.all(color: AppColors.divider(dark)), boxShadow: AppColors.softShadow(dark)),
+                                child: Column(children: _searchResults.map((s) => ListTile(dense: true, leading: Icon(s.icon, color: s.color, size: 22), title: Text(s.name, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textPrimary(dark))), subtitle: Text(s.direction, style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark))), onTap: () { _searchCtrl.text = s.name; setState(() => _searchFocused = false); _centerOnStop(s); })).toList()),
+                              ),
+                            ],
+                            // MISSION — suggestions du CATALOGUE (lignes publiques
+                            // AFTU/DDD, mobilités, terminus, pôles, destinations) :
+                            // la barre de recherche est une porte d'entrée du réseau.
+                            if (_searchFocused && _catalogResults.isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              Container(
+                                decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(AppColors.radiusField), border: Border.all(color: AppColors.divider(dark)), boxShadow: AppColors.softShadow(dark)),
+                                child: Column(
+                                  children: _catalogResults
+                                      .map((e) => ListTile(
+                                            dense: true,
+                                            leading: Icon(_kindIcon(e.kind),
+                                                color: AppColors.accent, size: 20),
+                                            title: Text(e.label,
+                                                style: TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: AppColors.textPrimary(dark))),
+                                            subtitle: Text(
+                                                '${_kindLabel(e.kind)}${e.network.isEmpty ? '' : ' · ${e.network}'}',
+                                                style: TextStyle(
+                                                    fontSize: 11,
+                                                    color: AppColors.textSecondary(dark))),
+                                            onTap: () => _openCatalogEntry(e),
+                                          ))
+                                      .toList(),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
-                      ],
-                      // MISSION — suggestions du CATALOGUE (lignes publiques
-                      // AFTU/DDD, mobilités, terminus, pôles, destinations) :
-                      // la barre de recherche est une porte d'entrée du réseau.
-                      if (_searchFocused && _catalogResults.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        Container(
-                          decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.divider(dark))),
-                          child: Column(
-                            children: _catalogResults
-                                .map((e) => ListTile(
-                                      dense: true,
-                                      leading: Icon(_kindIcon(e.kind),
-                                          color: AppColors.beanGreen, size: 20),
-                                      title: Text(e.label,
-                                          style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w600,
-                                              color: AppColors.textPrimary(dark))),
-                                      subtitle: Text(
-                                          '${_kindLabel(e.kind)}${e.network.isEmpty ? '' : ' · ${e.network}'}',
-                                          style: TextStyle(
-                                              fontSize: 11,
-                                              color: AppColors.textSecondary(dark))),
-                                      onTap: () => _openCatalogEntry(e),
-                                    ))
-                                .toList(),
-                          ),
-                        ),
-                      ],
+                      ),
                       const SizedBox(height: 12),
                       SizedBox(height: 40, child: ListView(scrollDirection: Axis.horizontal, children: [_chip('Tous'), _chip('⭐ Favoris'), _chip('TER'), _chip('BRT'), _chip('DDD'), _chip('TATA'), _chip('AFTU'), _chip('Lignes'), _chip('Pôles')])),
                       const SizedBox(height: 16),
@@ -4189,9 +4363,9 @@ class _ExplorerPageState extends State<ExplorerPage> {
       case 'DDD': return AppColors.ddd;
       case 'TATA': return AppColors.tata;
       case 'AFTU': return AppColors.aftu;
-      case 'Lignes': return AppColors.primary;
-      case 'Pôles': return AppColors.beanGreen;
-      default: return AppColors.primary;
+      case 'Lignes': return AppColors.accent;
+      case 'Pôles': return AppColors.accent;
+      default: return AppColors.accent;
     }
   }
 }
@@ -4227,68 +4401,85 @@ class PublicLineCard extends StatelessWidget {
           MaterialPageRoute(builder: (_) => PublicLineDetailPage(line: line)),
         ),
         child: Container(
-          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: AppColors.surface(dark),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppColors.radiusCard),
             border: Border.all(
-                color: connected ? AppColors.success : AppColors.divider(dark)),
+                color: connected
+                    ? AppColors.success.withOpacity(0.5)
+                    : AppColors.divider(dark)),
+            boxShadow: AppColors.cardShadow(dark),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          clipBehavior: Clip.antiAlias,
+          child: Stack(
             children: [
-              Row(children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                      color: color.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(8)),
-                  child: Text(line.operator,
+              // Rail de couleur du réseau : repère visuel immédiat (DDD/AFTU…),
+              // sans porter aucun statut.
+              Positioned(left: 0, top: 0, bottom: 0, child: Container(width: 5, color: color)),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(17, 14, 14, 14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                            color: color.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(8)),
+                        child: Text(line.operator,
+                            style: TextStyle(
+                                fontSize: 10, fontWeight: FontWeight.bold, color: color)),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(line.publicLabel,
+                            style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.2,
+                                color: AppColors.textPrimary(dark))),
+                      ),
+                      Icon(Icons.chevron_right, size: 20,
+                          color: AppColors.textSecondary(dark)),
+                    ]),
+                    const SizedBox(height: 6),
+                    Text(
+                      line.hasPublishedTerminus
+                          ? '${line.origin} ➔ ${line.destination}'
+                          : 'Terminus non publiés par la source',
                       style: TextStyle(
-                          fontSize: 10, fontWeight: FontWeight.bold, color: color)),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(line.publicLabel,
-                      style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary(dark))),
-                ),
-                Icon(Icons.chevron_right, size: 20,
-                    color: AppColors.textSecondary(dark)),
-              ]),
-              const SizedBox(height: 6),
-              Text(
-                line.hasPublishedTerminus
-                    ? '${line.origin} ➔ ${line.destination}'
-                    : 'Terminus non publiés par la source',
-                style: TextStyle(fontSize: 13, color: AppColors.textPrimary(dark)),
-              ),
-              const SizedBox(height: 6),
-              Row(children: [
-                Icon(
-                  connected ? Icons.check_circle : Icons.info_outline,
-                  size: 14,
-                  color: connected
-                      ? AppColors.success
-                      : AppColors.textSecondary(dark),
-                ),
-                const SizedBox(width: 5),
-                Expanded(
-                  child: Text(
-                    connected
-                        ? '${line.mappingStatus.label} · ${line.servedStopCount} arrêts réels'
-                        : '${line.mappingStatus.label} — ${line.unresolvedReason ?? 'raccordement incomplet'}',
-                    style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary(dark)),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(children: [
+                      Icon(
+                        connected ? Icons.check_circle : Icons.info_outline,
+                        size: 14,
                         color: connected
                             ? AppColors.success
-                            : AppColors.textSecondary(dark)),
-                  ),
+                            : AppColors.textSecondary(dark),
+                      ),
+                      const SizedBox(width: 5),
+                      Expanded(
+                        child: Text(
+                          connected
+                              ? '${line.mappingStatus.label} · ${line.servedStopCount} arrêts réels'
+                              : '${line.mappingStatus.label} — ${line.unresolvedReason ?? 'raccordement incomplet'}',
+                          style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: connected
+                                  ? AppColors.success
+                                  : AppColors.textSecondary(dark)),
+                        ),
+                      ),
+                    ]),
+                  ],
                 ),
-              ]),
+              ),
             ],
           ),
         ),
@@ -4562,10 +4753,11 @@ class TerminusPoleCard extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.surface(dark),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppColors.radiusCard),
         border: Border.all(
             color: terminal ? AppColors.beanGreen : AppColors.divider(dark),
             width: terminal ? 2 : 1),
+        boxShadow: AppColors.cardShadow(dark),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -4935,15 +5127,24 @@ class StopCard extends StatelessWidget {
           },
           child: Container(
             decoration: BoxDecoration(
-              color: isFav ? AppColors.primary.withOpacity(dark ? 0.15 : 0.05) : AppColors.surface(dark),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: isFav ? AppColors.primary : AppColors.divider(dark), width: isFav ? 1.5 : 1),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6)]
+              color: isFav ? AppColors.accent.withOpacity(dark ? 0.15 : 0.05) : AppColors.surface(dark),
+              borderRadius: BorderRadius.circular(AppColors.radiusCard),
+              border: Border.all(color: isFav ? AppColors.accent : AppColors.divider(dark), width: isFav ? 1.5 : 1),
+              boxShadow: AppColors.cardShadow(dark),
             ),
             child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: stop))),
-              leading: CircleAvatar(backgroundColor: stop.color, radius: 24, child: Icon(stop.icon, color: Colors.white, size: 22)),
+              leading: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: stop.color,
+                  shape: BoxShape.circle,
+                  boxShadow: AppColors.softShadow(dark),
+                ),
+                child: Icon(stop.icon, color: Colors.white, size: 22),
+              ),
               title: Row(
                 children: [
                   Expanded(child: Text(header, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))),
@@ -4975,8 +5176,11 @@ class StopCard extends StatelessWidget {
                                   (estimatedShort ??
                                       ReliabilityLabel.scheduleUnavailable))),
                       style: TextStyle(
-                        fontSize: hasWaits || legacyRemaining != null ? 13 : 11,
-                        fontWeight: FontWeight.bold,
+                        fontSize: hasWaits || legacyRemaining != null ? 14 : 11,
+                        fontWeight: hasWaits || legacyRemaining != null
+                            ? FontWeight.w800
+                            : FontWeight.bold,
+                        letterSpacing: hasWaits || legacyRemaining != null ? 0.2 : 0,
                         color: hasWaits || legacyRemaining != null
                             ? AppColors.success
                             : AppColors.textSecondary(dark),
@@ -5124,7 +5328,7 @@ class _TripsPageState extends State<TripsPage> {
                   decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, 4))]),
                   child: Column(
                     children: [
-                      _buildInputField(controller: _fromCtrl, label: 'Départ', icon: Icons.my_location, color: AppColors.primary, dark: dark),
+                      _buildInputField(controller: _fromCtrl, label: 'Départ', icon: Icons.my_location, color: AppColors.accent, dark: dark),
                       const SizedBox(height: 12),
                       _buildInputField(controller: _toCtrl, label: 'Destination', icon: Icons.location_on, color: AppColors.ter, dark: dark),
                       const SizedBox(height: 20),
@@ -5384,7 +5588,7 @@ class _TripsPageState extends State<TripsPage> {
                     ),
                 ])),
                 Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                  Text('~${r.totalMinutes} min', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 18)),
+                  Text('~${r.totalMinutes} min', style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.accent, fontSize: 18)),
                   Text(ReliabilityLabel.estimatedDuration, style: TextStyle(fontSize: 10, color: AppColors.textSecondary(dark)))
                 ]),
               ],
@@ -5772,7 +5976,7 @@ class CommunityAlertsPageState extends State<CommunityAlertsPage> {
                   decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider(dark))),
                   child: Row(
                     children: [
-                      const CircleAvatar(backgroundColor: AppColors.primary, child: Icon(Icons.person, color: Colors.white)),
+                      const CircleAvatar(backgroundColor: AppColors.accent, child: Icon(Icons.person, color: Colors.white)),
                       const SizedBox(width: 14),
                       Expanded(
                         child: Column(
@@ -5875,7 +6079,7 @@ class SettingsPage extends StatelessWidget {
                         onTap: () => _showInfoModal(context, 'Qui sommes-nous ?', 'Dakar Bus est la plateforme de référence multimodale conçue pour faciliter la mobilité urbaine à Dakar. Notre mission est d’offrir à chaque usager une visibilité totale sur les réseaux de transport et de fluidifier les déplacements quotidiens.'),
                       ),
                       Divider(height: 1, color: AppColors.divider(dark)),
-                      ListTile(leading: const Icon(Icons.verified, color: AppColors.primary), title: Text('Version de l’application', style: TextStyle(color: AppColors.textPrimary(dark))), subtitle: Text('Dakar Bus v9.4 (Web Fix)', style: TextStyle(color: AppColors.textSecondary(dark)))),
+                      ListTile(leading: const Icon(Icons.verified, color: AppColors.accent), title: Text('Version de l’application', style: TextStyle(color: AppColors.textPrimary(dark))), subtitle: Text('Dakar Bus v9.4 (Web Fix)', style: TextStyle(color: AppColors.textSecondary(dark)))),
                     ],
                   ),
                 ),
@@ -6319,7 +6523,7 @@ class _AIChatPageState extends State<AIChatPage> {
       builder: (context, _) {
         final dark = globalState.darkMode;
         return Scaffold(
-          appBar: AppBar(title: const Text('Assistant IA - Dakar Bus'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+          appBar: AppBar(title: const Text('Assistant IA - Dakar Bus'), backgroundColor: AppColors.accent, foregroundColor: Colors.white),
           body: Container(
             color: AppColors.background(dark),
             child: Column(
@@ -6337,7 +6541,7 @@ class _AIChatPageState extends State<AIChatPage> {
                           margin: const EdgeInsets.symmetric(vertical: 4),
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: isAi ? AppColors.surface(dark) : AppColors.primary,
+                            color: isAi ? AppColors.surface(dark) : AppColors.accent,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(color: AppColors.divider(dark)),
                           ),
@@ -6756,16 +6960,21 @@ class SingleStopView extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: AppColors.surface(dark),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(AppColors.radiusCard),
                 border: Border.all(color: stop.color.withOpacity(0.3), width: 1.5),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)],
+                boxShadow: AppColors.cardShadow(dark),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      CircleAvatar(backgroundColor: stop.color, radius: 20, child: Icon(stop.icon, color: Colors.white, size: 18)),
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(color: stop.color, shape: BoxShape.circle, boxShadow: AppColors.softShadow(dark)),
+                        child: Icon(stop.icon, color: Colors.white, size: 18),
+                      ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
