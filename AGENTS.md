@@ -171,3 +171,38 @@ npm run validate:data
   aucune estimation n'est inventée.
 - Données GTFS/PassBi, routage et `servedInOrder()` strictement inchangés.
   Guarded by `flutter-src/test/schedule_display_lock_test.dart`.
+
+## Identité visuelle verte + UI premium 2026 (UI/UX only)
+
+Mission UI/UX **sans aucune modification de données ni de règle métier**.
+
+- **Palette verrouillée par les tests** : ne jamais changer les hex de
+  `AppColors.ter` (#8B4513), `brt` (#22C55E), `beanGreen` (#739047),
+  `beanGreenLight`, `success`, `warning`, ni les littéraux testés
+  (`0xFF00A651` dans `explorer_prochains_passages_test.dart`,
+  `service_end_resume_timezone_test.dart`).
+- **Rôles verts (alias, aucune nouvelle teinte)** dans `AppColors` :
+  - `accent` = `beanGreen` -> vert d'ACTION (AppBar, boutons, onglet actif,
+    sélection, icônes d'action, puces non-réseau).
+  - `accentStrong` = `primary` (#00B140) -> **réservé** au marqueur GPS et aux
+    palettes de réseau. `explorer_marker_render_test.dart` exige que le marqueur
+    de position utilisateur soit `AppColors.primary`.
+  - `accentSurface` = `beanGreenLight`.
+- **Profondeur / rayons** : `AppColors.radiusCard/radiusField/radiusPill`,
+  `cardShadow(dark)`, `softShadow(dark)` - constantes de présentation.
+- **Thème** : `_buildTheme(dark)` (Material 3, seed = `accent`) - AppBar,
+  NavigationBar, Filled/Elevated buttons, InputDecoration, SnackBar. Un seul
+  point de vérité de style ; les écrans n'ont pas à re-spécifier le vert d'action.
+- **Marqueurs carte** : rester des `Container` avec `BoxDecoration(shape:
+  circle, color: <couleur réseau>)` (les tests comptent par couleur via ce type).
+  Ne pas changer la couleur ni la forme ; seule la profondeur (ombre) peut varier.
+- **Viewport carte** : la carte garde toute la largeur (marge verticale seule).
+  Un rétrécissement latéral évince des gares par culling flutter_map
+  (`explorer_marker_render_test.dart` CAS D exige >= 12 gares TER rendues).
+- **Horaire** : tout libellé de passage reste produit par
+  `schedule_display.dart` (`formatWaitingMinutes`, `formatEstimatedWaitLabel`)
+  et `ReliabilityLabel`. L'UI ne doit jamais fabriquer « X min » - seule la
+  mise en forme (couleur/taille) est modifiable.
+
+Validation : `flutter analyze` + `flutter test` (849) + `npm test` (136) +
+`flutter build web --release` doivent rester verts après toute retouche UI.
