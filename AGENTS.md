@@ -195,6 +195,10 @@ Tokens de PRÉSENTATION centralisés (aucune donnée métier) :
   `SingleStopView`, Trips (`_SkeletonCard`), Alertes (rail de sévérité), chat IA,
   réglages, fiche ligne, fiche trajet. Aucune donnée, aucun statut, aucune règle
   métier modifiés.
+- Phase 18 (finition) : écrans secondaires (TerminusPoleCard/Page, Direct rue,
+  fiche ligne, Alertes, Trips, fiche trajet, SingleStopView) tokenisés. Seules
+  sont conservées les valeurs géométriques propres à un composant (largeurs
+  26/22/44 px, micro-nudges 6/10 px) et les palettes réseau verrouillées.
 
 ## Identité visuelle verte + UI premium 2026 (UI/UX only)
 

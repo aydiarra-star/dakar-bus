@@ -4259,8 +4259,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
                       // permanente) et hiérarchie « Ligne / Arrêt / Destination /
                       // Pôle » portée par les sous-titres de type.
                       AnimatedSize(
-                        duration: const Duration(milliseconds: 220),
-                        curve: Curves.easeOutCubic,
+                        duration: AppMotion.resolve(context, AppMotion.short),
+                        curve: AppMotion.enter,
                         alignment: Alignment.topCenter,
                         child: Column(
                           children: [
