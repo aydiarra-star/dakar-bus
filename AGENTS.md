@@ -172,6 +172,30 @@ npm run validate:data
 - Données GTFS/PassBi, routage et `servedInOrder()` strictement inchangés.
   Guarded by `flutter-src/test/schedule_display_lock_test.dart`.
 
+## Design system 2026 (`flutter-src/lib/theme/app_design.dart`)
+
+Tokens de PRÉSENTATION centralisés (aucune donnée métier) :
+
+- `AppSpacing` (4→32), `AppRadius` (12/16/20/24/999), `AppElevation`
+  (`surface`/`soft`/`floating`), `AppMotion` (`micro`/`short`/`medium` +
+  `resolve()` qui respecte `MediaQuery.disableAnimations`), `AppType`
+  (tailles/graisses), `AppSurface` (fond off-white, surface secondaire, texte
+  muted, bordure).
+- `AppColors` (main.dart) délègue : `background`/`raised`/`divider`/`muted` et
+  les ombres `cardShadow`/`softShadow`/`floatingShadow`. Rôles verts
+  complémentaires `accent`/`accentStrong`/`accentSurface`, plus `mint`
+  (#DDF7EB) et `brightGreen` (#18C77A) — teintes de présentation, hors couleurs
+  verrouillées.
+- Les hex verrouillés (`ter`, `brt`, `beanGreen`, `success`, `primary`…) et les
+  littéraux testés restent INCHANGÉS. Le vert des minutes réelles reste
+  `AppColors.success`. `_buildTheme` (Material 3) porte AppBar arrondie,
+  NavigationBar, Filled/Elevated/Outlined/Text buttons, Card, InputDecoration.
+- Refonte UI : Explorer (recherche pastille, carte arrondie + contrôles
+  flottants `_MapControl`), `StopCard` (destination + minutes dominantes),
+  `SingleStopView`, Trips (`_SkeletonCard`), Alertes (rail de sévérité), chat IA,
+  réglages, fiche ligne, fiche trajet. Aucune donnée, aucun statut, aucune règle
+  métier modifiés.
+
 ## Identité visuelle verte + UI premium 2026 (UI/UX only)
 
 Mission UI/UX **sans aucune modification de données ni de règle métier**.

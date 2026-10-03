@@ -14,6 +14,7 @@ import 'models/schedule_display.dart';
 import 'models/service_availability.dart';
 import 'models/terminus_pole.dart';
 import 'models/public_bus_line.dart';
+import 'theme/app_design.dart';
 import 'services/data_service.dart';
 import 'services/dakar_clock.dart';
 import 'services/documented_route_identity.dart';
@@ -356,11 +357,18 @@ class AppColors {
   static const tata = Color(0xFF87CEEB);
   static const ddd = Color(0xFF3B82F6);
 
-  static Color background(bool dark) => dark ? const Color(0xFF121212) : const Color(0xFFF1F8F5);
-  static Color surface(bool dark) => dark ? const Color(0xFF1E1E1E) : const Color(0xFFFFFFFF);
-  static Color textPrimary(bool dark) => dark ? const Color(0xFFEEEEEE) : const Color(0xFF111111);
-  static Color textSecondary(bool dark) => dark ? const Color(0xFFAAAAAA) : const Color(0xFF555555);
-  static Color divider(bool dark) => dark ? const Color(0xFF2C2C2C) : const Color(0xFFD4EDE2);
+  static Color background(bool dark) => AppSurface.background(dark);
+  static Color surface(bool dark) => dark ? const Color(0xFF1B211E) : const Color(0xFFFFFFFF);
+
+  /// Surface SECONDAIRE (zones neutres : en-têtes, rails, fonds de section) —
+  /// complète la hiérarchie background → surface → elevated.
+  static Color raised(bool dark) => AppSurface.raised(dark);
+  static Color textPrimary(bool dark) => dark ? const Color(0xFFEEEEEE) : const Color(0xFF17201C);
+  static Color textSecondary(bool dark) => dark ? const Color(0xFFAAAAAA) : const Color(0xFF66736C);
+
+  /// Texte tertiaire (métadonnées très secondaires).
+  static Color muted(bool dark) => AppSurface.mutedText(dark);
+  static Color divider(bool dark) => AppSurface.border(dark);
 
   // ────────────────────────────────────────────────────────────
   // RÔLES DE COULEUR VERTE (identité Dakar Bus)
@@ -381,34 +389,39 @@ class AppColors {
   static const accentStrong = primary;
   static const accentSurface = beanGreenLight;
 
+  /// DAKAR MINT — surface positive très claire (fonds de badge, zones
+  /// sélectionnées, teinte de disponibilité). Teinte NEUTRE de présentation
+  /// (aucun statut, aucune donnée) : elle n'entre pas dans les couleurs
+  /// verrouillées par les tests et ne remplace aucune identité de réseau.
+  static const mint = Color(0xFFDDF7EB);
+
+  /// BRIGHT GREEN — vert vif d'indicateur dynamique (départ imminent,
+  /// disponibilité). Rôle de présentation complémentaire ; le vert des minutes
+  /// reste porté par [success] (= [beanGreen]) pour ne pas rompre le verrou
+  /// « les départs réels s'affichent en AppColors.success ».
+  static const brightGreen = Color(0xFF18C77A);
+
   // ────────────────────────────────────────────────────────────
   // PROFONDEUR / SURFACES (design premium)
   //
   // Ombres douces et cohérentes (pas d'ombre lourde), bordures fines, rayons
   // harmonisés. Ce sont des constantes de PRÉSENTATION : elles ne portent
-  // aucune donnée.
+  // aucune donnée. Les valeurs vivent dans le design system [AppElevation] /
+  // [AppRadius] (lib/theme/app_design.dart) ; les alias ci-dessous conservent
+  // l'API historique `AppColors.cardShadow/softShadow` utilisée par l'UI.
   // ────────────────────────────────────────────────────────────
-  static const double radiusCard = 20;
-  static const double radiusField = 16;
-  static const double radiusPill = 26;
+  static const double radiusCard = AppRadius.lg;
+  static const double radiusField = AppRadius.card;
+  static const double radiusPill = AppRadius.pill;
 
   /// Ombre douce de carte posée au-dessus du fond clair/sombre.
-  static List<BoxShadow> cardShadow(bool dark) => <BoxShadow>[
-        BoxShadow(
-          color: Colors.black.withOpacity(dark ? 0.28 : 0.05),
-          blurRadius: 18,
-          offset: const Offset(0, 6),
-        ),
-      ];
+  static List<BoxShadow> cardShadow(bool dark) => AppElevation.surface(dark);
 
   /// Ombre légère pour les surfaces secondaires (champs, pastilles).
-  static List<BoxShadow> softShadow(bool dark) => <BoxShadow>[
-        BoxShadow(
-          color: Colors.black.withOpacity(dark ? 0.20 : 0.04),
-          blurRadius: 10,
-          offset: const Offset(0, 3),
-        ),
-      ];
+  static List<BoxShadow> softShadow(bool dark) => AppElevation.soft(dark);
+
+  /// Ombre des surfaces flottantes (contrôles au-dessus de la carte).
+  static List<BoxShadow> floatingShadow(bool dark) => AppElevation.floating(dark);
 
   /// Vert positif des départs (« X min », statut SCHEDULED/ESTIMATED) et des
   /// indicateurs favorables. Rendu homogène avec le vert haricot : la RÈGLE
@@ -3032,21 +3045,28 @@ ThemeData _buildTheme(bool dark) {
   final ColorScheme scheme = ColorScheme.fromSeed(
     seedColor: AppColors.accent,
     brightness: dark ? Brightness.dark : Brightness.light,
-  ).copyWith(primary: AppColors.accent, secondary: AppColors.accent);
+  ).copyWith(
+    primary: AppColors.accent,
+    secondary: AppColors.accent,
+    surface: AppColors.surface(dark),
+    onSurface: AppColors.textPrimary(dark),
+  );
   final RoundedRectangleBorder actionShape =
-      RoundedRectangleBorder(borderRadius: BorderRadius.circular(14));
+      RoundedRectangleBorder(borderRadius: AppRadius.smAll);
   return ThemeData(
     useMaterial3: true,
     scaffoldBackgroundColor: AppColors.background(dark),
     colorScheme: scheme,
     splashFactory: InkSparkle.splashFactory,
-    appBarTheme: const AppBarTheme(
+    appBarTheme: AppBarTheme(
       backgroundColor: AppColors.accent,
       foregroundColor: Colors.white,
       elevation: 0,
       scrolledUnderElevation: 0,
       centerTitle: false,
-      titleTextStyle: TextStyle(
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20))),
+      titleTextStyle: const TextStyle(
           color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
     ),
     navigationBarTheme: NavigationBarThemeData(
@@ -3084,19 +3104,40 @@ ThemeData _buildTheme(bool dark) {
         shape: actionShape,
       ),
     ),
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        foregroundColor: AppColors.accent,
+        textStyle: const TextStyle(fontWeight: FontWeight.w600),
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: AppColors.accent,
+        side: const BorderSide(color: AppColors.accent),
+        shape: actionShape,
+        textStyle: const TextStyle(fontWeight: FontWeight.w700),
+      ),
+    ),
+    cardTheme: CardTheme(
+      color: AppColors.surface(dark),
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(borderRadius: AppRadius.cardAll),
+    ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: AppColors.surface(dark),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      contentPadding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md, vertical: AppSpacing.md),
       hintStyle: TextStyle(color: AppColors.textSecondary(dark)),
       border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppColors.radiusField),
+          borderRadius: AppRadius.cardAll,
           borderSide: BorderSide(color: AppColors.divider(dark))),
       enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppColors.radiusField),
+          borderRadius: AppRadius.cardAll,
           borderSide: BorderSide(color: AppColors.divider(dark))),
       focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppColors.radiusField),
+          borderRadius: AppRadius.cardAll,
           borderSide: const BorderSide(color: AppColors.accent, width: 1.6)),
     ),
     dividerTheme: DividerThemeData(color: AppColors.divider(dark), space: 1),
@@ -3484,8 +3525,8 @@ class _MainShellState extends State<MainShell> {
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: AppColors.surface(dark),
-          border: Border(top: BorderSide(color: AppColors.divider(dark))),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(dark ? 0.35 : 0.06), blurRadius: 20, offset: const Offset(0, -6))],
+          border: Border(top: BorderSide(color: AppColors.divider(dark), width: 0.6)),
+          boxShadow: AppElevation.floating(dark),
         ),
         child: SafeArea(
           top: false,
@@ -3494,9 +3535,11 @@ class _MainShellState extends State<MainShell> {
             selectedIndex: _currentIndex,
             onDestinationSelected: (i) => setState(() => _currentIndex = i),
             backgroundColor: AppColors.surface(dark),
+            surfaceTintColor: Colors.transparent,
             indicatorColor: AppColors.beanGreen.withOpacity(0.20),
+            indicatorShape: RoundedRectangleBorder(borderRadius: AppRadius.pillAll),
             labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-            height: 68,
+            height: 66,
             destinations: const [
               NavigationDestination(icon: Icon(Icons.explore_outlined), selectedIcon: Icon(Icons.explore, color: AppColors.beanGreen), label: 'Explorer'),
               NavigationDestination(icon: Icon(Icons.alt_route_outlined), selectedIcon: Icon(Icons.alt_route, color: AppColors.beanGreen), label: 'Trajets'),
@@ -3913,20 +3956,34 @@ class _ExplorerPageState extends State<ExplorerPage> {
                 // inventée — uniquement l'état réel du géolocaliseur.
                 if (widget.gpsMessage != null)
                   Container(
-                    margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    margin: const EdgeInsets.fromLTRB(
+                        AppSpacing.md, AppSpacing.xs, AppSpacing.md, 0),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                     decoration: BoxDecoration(
-                      color: AppColors.surface(dark),
-                      borderRadius: BorderRadius.circular(16),
+                      color: AppColors.raised(dark),
+                      borderRadius: AppRadius.pillAll,
                       border: Border.all(color: AppColors.divider(dark)),
                     ),
                     child: Row(
                       children: [
-                        Icon(_gpsBannerIcon, size: 14, color: _gpsBannerColor(dark)),
-                        const SizedBox(width: 8),
+                        Container(
+                          width: 22,
+                          height: 22,
+                          decoration: BoxDecoration(
+                            color: _gpsBannerColor(dark).withOpacity(0.14),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(_gpsBannerIcon,
+                              size: 13, color: _gpsBannerColor(dark)),
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
                         Expanded(
                           child: Text(widget.gpsMessage!,
-                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: _gpsBannerColor(dark))),
+                              style: TextStyle(
+                                  fontSize: AppType.caption,
+                                  fontWeight: AppType.bold,
+                                  color: _gpsBannerColor(dark))),
                         ),
                       ],
                     ),
@@ -3936,17 +3993,16 @@ class _ExplorerPageState extends State<ExplorerPage> {
                 // fond. Présentation seule — tuiles, marqueurs et tracés
                 // strictement inchangés.
                 AnimatedContainer(
-                  duration: const Duration(milliseconds: 260),
-                  curve: Curves.easeOutCubic,
+                  duration: AppMotion.resolve(context, AppMotion.medium),
+                  curve: AppMotion.enter,
                   height: _mapHeight.toDouble(),
                   // Marge verticale seule : la carte conserve toute la largeur
                   // disponible (le viewport détermine le culling flutter_map —
                   // un rétrécissement latéral évincerait des gares de la vue).
-                  margin: const EdgeInsets.only(top: 10),
+                  margin: const EdgeInsets.only(top: AppSpacing.sm),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(AppColors.radiusCard),
-                    border: Border.all(color: AppColors.divider(dark)),
-                    boxShadow: AppColors.cardShadow(dark),
+                    borderRadius: AppRadius.sheetAll,
+                    boxShadow: AppColors.floatingShadow(dark),
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: Stack(
@@ -4063,59 +4119,54 @@ class _ExplorerPageState extends State<ExplorerPage> {
                       ),
 
                       Positioned(
-                        bottom: 16, left: 16,
-                        child: Material(
-                          elevation: 4, borderRadius: BorderRadius.circular(24), color: AppColors.surface(dark),
-                          child: InkWell(
-                            onTap: widget.gpsState == GpsState.granted
-                                ? () { if (widget.userPosition != null) { try { _mapController.move(widget.userPosition!, _zoomOnUser); } catch (e) { debugPrint('GPS move skipped: $e'); } } }
-                                : () => widget.onRequestLocation(),
-                            borderRadius: BorderRadius.circular(24),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  widget.gpsState == GpsState.loading
-                                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                                    : Icon(widget.gpsState == GpsState.granted ? Icons.my_location : Icons.location_searching, color: AppColors.accent, size: 18),
-                                  const SizedBox(width: 6),
-                                  Text(widget.gpsState == GpsState.granted ? 'Position GPS' : 'Activer GPS', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.accent)),
-                                ],
-                              ),
-                            ),
+                        bottom: AppSpacing.md, left: AppSpacing.md,
+                        child: _MapControl(
+                          dark: dark,
+                          onTap: widget.gpsState == GpsState.granted
+                              ? () { if (widget.userPosition != null) { try { _mapController.move(widget.userPosition!, _zoomOnUser); } catch (e) { debugPrint('GPS move skipped: $e'); } } }
+                              : () => widget.onRequestLocation(),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              widget.gpsState == GpsState.loading
+                                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                                : Icon(widget.gpsState == GpsState.granted ? Icons.my_location : Icons.location_searching, color: AppColors.accent, size: 18),
+                              const SizedBox(width: 6),
+                              Text(widget.gpsState == GpsState.granted ? 'Position GPS' : 'Activer GPS', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.accent)),
+                            ],
                           ),
                         ),
                       ),
 
                       Positioned(
-                        bottom: 16, right: 16,
-                        child: ElevatedButton.icon(
-                          onPressed: _openAI,
-                          icon: const Icon(Icons.auto_awesome, size: 16),
-                          label: const Text('Assistant IA', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                          style: ElevatedButton.styleFrom(backgroundColor: AppColors.beanGreen, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)), elevation: 4),
+                        bottom: AppSpacing.md, right: AppSpacing.md,
+                        child: _MapControl(
+                          dark: dark,
+                          highlighted: true,
+                          onTap: _openAI,
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.auto_awesome, size: 16, color: Colors.white),
+                              SizedBox(width: 6),
+                              Text('Assistant IA', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                            ],
+                          ),
                         ),
                       ),
 
                       Positioned(
-                        top: 12, right: 12,
-                        child: Material(
-                          elevation: 4, borderRadius: BorderRadius.circular(24), color: AppColors.surface(dark),
-                          child: InkWell(
-                            onTap: () => setState(() => _mapHeight = _mapHeight == 260 ? 340 : (_mapHeight == 340 ? 160 : 260)),
-                            borderRadius: BorderRadius.circular(24),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(_mapHeight == 160 ? Icons.expand_more : Icons.expand_less, color: AppColors.accent, size: 18),
-                                  const SizedBox(width: 4),
-                                  Text(_mapHeight == 160 ? 'Agrandir' : 'Réduire', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.accent)),
-                                ],
-                              ),
-                            ),
+                        top: AppSpacing.sm, right: AppSpacing.sm,
+                        child: _MapControl(
+                          dark: dark,
+                          onTap: () => setState(() => _mapHeight = _mapHeight == 260 ? 340 : (_mapHeight == 340 ? 160 : 260)),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(_mapHeight == 160 ? Icons.expand_more : Icons.expand_less, color: AppColors.accent, size: 18),
+                              const SizedBox(width: 4),
+                              Text(_mapHeight == 160 ? 'Agrandir' : 'Réduire', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.accent)),
+                            ],
                           ),
                         ),
                       ),
@@ -4124,24 +4175,44 @@ class _ExplorerPageState extends State<ExplorerPage> {
                 ),
                 Expanded(
                   child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+                    padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.md, AppSpacing.sm, AppSpacing.md, 100),
                     children: [
                       Row(children: [
-                        Container(width: 44, height: 44, decoration: BoxDecoration(color: AppColors.accent.withOpacity(0.14), borderRadius: BorderRadius.circular(14)), child: const Icon(Icons.directions_bus, color: AppColors.accent, size: 24)),
-                        const SizedBox(width: 12),
-                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Text('Dakar Bus', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w800, letterSpacing: -0.2, color: AppColors.textPrimary(dark))),
-                          Text('TER / BRT / DDD / TATA / AFTU', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark)))
-                        ])),
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                              color: AppColors.mint,
+                              borderRadius: AppRadius.smAll),
+                          child: const Icon(Icons.directions_bus,
+                              color: AppColors.accentStrong, size: 24)),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                              Text('Dakar Bus',
+                                  style: TextStyle(
+                                      fontSize: 21,
+                                      fontWeight: AppType.heavy,
+                                      letterSpacing: -0.3,
+                                      color: AppColors.textPrimary(dark))),
+                              Text('TER / BRT / DDD / TATA / AFTU',
+                                  style: TextStyle(
+                                      fontSize: AppType.caption,
+                                      color: AppColors.textSecondary(dark)))
+                            ])),
                       ]),
-                      const SizedBox(height: 14),
-                      // Champ de recherche premium : grand, confortable au
-                      // toucher (≥ 56 px), halo d'accent au focus, ombre douce.
+                      const SizedBox(height: AppSpacing.md),
+                      // Champ de recherche premium : grande pastille, confortable
+                      // au toucher (≥ 56 px), halo d'accent au focus, ombre douce.
                       AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
+                        duration: AppMotion.resolve(context, AppMotion.short),
+                        curve: AppMotion.enter,
                         decoration: BoxDecoration(
                           color: AppColors.surface(dark),
-                          borderRadius: BorderRadius.circular(AppColors.radiusField),
+                          borderRadius: AppRadius.pillAll,
                           border: Border.all(
                               color: _searchFocused
                                   ? AppColors.accent
@@ -4154,16 +4225,33 @@ class _ExplorerPageState extends State<ExplorerPage> {
                         child: TextField(
                           controller: _searchCtrl,
                           onChanged: (_) => setState(() => _searchFocused = true),
-                          style: TextStyle(color: AppColors.textPrimary(dark), fontSize: 15),
+                          textInputAction: TextInputAction.search,
+                          style: TextStyle(
+                              color: AppColors.textPrimary(dark),
+                              fontSize: AppType.body + 1),
                           decoration: InputDecoration(
-                            hintText: 'Où voulez-vous aller ? (ex: Colobane, Yoff...)',
-                            hintStyle: TextStyle(color: AppColors.textSecondary(dark)),
-                            prefixIcon: const Icon(Icons.search, color: AppColors.accent, size: 22),
-                            suffixIcon: _searchFocused ? IconButton(icon: Icon(Icons.close, size: 20, color: AppColors.textSecondary(dark)), onPressed: () { _searchCtrl.clear(); setState(() => _searchFocused = false); }) : null,
+                            hintText: 'Rechercher un arrêt ou une destination',
+                            hintStyle: TextStyle(
+                                color: AppColors.textSecondary(dark),
+                                fontSize: AppType.body),
+                            prefixIcon: const Icon(Icons.search,
+                                color: AppColors.accent, size: 22),
+                            suffixIcon: _searchFocused
+                                ? IconButton(
+                                    icon: Icon(Icons.close,
+                                        size: 20,
+                                        color: AppColors.textSecondary(dark)),
+                                    onPressed: () {
+                                      _searchCtrl.clear();
+                                      setState(() => _searchFocused = false);
+                                    })
+                                : null,
                             border: InputBorder.none,
                             enabledBorder: InputBorder.none,
                             focusedBorder: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16)
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.md,
+                                vertical: AppSpacing.md + 2),
                           ),
                         ),
                       ),
@@ -4297,17 +4385,28 @@ class _ExplorerPageState extends State<ExplorerPage> {
     final color = _colorFor(label);
     final sel = _selectedFilter == label;
     return Padding(
-      padding: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.only(right: AppSpacing.xs),
       child: GestureDetector(
         onTap: () => setState(() => _selectedFilter = label),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: AnimatedContainer(
+          duration: AppMotion.resolve(context, AppMotion.micro),
+          curve: AppMotion.enter,
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md, vertical: 9),
           decoration: BoxDecoration(
-            color: sel ? color.withOpacity(0.15) : AppColors.surface(dark),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: sel ? color : AppColors.divider(dark), width: sel ? 2 : 1)
+            color: sel
+                ? color.withOpacity(0.14)
+                : AppColors.surface(dark),
+            borderRadius: AppRadius.pillAll,
+            border: Border.all(
+                color: sel ? color : AppColors.divider(dark),
+                width: sel ? 1.6 : 1),
           ),
-          child: Text(label, style: TextStyle(color: sel ? color : AppColors.textSecondary(dark), fontWeight: sel ? FontWeight.bold : FontWeight.normal, fontSize: 13))
+          child: Text(label,
+              style: TextStyle(
+                  color: sel ? color : AppColors.textSecondary(dark),
+                  fontWeight: sel ? AppType.bold : AppType.medium,
+                  fontSize: AppType.label)),
         ),
       ),
     );
@@ -4370,6 +4469,46 @@ class _ExplorerPageState extends State<ExplorerPage> {
   }
 }
 
+/// Contrôle flottant posé au-dessus de la carte (GPS, Assistant, replier).
+///
+/// Surface premium cohérente : pastille blanche (ou accent quand [highlighted]),
+/// ombre flottante douce, léger enfoncement au toucher. Présentation seule.
+class _MapControl extends StatelessWidget {
+  final bool dark;
+  final bool highlighted;
+  final VoidCallback onTap;
+  final Widget child;
+  const _MapControl({
+    required this.dark,
+    required this.onTap,
+    required this.child,
+    this.highlighted = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: highlighted ? AppColors.accent : AppColors.surface(dark),
+      borderRadius: AppRadius.pillAll,
+      elevation: 0,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: AppRadius.pillAll,
+        splashColor: AppColors.accent.withOpacity(0.12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+          decoration: BoxDecoration(
+            borderRadius: AppRadius.pillAll,
+            boxShadow: AppColors.floatingShadow(dark),
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
 // ============================================================
 // MISSION — RÉFÉRENTIEL PUBLIC DES LIGNES AFTU / TATA / DDD
 // ============================================================
@@ -4395,7 +4534,7 @@ class PublicLineCard extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AppRadius.cardAll,
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => PublicLineDetailPage(line: line)),
@@ -4403,7 +4542,7 @@ class PublicLineCard extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             color: AppColors.surface(dark),
-            borderRadius: BorderRadius.circular(AppColors.radiusCard),
+            borderRadius: AppRadius.cardAll,
             border: Border.all(
                 color: connected
                     ? AppColors.success.withOpacity(0.5)
@@ -4417,26 +4556,26 @@ class PublicLineCard extends StatelessWidget {
               // sans porter aucun statut.
               Positioned(left: 0, top: 0, bottom: 0, child: Container(width: 5, color: color)),
               Padding(
-                padding: const EdgeInsets.fromLTRB(17, 14, 14, 14),
+                padding: const EdgeInsets.fromLTRB(17, AppSpacing.sm + 2, AppSpacing.sm + 2, AppSpacing.sm + 2),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: 3),
                         decoration: BoxDecoration(
                             color: color.withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(8)),
+                            borderRadius: AppRadius.pillAll),
                         child: Text(line.operator,
                             style: TextStyle(
-                                fontSize: 10, fontWeight: FontWeight.bold, color: color)),
+                                fontSize: AppType.micro, fontWeight: AppType.bold, color: color)),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: AppSpacing.xs),
                       Expanded(
                         child: Text(line.publicLabel,
                             style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w800,
+                                fontSize: AppType.title - 1,
+                                fontWeight: AppType.heavy,
                                 letterSpacing: -0.2,
                                 color: AppColors.textPrimary(dark))),
                       ),
@@ -4449,11 +4588,11 @@ class PublicLineCard extends StatelessWidget {
                           ? '${line.origin} ➔ ${line.destination}'
                           : 'Terminus non publiés par la source',
                       style: TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w600,
+                          fontSize: AppType.label + 0.5,
+                          fontWeight: AppType.semibold,
                           color: AppColors.textPrimary(dark)),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: AppSpacing.xs),
                     Row(children: [
                       Icon(
                         connected ? Icons.check_circle : Icons.info_outline,
@@ -4469,8 +4608,8 @@ class PublicLineCard extends StatelessWidget {
                               ? '${line.mappingStatus.label} · ${line.servedStopCount} arrêts réels'
                               : '${line.mappingStatus.label} — ${line.unresolvedReason ?? 'raccordement incomplet'}',
                           style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
+                              fontSize: AppType.caption,
+                              fontWeight: AppType.semibold,
                               color: connected
                                   ? AppColors.success
                                   : AppColors.textSecondary(dark)),
@@ -5084,9 +5223,14 @@ class StopCard extends StatelessWidget {
                     requireDirPrefix: true));
         // PRÉSENTATION UNIQUEMENT : le nom de la source de données (PassBi) ne
         // doit jamais apparaître. Les données et le pipeline horaire restent
-        // strictement inchangés.
-        final String header = stripPassBiFromLabel(
-            formatStopHeader(stop.name, stop.modeLabel, destination));
+        // strictement inchangés. Le titre porte le nom de l'arrêt ; le mode est
+        // présenté par une pastille, sans répétition quand le nom le contient
+        // déjà (« Sacré-Cœur - BRT »).
+        final String nameOnly = stripPassBiFromLabel(stop.name);
+        final bool nameHasMode = stripPassBiFromLabel(
+                    formatStopHeader(stop.name, stop.modeLabel, null))
+                .trim() ==
+            nameOnly.trim();
         final bool hasWaits = waits.isNotEmpty;
         final String? rawLineLabel =
             prochains.isEmpty ? null : prochains.first.lineLabel;
@@ -5127,82 +5271,153 @@ class StopCard extends StatelessWidget {
           },
           child: Container(
             decoration: BoxDecoration(
-              color: isFav ? AppColors.accent.withOpacity(dark ? 0.15 : 0.05) : AppColors.surface(dark),
-              borderRadius: BorderRadius.circular(AppColors.radiusCard),
-              border: Border.all(color: isFav ? AppColors.accent : AppColors.divider(dark), width: isFav ? 1.5 : 1),
+              color: isFav
+                  ? (dark ? AppColors.accent.withOpacity(0.12) : AppColors.mint)
+                  : AppColors.surface(dark),
+              borderRadius: AppRadius.lgAll,
+              border: Border.all(
+                  color: isFav ? AppColors.accent : AppColors.divider(dark),
+                  width: isFav ? 1.5 : 1),
               boxShadow: AppColors.cardShadow(dark),
             ),
-            child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: stop))),
-              leading: Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: stop.color,
-                  shape: BoxShape.circle,
-                  boxShadow: AppColors.softShadow(dark),
-                ),
-                child: Icon(stop.icon, color: Colors.white, size: 22),
-              ),
-              title: Row(
-                children: [
-                  Expanded(child: Text(header, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))),
-                  if (isFav) const Padding(padding: EdgeInsets.only(right: 6), child: Icon(Icons.star, size: 16, color: Colors.amber)),
-                  // Un arrêt natif PassBi (DDD/AFTU) n'a AUCUN rôle d'arrêt
-                  // documenté : son `stopType` est un défaut technique
-                  // (« INTERM. »), jamais un fait de réseau. Le badge n'est donc
-                  // posé que sur les arrêts dont le rôle est réellement établi.
-                  if (stop.passBiStopKey == null)
-                    _buildStopTypeBadge(stop.stopType),
-                ],
-              ),
-              subtitle: Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Lot 4.22 : les 3 prochains temps RÉELS, numériques, en
-                    // vert, immédiatement sous l'en-tête. Sinon l'indicateur
-                    // neutre « Horaire indisponible » — jamais de faux temps.
-                    // Lot fin de service : si le service du jour est terminé,
-                    // le texte est « Fin de service — reprise à HH:MM (dans
-                    // N min / N h MM) » ; sinon l'indicateur neutre.
-                    Text(
-                      hasWaits
-                          ? formatWaitingMinutes(waits)
-                          : (legacyRemaining ??
-                              (serviceNotice ??
-                                  (estimatedShort ??
-                                      ReliabilityLabel.scheduleUnavailable))),
-                      style: TextStyle(
-                        fontSize: hasWaits || legacyRemaining != null ? 14 : 11,
-                        fontWeight: hasWaits || legacyRemaining != null
-                            ? FontWeight.w800
-                            : FontWeight.bold,
-                        letterSpacing: hasWaits || legacyRemaining != null ? 0.2 : 0,
-                        color: hasWaits || legacyRemaining != null
-                            ? AppColors.success
-                            : AppColors.textSecondary(dark),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: AppRadius.lgAll,
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: stop))),
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ── En-tête : nom + pastille de mode/réseau ──────────
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: stop.color,
+                              shape: BoxShape.circle,
+                              boxShadow: AppColors.softShadow(dark),
+                            ),
+                            child: Icon(stop.icon, color: Colors.white, size: 21),
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(nameOnly,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        fontSize: AppType.heading,
+                                        fontWeight: AppType.bold,
+                                        letterSpacing: -0.2,
+                                        color: AppColors.textPrimary(dark))),
+                                const SizedBox(height: 3),
+                                Row(children: [
+                                  if (!nameHasMode) ...[
+                                    _NetworkBadge(
+                                        label: stop.modeLabel, color: stop.color),
+                                    const SizedBox(width: AppSpacing.xxs + 2),
+                                  ],
+                                  // Un arrêt natif PassBi (DDD/AFTU) n'a AUCUN
+                                  // rôle d'arrêt documenté : son `stopType` est
+                                  // un défaut technique (« INTERM. »), jamais un
+                                  // fait de réseau. Le badge n'est donc posé que
+                                  // sur les arrêts dont le rôle est établi.
+                                  if (stop.passBiStopKey == null)
+                                    _buildStopTypeBadge(stop.stopType),
+                                ]),
+                              ],
+                            ),
+                          ),
+                          if (isFav)
+                            const Padding(
+                                padding: EdgeInsets.only(left: AppSpacing.xs),
+                                child: Icon(Icons.star,
+                                    size: 18, color: Colors.amber)),
+                        ],
                       ),
-                    ),
-                    if (lineLabel != null) ...[
-                      const SizedBox(height: 2),
-                      Text(lineLabel, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textSecondary(dark))),
+                      // ── Destination réelle (« vers X »), jamais inventée ──
+                      if (destination != null) ...[
+                        const SizedBox(height: AppSpacing.sm),
+                        Row(children: [
+                          Icon(Icons.arrow_forward_rounded,
+                              size: 15, color: AppColors.accent),
+                          const SizedBox(width: AppSpacing.xxs + 2),
+                          Expanded(
+                            child: Text(destination,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                    fontSize: AppType.body,
+                                    fontWeight: AppType.semibold,
+                                    color: AppColors.textPrimary(dark))),
+                          ),
+                        ]),
+                      ],
+                      // ── Minutes de prochain passage : élément dominant ───
+                      const SizedBox(height: AppSpacing.sm),
+                      _buildScheduleLine(
+                        dark: dark,
+                        hasWaits: hasWaits || legacyRemaining != null,
+                        label: hasWaits
+                            ? formatWaitingMinutes(waits)
+                            : (legacyRemaining ??
+                                (serviceNotice ??
+                                    (estimatedShort ??
+                                        ReliabilityLabel.scheduleUnavailable))),
+                      ),
+                      // ── Ligne de service (identité réelle du feed) ───────
+                      if (lineLabel != null) ...[
+                        const SizedBox(height: AppSpacing.xxs + 2),
+                        Text(lineLabel,
+                            style: TextStyle(
+                                fontSize: AppType.label,
+                                fontWeight: AppType.medium,
+                                color: AppColors.textSecondary(dark))),
+                      ],
+                      const SizedBox(height: AppSpacing.xs),
+                      // ── Métadonnées secondaires ──────────────────────────
+                      Text(
+                          '${DistanceHelper.format(distanceMeters)} • ${stop.modeLabel} • $crowd',
+                          style: TextStyle(
+                              fontSize: AppType.caption,
+                              color: AppColors.muted(dark))),
                     ],
-                    const SizedBox(height: 2),
-                    Text('${DistanceHelper.format(distanceMeters)} • ${stop.modeLabel} (${stop.source.badgeEmoji}) • $crowd', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
-                  ],
+                  ),
                 ),
               ),
-              // Lot 4.22 : l'ancienne étiquette horaire de droite (« Prévu
-              // HH h MM » / « Prochain départ dans… » / « Passage estimé
-              // dans… ») est remplacée par la liste des minutes vertes, posée
-              // sous l'en-tête — plus de zone « trailing » à borner.
             ),
           ),
         );
       },
+    );
+  }
+
+  /// Ligne d'horaire : les minutes réelles sont l'élément visuel dominant.
+  ///
+  /// La COULEUR et le TEXTE restent strictement ceux produits par le pipeline
+  /// (`AppColors.success` pour un délai réel, texte neutre sinon). Seule la
+  /// mise en forme (taille / graisse) change.
+  Widget _buildScheduleLine({
+    required bool dark,
+    required bool hasWaits,
+    required String label,
+  }) {
+    return Text(
+      label,
+      style: TextStyle(
+        fontSize: hasWaits ? AppType.minutesCompact : AppType.caption,
+        fontWeight: hasWaits ? AppType.heavy : AppType.bold,
+        letterSpacing: hasWaits ? -0.4 : 0,
+        height: 1.05,
+        color: hasWaits ? AppColors.success : AppColors.textSecondary(dark),
+      ),
     );
   }
 
@@ -5217,9 +5432,137 @@ class StopCard extends StatelessWidget {
       case StopType.intermediate: color = Colors.grey; label = 'INTERM.'; break;
     }
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(4), border: Border.all(color: color.withOpacity(0.4), width: 0.8)),
-      child: Text(label, style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: color)),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.xs, vertical: 3),
+      decoration: BoxDecoration(
+          color: color.withOpacity(0.10),
+          borderRadius: AppRadius.pillAll,
+          border: Border.all(color: color.withOpacity(0.35), width: 0.8)),
+      child: Text(label,
+          style: TextStyle(
+              fontSize: AppType.micro - 1,
+              fontWeight: AppType.bold,
+              letterSpacing: 0.2,
+              color: color)),
+    );
+  }
+}
+
+/// Pastille de mode / réseau : repère compact et peu saturé (le badge ne
+/// remplace JAMAIS le statut réel de la donnée, il nomme le réseau).
+class _NetworkBadge extends StatelessWidget {
+  final String label;
+  final Color color;
+  const _NetworkBadge({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: AppRadius.pillAll,
+      ),
+      child: Text(label,
+          style: TextStyle(
+              fontSize: AppType.micro,
+              fontWeight: AppType.heavy,
+              letterSpacing: 0.4,
+              color: color)),
+    );
+  }
+}
+
+/// Squelette de chargement premium (shimmer discret), sans spinner plein écran.
+class _SkeletonCard extends StatefulWidget {
+  final int lines;
+  const _SkeletonCard({this.lines = 3});
+  @override
+  State<_SkeletonCard> createState() => _SkeletonCardState();
+}
+
+class _SkeletonCardState extends State<_SkeletonCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+      vsync: this, duration: const Duration(milliseconds: 1200))
+    ..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = globalState.darkMode;
+    // Respect de la préférence « réduire les animations ».
+    final bool animate =
+        !(MediaQuery.maybeDisableAnimationsOf(context) ?? false);
+    if (animate && !_c.isAnimating) {
+      _c.repeat(reverse: true);
+    } else if (!animate && _c.isAnimating) {
+      _c.stop();
+    }
+    final Color base = AppColors.raised(dark);
+    final Color highlight = dark
+        ? AppColors.accent.withOpacity(0.10)
+        : AppColors.accent.withOpacity(0.07);
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.surface(dark),
+        borderRadius: AppRadius.lgAll,
+        boxShadow: AppColors.softShadow(dark),
+      ),
+      child: AnimatedBuilder(
+        animation: _c,
+        builder: (context, _) {
+          final double t = Curves.easeInOut.transform(_c.value);
+          Color bar(double opacity) => Color.lerp(base, highlight, opacity * t)!;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(children: [
+                Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                        color: bar(1), shape: BoxShape.circle)),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                          height: 12,
+                          width: 150,
+                          decoration: BoxDecoration(
+                              color: bar(0.8),
+                              borderRadius: AppRadius.pillAll)),
+                      const SizedBox(height: AppSpacing.xs),
+                      Container(
+                          height: 10,
+                          width: 90,
+                          decoration: BoxDecoration(
+                              color: bar(0.5),
+                              borderRadius: AppRadius.pillAll)),
+                    ],
+                  ),
+                ),
+              ]),
+              for (int i = 0; i < widget.lines; i++) ...[
+                const SizedBox(height: AppSpacing.sm),
+                Container(
+                    height: 10,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                        color: bar(0.6), borderRadius: AppRadius.pillAll)),
+              ],
+            ],
+          );
+        },
+      ),
     );
   }
 }
@@ -5318,26 +5661,29 @@ class _TripsPageState extends State<TripsPage> {
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                Text('Planifier un trajet', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-                const SizedBox(height: 4),
-                Text('Itinéraires multimodaux indicatifs (TER, BRT, DDD, TATA, AFTU).', style: TextStyle(fontSize: 13, color: AppColors.textSecondary(dark))),
-                const SizedBox(height: 20),
+                Text('Planifier un trajet', style: TextStyle(fontSize: AppType.display - 2, fontWeight: AppType.heavy, letterSpacing: -0.4, color: AppColors.textPrimary(dark))),
+                const SizedBox(height: AppSpacing.xxs),
+                Text('Itinéraires multimodaux indicatifs (TER, BRT, DDD, TATA, AFTU).', style: TextStyle(fontSize: AppType.label, color: AppColors.textSecondary(dark))),
+                const SizedBox(height: AppSpacing.lg),
 
                 Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, 4))]),
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  decoration: BoxDecoration(
+                      color: AppColors.surface(dark),
+                      borderRadius: AppRadius.lgAll,
+                      boxShadow: AppColors.cardShadow(dark)),
                   child: Column(
                     children: [
                       _buildInputField(controller: _fromCtrl, label: 'Départ', icon: Icons.my_location, color: AppColors.accent, dark: dark),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpacing.sm),
                       _buildInputField(controller: _toCtrl, label: 'Destination', icon: Icons.location_on, color: AppColors.ter, dark: dark),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: AppSpacing.lg),
                       ElevatedButton(
                         onPressed: _loading ? null : _search,
-                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.beanGreen, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 52), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)), elevation: 2),
-                        child: _loading ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5)) : const Text('Rechercher mon itinéraire', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.beanGreen, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 52), shape: RoundedRectangleBorder(borderRadius: AppRadius.smAll), elevation: 0),
+                        child: _loading ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5)) : const Text('Rechercher mon itinéraire', style: TextStyle(fontSize: AppType.heading, fontWeight: AppType.bold)),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: AppSpacing.xs),
                       // Chantier GPS — le GPS est une ENTRÉE du routage : ce
                       // bouton calcule l'itinéraire depuis la position mesurée
                       // (points d'accès réels autour de l'usager) et non depuis
@@ -5357,11 +5703,11 @@ class _TripsPageState extends State<TripsPage> {
                           minimumSize: const Size(double.infinity, 48),
                           side: const BorderSide(color: AppColors.beanGreen),
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14)),
+                              borderRadius: AppRadius.smAll),
                         ),
                       ),
                       if (widget.gpsState != GpsState.granted) ...[
-                        const SizedBox(height: 8),
+                        const SizedBox(height: AppSpacing.xs),
                         Align(
                           alignment: Alignment.centerLeft,
                           child: TextButton.icon(
@@ -5379,12 +5725,20 @@ class _TripsPageState extends State<TripsPage> {
                 // l'usager : « quelles mobilités puis-je prendre d'ici ? ».
                 if (GpsResolver.isWithinServiceZone(widget.userPosition) &&
                     !_loading) ...[
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.md),
                   _buildNearbyMobilities(dark),
                 ],
 
+                // Chargement : skeleton premium (aucun spinner plein écran).
+                if (_loading) ...[
+                  const SizedBox(height: AppSpacing.lg),
+                  const _SkeletonCard(lines: 3),
+                  const SizedBox(height: AppSpacing.sm),
+                  const _SkeletonCard(lines: 2),
+                ],
+
                 if (_result == null && !_loading) ...[
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.lg),
                   // Mission 3 : « populaires » supposait une donnée de fréquentation
                   // inexistante — remplacé par un libellé neutre.
                   Text('Exemples de lignes (TER, BRT, DDD)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
@@ -5452,9 +5806,10 @@ class _TripsPageState extends State<TripsPage> {
       decoration: InputDecoration(
         labelText: label, labelStyle: TextStyle(color: AppColors.textSecondary(dark)),
         prefixIcon: Icon(icon, color: color, size: 22),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: AppColors.divider(dark))),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: color, width: 2)),
-        filled: true, fillColor: AppColors.background(dark), contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        border: OutlineInputBorder(borderRadius: AppRadius.smAll, borderSide: BorderSide(color: AppColors.divider(dark))),
+        enabledBorder: OutlineInputBorder(borderRadius: AppRadius.smAll, borderSide: BorderSide(color: AppColors.divider(dark))),
+        focusedBorder: OutlineInputBorder(borderRadius: AppRadius.smAll, borderSide: BorderSide(color: color, width: 1.6)),
+        filled: true, fillColor: AppColors.raised(dark), contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm + 2),
       ),
     );
   }
@@ -5463,9 +5818,9 @@ class _TripsPageState extends State<TripsPage> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.divider(dark)), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4)]),
-        child: Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.textPrimary(dark)))
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs + 2),
+        decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: AppRadius.pillAll, border: Border.all(color: AppColors.divider(dark)), boxShadow: AppColors.softShadow(dark)),
+        child: Text(label, style: TextStyle(fontSize: AppType.label, fontWeight: AppType.medium, color: AppColors.textPrimary(dark)))
       ),
     );
   }
@@ -5489,32 +5844,39 @@ class _TripsPageState extends State<TripsPage> {
       if (!mobilities.contains(p.network)) mobilities.add(p.network);
     }
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.surface(dark),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider(dark)),
+        borderRadius: AppRadius.cardAll,
+        boxShadow: AppColors.cardShadow(dark),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            const Icon(Icons.my_location, size: 16, color: AppColors.beanGreen),
-            const SizedBox(width: 6),
+            Container(
+              width: 26,
+              height: 26,
+              decoration: BoxDecoration(
+                  color: AppColors.mint, shape: BoxShape.circle),
+              child: const Icon(Icons.my_location,
+                  size: 14, color: AppColors.accentStrong),
+            ),
+            const SizedBox(width: AppSpacing.xs),
             Text('Autour de vous',
                 style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                    fontWeight: AppType.bold,
+                    fontSize: AppType.body,
                     color: AppColors.textPrimary(dark))),
           ]),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.xxs),
           Text(
             '${points.length} arrêts réels • mobilités : ${mobilities.join(', ')}',
-            style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark)),
+            style: TextStyle(fontSize: AppType.caption, color: AppColors.textSecondary(dark)),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: AppSpacing.sm),
           ...points.take(6).map((p) => Padding(
-                padding: const EdgeInsets.only(bottom: 6),
+                padding: const EdgeInsets.only(bottom: AppSpacing.xs),
                 child: Row(children: [
                   Icon(
                     p.network == 'TER'
@@ -5523,19 +5885,19 @@ class _TripsPageState extends State<TripsPage> {
                     size: 15,
                     color: RoutePlanner.modeColorFor(p.network),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.xs),
                   Expanded(
                     child: Text(
                       '${p.name} • ${p.network}',
                       style: TextStyle(
-                          fontSize: 13, color: AppColors.textPrimary(dark)),
+                          fontSize: AppType.label, color: AppColors.textPrimary(dark)),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   Text(DistanceHelper.format(p.distanceMeters),
                       style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
+                          fontSize: AppType.caption,
+                          fontWeight: AppType.bold,
                           color: AppColors.textSecondary(dark))),
                 ]),
               )),
@@ -5545,24 +5907,26 @@ class _TripsPageState extends State<TripsPage> {
   }
 
   Widget _buildRouteCard(PlannedRoute r, bool dark) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 14),
-      color: AppColors.surface(dark),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 2,
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: AppColors.surface(dark),
+        borderRadius: AppRadius.lgAll,
+        boxShadow: AppColors.cardShadow(dark),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: r.segments.first.color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Icon(r.segments.first.icon, color: r.segments.first.color, size: 22)),
-                const SizedBox(width: 12),
+                Container(padding: const EdgeInsets.all(AppSpacing.xs), decoration: BoxDecoration(color: r.segments.first.color.withOpacity(0.12), borderRadius: AppRadius.smAll), child: Icon(r.segments.first.icon, color: r.segments.first.color, size: 22)),
+                const SizedBox(width: AppSpacing.sm),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('${r.fromName} - ${r.toName}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textPrimary(dark))),
+                  Text('${r.fromName} - ${r.toName}', style: TextStyle(fontWeight: AppType.bold, fontSize: AppType.heading, letterSpacing: -0.2, color: AppColors.textPrimary(dark))),
                   const SizedBox(height: 2),
-                  Text('${r.transferCount} correspondance(s) • ${r.segments.length} étape(s)', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
+                  Text('${r.transferCount} correspondance(s) • ${r.segments.length} étape(s)', style: TextStyle(fontSize: AppType.caption, color: AppColors.textSecondary(dark))),
                   // Lot 4.20 : ETA dynamique du moteur PassBi sur le premier
                   // tronçon (prochain départ réel GTFS, statut SCHEDULED —
                   // jamais « 0 min », jamais une fréquence convertie en heure).
@@ -5576,26 +5940,35 @@ class _TripsPageState extends State<TripsPage> {
                           r.segments.first.departureInfo!.status ==
                               ScheduleStatus.estimated))
                     Padding(
-                      padding: const EdgeInsets.only(top: 4),
+                      padding: const EdgeInsets.only(top: AppSpacing.xxs),
                       child: Text(
                         '🟢 ${ReliabilityLabel.sanitizeScheduleLabel(r.segments.first.departureInfo!.label)}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
+                        style: const TextStyle(
+                          fontSize: AppType.caption,
+                          fontWeight: AppType.bold,
                           color: AppColors.success,
                         ),
                       ),
                     ),
                 ])),
-                Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                  Text('~${r.totalMinutes} min', style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.accent, fontSize: 18)),
-                  Text(ReliabilityLabel.estimatedDuration, style: TextStyle(fontSize: 10, color: AppColors.textSecondary(dark)))
-                ]),
+                const SizedBox(width: AppSpacing.xs),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+                  decoration: BoxDecoration(
+                    color: dark ? AppColors.accent.withOpacity(0.14) : AppColors.mint,
+                    borderRadius: AppRadius.cardAll,
+                  ),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                    Text('~${r.totalMinutes} min', style: const TextStyle(fontWeight: AppType.heavy, color: AppColors.accentStrong, fontSize: AppType.title)),
+                    Text(ReliabilityLabel.estimatedDuration, style: TextStyle(fontSize: AppType.micro, color: AppColors.textSecondary(dark)))
+                  ]),
+                ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.md),
             Divider(height: 1, color: AppColors.divider(dark)),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.sm),
             ...r.segments.asMap().entries.map((entry) {
               final s = entry.value;
               final isLast = entry.key == r.segments.length - 1;
@@ -5604,16 +5977,16 @@ class _TripsPageState extends State<TripsPage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Column(children: [Container(width: 10, height: 10, decoration: BoxDecoration(color: s.color, shape: BoxShape.circle)), if (!isLast) Expanded(child: Container(width: 2, color: AppColors.divider(dark)))]),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: Padding(
-                        padding: EdgeInsets.only(bottom: isLast ? 0 : 16),
+                        padding: EdgeInsets.only(bottom: isLast ? 0 : AppSpacing.md),
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Row(children: [Icon(s.icon, size: 14, color: s.color), const SizedBox(width: 6), Text(stripPassBiFromLabel(s.modeLabel), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: s.color)), const Spacer(), Text(s.departureTime ?? ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))]),
+                          Row(children: [Icon(s.icon, size: 14, color: s.color), const SizedBox(width: 6), Text(stripPassBiFromLabel(s.modeLabel), style: TextStyle(fontWeight: AppType.bold, fontSize: AppType.caption, color: s.color)), const Spacer(), Text(s.departureTime ?? ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: AppType.caption, fontWeight: AppType.bold, color: AppColors.textPrimary(dark)))]),
                           const SizedBox(height: 4),
-                          Text('${s.from} - ${s.to}', style: TextStyle(fontSize: 12, color: AppColors.textPrimary(dark))),
+                          Text('${s.from} - ${s.to}', style: TextStyle(fontSize: AppType.label, color: AppColors.textPrimary(dark))),
                           const SizedBox(height: 2),
-                          Text('Durée estimée : ~${s.durationMinutes} min', style: TextStyle(fontSize: 10, color: AppColors.textSecondary(dark))),
+                          Text('Durée estimée : ~${s.durationMinutes} min', style: TextStyle(fontSize: AppType.micro, color: AppColors.textSecondary(dark))),
                         ]),
                       ),
                     ),
@@ -5773,27 +6146,73 @@ class AlertsPage extends StatelessWidget {
     final Color badgeColor = alert['severity'] == 'success' ? AppColors.success : AppColors.warning;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(16), border: Border.all(color: alertColor.withOpacity(0.3), width: 1.5), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)]),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: AppColors.surface(dark),
+        borderRadius: AppRadius.lgAll,
+        boxShadow: AppColors.cardShadow(dark),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
         children: [
-          Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: alertColor.withOpacity(0.1), shape: BoxShape.circle), child: Icon(alertIcon, color: alertColor, size: 22)),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
+          // Rail de sévérité : repère discret, sans dramatiser l'interface.
+          Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              child: Container(width: 4, color: alertColor.withOpacity(0.85))),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md + 4, AppSpacing.md, AppSpacing.md, AppSpacing.md),
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(children: [
-                  Text(alertType, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: alertColor)),
-                  const Spacer(),
-                  Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: badgeColor.withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Text(alertBadge, style: TextStyle(fontSize: 10, color: badgeColor, fontWeight: FontWeight.bold)))
-                ]),
-                const SizedBox(height: 4),
-                Text(alertSource, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.beanGreen)),
-                const SizedBox(height: 6),
-                Text(alertMessage, style: TextStyle(fontSize: 13, height: 1.4, color: AppColors.textPrimary(dark))),
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.xs + 2),
+                  decoration: BoxDecoration(
+                      color: alertColor.withOpacity(0.12),
+                      shape: BoxShape.circle),
+                  child: Icon(alertIcon, color: alertColor, size: 20),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(children: [
+                        Text(alertType,
+                            style: TextStyle(
+                                fontWeight: AppType.bold,
+                                fontSize: AppType.body,
+                                color: alertColor)),
+                        const Spacer(),
+                        Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.xs, vertical: 3),
+                            decoration: BoxDecoration(
+                                color: badgeColor.withOpacity(0.12),
+                                borderRadius: AppRadius.pillAll),
+                            child: Text(alertBadge,
+                                style: TextStyle(
+                                    fontSize: AppType.micro,
+                                    color: badgeColor,
+                                    fontWeight: AppType.bold))),
+                      ]),
+                      const SizedBox(height: AppSpacing.xxs + 2),
+                      Text(alertSource,
+                          style: const TextStyle(
+                              fontSize: AppType.micro,
+                              fontWeight: AppType.bold,
+                              color: AppColors.beanGreen)),
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(alertMessage,
+                          style: TextStyle(
+                              fontSize: AppType.label,
+                              height: 1.45,
+                              color: AppColors.textPrimary(dark))),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -6013,19 +6432,19 @@ class SettingsPage extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (context) {
         return Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: const BorderRadius.vertical(top: Radius.circular(24))),
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.sheet))),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-              const SizedBox(height: 12),
-              Text(content, style: TextStyle(fontSize: 14, height: 1.5, color: AppColors.textSecondary(dark))),
-              const SizedBox(height: 20),
+              Text(title, style: TextStyle(fontSize: AppType.title + 2, fontWeight: AppType.bold, letterSpacing: -0.2, color: AppColors.textPrimary(dark))),
+              const SizedBox(height: AppSpacing.sm),
+              Text(content, style: TextStyle(fontSize: AppType.body, height: 1.5, color: AppColors.textSecondary(dark))),
+              const SizedBox(height: AppSpacing.lg),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.beanGreen, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 44)),
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.beanGreen, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 48), shape: RoundedRectangleBorder(borderRadius: AppRadius.smAll)),
                 child: const Text('Fermer'),
               ),
             ],
@@ -6046,12 +6465,13 @@ class SettingsPage extends StatelessWidget {
           body: SafeArea(
             bottom: false,
             child: ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppSpacing.md),
               children: [
-                Text('Réglages & Préférences', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-                const SizedBox(height: 20),
+                Text('Réglages & Préférences', style: TextStyle(fontSize: AppType.display - 2, fontWeight: AppType.heavy, letterSpacing: -0.4, color: AppColors.textPrimary(dark))),
+                const SizedBox(height: AppSpacing.lg),
                 Container(
-                  decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)]),
+                  decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: AppRadius.lgAll, boxShadow: AppColors.cardShadow(dark)),
+                  clipBehavior: Clip.antiAlias,
                   child: Column(
                     children: [
                       SwitchListTile(secondary: const Icon(Icons.notifications_outlined, color: AppColors.beanGreen), title: Text('Notifications trafic', style: TextStyle(color: AppColors.textPrimary(dark))), value: true, activeColor: AppColors.beanGreen, onChanged: (_) {}),
@@ -6530,7 +6950,7 @@ class _AIChatPageState extends State<AIChatPage> {
               children: [
                 Expanded(
                   child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(AppSpacing.md),
                     itemCount: _messages.length,
                     itemBuilder: (c, i) {
                       final msg = _messages[i];
@@ -6538,26 +6958,78 @@ class _AIChatPageState extends State<AIChatPage> {
                       return Align(
                         alignment: isAi ? Alignment.centerLeft : Alignment.centerRight,
                         child: Container(
-                          margin: const EdgeInsets.symmetric(vertical: 4),
-                          padding: const EdgeInsets.all(12),
+                          margin: const EdgeInsets.symmetric(vertical: AppSpacing.xxs),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.sm + 2, vertical: AppSpacing.sm),
+                          constraints: const BoxConstraints(maxWidth: 340),
                           decoration: BoxDecoration(
                             color: isAi ? AppColors.surface(dark) : AppColors.accent,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: AppColors.divider(dark)),
+                            borderRadius: BorderRadius.only(
+                              topLeft: const Radius.circular(AppRadius.card),
+                              topRight: const Radius.circular(AppRadius.card),
+                              bottomLeft: Radius.circular(isAi ? 4 : AppRadius.card),
+                              bottomRight: Radius.circular(isAi ? AppRadius.card : 4),
+                            ),
+                            border: isAi
+                                ? Border.all(color: AppColors.divider(dark))
+                                : null,
+                            boxShadow: AppColors.softShadow(dark),
                           ),
-                          child: Text(msg['text']!, style: TextStyle(color: isAi ? AppColors.textPrimary(dark) : Colors.white)),
+                          child: Text(msg['text']!,
+                              style: TextStyle(
+                                  fontSize: AppType.body,
+                                  height: 1.4,
+                                  color: isAi
+                                      ? AppColors.textPrimary(dark)
+                                      : Colors.white)),
                         ),
                       );
                     },
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.all(12),
-                  color: AppColors.surface(dark),
-                  child: Row(children: [
-                    Expanded(child: TextField(controller: _msgCtrl, style: TextStyle(color: AppColors.textPrimary(dark)), decoration: InputDecoration(hintText: 'Posez votre question sur un trajet ou une mobilité...', hintStyle: TextStyle(color: AppColors.textSecondary(dark)), border: InputBorder.none))),
-                    IconButton(icon: const Icon(Icons.send, color: AppColors.beanGreen), onPressed: _sendMessage),
-                  ]),
+                  padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.sm, AppSpacing.xs, AppSpacing.sm, AppSpacing.xs),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface(dark),
+                    border: Border(top: BorderSide(color: AppColors.divider(dark))),
+                  ),
+                  child: SafeArea(
+                    top: false,
+                    child: Row(children: [
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.md),
+                          decoration: BoxDecoration(
+                            color: AppColors.raised(dark),
+                            borderRadius: AppRadius.pillAll,
+                          ),
+                          child: TextField(
+                            controller: _msgCtrl,
+                            onSubmitted: (_) => _sendMessage(),
+                            textInputAction: TextInputAction.send,
+                            style: TextStyle(color: AppColors.textPrimary(dark)),
+                            decoration: InputDecoration(
+                              hintText: 'Posez votre question sur un trajet ou une mobilité...',
+                              hintStyle: TextStyle(color: AppColors.textSecondary(dark)),
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                      Material(
+                        color: AppColors.accent,
+                        shape: const CircleBorder(),
+                        child: IconButton(
+                            icon: const Icon(Icons.send, color: Colors.white, size: 20),
+                            onPressed: _sendMessage),
+                      ),
+                    ]),
+                  ),
                 ),
               ],
             ),
@@ -6589,26 +7061,26 @@ class DetailedRoutePage extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             children: [
               Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(16), border: Border.all(color: route.color.withOpacity(0.3), width: 1.5)),
+                padding: const EdgeInsets.all(AppSpacing.md),
+                decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: AppRadius.lgAll, border: Border.all(color: route.color.withOpacity(0.25), width: 1.2), boxShadow: AppColors.cardShadow(dark)),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       // Hiérarchie d'identification : le numéro de ligne (et son
                       // mode) d'abord, puis la direction/origine-destination.
-                      Text('${route.routeLabel} · ${route.origin} ➔ ${route.destination}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textPrimary(dark))),
+                      Text('${route.routeLabel} · ${route.origin} ➔ ${route.destination}', style: TextStyle(fontWeight: AppType.bold, fontSize: AppType.heading, letterSpacing: -0.2, color: AppColors.textPrimary(dark))),
                       const SizedBox(height: 4),
-                      Text('${route.totalDistance} • ${route.stops.length} stations/arrêts', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark))),
+                      Text('${route.totalDistance} • ${route.stops.length} stations/arrêts', style: TextStyle(fontSize: AppType.caption, color: AppColors.textSecondary(dark))),
                     ])),
-                    Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: route.color.withOpacity(0.15), borderRadius: BorderRadius.circular(8)), child: Text(route.originOperatorLabel, style: TextStyle(fontWeight: FontWeight.bold, color: route.color, fontSize: 11))),
+                    Container(padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: 5), decoration: BoxDecoration(color: route.color.withOpacity(0.15), borderRadius: AppRadius.pillAll), child: Text(route.originOperatorLabel, style: TextStyle(fontWeight: AppType.bold, color: route.color, fontSize: AppType.micro))),
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
               Container(
                 height: 200,
-                decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider(dark))),
+                decoration: BoxDecoration(borderRadius: AppRadius.lgAll, boxShadow: AppColors.cardShadow(dark)),
                 clipBehavior: Clip.antiAlias,
                 child: FlutterMap(
                   options: MapOptions(initialCenter: validPoints.isNotEmpty ? validPoints.first : const LatLng(14.7167, -17.4677), initialZoom: 11.5),
@@ -6619,8 +7091,8 @@ class DetailedRoutePage extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
-              Text('Arrêts & Gares alignés — ${route.routeLabel}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
+              const SizedBox(height: AppSpacing.lg),
+              Text('Arrêts & Gares alignés — ${route.routeLabel}', style: TextStyle(fontSize: AppType.heading, fontWeight: AppType.bold, color: AppColors.textPrimary(dark))),
               // LOT 2 (intégrité) — avertissements d'audit de la source unique.
               // Les drapeaux `audit_flags` existaient dans `dakar_network.json`
               // mais n'étaient affichés nulle part : une séquence d'arrêts
@@ -6642,7 +7114,7 @@ class DetailedRoutePage extends StatelessWidget {
                       Expanded(child: Text(w, style: const TextStyle(fontSize: 11, color: AppColors.warning, fontWeight: FontWeight.w600))),
                     ]),
                   )),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.sm),
               ...route.stops.asMap().entries.map((entry) {
                 final idx = entry.key; final stop = entry.value; final isLast = idx == route.stops.length - 1;
                 return IntrinsicHeight(
@@ -6653,25 +7125,25 @@ class DetailedRoutePage extends StatelessWidget {
                         Container(width: 26, height: 26, decoration: BoxDecoration(color: route.color, shape: BoxShape.circle), child: Center(child: Text('${idx + 1}', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)))),
                         if (!isLast) Expanded(child: Container(width: 3, color: route.color.withOpacity(0.4))),
                       ]),
-                      const SizedBox(width: 14),
+                      const SizedBox(width: AppSpacing.sm),
                       Expanded(
                         child: Padding(
-                          padding: const EdgeInsets.only(bottom: 20),
+                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
                           child: Container(
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.divider(dark))),
+                            padding: const EdgeInsets.all(AppSpacing.sm + 2),
+                            decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: AppRadius.smAll, border: Border.all(color: AppColors.divider(dark))),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(children: [
-                                  Expanded(child: Text(stop.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary(dark)))),
+                                  Expanded(child: Text(stop.name, style: TextStyle(fontWeight: AppType.bold, fontSize: AppType.label, color: AppColors.textPrimary(dark)))),
                                   // Audit 2026-09-24 — AVANT : « [OFFICIEL] » sur TOUS les arrêts,
                                   // quel que soit le statut. APRÈS : badge dérivé du statut le moins
                                   // sûr (ligne, arrêt) ; vert seulement si CONFIRMED.
                                   Builder(builder: (context) {
                                     final ProvenanceStatus st = route.statusOf(stop);
                                     final Color c = ReliabilityLabel.canShowOfficial(st) ? AppColors.success : AppColors.warning;
-                                    return Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: c.withOpacity(0.1), borderRadius: BorderRadius.circular(4)), child: Text('[${ReliabilityLabel.badge(st)}]', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: c)));
+                                    return Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: c.withOpacity(0.1), borderRadius: AppRadius.pillAll), child: Text('[${ReliabilityLabel.badge(st)}]', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: c)));
                                   }),
                                 ]),
                                 const SizedBox(height: 4),
@@ -6957,11 +7429,11 @@ class SingleStopView extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
                 color: AppColors.surface(dark),
-                borderRadius: BorderRadius.circular(AppColors.radiusCard),
-                border: Border.all(color: stop.color.withOpacity(0.3), width: 1.5),
+                borderRadius: AppRadius.lgAll,
+                border: Border.all(color: stop.color.withOpacity(0.25), width: 1.2),
                 boxShadow: AppColors.cardShadow(dark),
               ),
               child: Column(
@@ -6970,81 +7442,97 @@ class SingleStopView extends StatelessWidget {
                   Row(
                     children: [
                       Container(
-                        width: 42,
-                        height: 42,
+                        width: 44,
+                        height: 44,
                         decoration: BoxDecoration(color: stop.color, shape: BoxShape.circle, boxShadow: AppColors.softShadow(dark)),
-                        child: Icon(stop.icon, color: Colors.white, size: 18),
+                        child: Icon(stop.icon, color: Colors.white, size: 20),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: AppSpacing.sm),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(stop.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimary(dark))),
-                            const SizedBox(height: 2),
-                            // Identité de ligne (numéro + mode) quand la source
-                            // la documente — jamais devinée.
-                            if (routeDetails != null) ...[
-                              Text(routeDetails.routeLabel, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: stop.color)),
-                              const SizedBox(height: 2),
+                            Text(stop.name, style: TextStyle(fontWeight: AppType.bold, fontSize: AppType.heading, letterSpacing: -0.2, color: AppColors.textPrimary(dark))),
+                            const SizedBox(height: 3),
+                            Row(children: [
+                              _NetworkBadge(label: stop.modeLabel, color: stop.color),
+                              // Identité de ligne (numéro + mode) quand la
+                              // source la documente — jamais devinée.
+                              if (routeDetails != null) ...[
+                                const SizedBox(width: AppSpacing.xxs + 2),
+                                Flexible(
+                                  child: Text(routeDetails.routeLabel,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(fontSize: AppType.caption, fontWeight: AppType.bold, color: stop.color)),
+                                ),
+                              ],
+                            ]),
+                            if (stripPassBiFromLabel(stop.direction).trim().isNotEmpty) ...[
+                              const SizedBox(height: 4),
+                              Text(stripPassBiFromLabel(stop.direction), style: TextStyle(fontSize: AppType.label, fontWeight: AppType.medium, color: AppColors.textSecondary(dark))),
                             ],
-                            Text(stripPassBiFromLabel(stop.direction), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textSecondary(dark))),
                           ],
                         ),
                       ),
                       IconButton(
-                        icon: Icon(isFav ? Icons.star : Icons.star_border, color: isFav ? Colors.amber : Colors.grey),
+                        icon: Icon(isFav ? Icons.star : Icons.star_border, color: isFav ? Colors.amber : AppColors.muted(dark)),
                         onPressed: () => globalState.toggleFavorite(stop.name),
                         tooltip: 'Favori',
                       ),
                     ],
                   ),
-                  Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Divider(height: 1, color: AppColors.divider(dark))),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Prochain départ programmé', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
-                            const SizedBox(height: 2),
-                            // FUSION LOT 1 (#40) × LOT 4.22 (#39) — « X min »
-                            // en vert dès qu'un passage RÉEL (trip + stop_time)
-                            // est calculable, jamais 0, jamais une fréquence ;
-                            // sinon « Horaire indisponible » (aucun faux temps).
-                            Text(
-                              ficheHasWaits
-                                  ? formatWaitingMinutes(ficheWaits)
-                                  : (ficheServiceNotice ??
-                                      (ficheEstimatedShort ??
-                                          ReliabilityLabel.scheduleUnavailable)),
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: ficheHasWaits
-                                    ? AppColors.success
-                                    : AppColors.textSecondary(dark),
-                              ),
-                              softWrap: true,
-                            ),
-                          ],
+                  const SizedBox(height: AppSpacing.sm),
+                  // Bloc horaire DOMINANT : les minutes réelles mènent la carte.
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                    decoration: BoxDecoration(
+                      color: ficheHasWaits
+                          ? (dark ? AppColors.accent.withOpacity(0.12) : AppColors.mint)
+                          : AppColors.raised(dark),
+                      borderRadius: AppRadius.cardAll,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Prochain départ programmé',
+                            style: TextStyle(fontSize: AppType.caption, fontWeight: AppType.semibold, color: AppColors.textSecondary(dark))),
+                        const SizedBox(height: AppSpacing.xxs),
+                        // FUSION LOT 1 (#40) × LOT 4.22 (#39) — « X min »
+                        // en vert dès qu'un passage RÉEL (trip + stop_time)
+                        // est calculable, jamais 0, jamais une fréquence ;
+                        // sinon « Horaire indisponible » (aucun faux temps).
+                        Text(
+                          ficheHasWaits
+                              ? formatWaitingMinutes(ficheWaits)
+                              : (ficheServiceNotice ??
+                                  (ficheEstimatedShort ??
+                                      ReliabilityLabel.scheduleUnavailable)),
+                          style: TextStyle(
+                            fontSize: ficheHasWaits ? AppType.minutes : AppType.body,
+                            fontWeight: ficheHasWaits ? AppType.heavy : AppType.bold,
+                            letterSpacing: ficheHasWaits ? -0.6 : 0,
+                            height: 1.05,
+                            color: ficheHasWaits
+                                ? AppColors.success
+                                : AppColors.textSecondary(dark),
+                          ),
+                          softWrap: true,
                         ),
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text('Affluence', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
-                          const SizedBox(height: 2),
-                          Text(crowd, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-                        ],
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Row(children: [
+                    Icon(Icons.groups_outlined, size: 13, color: AppColors.muted(dark)),
+                    const SizedBox(width: AppSpacing.xxs + 2),
+                    Text(crowd, style: TextStyle(fontSize: AppType.caption, fontWeight: AppType.medium, color: AppColors.muted(dark))),
+                  ]),
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.lg),
             ElevatedButton.icon(
               // GROUPE 2 (§12) : bouton désactivé quand la ligne ne peut pas
               // être dérivée de la source unique. Aucune fiche fabriquée n'est
@@ -7059,7 +7547,7 @@ class SingleStopView extends StatelessWidget {
                 backgroundColor: stop.color,
                 foregroundColor: Colors.white,
                 minimumSize: const Size(double.infinity, 48),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(borderRadius: AppRadius.smAll),
               ),
             ),
           ],
