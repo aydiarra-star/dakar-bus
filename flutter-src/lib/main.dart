@@ -3145,7 +3145,7 @@ ThemeData _buildTheme(bool dark) {
       behavior: SnackBarBehavior.floating,
       backgroundColor: dark ? const Color(0xFF2A2A2A) : const Color(0xFF1F2937),
       contentTextStyle: const TextStyle(color: Colors.white, fontSize: 13),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(borderRadius: AppRadius.smAll),
     ),
   );
 }
@@ -4268,7 +4268,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                               const SizedBox(height: 8),
                               Container(
                                 decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(AppColors.radiusField), border: Border.all(color: AppColors.divider(dark)), boxShadow: AppColors.softShadow(dark)),
-                                child: Column(children: _searchResults.map((s) => ListTile(dense: true, leading: Icon(s.icon, color: s.color, size: 22), title: Text(s.name, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textPrimary(dark))), subtitle: Text(s.direction, style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark))), onTap: () { _searchCtrl.text = s.name; setState(() => _searchFocused = false); _centerOnStop(s); })).toList()),
+                                child: Column(children: _searchResults.map((s) => ListTile(dense: true, leading: Icon(s.icon, color: s.color, size: 22), title: Text(s.name, style: TextStyle(fontSize: AppType.heading - 1, fontWeight: FontWeight.w600, color: AppColors.textPrimary(dark))), subtitle: Text(s.direction, style: TextStyle(fontSize: AppType.label, color: AppColors.textSecondary(dark))), onTap: () { _searchCtrl.text = s.name; setState(() => _searchFocused = false); _centerOnStop(s); })).toList()),
                               ),
                             ],
                             // MISSION — suggestions du CATALOGUE (lignes publiques
@@ -4308,9 +4308,9 @@ class _ExplorerPageState extends State<ExplorerPage> {
                       const SizedBox(height: 16),
                       if (_selectedFilter == 'Lignes') ...[
                         Row(children: [
-                          Text('${_publicLines.length} lignes publiques', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-                          const SizedBox(width: 8),
-                          Text('numéros officiels AFTU/DDD', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
+                          Text('${_publicLines.length} lignes publiques', style: TextStyle(fontSize: AppType.heading, fontWeight: AppType.bold, color: AppColors.textPrimary(dark))),
+                          const SizedBox(width: AppSpacing.xs),
+                          Text('numéros officiels AFTU/DDD', style: TextStyle(fontSize: AppType.caption, color: AppColors.textSecondary(dark))),
                         ]),
                         const SizedBox(height: 10),
                         if (_publicLines.isEmpty)
@@ -4318,10 +4318,10 @@ class _ExplorerPageState extends State<ExplorerPage> {
                           // des lignes : on distingue « non chargé » de « vide ».
                           Container(
                             width: double.infinity,
-                            padding: const EdgeInsets.all(14),
+                            padding: const EdgeInsets.all(AppSpacing.sm + 2),
                             decoration: BoxDecoration(
                               color: AppColors.surface(dark),
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: AppRadius.cardAll,
                               border: Border.all(color: AppColors.divider(dark)),
                             ),
                             child: Text(
@@ -4339,9 +4339,9 @@ class _ExplorerPageState extends State<ExplorerPage> {
                               )),
                       ] else if (_selectedFilter == 'Pôles') ...[
                         Row(children: [
-                          Text('${_poles.length} pôles DDD/AFTU', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-                          const SizedBox(width: 8),
-                          Text('terminus documentés', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
+                          Text('${_poles.length} pôles DDD/AFTU', style: TextStyle(fontSize: AppType.heading, fontWeight: AppType.bold, color: AppColors.textPrimary(dark))),
+                          const SizedBox(width: AppSpacing.xs),
+                          Text('terminus documentés', style: TextStyle(fontSize: AppType.caption, color: AppColors.textSecondary(dark))),
                         ]),
                         const SizedBox(height: 10),
                         ..._poles.map((p) => Padding(
@@ -4359,12 +4359,12 @@ class _ExplorerPageState extends State<ExplorerPage> {
                             )),
                       ] else ...[
                         Row(children: [
-                          Text('${stops.length} arrêts', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-                          const SizedBox(width: 8),
+                          Text('${stops.length} arrêts', style: TextStyle(fontSize: AppType.heading, fontWeight: AppType.bold, color: AppColors.textPrimary(dark))),
+                          const SizedBox(width: AppSpacing.xs),
                           if (_isLoadingRoutes)
                             const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.beanGreen))
                           else
-                            Text('à proximité (Maintenez un arrêt pour l\'ajouter aux favoris)', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark)))
+                            Text('à proximité (Maintenez un arrêt pour l\'ajouter aux favoris)', style: TextStyle(fontSize: AppType.caption, color: AppColors.textSecondary(dark)))
                         ]),
                         const SizedBox(height: 10),
                         ...stops.map((s) => Padding(padding: const EdgeInsets.only(bottom: 12), child: GestureDetector(onTap: () => _centerOnStop(s), child: StopCard(stop: s, distanceMeters: _distanceTo(s))))),
@@ -4659,10 +4659,10 @@ class PublicLineDetailPage extends StatelessWidget {
             title: Text(line.publicLabel, style: const TextStyle(fontSize: 16)),
           ),
           body: ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.md),
             children: [
               _header(dark, color, connected),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.sm),
               _section('Identité', dark, Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -4673,7 +4673,7 @@ class PublicLineDetailPage extends StatelessWidget {
                     _kv('Nom officiel', line.officialName, dark),
                 ],
               )),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.sm),
               _section('Terminus publiés', dark, Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -4683,7 +4683,7 @@ class PublicLineDetailPage extends StatelessWidget {
                     _kv('Direction (feed)', seq.direction, dark),
                 ],
               )),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.sm),
               _section('Statut des données', dark, Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -4699,7 +4699,7 @@ class PublicLineDetailPage extends StatelessWidget {
                   _kv('Vérifié le', line.verifiedAt, dark),
                 ],
               )),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.sm),
               if (connected)
                 _section('Données horaires raccordées', dark, Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -4715,9 +4715,9 @@ class PublicLineDetailPage extends StatelessWidget {
                 ))
               else
                 _blockedSection(dark),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.sm),
               _stopsSection(dark, color, seq),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.lg),
             ],
           ),
         );
@@ -4726,10 +4726,10 @@ class PublicLineDetailPage extends StatelessWidget {
   }
 
   Widget _header(bool dark, Color color, bool connected) => Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: color.withOpacity(0.10),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: AppRadius.cardAll,
           border: Border.all(color: color.withOpacity(0.4)),
         ),
         child: Column(
@@ -4739,21 +4739,21 @@ class PublicLineDetailPage extends StatelessWidget {
               Icon(connected ? Icons.check_circle : Icons.info_outline,
                   color: connected ? AppColors.success : AppColors.warning,
                   size: 20),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.xs),
               Expanded(
                 child: Text(line.mappingStatus.label,
                     style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
+                        fontSize: AppType.heading - 1,
+                        fontWeight: AppType.bold,
                         color: AppColors.textPrimary(dark))),
               ),
             ]),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.xs),
             Text(
               line.hasPublishedTerminus
                   ? '${line.origin} ➔ ${line.destination}'
                   : 'Terminus non publiés par la source',
-              style: TextStyle(fontSize: 14, color: AppColors.textPrimary(dark)),
+              style: TextStyle(fontSize: AppType.body, color: AppColors.textPrimary(dark)),
             ),
           ],
         ),
@@ -4788,7 +4788,7 @@ class PublicLineDetailPage extends StatelessWidget {
         line.hasRealSchedule
             ? 'Séquence d’arrêts indisponible dans le feed.'
             : 'Aucun arrêt : la ligne n’est pas raccordée à une route réelle du feed.',
-        style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark)),
+        style: TextStyle(fontSize: AppType.label, color: AppColors.textSecondary(dark)),
       ));
     }
     return _section(
@@ -4802,7 +4802,7 @@ class PublicLineDetailPage extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 6),
               child: Text(
                 'Ordre du feed non strictement croissant (artefact de donnée source).',
-                style: TextStyle(fontSize: 11, color: AppColors.warning),
+                style: TextStyle(fontSize: AppType.caption, color: AppColors.warning),
               ),
             ),
           ...List<Widget>.generate(seq.stops.length, (i) {
@@ -4817,13 +4817,13 @@ class PublicLineDetailPage extends StatelessWidget {
                     alignment: Alignment.topRight,
                     child: Text('${i + 1}.',
                         style: TextStyle(
-                            fontSize: 11, color: AppColors.textSecondary(dark))),
+                            fontSize: AppType.caption, color: AppColors.textSecondary(dark))),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.xs),
                   Expanded(
                     child: Text(s.name,
                         style: TextStyle(
-                            fontSize: 13, color: AppColors.textPrimary(dark))),
+                            fontSize: AppType.label, color: AppColors.textPrimary(dark))),
                   ),
                 ],
               ),
@@ -4838,7 +4838,7 @@ class PublicLineDetailPage extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 2),
         child: RichText(
           text: TextSpan(
-            style: TextStyle(fontSize: 12, color: AppColors.textPrimary(dark)),
+            style: TextStyle(fontSize: AppType.label, color: AppColors.textPrimary(dark)),
             children: [
               TextSpan(
                   text: '$k : ',
@@ -4851,10 +4851,10 @@ class PublicLineDetailPage extends StatelessWidget {
 
   Widget _section(String title, bool dark, Widget child) => Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(AppSpacing.sm + 2),
         decoration: BoxDecoration(
           color: AppColors.surface(dark),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: AppRadius.cardAll,
           border: Border.all(color: AppColors.divider(dark)),
         ),
         child: Column(
@@ -4862,10 +4862,10 @@ class PublicLineDetailPage extends StatelessWidget {
           children: [
             Text(title,
                 style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
+                    fontSize: AppType.label,
+                    fontWeight: AppType.bold,
                     color: AppColors.textPrimary(dark))),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.xs),
             child,
           ],
         ),
@@ -4889,10 +4889,10 @@ class TerminusPoleCard extends StatelessWidget {
     final dark = globalState.darkMode;
     final bool terminal = pole.isTerminal;
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(AppSpacing.sm + 2),
       decoration: BoxDecoration(
         color: AppColors.surface(dark),
-        borderRadius: BorderRadius.circular(AppColors.radiusCard),
+        borderRadius: AppRadius.cardAll,
         border: Border.all(
             color: terminal ? AppColors.beanGreen : AppColors.divider(dark),
             width: terminal ? 2 : 1),
@@ -4904,59 +4904,60 @@ class TerminusPoleCard extends StatelessWidget {
           Row(children: [
             Icon(terminal ? Icons.flag_rounded : Icons.alt_route_rounded,
                 size: 16, color: terminal ? AppColors.beanGreen : AppColors.textSecondary(dark)),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSpacing.xs),
             Expanded(
               child: Text(pole.name,
                   style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
+                      fontSize: AppType.heading - 1,
+                      fontWeight: AppType.bold,
                       color: AppColors.textPrimary(dark))),
             ),
             Text(pole.status.toLabel(),
                 style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
+                    fontSize: AppType.micro,
+                    fontWeight: AppType.bold,
                     color: pole.status == PoleStatus.confirmed
                         ? AppColors.beanGreen
                         : AppColors.textSecondary(dark))),
           ]),
-          const SizedBox(height: 6),
+          const SizedBox(height: AppSpacing.xs),
           Wrap(
             spacing: 6,
             runSpacing: 4,
             children: pole.roles
                 .map((r) => Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.xs, vertical: 3),
                       decoration: BoxDecoration(
                         color: AppColors.beanGreen.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: AppRadius.pillAll,
                       ),
                       child: Text(_ExplorerPageState.roleLabel(r),
                           style: const TextStyle(
-                              fontSize: 10,
+                              fontSize: AppType.micro,
                               fontWeight: FontWeight.bold,
                               color: AppColors.beanGreen)),
                     ))
                 .toList(),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.xs),
           if (pole.dddRoutes.isNotEmpty)
             _poleLineRow('DDD', pole.dddRoutes, AppColors.ddd, dark),
           if (pole.aftuRoutes.isNotEmpty)
             _poleLineRow('AFTU', pole.aftuRoutes, AppColors.aftu, dark),
           if (!terminal && (pole.dddTransitRoutes.isNotEmpty || pole.aftuTransitRoutes.isNotEmpty))
             Text('Aucun terminus DDD/AFTU documenté — desserte en transit',
-                style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
-          const SizedBox(height: 8),
+                style: TextStyle(fontSize: AppType.caption, color: AppColors.textSecondary(dark))),
+          const SizedBox(height: AppSpacing.xs),
           GestureDetector(
             onTap: onOpen,
             child: Row(children: [
               Text('Voir la fiche du pôle',
                   style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
+                      fontSize: AppType.label - 1,
+                      fontWeight: AppType.bold,
                       color: AppColors.beanGreen)),
-              const SizedBox(width: 4),
+              const SizedBox(width: AppSpacing.xxs),
               const Icon(Icons.chevron_right, size: 14, color: AppColors.beanGreen),
             ]),
           ),
@@ -4977,17 +4978,17 @@ class TerminusPoleCard extends StatelessWidget {
           margin: const EdgeInsets.only(top: 2),
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
           decoration: BoxDecoration(
-              color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(6)),
+              color: color.withOpacity(0.15), borderRadius: AppRadius.pillAll),
           child: Text(mode,
-              style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: color)),
+              style: TextStyle(fontSize: AppType.micro - 1, fontWeight: FontWeight.bold, color: color)),
         ),
         const SizedBox(width: 6),
         Expanded(
           child: labels.isEmpty
               ? Text('Lignes non documentées par la source',
-                  style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark)))
+                  style: TextStyle(fontSize: AppType.caption, color: AppColors.textSecondary(dark)))
               : Text('$shown$more',
-                  style: TextStyle(fontSize: 11, color: AppColors.textPrimary(dark))),
+                  style: TextStyle(fontSize: AppType.caption, color: AppColors.textPrimary(dark))),
         ),
       ]),
     );
@@ -5014,41 +5015,42 @@ class TerminusPolePage extends StatelessWidget {
             title: Text(pole.name, style: const TextStyle(fontSize: 16)),
           ),
           body: ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.md),
             children: [
               _section('Rôle', dark, child: Wrap(
                 spacing: 6,
                 runSpacing: 4,
                 children: pole.roles
                     .map((r) => Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.sm, vertical: 5),
                           decoration: BoxDecoration(
                               color: AppColors.beanGreen.withOpacity(0.12),
-                              borderRadius: BorderRadius.circular(10)),
+                              borderRadius: AppRadius.pillAll),
                           child: Text(_ExplorerPageState.roleLabel(r),
                               style: const TextStyle(
-                                  fontSize: 11,
+                                  fontSize: AppType.caption,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.beanGreen)),
                         ))
                     .toList(),
               )),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.sm),
               _section('Statut', dark, child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Pôle : ${pole.status.toLabel()}',
-                      style: TextStyle(fontSize: 12, color: AppColors.textPrimary(dark))),
+                      style: TextStyle(fontSize: AppType.label, color: AppColors.textPrimary(dark))),
                   Text('Coordonnées : ${pole.coordinatesStatus.toLabel()}',
-                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark))),
+                      style: TextStyle(fontSize: AppType.label, color: AppColors.textSecondary(dark))),
                   Text('${pole.latitude.toStringAsFixed(5)}, ${pole.longitude.toStringAsFixed(5)}',
-                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark))),
+                      style: TextStyle(fontSize: AppType.label, color: AppColors.textSecondary(dark))),
                   if (pole.note != null)
                     Text(pole.note!,
-                        style: TextStyle(fontSize: 11, color: AppColors.warning)),
+                        style: TextStyle(fontSize: AppType.caption, color: AppColors.warning)),
                 ],
               )),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.sm),
               if (pole.isTerminal)
                 _section('Terminus (départ / arrivée)', dark, child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -5060,7 +5062,7 @@ class TerminusPolePage extends StatelessWidget {
                   ],
                 )),
               if (pole.isTransit) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.sm),
                 _section('Transit (ne terminent pas ici)', dark, child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -5071,28 +5073,28 @@ class TerminusPolePage extends StatelessWidget {
                   ],
                 )),
               ],
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.sm),
               _section('Arrêts terminus réels (feed)', dark, child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: pole.terminusStops.isEmpty
                     ? [Text('Aucun arrêt terminus rattaché.',
-                        style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark)))]
+                        style: TextStyle(fontSize: AppType.label, color: AppColors.textSecondary(dark)))]
                     : pole.terminusStops
                         .map((s) => Padding(
-                              padding: const EdgeInsets.only(bottom: 4),
+                              padding: const EdgeInsets.only(bottom: AppSpacing.xxs),
                               child: Text(
                                   '${s.stopName} — ${s.routeIds.length} ligne(s)',
-                                  style: TextStyle(fontSize: 12, color: AppColors.textPrimary(dark))),
+                                  style: TextStyle(fontSize: AppType.label, color: AppColors.textPrimary(dark))),
                             ))
                         .toList(),
               )),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.sm),
               _section('Source', dark, child: Text(
                 "Terminus dérivés des données opérationnelles DDD/AFTU — premier et dernier "
                 "arrêt réellement desservis par chaque trip. Aucun horaire, aucun "
                 "arrêt et aucune ligne ne sont inventés. Statut UNKNOWN conservé "
                 "quand la preuve manque.",
-                style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark)),
+                style: TextStyle(fontSize: AppType.caption, color: AppColors.textSecondary(dark)),
               )),
             ],
           ),
@@ -5103,19 +5105,19 @@ class TerminusPolePage extends StatelessWidget {
 
   Widget _section(String title, bool dark, {required Widget child}) => Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(AppSpacing.sm + 2),
         decoration: BoxDecoration(
           color: AppColors.surface(dark),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: AppRadius.lgAll,
           border: Border.all(color: AppColors.divider(dark)),
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(title,
               style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
+                  fontSize: AppType.label,
+                  fontWeight: AppType.bold,
                   color: AppColors.textPrimary(dark))),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.xs),
           child,
         ]),
       );
@@ -5127,24 +5129,25 @@ class TerminusPolePage extends StatelessWidget {
         padding: const EdgeInsets.only(bottom: 6),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(mode,
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: color)),
+              style: TextStyle(fontSize: AppType.caption, fontWeight: AppType.bold, color: color)),
           const SizedBox(height: 2),
           if (labels.isEmpty)
             Text('Lignes non documentées par la source',
-                style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark)))
+                style: TextStyle(fontSize: AppType.caption, color: AppColors.textSecondary(dark)))
           else
             Wrap(
               spacing: 6,
               runSpacing: 4,
               children: labels
                   .map((label) => Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.xs, vertical: 3),
                         decoration: BoxDecoration(
                             color: color.withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(8)),
+                            borderRadius: AppRadius.pillAll),
                         child: Text(label,
                             style: TextStyle(
-                                fontSize: 11, fontWeight: FontWeight.bold, color: color)),
+                                fontSize: AppType.caption, fontWeight: FontWeight.bold, color: color)),
                       ))
                   .toList(),
             ),
@@ -5659,7 +5662,7 @@ class _TripsPageState extends State<TripsPage> {
           body: SafeArea(
             bottom: false,
             child: ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppSpacing.md),
               children: [
                 Text('Planifier un trajet', style: TextStyle(fontSize: AppType.display - 2, fontWeight: AppType.heavy, letterSpacing: -0.4, color: AppColors.textPrimary(dark))),
                 const SizedBox(height: AppSpacing.xxs),
@@ -5741,7 +5744,7 @@ class _TripsPageState extends State<TripsPage> {
                   const SizedBox(height: AppSpacing.lg),
                   // Mission 3 : « populaires » supposait une donnée de fréquentation
                   // inexistante — remplacé par un libellé neutre.
-                  Text('Exemples de lignes (TER, BRT, DDD)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
+                  Text('Exemples de lignes (TER, BRT, DDD)', style: TextStyle(fontSize: AppType.heading, fontWeight: AppType.bold, color: AppColors.textPrimary(dark))),
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 10, runSpacing: 10,
@@ -5771,9 +5774,9 @@ class _TripsPageState extends State<TripsPage> {
                 if (_result != null) ...[
                   const SizedBox(height: 24),
                   Row(children: [
-                    Text('Itinéraires proposés', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
+                    Text('Itinéraires proposés', style: TextStyle(fontSize: AppType.title, fontWeight: AppType.bold, color: AppColors.textPrimary(dark))),
                     const Spacer(),
-                    Text('${_result!.routes.length} résultat(s)', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark)))
+                    Text('${_result!.routes.length} résultat(s)', style: TextStyle(fontSize: AppType.label, color: AppColors.textSecondary(dark)))
                   ]),
                   const SizedBox(height: 12),
                   // Chantier GPS — itinéraire calculé depuis la position : les
@@ -5789,7 +5792,17 @@ class _TripsPageState extends State<TripsPage> {
                   if (_result!.hasRoutes)
                     ..._result!.routes.map((r) => _buildRouteCard(r, dark))
                   else
-                    Container(padding: const EdgeInsets.all(20), decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(16)), child: Column(children: [const Icon(Icons.error_outline, color: AppColors.warning, size: 40), const SizedBox(height: 10), Text(_result!.errorMessage ?? 'Aucun trajet trouvé', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: AppColors.textSecondary(dark)))]))
+                    Container(
+                      padding: const EdgeInsets.all(AppSpacing.lg),
+                      decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: AppRadius.cardAll, boxShadow: AppColors.cardShadow(dark)),
+                      child: Column(children: [
+                        const Icon(Icons.error_outline, color: AppColors.warning, size: 40),
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(_result!.errorMessage ?? 'Aucun trajet trouvé',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: AppType.body, color: AppColors.textSecondary(dark))),
+                      ]),
+                    )
                 ],
               ],
             ),
@@ -6120,12 +6133,12 @@ class AlertsPage extends StatelessWidget {
           body: SafeArea(
             bottom: false,
             child: ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppSpacing.md),
               children: [
-                Text('Alertes trafic & Réseau', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-                const SizedBox(height: 4),
-                Text('Niveau de vérification indiqué sur chaque carte (sources : SETER, SunuBRT, CETUD).', style: TextStyle(fontSize: 13, color: AppColors.textSecondary(dark))),
-                const SizedBox(height: 20),
+                Text('Alertes trafic & Réseau', style: TextStyle(fontSize: AppType.display - 2, fontWeight: AppType.heavy, letterSpacing: -0.4, color: AppColors.textPrimary(dark))),
+                const SizedBox(height: AppSpacing.xxs),
+                Text('Niveau de vérification indiqué sur chaque carte (sources : SETER, SunuBRT, CETUD).', style: TextStyle(fontSize: AppType.label, color: AppColors.textSecondary(dark))),
+                const SizedBox(height: AppSpacing.lg),
                 ...officialAlerts.map((alert) => _buildAlertCard(context, alert, dark)),
               ],
             ),
@@ -6280,25 +6293,25 @@ class CommunityAlertsPageState extends State<CommunityAlertsPage> {
       builder: (context) {
         final dark = globalState.darkMode;
         return Container(
-          padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
-          decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: const BorderRadius.vertical(top: Radius.circular(24))),
+          padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, MediaQuery.of(context).viewInsets.bottom + AppSpacing.lg),
+          decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.sheet))),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Nouveau signalement rue', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-              const SizedBox(height: 14),
+              Text('Nouveau signalement rue', style: TextStyle(fontSize: AppType.title, fontWeight: AppType.bold, color: AppColors.textPrimary(dark))),
+              const SizedBox(height: AppSpacing.sm + 2),
               TextField(
                 controller: locCtrl,
                 style: TextStyle(color: AppColors.textPrimary(dark)),
                 decoration: InputDecoration(
                   labelText: 'Lieu / Station (ex: Colobane, UCAD...)',
                   labelStyle: TextStyle(color: AppColors.textSecondary(dark)),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(borderRadius: AppRadius.smAll),
                   filled: true, fillColor: AppColors.background(dark),
                 ),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: AppSpacing.sm + 2),
               DropdownButtonFormField<String>(
                 value: selectedType,
                 dropdownColor: AppColors.surface(dark),
@@ -6309,11 +6322,11 @@ class CommunityAlertsPageState extends State<CommunityAlertsPage> {
                 decoration: InputDecoration(
                   labelText: 'État constaté',
                   labelStyle: TextStyle(color: AppColors.textSecondary(dark)),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(borderRadius: AppRadius.smAll),
                   filled: true, fillColor: AppColors.background(dark),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppSpacing.lg),
               ElevatedButton(
                 onPressed: () {
                   if (locCtrl.text.trim().isNotEmpty) {
@@ -6334,7 +6347,7 @@ class CommunityAlertsPageState extends State<CommunityAlertsPage> {
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Signalement ajouté sur cet appareil (non partagé, non vérifié).')));
                   }
                 },
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.beanGreen, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 48), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.beanGreen, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 48), shape: RoundedRectangleBorder(borderRadius: AppRadius.smAll)),
                 child: const Text('Publier mon signalement', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ],
@@ -6355,13 +6368,13 @@ class CommunityAlertsPageState extends State<CommunityAlertsPage> {
           body: SafeArea(
             bottom: false,
             child: ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppSpacing.md),
               children: [
                 Row(
                   children: [
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text('Direct rue & Communauté', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-                      const SizedBox(height: 4),
+                      Text('Direct rue & Communauté', style: TextStyle(fontSize: AppType.display - 2, fontWeight: AppType.heavy, letterSpacing: -0.4, color: AppColors.textPrimary(dark))),
+                      const SizedBox(height: AppSpacing.xxs),
                       // GROUPE 6 (E.4 / E.5) : « en temps réel » RETIRÉ —
                       // aucun flux live n'existe (aucune donnée de signalement
                       // dans la source unique, `DataStatus.live` jamais
@@ -6371,39 +6384,39 @@ class CommunityAlertsPageState extends State<CommunityAlertsPage> {
                       // les usagers à Dakar. » (`usagistes` : 0 occurrence).
                       // La structure du widget, son style et sa place dans la
                       // mise en page sont inchangés.
-                      Text('Signalements publiés par les usagers à Dakar.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary(dark))),
+                      Text('Signalements publiés par les usagers à Dakar.', style: TextStyle(fontSize: AppType.caption, color: AppColors.textSecondary(dark))),
                     ])),
                     ElevatedButton.icon(
                       onPressed: _showAddReportModal,
                       icon: const Icon(Icons.add, size: 16),
                       label: const Text('Signaler'),
-                      style: ElevatedButton.styleFrom(backgroundColor: AppColors.beanGreen, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))),
+                      style: ElevatedButton.styleFrom(backgroundColor: AppColors.beanGreen, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: AppRadius.pillAll)),
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: AppSpacing.lg),
                 // Mission 3 : état vide explicite — aucune activité simulée.
                 if (_communityReports.isEmpty)
                   Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider(dark))),
-                    child: Text(ReliabilityLabel.noVerifiedReport, style: TextStyle(fontSize: 13, color: AppColors.textSecondary(dark))),
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: AppRadius.lgAll, border: Border.all(color: AppColors.divider(dark))),
+                    child: Text(ReliabilityLabel.noVerifiedReport, style: TextStyle(fontSize: AppType.caption, color: AppColors.textSecondary(dark))),
                   ),
                 ..._communityReports.map((report) => Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider(dark))),
+                  margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: AppRadius.lgAll, border: Border.all(color: AppColors.divider(dark))),
                   child: Row(
                     children: [
                       const CircleAvatar(backgroundColor: AppColors.accent, child: Icon(Icons.person, color: Colors.white)),
-                      const SizedBox(width: 14),
+                      const SizedBox(width: AppSpacing.sm + 2),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(children: [Text(report['user']!, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary(dark))), const Spacer(), Text(report['time']!, style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark)))]),
-                            const SizedBox(height: 4),
-                            Text('📍 ${report['location']} — ${report['type']}', style: TextStyle(fontSize: 13, color: AppColors.textPrimary(dark))),
+                            Row(children: [Text(report['user']!, style: TextStyle(fontWeight: AppType.bold, fontSize: AppType.label, color: AppColors.textPrimary(dark))), const Spacer(), Text(report['time']!, style: TextStyle(fontSize: AppType.caption, color: AppColors.textSecondary(dark)))]),
+                            const SizedBox(height: AppSpacing.xxs),
+                            Text('📍 ${report['location']} — ${report['type']}', style: TextStyle(fontSize: AppType.label, color: AppColors.textPrimary(dark))),
                           ],
                         ),
                       ),
@@ -7058,7 +7071,7 @@ class DetailedRoutePage extends StatelessWidget {
         return Scaffold(
           appBar: AppBar(title: Text('${route.routeLabel} — ${route.origin}'), backgroundColor: route.color, foregroundColor: Colors.white),
           body: ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.md),
             children: [
               Container(
                 padding: const EdgeInsets.all(AppSpacing.md),
@@ -7101,17 +7114,17 @@ class DetailedRoutePage extends StatelessWidget {
               // n'ajoutent aucune donnée : ils restituent un verdict déjà
               // présent dans la source.
               ...route.integrityWarnings.map((String w) => Container(
-                    margin: const EdgeInsets.only(bottom: 10),
-                    padding: const EdgeInsets.all(10),
+                    margin: const EdgeInsets.only(bottom: AppSpacing.xs),
+                    padding: const EdgeInsets.all(AppSpacing.sm),
                     decoration: BoxDecoration(
                       color: AppColors.warning.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: AppRadius.smAll,
                       border: Border.all(color: AppColors.warning.withOpacity(0.4)),
                     ),
                     child: Row(children: [
                       const Icon(Icons.warning_amber_rounded, size: 16, color: AppColors.warning),
-                      const SizedBox(width: 8),
-                      Expanded(child: Text(w, style: const TextStyle(fontSize: 11, color: AppColors.warning, fontWeight: FontWeight.w600))),
+                      const SizedBox(width: AppSpacing.xs),
+                      Expanded(child: Text(w, style: const TextStyle(fontSize: AppType.caption, color: AppColors.warning, fontWeight: FontWeight.w600))),
                     ]),
                   )),
               const SizedBox(height: AppSpacing.sm),
@@ -7343,7 +7356,7 @@ class _DualStopDetailPageState extends State<DualStopDetailPage> {
 
   Widget _unavailable(String message) => Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: Text(
             '$message\n\nAucun horaire n\'est affiché plutôt que d\'en inventer un.',
             textAlign: TextAlign.center,
@@ -7426,7 +7439,7 @@ class SingleStopView extends StatelessWidget {
             ? null
             : formatEstimatedWaitLabel(stop.departureInfoAt(at: now).frequencyMinutes);
         return ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppSpacing.md),
           children: [
             Container(
               padding: const EdgeInsets.all(AppSpacing.md),
