@@ -3031,7 +3031,7 @@ class DirectionHelper {
 ThemeData _buildTheme(bool dark) {
   // AUDIT COULEURS 2026-10-04 :
   // La source résiduelle de tons olive n'est plus autorisée ici.
-  // Material 3 ColorScheme.fromSeed() génère une palette tonale complète
+  // L’ancienne génération automatique de palette Material a été retirée.
   // à partir d'une graine ; même après copyWith(primary/secondary/tertiary),
   // des rôles moins visibles (fixed, surfaceContainer, inversePrimary, etc.)
   // restent issus de cette génération.
