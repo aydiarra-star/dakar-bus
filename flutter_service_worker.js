@@ -4,7 +4,7 @@ const TEMP = 'flutter-temp-cache';
 const CACHE_NAME = 'flutter-app-cache';
 
 const RESOURCES = {"manifest.json": "6f54d1c7161f2eaf864347a26b355b4f",
-"flutter_bootstrap.js": "cfcaf0b5c708a5991191e773529cbaa2",
+"flutter_bootstrap.js": "39a3a1d9ac00d4b2db5b7d5cb2e5d9e2",
 "assets/AssetManifest.bin.json": "da87e130ccb4ed257e0502f952cdca00",
 "assets/AssetManifest.json": "533610c144de6d5e7c1dae8fd4db7a1d",
 "assets/assets/data/reference/public_bus_lines_dakar.json": "dec91b9fe490610a4050802439d09aa3",
@@ -26,7 +26,7 @@ const RESOURCES = {"manifest.json": "6f54d1c7161f2eaf864347a26b355b4f",
 "/": "eaec626a9eb3252a4a750f8e5f5735ac",
 "version.json": "c03de4acfdf17491bbb192ac83dbf37f",
 "flutter.js": "f393d3c16b631f36852323de8e583132",
-"main.dart.js": "84c991e612fb89f216268956461578cd",
+"main.dart.js": "3e70dbefc1a9c470c9088e0b19e0a618",
 "canvaskit/chromium/canvaskit.js": "671c6b4f8fcc199dcc551c7bb125f239",
 "canvaskit/chromium/canvaskit.wasm": "b1ac05b29c127d86df4bcfbf50dd902a",
 "canvaskit/chromium/canvaskit.js.symbols": "a012ed99ccba193cf96bb2643003f6fc",
