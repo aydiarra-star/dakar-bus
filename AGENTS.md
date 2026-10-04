@@ -181,7 +181,7 @@ Mission UI/UX **sans aucune modification de données ni de règle métier**.
 - **Palette verrouillée par les tests** : ne jamais changer les hex de
   `AppColors.ter` (#8B4513), `brt` (#22C55E), `beanGreen` (#00B140),
   `beanGreenLight` (#DDF5E7), `success`, `warning`, ni les littéraux testés
-  (`0xFF00A651` dans `explorer_prochains_passages_test.dart`,
+  (`0xFF00B140` dans `explorer_prochains_passages_test.dart`,
   `service_end_resume_timezone_test.dart`).
 - **Rôles verts (alias, aucune nouvelle teinte)** dans `AppColors` :
   - `accent` = `beanGreen` -> vert d'ACTION (AppBar, boutons, onglet actif,
