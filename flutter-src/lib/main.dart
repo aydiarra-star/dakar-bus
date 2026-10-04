@@ -3607,7 +3607,6 @@ class _MainShellState extends State<MainShell> {
       ExplorerPage(userPosition: _userPosition, gpsState: _gpsState, gpsMessage: _gpsMessage, onRequestLocation: _requestLocation),
       TripsPage(userPosition: _userPosition, gpsState: _gpsState, onRequestLocation: _requestLocation),
       const AlertsPage(),
-      const CommunityAlertsPage(),
       const SettingsPage(),
     ];
 
@@ -3621,20 +3620,36 @@ class _MainShellState extends State<MainShell> {
         ),
         child: SafeArea(
           top: false,
-          minimum: const EdgeInsets.only(bottom: 4),
+          minimum: const EdgeInsets.fromLTRB(10, 4, 10, 8),
           child: NavigationBar(
             selectedIndex: _currentIndex,
             onDestinationSelected: (i) => setState(() => _currentIndex = i),
             backgroundColor: AppColors.surface(dark),
-            indicatorColor: AppColors.beanGreen.withOpacity(0.20),
+            indicatorColor: AppColors.beanGreen.withOpacity(0.18),
             labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-            height: 68,
+            height: 72,
+            elevation: 0,
             destinations: const [
-              NavigationDestination(icon: Icon(Icons.explore_outlined), selectedIcon: Icon(Icons.explore, color: AppColors.beanGreen), label: 'Explorer'),
-              NavigationDestination(icon: Icon(Icons.alt_route_outlined), selectedIcon: Icon(Icons.alt_route, color: AppColors.beanGreen), label: 'Trajets'),
-              NavigationDestination(icon: Icon(Icons.notifications_outlined), selectedIcon: Icon(Icons.notifications, color: AppColors.beanGreen), label: 'Alertes'),
-              NavigationDestination(icon: Icon(Icons.people_outline), selectedIcon: Icon(Icons.people, color: AppColors.beanGreen), label: 'Direct rue'),
-              NavigationDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings, color: AppColors.beanGreen), label: 'Réglages'),
+              NavigationDestination(
+                icon: Icon(Icons.explore_outlined),
+                selectedIcon: Icon(Icons.explore_rounded, color: AppColors.beanGreen),
+                label: 'Explorer',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.alt_route_outlined),
+                selectedIcon: Icon(Icons.alt_route_rounded, color: AppColors.beanGreen),
+                label: 'Trajet',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.notifications_outlined),
+                selectedIcon: Icon(Icons.notifications_rounded, color: AppColors.beanGreen),
+                label: 'Alertes',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.tune_outlined),
+                selectedIcon: Icon(Icons.tune_rounded, color: AppColors.beanGreen),
+                label: 'Paramètres',
+              ),
             ],
           ),
         ),
@@ -6142,28 +6157,175 @@ class SettingsPage extends StatelessWidget {
     final dark = globalState.darkMode;
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
         return Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: const BorderRadius.vertical(top: Radius.circular(24))),
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.82,
+          ),
+          padding: EdgeInsets.fromLTRB(
+            22,
+            12,
+            22,
+            MediaQuery.of(context).padding.bottom + 18,
+          ),
+          decoration: BoxDecoration(
+            color: AppColors.surface(dark),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            boxShadow: AppColors.cardShadow(dark),
+          ),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-              const SizedBox(height: 12),
-              Text(content, style: TextStyle(fontSize: 14, height: 1.5, color: AppColors.textSecondary(dark))),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.beanGreen, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 44)),
-                child: const Text('Fermer'),
+              Center(
+                child: Container(
+                  width: 42,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.divider(dark),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 21,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary(dark),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Text(
+                    content,
+                    style: TextStyle(
+                      fontSize: 14,
+                      height: 1.58,
+                      color: AppColors.textSecondary(dark),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 48),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: const Text(
+                    'Fermer',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
               ),
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _sectionTitle(String title, String subtitle, bool dark) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 20, 4, 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.7,
+              color: AppColors.primary,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: 12,
+              color: AppColors.textSecondary(dark),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _settingsCard({
+    required bool dark,
+    required List<Widget> children,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface(dark),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.divider(dark)),
+        boxShadow: AppColors.cardShadow(dark),
+      ),
+      child: Column(children: children),
+    );
+  }
+
+  Widget _item({
+    required bool dark,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    bool accent = false,
+  }) {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+      leading: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: (accent ? AppColors.primary : AppColors.textSecondary(dark))
+              .withOpacity(0.09),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(
+          icon,
+          color: accent ? AppColors.primary : AppColors.textSecondary(dark),
+          size: 21,
+        ),
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontWeight: FontWeight.w700,
+          color: AppColors.textPrimary(dark),
+        ),
+      ),
+      subtitle: Padding(
+        padding: const EdgeInsets.only(top: 3),
+        child: Text(
+          subtitle,
+          style: TextStyle(
+            fontSize: 12,
+            color: AppColors.textSecondary(dark),
+          ),
+        ),
+      ),
+      trailing: Icon(
+        Icons.chevron_right_rounded,
+        color: AppColors.textSecondary(dark),
+      ),
+      onTap: onTap,
     );
   }
 
@@ -6178,41 +6340,272 @@ class SettingsPage extends StatelessWidget {
           body: SafeArea(
             bottom: false,
             child: ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 18, 16, 28),
               children: [
-                Text('Réglages & Préférences', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))),
-                const SizedBox(height: 20),
                 Container(
-                  decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)]),
-                  child: Column(
+                  padding: const EdgeInsets.fromLTRB(18, 18, 18, 20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppColors.primary,
+                        AppColors.primaryDark,
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: AppColors.cardShadow(dark),
+                  ),
+                  child: Row(
                     children: [
-                      SwitchListTile(secondary: const Icon(Icons.notifications_outlined, color: AppColors.beanGreen), title: Text('Notifications trafic', style: TextStyle(color: AppColors.textPrimary(dark))), value: true, activeColor: AppColors.beanGreen, onChanged: (_) {}),
-                      Divider(height: 1, color: AppColors.divider(dark)),
-                      SwitchListTile(secondary: const Icon(Icons.dark_mode_outlined, color: AppColors.beanGreen), title: Text('Mode sombre', style: TextStyle(color: AppColors.textPrimary(dark))), value: dark, activeColor: AppColors.beanGreen, onChanged: (v) => globalState.toggleDarkMode(v)),
-                      Divider(height: 1, color: AppColors.divider(dark)),
-                      ListTile(
-                        leading: const Icon(Icons.help_outline, color: AppColors.beanGreen),
-                        title: Text('Comment utiliser l’application', style: TextStyle(color: AppColors.textPrimary(dark))),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () => _showInfoModal(context, 'Comment utiliser l’application', '1. Utilisez l’onglet Explorer pour visualiser votre position GPS en temps réel et les arrêts à proximité.\n2. Maintenez un arrêt enfoncé pour l’ajouter à vos favoris ⭐.\n3. Utilisez l’onglet Trajets pour planifier vos déplacements multimodaux (TER, BRT, DDD, TATA) ; les itinéraires non vérifiés sont signalés comme tels.\n4. Interrogez l’Assistant IA pour toute question sur les lignes. Les horaires GTFS publics (programmation SCHEDULED) s’affichent quand la ligne est mappée ; ils ne sont jamais présentés en temps réel.'),
+                      Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.16),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Icon(
+                          Icons.tune_rounded,
+                          color: Colors.white,
+                          size: 27,
+                        ),
                       ),
-                      Divider(height: 1, color: AppColors.divider(dark)),
-                      ListTile(
-                        leading: const Icon(Icons.description_outlined, color: AppColors.beanGreen),
-                        title: Text('Conditions d’utilisation', style: TextStyle(color: AppColors.textPrimary(dark))),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () => _showInfoModal(context, 'Conditions d’utilisation', 'Dakar Bus fournit des informations de transport indicatives. Seules les données dont la source officielle a été vérifiée (SETER, SunuBRT) sont présentées comme officielles ; les autres itinéraires (DDD, AFTU, TATA) sont signalés comme non vérifiés. Les horaires affichés sont des programmations (SCHEDULED) issues de GTFS publics ; aucune position de véhicule en temps réel n’est fournie.'),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text(
+                              'Paramètres',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 23,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Personnalisez Dakar Bus et consultez les règles du service.',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 12.5,
+                                height: 1.35,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      Divider(height: 1, color: AppColors.divider(dark)),
-                      ListTile(
-                        leading: const Icon(Icons.info_outline, color: AppColors.beanGreen),
-                        title: Text('Qui sommes-nous ?', style: TextStyle(color: AppColors.textPrimary(dark))),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () => _showInfoModal(context, 'Qui sommes-nous ?', 'Dakar Bus est la plateforme de référence multimodale conçue pour faciliter la mobilité urbaine à Dakar. Notre mission est d’offrir à chaque usager une visibilité totale sur les réseaux de transport et de fluidifier les déplacements quotidiens.'),
-                      ),
-                      Divider(height: 1, color: AppColors.divider(dark)),
-                      ListTile(leading: const Icon(Icons.verified, color: AppColors.accent), title: Text('Version de l’application', style: TextStyle(color: AppColors.textPrimary(dark))), subtitle: Text('Dakar Bus v9.4 (Web Fix)', style: TextStyle(color: AppColors.textSecondary(dark)))),
                     ],
+                  ),
+                ),
+
+                _sectionTitle(
+                  'PRÉFÉRENCES',
+                  'Votre expérience, votre affichage.',
+                  dark,
+                ),
+                _settingsCard(
+                  dark: dark,
+                  children: [
+                    SwitchListTile(
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+                      secondary: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.09),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.notifications_outlined,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      title: Text(
+                        'Notifications mobilité',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary(dark),
+                        ),
+                      ),
+                      subtitle: Text(
+                        'Préparer les alertes lorsque cette fonction sera connectée.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary(dark),
+                        ),
+                      ),
+                      value: true,
+                      activeColor: AppColors.primary,
+                      onChanged: (_) {},
+                    ),
+                    Divider(height: 1, color: AppColors.divider(dark)),
+                    SwitchListTile(
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+                      secondary: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.09),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.dark_mode_outlined,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      title: Text(
+                        'Mode sombre',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary(dark),
+                        ),
+                      ),
+                      subtitle: Text(
+                        dark ? 'Activé' : 'Désactivé',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary(dark),
+                        ),
+                      ),
+                      value: dark,
+                      activeColor: AppColors.primary,
+                      onChanged: (value) => globalState.toggleDarkMode(value),
+                    ),
+                  ],
+                ),
+
+                _sectionTitle(
+                  'AIDE & EXPÉRIENCE',
+                  'Comprendre l’application et ses fonctions.',
+                  dark,
+                ),
+                _settingsCard(
+                  dark: dark,
+                  children: [
+                    _item(
+                      dark: dark,
+                      icon: Icons.auto_awesome_outlined,
+                      title: 'Bien utiliser Dakar Bus',
+                      subtitle: 'Explorer, trouver un trajet, lire une alerte et vérifier une source.',
+                      accent: true,
+                      onTap: () => _showInfoModal(
+                        context,
+                        'Bien utiliser Dakar Bus',
+                        'EXPLORER\nDécouvrez les arrêts, réseaux et prochains passages documentés. Activez le GPS uniquement si vous souhaitez utiliser votre position réelle.\n\nTRAJET\nIndiquez un départ et une destination. Les horaires programmés sont affichés lorsqu’ils proviennent d’une donnée disponible et identifiée. Une estimation n’est jamais présentée comme un temps réel.\n\nALERTES\nConsultez les informations réseau et les niveaux de vérification. L’espace « Direct rue » permet de consulter les signalements saisis localement, lorsqu’ils existent.\n\nPARAMÈTRES\nRetrouvez ici vos préférences, les conditions d’utilisation, la confidentialité et les informations sur les sources.',
+                      ),
+                    ),
+                    Divider(height: 1, color: AppColors.divider(dark)),
+                    _item(
+                      dark: dark,
+                      icon: Icons.info_outline_rounded,
+                      title: 'Comprendre les statuts',
+                      subtitle: 'Officiel, vérifié, estimé, programmé ou indisponible.',
+                      onTap: () => _showInfoModal(
+                        context,
+                        'Comprendre les statuts',
+                        'Dakar Bus distingue la provenance de la donnée et son niveau de certitude.\n\nOFFICIEL / CONFIRMÉ : la source documentée permet de présenter l’information comme confirmée.\n\nPROGRAMMÉ : l’horaire provient d’une programmation disponible ; ce n’est pas une position de véhicule en temps réel.\n\nESTIMÉ : le calcul est possible à partir d’une donnée documentée, mais ne constitue pas une observation en direct.\n\nNON VÉRIFIÉ / INCONNU : l’information est conservée avec prudence ou masquée lorsqu’elle risquerait d’induire l’usager en erreur.\n\nRÈGLE FONDAMENTALE : Dakar Bus ne transforme pas une hypothèse en donnée réelle.',
+                      ),
+                    ),
+                  ],
+                ),
+
+                _sectionTitle(
+                  'CADRE DU SERVICE',
+                  'Les informations que vous devez pouvoir consulter avant d’utiliser le service.',
+                  dark,
+                ),
+                _settingsCard(
+                  dark: dark,
+                  children: [
+                    _item(
+                      dark: dark,
+                      icon: Icons.gavel_rounded,
+                      title: 'Conditions générales d’utilisation (CGU)',
+                      subtitle: 'Règles d’utilisation, données de mobilité, responsabilité et limites du service.',
+                      accent: true,
+                      onTap: () => _showInfoModal(
+                        context,
+                        'Conditions générales d’utilisation',
+                        '1. OBJET\nDakar Bus est une interface d’information et d’aide à la mobilité. Elle facilite la consultation de réseaux, arrêts, itinéraires, horaires disponibles et informations de service.\n\n2. EXACTITUDE DES INFORMATIONS\nLes informations peuvent dépendre de sources publiques, opérateurs, référentiels de transport ou données complémentaires. Dakar Bus distingue les informations confirmées, programmées, estimées et non vérifiées. Aucune information ne doit être interprétée comme temps réel lorsqu’un flux temps réel n’est pas disponible.\n\n3. UTILISATION RESPONSABLE\nL’utilisateur reste responsable de ses décisions de déplacement. Il doit vérifier les informations importantes auprès de l’opérateur ou de la source officielle lorsqu’une situation exige une confirmation immédiate.\n\n4. SIGNALMENTS COMMUNAUTAIRES\nLes signalements saisis par un usager sont des contributions non vérifiées. Ils ne constituent pas une information officielle et peuvent être incomplets, obsolètes ou inexacts.\n\n5. GPS\nLorsque la localisation est autorisée, Dakar Bus utilise la position réellement fournie par le terminal pour les fonctions qui l’exigent. Une position n’est pas fabriquée lorsque le GPS est indisponible ou refusé.\n\n6. DISPONIBILITÉ\nUne fonctionnalité peut évoluer, être temporairement indisponible ou dépendre d’une source externe. L’absence d’information est préférable à une information inventée.\n\n7. CONTENU ET COMPORTEMENT\nL’utilisateur s’engage à ne pas utiliser l’application pour diffuser volontairement des informations trompeuses, illicites ou portant atteinte aux droits d’autrui.\n\n8. ÉVOLUTION DES CGU\nCes conditions peuvent évoluer avec le service. La version applicable est celle affichée dans l’application au moment de son utilisation.\n\n9. ÉDITEUR\nLes informations d’identité juridique, d’adresse et de contact de l’éditeur ne sont affichées ici que lorsqu’elles sont vérifiées et publiées par le responsable du service. Dakar Bus n’en invente aucune.',
+                      ),
+                    ),
+                    Divider(height: 1, color: AppColors.divider(dark)),
+                    _item(
+                      dark: dark,
+                      icon: Icons.privacy_tip_outlined,
+                      title: 'Confidentialité & données',
+                      subtitle: 'Principes de minimisation, GPS, signalements et données locales.',
+                      accent: true,
+                      onTap: () => _showInfoModal(
+                        context,
+                        'Confidentialité & données',
+                        'PRINCIPE\nDakar Bus applique une règle de minimisation : une donnée qui n’est pas nécessaire à une fonction ne doit pas être collectée ou présentée comme nécessaire.\n\nPOSITION GPS\nLa position GPS est utilisée lorsqu’elle est autorisée et nécessaire à une fonction de proximité ou de trajet. Le service ne doit pas fabriquer une position lorsque l’autorisation est absente.\n\nFAVORIS ET PRÉFÉRENCES\nLes préférences utiles à l’expérience peuvent être conservées localement selon les capacités de l’application.\n\nSIGNALEMENTS\nLes signalements communautaires actuellement saisis dans l’application sont indiqués comme non vérifiés et, en l’absence de backend de publication, restent locaux à l’appareil/session.\n\nSERVICES EXTERNES\nLorsque l’application utilise une source ou un service externe, son fonctionnement et ses propres règles peuvent également s’appliquer.\n\nDROITS\nPour toute demande relative à des données personnelles, l’utilisateur doit pouvoir s’adresser à l’éditeur via un canal de contact officiellement publié. Aucun contact non vérifié n’est inventé dans cette version.',
+                      ),
+                    ),
+                    Divider(height: 1, color: AppColors.divider(dark)),
+                    _item(
+                      dark: dark,
+                      icon: Icons.fact_check_outlined,
+                      title: 'Sources & fiabilité',
+                      subtitle: 'Voir comment Dakar Bus distingue les données officielles et complémentaires.',
+                      onTap: () => _showInfoModal(
+                        context,
+                        'Sources & fiabilité',
+                        'Dakar Bus privilégie les données structurées et traçables. Les sources officielles ou opérateurs sont distinguées des données complémentaires.\n\nLes horaires programmés ne sont pas transformés en « LIVE ». Une couleur, une carte ou une animation ne constitue jamais une preuve de temps réel.\n\nLorsqu’une donnée n’est pas suffisamment vérifiée, l’interface doit l’indiquer ou s’abstenir de l’afficher. Les itinéraires et identités non vérifiés restent qualifiés comme tels.\n\nCette politique vise une règle simple : crédibilité de la donnée avant précision visuelle.',
+                      ),
+                    ),
+                  ],
+                ),
+
+                _sectionTitle(
+                  'À PROPOS',
+                  'Identité du produit et informations de version.',
+                  dark,
+                ),
+                _settingsCard(
+                  dark: dark,
+                  children: [
+                    _item(
+                      dark: dark,
+                      icon: Icons.directions_transit_rounded,
+                      title: 'À propos de Dakar Bus',
+                      subtitle: 'Assistant mobilité multimodal pour Dakar.',
+                      accent: true,
+                      onTap: () => _showInfoModal(
+                        context,
+                        'Dakar Bus',
+                        'Dakar Bus est conçu comme un assistant mobilité pour explorer les réseaux de transport de Dakar, préparer un déplacement et mieux comprendre la fiabilité des informations affichées.\n\nLe produit privilégie une interface claire, rapide et utile : Explorer pour les arrêts et passages, Trajet pour préparer un déplacement, Alertes pour les informations de service, Paramètres pour les préférences et le cadre du service.\n\nLe produit ne présente pas de prix de transport et ne revendique pas un temps réel lorsqu’aucune donnée temps réel n’est disponible.',
+                      ),
+                    ),
+                    Divider(height: 1, color: AppColors.divider(dark)),
+                    _item(
+                      dark: dark,
+                      icon: Icons.verified_rounded,
+                      title: 'Version',
+                      subtitle: 'Dakar Bus • identité verte 2026 • build web.',
+                      onTap: () => _showInfoModal(
+                        context,
+                        'Version de l’application',
+                        'Dakar Bus — version produit 2026.\n\nLes informations techniques et la disponibilité des fonctions peuvent évoluer au fil des publications. Pour une information de transport importante, consultez toujours le niveau de vérification affiché dans l’application.',
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 18),
+                Center(
+                  child: Text(
+                    'Dakar Bus • Mobilité plus claire, données plus honnêtes.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary(dark),
+                    ),
                   ),
                 ),
               ],
