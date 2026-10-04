@@ -42,18 +42,18 @@ tailwind.config = {
 .live-pulse::before { content:''; position:absolute; inset:-4px; border-radius:9999px; background: currentColor; opacity:0.2; animation: liveDot 1.5s infinite; }
 @keyframes liveDot { 0%,100% { transform: scale(1); opacity:1 } 50% { transform: scale(1.4); opacity:0.6 } }
 .stop-pin{display:flex;align-items:center;justify-content:center;border-radius:9999px;border:2px solid #fff;color:#fff;font-weight:800;line-height:1;box-shadow:0 2px 6px rgba(15,23,42,.35);font-variant-numeric:tabular-nums}
-.stop-pin.ter{width:26px;height:26px;background:#10B981;font-size:11px}
+.stop-pin.ter{width:26px;height:26px;background:#00B140;font-size:11px}
 .stop-pin.brt{width:22px;height:22px;background:#00B140;font-size:10px}
 .stop-pin.bus{width:16px;height:16px;background:#3B82F6;font-size:8px}
 .vehicle-pin{display:flex;align-items:center;justify-content:center;width:30px;height:22px;border-radius:11px;border:2px solid #fff;font-size:12px;box-shadow:0 3px 10px rgba(15,23,42,.35);animation:vehPulse 2.2s ease-in-out infinite}
-.vehicle-pin.ter{background:#047857}
+.vehicle-pin.ter{background:#008A32}
 .vehicle-pin.brt{background:#008A33}
 .vehicle-pin.ddd{background:#2563EB}
 @keyframes vehPulse { 0%,100% { transform: scale(1) } 50% { transform: scale(1.08) } }
 #map-layers input{accent-color:#00B140}
 .line-row{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;border:1px solid #E2E8F0;background:#fff}
 .line-row .lg-num{width:28px;height:28px;border-radius:9999px;background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex:0 0 auto}
-.line-row.ter .lg-num{background:#10B981}
+.line-row.ter .lg-num{background:#00B140}
 .line-row.brt .lg-num{background:#00B140}
 </style>
 </head>
@@ -130,7 +130,7 @@ tailwind.config = {
                 <span class="flex items-center gap-1.5"><input type="checkbox" data-layer="vehicles"> 🚍 Flotte (position temps réel indisponible)</span><b class="text-slate-500" data-count-vehicles>0</b>
               </label>
               <div class="flex gap-1.5 pt-1">
-                <button id="map-detail-ter" class="flex-1 h-7 rounded-full bg-[#ECFDF5] text-[#065F46] border border-[#A7F3D0] font-bold">🚆 1→13</button>
+                <button id="map-detail-ter" class="flex-1 h-7 rounded-full bg-[#ECFDF5] text-[#008A32] border border-[#A7F3D0] font-bold">🚆 1→13</button>
                 <button id="map-detail-brt" class="flex-1 h-7 rounded-full bg-[#E6F7ED] text-[#007A2F] border border-[#C2EAD0] font-bold">🚌 1→23</button>
               </div>
             </div>
@@ -189,7 +189,7 @@ tailwind.config = {
         <span class="font-bold text-[18px]" id="arrets-count">42 arrêts</span>
         <span class="opacity-70 text-[13px]" id="network-summary">13 gares TER + 23 stations SunuBRT + 6 pôles bus • cliquez sur un arrêt pour le localiser</span>
         <span class="flex gap-1.5">
-          <button id="btn-detail-ter" class="px-3 h-7 rounded-full bg-[#ECFDF5] text-[#065F46] border border-[#A7F3D0] text-[12px] font-bold">🚆 Voir les 13 gares</button>
+          <button id="btn-detail-ter" class="px-3 h-7 rounded-full bg-[#ECFDF5] text-[#008A32] border border-[#A7F3D0] text-[12px] font-bold">🚆 Voir les 13 gares</button>
           <button id="btn-detail-brt" class="px-3 h-7 rounded-full bg-[#E6F7ED] text-[#007A2F] border border-[#C2EAD0] text-[12px] font-bold">🚌 Voir les 23 stations</button>
         </span>
       </div>
@@ -637,7 +637,7 @@ let stopMarkers=[];
 const DAKAR_CENTER=[14.7167,-17.4677];
 
 const NETWORKS = {
-  TER: { key:'TER', label:'TER Dakar ↔ Diamniadio', emoji:'🚆', color:'#10B981', plural:'gares', kind:'gare' },
+  TER: { key:'TER', label:'TER Dakar ↔ Diamniadio', emoji:'🚆', color:'#00B140', plural:'gares', kind:'gare' },
   BRT: { key:'BRT', label:'SunuBRT — Ligne B1 omnibus', emoji:'🚌', color:'#00B140', plural:'stations', kind:'station' },
   BUS: { key:'BUS', label:'Pôles bus Dakar (DDD / AFTU)', emoji:'🚏', color:'#3B82F6', plural:'pôles bus', kind:'pôle' }
 };
@@ -833,15 +833,15 @@ function initMap(){
   brtPolyline = L.polyline(BRT_SHAPE, { color: '#00B140', weight: 4.5, opacity: 0.95, lineCap: 'round', lineJoin: 'round' }).addTo(map);
   window.brtPolyline = brtPolyline;
 
-  terCasing = L.polyline(TER_SHAPE, { color: '#047857', weight: 7, opacity: 0.35, lineCap: 'round', lineJoin: 'round' }).addTo(map);
-  terPolyline = L.polyline(TER_SHAPE, { color: '#10B981', weight: 4, opacity: 0.95, dashArray: '8, 6', lineCap: 'round', lineJoin: 'round' }).addTo(map);
+  terCasing = L.polyline(TER_SHAPE, { color: '#008A32', weight: 7, opacity: 0.35, lineCap: 'round', lineJoin: 'round' }).addTo(map);
+  terPolyline = L.polyline(TER_SHAPE, { color: '#00B140', weight: 4, opacity: 0.95, dashArray: '8, 6', lineCap: 'round', lineJoin: 'round' }).addTo(map);
   window.terPolyline = terPolyline;
 
   // INTÉGRITÉ — aucune source temps réel (GTFS-RT / SAE) n'est connectée :
   // aucun vehicule simule n'est cree, une position LIVE serait inventee.
   const fleetRoutes = [
     { name: 'BRT 01', color: '#00B140', coords: BRT_SHAPE },
-    { name: 'TER', color: '#10B981', coords: TER_SHAPE },
+    { name: 'TER', color: '#00B140', coords: TER_SHAPE },
     { name: 'DDD 10', color: '#3B82F6', coords: DDD_SHAPE }
   ];
   window.fleetRoutes = fleetRoutes;
