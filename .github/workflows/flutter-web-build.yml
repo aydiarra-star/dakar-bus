@@ -63,7 +63,7 @@ env:
   BASE_HREF: '/dakar-bus/'
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: flutter-web-build-${{ github.ref }}
@@ -291,15 +291,27 @@ jobs:
           fi
           echo "Aucune modification post-build : l'artefact Pages est exactement la sortie de flutter build web."
 
-      - name: Préparer l'artefact GitHub Pages (aucun déploiement ici)
+      - name: Préparer l'artefact GitHub Pages
         uses: actions/upload-pages-artifact@v3
         with:
           path: flutter-src/build/web
 
+      # Publication LIVE conservatrice : le build Flutter validé est publié tel quel
+      # sur la branche gh-pages existante. Aucun post-traitement de main.dart.js.
+      # Cela évite que main reste validé tandis que le site public conserve un ancien build.
+      - name: Publier le build validé sur GitHub Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ github.token }}
+          publish_branch: gh-pages
+          publish_dir: flutter-src/build/web
+          force_orphan: false
+          commit_message: "deploy: publish validated main build"
+
   deploy-pages:
-    name: "Publication GitHub Pages (manuelle, après validation)"
-    # Ne s'exécute QUE sur déclenchement manuel avec publish_pages=true.
-    # Les pushes et pull requests ne publient jamais.
+    name: "Publication GitHub Pages (workflow manuel explicite)"
+    # Publication de secours via Actions lorsque Pages est configuré en mode workflow.
     if: github.event_name == 'workflow_dispatch' && inputs.publish_pages == true
     needs: build
     runs-on: ubuntu-latest
@@ -316,14 +328,14 @@ jobs:
       cancel-in-progress: false
 
     steps:
-      - name: Vérifier le mode GitHub Pages (doit être « GitHub Actions »)
+      - name: Vérifier le mode GitHub Pages
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           mode="$(gh api "repos/${GITHUB_REPOSITORY}/pages" --jq .build_type)"
           echo "Mode GitHub Pages actuel : ${mode}"
           if [ "${mode}" != "workflow" ]; then
-            echo "::error::GitHub Pages est en mode « ${mode} » (publication depuis la branche gh-pages). Ce workflow ne publie qu'en mode « GitHub Actions » (build_type=workflow) afin de ne pas écraser gh-pages. Changement à VALIDER puis à appliquer : Settings → Pages → Build and deployment → Source → « GitHub Actions » (équivalent : gh api -X PUT repos/${GITHUB_REPOSITORY}/pages -f build_type=workflow). Aucune publication effectuée."
+            echo "::error::GitHub Pages n'est pas en mode workflow. La publication automatique sur gh-pages est utilisée pour le site actuel."
             exit 1
           fi
 
