@@ -1,5 +1,7 @@
 name: Flutter web build (J9)
 
+# POST-MERGE GATE: every change reaching main through this workflow must pass the full reproducible Flutter validation chain before release-ready status.
+
 # ============================================================================
 # J9 — CHAÎNE DE BUILD REPRODUCTIBLE DE DAKAR BUS (projet officiel : Flutter,
 # dossier flutter-src/, version unique = flutter-src/pubspec.yaml)
