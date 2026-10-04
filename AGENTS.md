@@ -176,9 +176,11 @@ npm run validate:data
 
 Mission UI/UX **sans aucune modification de données ni de règle métier**.
 
+**Identité UI 2026 validée** : le vert pur Dakar `#00B140` est la couleur principale de l'interface. Les couleurs propres aux réseaux TER/BRT/DDD/TATA/AFTU restent inchangées.
+
 - **Palette verrouillée par les tests** : ne jamais changer les hex de
-  `AppColors.ter` (#8B4513), `brt` (#22C55E), `beanGreen` (#739047),
-  `beanGreenLight`, `success`, `warning`, ni les littéraux testés
+  `AppColors.ter` (#8B4513), `brt` (#22C55E), `beanGreen` (#00B140),
+  `beanGreenLight` (#DDF5E7), `success`, `warning`, ni les littéraux testés
   (`0xFF00A651` dans `explorer_prochains_passages_test.dart`,
   `service_end_resume_timezone_test.dart`).
 - **Rôles verts (alias, aucune nouvelle teinte)** dans `AppColors` :
