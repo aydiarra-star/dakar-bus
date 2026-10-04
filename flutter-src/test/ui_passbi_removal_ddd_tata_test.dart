@@ -323,7 +323,7 @@ void main() {
           .where((String l) => !l.trimLeft().startsWith('//'))
           .join('\n');
       // Navigation principale : icônes sélectionnées en vert haricot.
-      expect(code.contains('selectedIcon: Icon(Icons.explore, color: AppColors.beanGreen)'),
+      expect(code.contains('selectedIcon: Icon(Icons.explore_rounded, color: AppColors.beanGreen)'),
           isTrue);
       expect(code.contains('indicatorColor: AppColors.beanGreen'), isTrue);
       // Au moins un bouton principal (Assistant IA / Trajets / Signaler).
