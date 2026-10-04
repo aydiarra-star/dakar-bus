@@ -195,7 +195,7 @@ void main() {
         distanceMeters: 0,
         departureMinutesFromMidnight: const <int>[],
         icon: Icons.directions_bus,
-        color: const Color(0xFF00A651),
+        color: const Color(0xFF00B140),
         location: const LatLng(14.74, -17.47),
         modeLabel: 'AFTU',
       );
