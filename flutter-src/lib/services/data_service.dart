@@ -410,9 +410,9 @@ class DataService {
     await Future.delayed(const Duration(milliseconds: 300));
 
     _operators = [
-      Operator(id: 'brt', name: 'SunuBRT', colorHex: '#FFAB00'),
+      Operator(id: 'brt', name: 'SunuBRT', colorHex: '#00B140'),
       Operator(id: 'ter', name: 'TER Dakar', colorHex: '#0052CC'),
-      Operator(id: 'aftu', name: 'AFTU (Tata)', colorHex: '#00875A'),
+      Operator(id: 'aftu', name: 'AFTU (Tata)', colorHex: '#00B140'),
       Operator(id: 'ddd', name: 'Dakar Dem Dikk', colorHex: '#DE350B'),
     ];
 
