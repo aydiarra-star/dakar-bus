@@ -3029,10 +3029,29 @@ class DirectionHelper {
 /// onglet actif, sélection) et non par des surfaces décoratives. Aucun statut,
 /// aucune donnée et aucune règle métier ne dépendent de ce thème.
 ThemeData _buildTheme(bool dark) {
+  // Material 3 dérive sinon des nuances secondaires depuis le seed.
+  // Ces nuances peuvent paraître olive/moutarde sur certains composants.
+  // Verrouillage UI : le vert d'identité visible est TOUJOURS #00B140.
   final ColorScheme scheme = ColorScheme.fromSeed(
     seedColor: AppColors.accent,
     brightness: dark ? Brightness.dark : Brightness.light,
-  ).copyWith(primary: AppColors.accent, secondary: AppColors.accent);
+  ).copyWith(
+    primary: AppColors.accent,
+    onPrimary: Colors.white,
+    primaryContainer: AppColors.accent,
+    onPrimaryContainer: Colors.white,
+    secondary: AppColors.accent,
+    onSecondary: Colors.white,
+    secondaryContainer: AppColors.accent,
+    onSecondaryContainer: Colors.white,
+    tertiary: AppColors.accent,
+    onTertiary: Colors.white,
+    tertiaryContainer: AppColors.accent,
+    onTertiaryContainer: Colors.white,
+    surfaceTint: AppColors.accent,
+    outline: AppColors.divider(dark),
+    outlineVariant: AppColors.divider(dark),
+  );
   final RoundedRectangleBorder actionShape =
       RoundedRectangleBorder(borderRadius: BorderRadius.circular(14));
   return ThemeData(
@@ -3053,7 +3072,7 @@ ThemeData _buildTheme(bool dark) {
       backgroundColor: AppColors.surface(dark),
       surfaceTintColor: Colors.transparent,
       shadowColor: Colors.black.withOpacity(dark ? 0.28 : 0.06),
-      indicatorColor: AppColors.accent.withOpacity(0.16),
+      indicatorColor: AppColors.accent,
       elevation: 0,
       height: 72,
       labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
