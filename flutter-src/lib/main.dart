@@ -3051,11 +3051,16 @@ ThemeData _buildTheme(bool dark) {
     ),
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: AppColors.surface(dark),
-      indicatorColor: AppColors.accent.withOpacity(0.18),
+      surfaceTintColor: Colors.transparent,
+      shadowColor: Colors.black.withOpacity(dark ? 0.28 : 0.06),
+      indicatorColor: AppColors.accent.withOpacity(0.16),
       elevation: 0,
+      height: 72,
+      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       labelTextStyle: WidgetStateProperty.resolveWith((Set<WidgetState> s) =>
           TextStyle(
             fontSize: 11,
+            height: 1.1,
             fontWeight:
                 s.contains(WidgetState.selected) ? FontWeight.w700 : FontWeight.w500,
             color: s.contains(WidgetState.selected)
@@ -3063,10 +3068,34 @@ ThemeData _buildTheme(bool dark) {
                 : AppColors.textSecondary(dark),
           )),
       iconTheme: WidgetStateProperty.resolveWith((Set<WidgetState> s) => IconThemeData(
-          size: 24,
+          size: s.contains(WidgetState.selected) ? 25 : 23,
           color: s.contains(WidgetState.selected)
               ? AppColors.accent
               : AppColors.textSecondary(dark))),
+    ),
+    cardTheme: CardTheme(
+      margin: EdgeInsets.zero,
+      elevation: 0,
+      color: AppColors.surface(dark),
+      surfaceTintColor: Colors.transparent,
+      shadowColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppColors.radiusCard),
+      ),
+    ),
+    chipTheme: ChipThemeData(
+      backgroundColor: AppColors.surface(dark),
+      selectedColor: AppColors.accentSurface,
+      side: BorderSide(color: AppColors.divider(dark)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppColors.radiusPill),
+      ),
+      labelStyle: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textPrimary(dark),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
