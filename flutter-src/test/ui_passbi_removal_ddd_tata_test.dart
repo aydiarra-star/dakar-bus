@@ -304,11 +304,11 @@ void main() {
   // ==================================================================
   // 4. Vert haricot clair homogène
   // ==================================================================
-  group('4 — vert haricot clair', () {
-    test('la teinte haricot clair unifie aussi le vert des départs', () {
-      expect(app.AppColors.beanGreen, const Color(0xFF739047));
-      expect(app.AppColors.beanGreenLight, const Color(0xFF9CBF6B));
-      // Le vert positif des départs est rendu homogène : même teinte haricot.
+  group('4 — identité verte Dakar', () {
+    test('le vert Dakar pur unifie aussi le vert des départs', () {
+      expect(app.AppColors.beanGreen, const Color(0xFF00B140));
+      expect(app.AppColors.beanGreenLight, const Color(0xFFDDF5E7));
+      // Le vert positif des départs reprend l'identité Dakar pure.
       // La RÈGLE horaire (quand ce vert s'affiche) reste inchangée.
       expect(app.AppColors.success, app.AppColors.beanGreen);
       // Les statuts jaune/rouge sont préservés.
