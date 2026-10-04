@@ -22,7 +22,7 @@ publish_to: 'none'
 # définitif orienté action ; tests réalignés sur la source unique TER/BRT
 # (PR #20). La vérification J9 reste une auto-cohérence version.json ←
 # pubspec.yaml : ce champ est la seule source de la version.
-version: 9.3.3+14
+version: 9.3.3+15
 
 environment:
   sdk: '>=3.3.0 <4.0.0'
