@@ -4489,7 +4489,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
 
   Color _colorFor(String label) {
     switch (label) {
-      case '⭐ Favoris': return Colors.amber;
+      case '⭐ Favoris': return AppColors.primary;
       case 'TER': return AppColors.ter;
       case 'BRT': return AppColors.brt;
       case 'DDD': return AppColors.ddd;
@@ -5280,7 +5280,7 @@ class StopCard extends StatelessWidget {
               title: Row(
                 children: [
                   Expanded(child: Text(header, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))),
-                  if (isFav) const Padding(padding: EdgeInsets.only(right: 6), child: Icon(Icons.star, size: 16, color: Colors.amber)),
+                  if (isFav) const Padding(padding: EdgeInsets.only(right: 6), child: Icon(Icons.star, size: 16, color: AppColors.primary)),
                   // Un arrêt natif PassBi (DDD/AFTU) n'a AUCUN rôle d'arrêt
                   // documenté : son `stopType` est un défaut technique
                   // (« INTERM. »), jamais un fait de réseau. Le badge n'est donc
