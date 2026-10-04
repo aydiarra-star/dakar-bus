@@ -356,11 +356,11 @@ class AppColors {
   static const tata = Color(0xFF87CEEB);
   static const ddd = Color(0xFF3B82F6);
 
-  static Color background(bool dark) => dark ? const Color(0xFF121212) : const Color(0xFFF1F8F5);
+  static Color background(bool dark) => dark ? const Color(0xFF121212) : const Color(0xFFF7F7F7);
   static Color surface(bool dark) => dark ? const Color(0xFF1E1E1E) : const Color(0xFFFFFFFF);
   static Color textPrimary(bool dark) => dark ? const Color(0xFFEEEEEE) : const Color(0xFF111111);
   static Color textSecondary(bool dark) => dark ? const Color(0xFFAAAAAA) : const Color(0xFF555555);
-  static Color divider(bool dark) => dark ? const Color(0xFF2C2C2C) : const Color(0xFFD4EDE2);
+  static Color divider(bool dark) => dark ? const Color(0xFF2C2C2C) : const Color(0xFFE5E7EB);
 
   // ────────────────────────────────────────────────────────────
   // RÔLES DE COULEUR VERTE (identité Dakar Bus)
