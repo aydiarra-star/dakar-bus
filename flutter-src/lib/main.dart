@@ -342,13 +342,13 @@ class AppColors {
 
   /// Vert haricot clair — teinte unifiée de l'interface (boutons principaux,
   /// indicateurs, éléments de navigation, mise en avant des départs au statut
-  /// positif). Teinte « haricot vert » documentée (#739047) : contraste ≈ 3,6:1
+  /// positif). Identité Dakar verte pure (#00B140) : contraste ≈ 3,6:1
   /// en texte blanc et ≈ 5,8:1 en texte noir, équilibré pour les deux fonds.
   ///
   /// [primary] (le vert historique) est conservé pour la carte, le GPS et la
   /// palette des réseaux.
-  static const beanGreen = Color(0xFF739047);
-  static const beanGreenLight = Color(0xFF9CBF6B);
+  static const beanGreen = primary;
+  static const beanGreenLight = Color(0xFFDDF5E7);
 
   static const ter = Color(0xFF8B4513);
   static const brt = Color(0xFF22C55E);
