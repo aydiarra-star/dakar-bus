@@ -5901,6 +5901,72 @@ class AlertsPage extends StatelessWidget {
                 Text('Niveau de vérification indiqué sur chaque carte (sources : SETER, SunuBRT, CETUD).', style: TextStyle(fontSize: 13, color: AppColors.textSecondary(dark))),
                 const SizedBox(height: 20),
                 ...officialAlerts.map((alert) => _buildAlertCard(context, alert, dark)),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface(dark),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.divider(dark)),
+                    boxShadow: AppColors.cardShadow(dark),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.09),
+                          borderRadius: BorderRadius.circular(13),
+                        ),
+                        child: const Icon(
+                          Icons.people_alt_outlined,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Direct rue & communauté',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.textPrimary(dark),
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              'Consulter ou ajouter un signalement local. Les contributions sont clairement marquées comme non vérifiées.',
+                              style: TextStyle(
+                                fontSize: 12,
+                                height: 1.35,
+                                color: AppColors.textSecondary(dark),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        tooltip: 'Ouvrir',
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const CommunityAlertsPage(),
+                          ),
+                        ),
+                        icon: const Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          size: 16,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
