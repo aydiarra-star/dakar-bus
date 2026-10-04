@@ -3087,9 +3087,6 @@ ThemeData _buildTheme(bool dark) {
               onInverseSurface: Colors.black,
               inversePrimary: AppColors.accent,
               surfaceTint: Colors.transparent,
-              background: AppColors.background(true),
-              onBackground: AppColors.textPrimary(true),
-              surfaceVariant: const Color(0xFF333333),
             )
           : ColorScheme.light(
               primary: AppColors.accent,
@@ -3138,9 +3135,6 @@ ThemeData _buildTheme(bool dark) {
               onInverseSurface: Colors.white,
               inversePrimary: AppColors.accent,
               surfaceTint: Colors.transparent,
-              background: AppColors.background(false),
-              onBackground: AppColors.textPrimary(false),
-              surfaceVariant: const Color(0xFFE8E8E8),
             ));
   final RoundedRectangleBorder actionShape =
       RoundedRectangleBorder(borderRadius: BorderRadius.circular(14));
