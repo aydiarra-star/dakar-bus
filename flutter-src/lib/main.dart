@@ -351,7 +351,7 @@ class AppColors {
   static const beanGreenLight = Color(0xFFDDF5E7);
 
   static const ter = Color(0xFF8B4513);
-  static const brt = Color(0xFF22C55E);
+  static const brt = primary;
   static const aftu = Color(0xFFFF8C42);
   static const tata = Color(0xFF87CEEB);
   static const ddd = Color(0xFF3B82F6);
