@@ -6644,7 +6644,7 @@ class SettingsPage extends StatelessWidget {
                       onTap: () => _showInfoModal(
                         context,
                         'Dakar Bus',
-                        'Dakar Bus est conçu comme un assistant mobilité pour explorer les réseaux de transport de Dakar, préparer un déplacement et mieux comprendre la fiabilité des informations affichées.\n\nLe produit privilégie une interface claire, rapide et utile : Explorer pour les arrêts et passages, Trajet pour préparer un déplacement, Alertes pour les informations de service, Paramètres pour les préférences et le cadre du service.\n\nLe produit ne présente pas de prix de transport et ne revendique pas un temps réel lorsqu’aucune donnée temps réel n’est disponible.',
+                        'Dakar Bus est conçu comme un assistant mobilité pour explorer les réseaux de transport de Dakar, préparer un déplacement et mieux comprendre la fiabilité des informations affichées.\n\nLe produit privilégie une interface claire, rapide et utile : Explorer pour les arrêts et passages, Trajet pour préparer un déplacement, Alertes pour les informations de service, Paramètres pour les préférences et le cadre du service.\n\nLe produit n’affiche pas les tarifs de transport et ne revendique pas un temps réel lorsqu’aucune donnée temps réel n’est disponible.',
                       ),
                     ),
                     Divider(height: 1, color: AppColors.divider(dark)),
