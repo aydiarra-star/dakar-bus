@@ -28,6 +28,11 @@ void main() {
       '#827717',
       '0xFF6B8E23',
       '#6B8E23',
+      '0xFF22C55E',
+      '#22C55E',
+      '#10B981',
+      '#047857',
+      '#065F46',
     ];
 
     final runtimeFiles = runtimeDir
