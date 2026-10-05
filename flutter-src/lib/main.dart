@@ -7376,7 +7376,7 @@ class _DualStopDetailPageState extends State<DualStopDetailPage> {
   late final String? _primaryHeading = _dominantHeading();
 
   String? _dominantHeading() {
-    final List<DepartureInfo> deps = _stop.nextRealDepartures(at: _now, limit: 12);
+    final List<DepartureInfo> deps = _stop.nextRealDepartures(at: _now, limit: 120);
     final Map<String, int> counts = <String, int>{};
     for (final DepartureInfo d in deps) {
       final String? h = d.direction;
@@ -7524,13 +7524,20 @@ class SingleStopView extends StatelessWidget {
         // prochain stop_time peut relever du service de nuit du lendemain : il
         // est alors exclu de l'affichage « X min ». Tant que le réseau roule
         // (`active`), le prochain départ réel documenté est affiché.
-        final List<int> ficheWaits = ficheServiceEnded
-            ? const <int>[]
+        final List<DepartureInfo> ficheDepartures = ficheServiceEnded
+            ? const <DepartureInfo>[]
             : (returnDirectionFilter == null
-                ? stop.nextRealWaitingMinutes(
-                    at: now, horizon: ficheAvailability?.displayHorizonAt)
-                : stop.nextRealWaitingMinutesToward(returnDirectionFilter!,
-                    at: now, horizon: ficheAvailability?.displayHorizonAt));
+                ? stop.nextRealDepartures(
+                    at: now, limit: 3, horizon: ficheAvailability?.displayHorizonAt)
+                : stop.realDeparturesWhere(
+                    (DepartureInfo d) => returnDirectionFilter!(d.direction),
+                    at: now,
+                    limit: 3,
+                    horizon: ficheAvailability?.displayHorizonAt));
+        final List<int> ficheWaits = ficheDepartures
+            .map((DepartureInfo d) => d.minutesUntil(now))
+            .whereType<int>()
+            .toList(growable: false);
         final bool ficheHasWaits = ficheWaits.isNotEmpty;
         final String? ficheServiceNotice = ficheHasWaits
             ? null
@@ -7598,7 +7605,27 @@ class SingleStopView extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Prochain départ programmé', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
+                            Text('Prochains passages programmés', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
+                            const SizedBox(height: 2),
+                            if (ficheDepartures.isNotEmpty)
+                              ...ficheDepartures.map((DepartureInfo departure) {
+                                final DateTime? scheduled = departure.scheduledTime;
+                                final String? remaining = departure.computedRemainingLabel;
+                                final String? clock = scheduled == null
+                                    ? null
+                                    : scheduled.hour.toString().padLeft(2, '0') + ':' +
+                                        scheduled.minute.toString().padLeft(2, '0');
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 4),
+                                  child: Text(
+                                    [
+                                      if (clock != null) clock,
+                                      if (remaining != null) remaining,
+                                    ].join(' · '),
+                                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.success),
+                                  ),
+                                );
+                              }),
                             const SizedBox(height: 2),
                             // FUSION LOT 1 (#40) × LOT 4.22 (#39) — « X min »
                             // en vert dès qu'un passage RÉEL (trip + stop_time)
