@@ -7388,7 +7388,7 @@ class _DualStopDetailPageState extends State<DualStopDetailPage> {
     final List<DepartureInfo> deps = _stop.nextRealDepartures(at: _now, limit: 120);
     final Map<String, int> counts = <String, int>{};
     for (final DepartureInfo d in deps) {
-      final String? h = d.direction;
+      final String? h = d.directionKey;
       if (h == null || h.isEmpty) continue;
       counts[h] = (counts[h] ?? 0) + 1;
     }
@@ -7413,7 +7413,7 @@ class _DualStopDetailPageState extends State<DualStopDetailPage> {
     return (DepartureInfo d) => d.directionKey != null && d.directionKey != h;
   }
 
-  bool _hasRealDepartures(bool Function(String? direction)? filter) {
+  bool _hasRealDepartures(bool Function(DepartureInfo)? filter) {
     if (filter == null) {
       return _stop.nextRealDepartures(at: _now, limit: 1).isNotEmpty;
     }
