@@ -275,7 +275,7 @@ void main() {
           AppColors.brt);
       // Les constantes de l'interface coïncident avec les colorHex du JSON.
       expect(AppColors.ter, const Color(0xFF8B4513));
-      expect(AppColors.brt, const Color(0xFF22C55E));
+      expect(AppColors.brt, const Color(0xFF00B140));
     });
   });
 
