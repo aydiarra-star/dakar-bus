@@ -33,6 +33,10 @@ void main() {
       '#10B981',
       '#047857',
       '#065F46',
+      '0xFFF7F7F7',
+      '#F7F7F7',
+      '#F6F7F5',
+      '#f6f7f5',
     ];
 
     final runtimeFiles = runtimeDir
