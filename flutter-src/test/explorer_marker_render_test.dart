@@ -444,8 +444,10 @@ void main() {
     expect(renderedTotal(tester), greaterThanOrEqualTo(35));
 
     // Le marqueur de position utilisateur est présent en plus des arrêts.
-    expect(renderedByColor(tester, AppColors.primary), 1,
-        reason: 'le marqueur de position utilisateur reste affiché');
+    // GPS et BRT partagent volontairement la même identité #00B140 :
+    // le comptage par couleur voit donc les 23 BRT + le marqueur GPS.
+    expect(renderedByColor(tester, AppColors.primary), 24,
+        reason: '23 BRT + 1 marqueur GPS en Dakar Green #00B140');
   });
 
   // ===========================================================================
