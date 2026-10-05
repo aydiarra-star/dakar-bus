@@ -1,6 +1,7 @@
 name: Flutter web build (J9)
 
-# POST-MERGE GATE: every change reaching main through this workflow must pass the full reproducible Flutter validation chain before release-ready status.
+# POST-MERGE GATE: every change reaching main must pass the full reproducible Flutter validation chain before release-ready status.
+# PALETTE GATE: the deployed runtime must keep Dakar Green #00B140 and neutral surfaces.
 
 # ============================================================================
 # J9 — CHAÎNE DE BUILD REPRODUCTIBLE DE DAKAR BUS (projet officiel : Flutter,
