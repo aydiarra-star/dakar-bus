@@ -1128,6 +1128,15 @@ class Stop {
     return base.where(keep).take(limit).toList(growable: false);
   }
 
+  /// Variante explicite pour les écrans qui doivent filtrer sur toute la
+  /// réponse de départ, notamment directionKey (headsign réel ou direction_id
+  /// GTFS réel lorsqu'aucun headsign n'est publié).
+  List<DepartureInfo> realDeparturesWhereInfo(
+      bool Function(DepartureInfo) keep,
+      {DateTime? at, int limit = 3, DateTime? horizon}) {
+    return realDeparturesWhere(keep, at: at, limit: limit, horizon: horizon);
+  }
+
   /// PRÉSENTATION — Minutes d'attente des prochains passages RÉELS satisfaisant
   /// [keep]. Mêmes règles que [nextRealWaitingMinutes] (ceil, jamais 0, jamais
   /// un départ passé) ; liste vide si aucun passage réel ne satisfait [keep].
@@ -7376,10 +7385,10 @@ class _DualStopDetailPageState extends State<DualStopDetailPage> {
   late final String? _primaryHeading = _dominantHeading();
 
   String? _dominantHeading() {
-    final List<DepartureInfo> deps = _stop.nextRealDepartures(at: _now, limit: 12);
+    final List<DepartureInfo> deps = _stop.nextRealDepartures(at: _now, limit: 120);
     final Map<String, int> counts = <String, int>{};
     for (final DepartureInfo d in deps) {
-      final String? h = d.direction;
+      final String? h = d.directionKey;
       if (h == null || h.isEmpty) continue;
       counts[h] = (counts[h] ?? 0) + 1;
     }
@@ -7392,25 +7401,24 @@ class _DualStopDetailPageState extends State<DualStopDetailPage> {
   /// Sens ALLER = sens dominant réel. Sens RETOUR = tout AUTRE sens
   /// réellement desservi à cet arrêt. Aucun libellé n'est inversé, aucun départ
   /// n'est fabriqué : chaque onglet lit les `trips` réels du feed de son sens.
-  bool Function(String? direction)? get _allerFilter {
+  bool Function(DepartureInfo)? get _allerFilter {
     final String? h = _primaryHeading;
     if (h == null) return null;
-    return (String? d) => d != null && d == h;
+    return (DepartureInfo d) => d.directionKey != null && d.directionKey == h;
   }
 
-  bool Function(String? direction)? get _retourFilter {
+  bool Function(DepartureInfo)? get _retourFilter {
     final String? h = _primaryHeading;
     if (h == null) return null;
-    return (String? d) => d != null && d != h;
+    return (DepartureInfo d) => d.directionKey != null && d.directionKey != h;
   }
 
-  bool _hasRealDepartures(bool Function(String? direction)? filter) {
+  bool _hasRealDepartures(bool Function(DepartureInfo)? filter) {
     if (filter == null) {
       return _stop.nextRealDepartures(at: _now, limit: 1).isNotEmpty;
     }
     return _stop
-        .realDeparturesWhere((DepartureInfo d) => filter(d.direction),
-            at: _now, limit: 1)
+        .realDeparturesWhereInfo(filter, at: _now, limit: 1)
         .isNotEmpty;
   }
 
@@ -7484,7 +7492,7 @@ class SingleStopView extends StatelessWidget {
   /// (comportement historique). Utilisé par l'onglet « Sens Retour » : les
   /// horaires sont ceux du SENS opposé réellement desservi, jamais l'inversion
   /// du sens aller.
-  final bool Function(String? direction)? returnDirectionFilter;
+  final bool Function(DepartureInfo)? returnDirectionFilter;
 
   /// Instant de référence optionnel (heure de Dakar) pour les prochains départs
   /// réels. Par défaut : l'heure courante ([DakarClock.now]). Sert aux rendus
@@ -7524,13 +7532,20 @@ class SingleStopView extends StatelessWidget {
         // prochain stop_time peut relever du service de nuit du lendemain : il
         // est alors exclu de l'affichage « X min ». Tant que le réseau roule
         // (`active`), le prochain départ réel documenté est affiché.
-        final List<int> ficheWaits = ficheServiceEnded
-            ? const <int>[]
+        final List<DepartureInfo> ficheDepartures = ficheServiceEnded
+            ? const <DepartureInfo>[]
             : (returnDirectionFilter == null
-                ? stop.nextRealWaitingMinutes(
-                    at: now, horizon: ficheAvailability?.displayHorizonAt)
-                : stop.nextRealWaitingMinutesToward(returnDirectionFilter!,
-                    at: now, horizon: ficheAvailability?.displayHorizonAt));
+                ? stop.nextRealDepartures(
+                    at: now, limit: 3, horizon: ficheAvailability?.displayHorizonAt)
+                : stop.realDeparturesWhereInfo(
+                    returnDirectionFilter!,
+                    at: now,
+                    limit: 3,
+                    horizon: ficheAvailability?.displayHorizonAt));
+        final List<int> ficheWaits = ficheDepartures
+            .map((DepartureInfo d) => d.minutesUntil(now))
+            .whereType<int>()
+            .toList(growable: false);
         final bool ficheHasWaits = ficheWaits.isNotEmpty;
         final String? ficheServiceNotice = ficheHasWaits
             ? null
@@ -7598,7 +7613,27 @@ class SingleStopView extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Prochain départ programmé', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
+                            Text('Prochains passages programmés', style: TextStyle(fontSize: 11, color: AppColors.textSecondary(dark))),
+                            const SizedBox(height: 2),
+                            if (ficheDepartures.isNotEmpty)
+                              ...ficheDepartures.map((DepartureInfo departure) {
+                                final DateTime? scheduled = departure.scheduledTime;
+                                final String? remaining = departure.computedRemainingLabel;
+                                final String? clock = scheduled == null
+                                    ? null
+                                    : scheduled.hour.toString().padLeft(2, '0') + ':' +
+                                        scheduled.minute.toString().padLeft(2, '0');
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 4),
+                                  child: Text(
+                                    [
+                                      if (clock != null) clock,
+                                      if (remaining != null) remaining,
+                                    ].join(' · '),
+                                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.success),
+                                  ),
+                                );
+                              }),
                             const SizedBox(height: 2),
                             // FUSION LOT 1 (#40) × LOT 4.22 (#39) — « X min »
                             // en vert dès qu'un passage RÉEL (trip + stop_time)

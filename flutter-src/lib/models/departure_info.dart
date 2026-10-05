@@ -168,6 +168,15 @@ class DepartureInfo {
   final String? operatingHours;
   final String? direction;
 
+  /// Identifiant de sens GTFS réel. Clé technique uniquement lorsque le feed
+  /// ne publie pas de trip_headsign ; jamais affiché comme destination.
+  final String? directionId;
+
+  /// Headign réel si publié, sinon direction_id GTFS réel.
+  String? get directionKey => direction?.isNotEmpty == true
+      ? direction
+      : (directionId == null ? null : 'GTFS:$directionId');
+
   /// Lot 4.21 §3 — identité publique de la ligne, DISTINCTE de [status].
   /// `unconfirmed` n'empêche pas un horaire `scheduled` calculable.
   final IdentityStatus identityStatus;
@@ -204,6 +213,7 @@ class DepartureInfo {
     required this.frequencyMinutes,
     required this.operatingHours,
     required this.direction,
+    this.directionId,
     this.identityStatus = IdentityStatus.unconfirmed,
     this.identityNote,
     this.lineLabel,
@@ -230,6 +240,7 @@ class DepartureInfo {
         frequencyMinutes: frequencyMinutes,
         operatingHours: operatingHours,
         direction: direction,
+        directionId: directionId,
         identityStatus: identityStatus,
         identityNote: identityNote,
         lineLabel: lineLabel,
