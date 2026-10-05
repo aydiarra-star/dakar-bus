@@ -98,7 +98,7 @@
     {
       "id": "brt",
       "name": "SunuBRT",
-      "color": "#22C55E",
+      "color": "#00B140",
       "official_line_count": 3,
       "official_line_count_note": "B1 (omnibus), B2 et B3 (semi-express) en service ; B4 express annoncée « Prochainement » (FUTURE). Le jeu de données expose B1 et B2 ; B3 n’est pas exposée.",
       "official_line_count_source": "SunuBRT",
