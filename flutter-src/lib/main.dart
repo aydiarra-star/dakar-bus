@@ -984,7 +984,7 @@ class DetailedRoute {
   /// l'identique (§21) : ce sont les constantes `AppColors` déjà employées par
   /// `_integrateNetworkData`, et non les `colorHex` du JSON. Les deux
   /// coïncident d'ailleurs pour les deux modes structurants : TER #8B4513 =
-  /// `AppColors.ter` (0xFF8B4513), BRT #22C55E = `AppColors.brt` (0xFF22C55E).
+  /// `AppColors.ter` reste l'identité TER documentée ; BRT utilise `AppColors.brt` et l'identité Dakar pure.
   static Color _colorForOperatorId(String operatorId) {
     switch (operatorId) {
       case 'ter':
