@@ -105,6 +105,34 @@ void main() {
     }
   });
 
+  test('toutes les directions GTFS réelles restent accessibles, headsign ou direction_id', () {
+    final List<app.Stop> candidates = app.allStops
+        .where((app.Stop s) =>
+            s.nextRealDepartures(at: refAt, limit: 120)
+                .map((d) => d.directionKey)
+                .whereType<String>()
+                .toSet()
+                .length >= 2)
+        .toList(growable: false);
+    expect(candidates, isNotEmpty,
+        reason: 'Le référentiel actif doit contenir des arrêts desservis dans les deux sens.');
+
+    for (final app.Stop s in candidates.take(20)) {
+      final deps = s.nextRealDepartures(at: refAt, limit: 120);
+      final keys = deps.map((d) => d.directionKey).whereType<String>().toSet();
+      expect(keys.length, greaterThanOrEqualTo(2));
+      for (final key in keys) {
+        final filtered = s.realDeparturesWhereInfo(
+          (d) => d.directionKey == key,
+          at: refAt,
+          limit: 3,
+        );
+        expect(filtered, isNotEmpty);
+        expect(filtered.every((d) => d.scheduledTime != null), isTrue);
+      }
+    }
+  });
+
   testWidgets('TER Gare Dakar : les DEUX onglets affichent des horaires réels',
       (WidgetTester tester) async {
     await tester.pumpWidget(
