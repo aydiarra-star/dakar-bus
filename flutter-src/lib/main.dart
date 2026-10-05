@@ -334,7 +334,7 @@ class OppositeStopService {
 //         affiche « Horaire indisponible » (voir [ReliabilityLabel]).
 
 // ============================================================
-// PALETTE OFFICIELLE DES TRANSPORTS & THEME MANAGER
+// PALETTE OFFICIELLE DAKAR GREEN #00B140 & THEME MANAGER
 // ============================================================
 class AppColors {
   static const primary = Color(0xFF00B140);
