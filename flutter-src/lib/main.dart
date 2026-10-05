@@ -356,7 +356,7 @@ class AppColors {
   static const tata = Color(0xFF87CEEB);
   static const ddd = Color(0xFF3B82F6);
 
-  static Color background(bool dark) => dark ? const Color(0xFF121212) : const Color(0xFFF7F7F7);
+  static Color background(bool dark) => dark ? const Color(0xFF0A0A0B) : const Color(0xFFFAFAFA);
   static Color surface(bool dark) => dark ? const Color(0xFF1E1E1E) : const Color(0xFFFFFFFF);
   static Color textPrimary(bool dark) => dark ? const Color(0xFFEEEEEE) : const Color(0xFF111111);
   static Color textSecondary(bool dark) => dark ? const Color(0xFFAAAAAA) : const Color(0xFF555555);
