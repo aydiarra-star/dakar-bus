@@ -1128,6 +1128,15 @@ class Stop {
     return base.where(keep).take(limit).toList(growable: false);
   }
 
+  /// Variante explicite pour les écrans qui doivent filtrer sur toute la
+  /// réponse de départ, notamment directionKey (headsign réel ou direction_id
+  /// GTFS réel lorsqu'aucun headsign n'est publié).
+  List<DepartureInfo> realDeparturesWhereInfo(
+      bool Function(DepartureInfo) keep,
+      {DateTime? at, int limit = 3, DateTime? horizon}) {
+    return realDeparturesWhere(keep, at: at, limit: limit, horizon: horizon);
+  }
+
   /// PRÉSENTATION — Minutes d'attente des prochains passages RÉELS satisfaisant
   /// [keep]. Mêmes règles que [nextRealWaitingMinutes] (ceil, jamais 0, jamais
   /// un départ passé) ; liste vide si aucun passage réel ne satisfait [keep].
@@ -7392,16 +7401,16 @@ class _DualStopDetailPageState extends State<DualStopDetailPage> {
   /// Sens ALLER = sens dominant réel. Sens RETOUR = tout AUTRE sens
   /// réellement desservi à cet arrêt. Aucun libellé n'est inversé, aucun départ
   /// n'est fabriqué : chaque onglet lit les `trips` réels du feed de son sens.
-  bool Function(String? direction)? get _allerFilter {
+  bool Function(DepartureInfo)? get _allerFilter {
     final String? h = _primaryHeading;
     if (h == null) return null;
-    return (String? d) => d != null && d == h;
+    return (DepartureInfo d) => d.directionKey != null && d.directionKey == h;
   }
 
-  bool Function(String? direction)? get _retourFilter {
+  bool Function(DepartureInfo)? get _retourFilter {
     final String? h = _primaryHeading;
     if (h == null) return null;
-    return (String? d) => d != null && d != h;
+    return (DepartureInfo d) => d.directionKey != null && d.directionKey != h;
   }
 
   bool _hasRealDepartures(bool Function(String? direction)? filter) {
@@ -7409,8 +7418,7 @@ class _DualStopDetailPageState extends State<DualStopDetailPage> {
       return _stop.nextRealDepartures(at: _now, limit: 1).isNotEmpty;
     }
     return _stop
-        .realDeparturesWhere((DepartureInfo d) => filter(d.direction),
-            at: _now, limit: 1)
+        .realDeparturesWhereInfo(filter, at: _now, limit: 1)
         .isNotEmpty;
   }
 
@@ -7484,7 +7492,7 @@ class SingleStopView extends StatelessWidget {
   /// (comportement historique). Utilisé par l'onglet « Sens Retour » : les
   /// horaires sont ceux du SENS opposé réellement desservi, jamais l'inversion
   /// du sens aller.
-  final bool Function(String? direction)? returnDirectionFilter;
+  final bool Function(DepartureInfo)? returnDirectionFilter;
 
   /// Instant de référence optionnel (heure de Dakar) pour les prochains départs
   /// réels. Par défaut : l'heure courante ([DakarClock.now]). Sert aux rendus
@@ -7529,8 +7537,8 @@ class SingleStopView extends StatelessWidget {
             : (returnDirectionFilter == null
                 ? stop.nextRealDepartures(
                     at: now, limit: 3, horizon: ficheAvailability?.displayHorizonAt)
-                : stop.realDeparturesWhere(
-                    (DepartureInfo d) => returnDirectionFilter!(d.direction),
+                : stop.realDeparturesWhereInfo(
+                    returnDirectionFilter!,
                     at: now,
                     limit: 3,
                     horizon: ficheAvailability?.displayHorizonAt));
