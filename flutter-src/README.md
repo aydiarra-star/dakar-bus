@@ -33,7 +33,7 @@ Plateforme d’assistance aux transports urbains et de calcul d’itinéraires m
 | Opérateur | Lignes | Exemples |
 |-----------|--------|----------|
 | **TER** (SETER #8B4513) | 1 ligne • 12 gares • 35 km | Dakar → Colobane → Hann → Pikine → Thiaroye → Yeumbeul → Keur Massar → Diamniadio |
-| **BRT** (SunuBRT #22C55E) | 2 lignes | **B1** Guédiawaye ↔ Petersen (12 arrêts) • **B2 Express** 6 arrêts |
+| **BRT** (SunuBRT #00B140) | 2 lignes | **B1** Guédiawaye ↔ Petersen (12 arrêts) • **B2 Express** 6 arrêts |
 | **DDD** (Dem Dikk #3B82F6) | 12 lignes | 1,3,7,8,9,10,11,12,14,15,20,23 — Colobane↔Yoff, Sandaga↔Ouakam, Petersen↔Rufisque… |
 | **AFTU** (#FF8C42) | 72 lignes complètes | 1→72 — Toutes les lignes officielles AFTU (Parcelles, Guédiawaye, Keur Massar, Yoff, Thiaroye, Médina, Ouakam, Almadies…) |
 | **Tata** (#87CEEB) | 5 lignes | 50,64,78,218,219 |
