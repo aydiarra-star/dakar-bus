@@ -143,6 +143,7 @@ class ScheduleProvider {
       frequencyMinutes: null,
       operatingHours: null,
       direction: _tripDirection(net, best.tripId),
+      directionId: _tripDirectionId(net, best.tripId),
       // Lot 4.21 §3 : le crosswalk a confirmé cette identité publique.
       identityStatus: IdentityStatus.confirmed,
       identityNote: 'Identité publique confirmée par le référentiel documenté.',
@@ -432,6 +433,16 @@ class ScheduleProvider {
         if (t.headsign.isNotEmpty) return t.headsign;
         return null;
       }
+    }
+    return null;
+  }
+
+  /// Identifiant de sens GTFS réel. Il reste une clé technique de séparation
+  /// lorsque le feed ne publie pas de headsign ; il n'est jamais affiché comme
+  /// une destination (« vers 0 »/« vers 1 » interdit).
+  static String? _tripDirectionId(GtfsNetwork net, String tripId) {
+    for (final t in net.trips) {
+      if (t.id == tripId) return t.direction;
     }
     return null;
   }
