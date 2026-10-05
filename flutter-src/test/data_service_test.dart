@@ -19,9 +19,9 @@ void main() {
 
   group('TransportNetwork JSON', () {
     test('Operator fromJson', () {
-      final op = Operator.fromJson({"id": "brt", "name": "SunuBRT", "color": "#22C55E"});
+      final op = Operator.fromJson({"id": "brt", "name": "SunuBRT", "color": "#00B140"});
       expect(op.id, 'brt');
-      expect(op.colorHex, '#22C55E');
+      expect(op.colorHex, '#00B140');
     });
     test('BusStop fromJson', () {
       final stop = BusStop.fromJson({
