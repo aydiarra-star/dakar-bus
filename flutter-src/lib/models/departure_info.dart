@@ -213,6 +213,7 @@ class DepartureInfo {
     required this.frequencyMinutes,
     required this.operatingHours,
     required this.direction,
+    this.directionId,
     this.identityStatus = IdentityStatus.unconfirmed,
     this.identityNote,
     this.lineLabel,
