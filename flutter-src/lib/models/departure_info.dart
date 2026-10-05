@@ -168,6 +168,16 @@ class DepartureInfo {
   final String? operatingHours;
   final String? direction;
 
+  /// Identifiant de sens GTFS réel. Utilisé uniquement comme clé technique
+  /// lorsque le feed ne publie aucun `trip_headsign`; jamais affiché comme destination.
+  final String? directionId;
+
+  /// Clé de séparation Aller/Retour : headsign réel si disponible, sinon
+  /// direction_id GTFS réel. Aucun sens n'est déduit ou fabriqué.
+  String? get directionKey => direction?.isNotEmpty == true
+      ? direction
+      : (directionId == null ? null : 'GTFS:$directionId');
+
   /// Lot 4.21 §3 — identité publique de la ligne, DISTINCTE de [status].
   /// `unconfirmed` n'empêche pas un horaire `scheduled` calculable.
   final IdentityStatus identityStatus;
@@ -204,6 +214,7 @@ class DepartureInfo {
     required this.frequencyMinutes,
     required this.operatingHours,
     required this.direction,
+    this.directionId,
     this.identityStatus = IdentityStatus.unconfirmed,
     this.identityNote,
     this.lineLabel,
@@ -230,6 +241,7 @@ class DepartureInfo {
         frequencyMinutes: frequencyMinutes,
         operatingHours: operatingHours,
         direction: direction,
+        directionId: directionId,
         identityStatus: identityStatus,
         identityNote: identityNote,
         lineLabel: lineLabel,
@@ -264,6 +276,7 @@ class DepartureInfo {
         // applicable au jour/à l'heure demandés (ex. B2 le dimanche).
         operatingHours: null,
         direction: null,
+        directionId: null,
         identityStatus: identityStatus,
         identityNote: identityNote,
         unresolvedReason: unresolvedReason,
@@ -372,6 +385,7 @@ class DepartureInfo {
         frequencyMinutes: null,
         operatingHours: null,
         direction: direction,
+        directionId: null,
       );
 
   /// Libellé « X min » du temps restant réellement calculable.
@@ -407,6 +421,7 @@ class DepartureInfo {
         frequencyMinutes: window.frequencyMinutes,
         operatingHours: window.operatingHours,
         direction: window.direction,
+        directionId: null,
         // Les sources de fréquence publiées du projet (SETER, SunuBRT) portent
         // une identité publique officielle : CONFIRMED (Lot 4.21 §3).
         identityStatus: IdentityStatus.confirmed,
