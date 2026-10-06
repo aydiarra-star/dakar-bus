@@ -541,6 +541,7 @@ class GtfsNetwork {
         if (st.departureSec < minOfDay) continue;
         final trip = trips[st.tripIndex];
         if (!routeIndexes.contains(trip.routeIndex)) continue;
+        if (onlyDirectionId != null && trip.direction != onlyDirectionId) continue;
         if (!serviceActiveOn(trip.serviceIndex, day)) continue;
         if (!_tripContinuesPast(st)) continue;
         return (
