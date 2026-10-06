@@ -524,6 +524,7 @@ class GtfsNetwork {
     required Set<int> routeIndexes,
     required int stopIndex,
     required DateTime at,
+    String? onlyDirectionId,
   }) {
     if (routeIndexes.isEmpty) return null;
     final list = stopTimesByStop[stopIndex];
