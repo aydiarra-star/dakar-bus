@@ -4764,7 +4764,7 @@ class _PublicLineDetailPageState extends State<PublicLineDetailPage> {
 
   Widget _kv(String k, String v, bool dark) => Padding(padding: const EdgeInsets.symmetric(vertical: 2), child: RichText(text: TextSpan(style: TextStyle(fontSize: 12, color: AppColors.textPrimary(dark)), children: [
     TextSpan(text: '$k : ', style: TextStyle(color: AppColors.textSecondary(dark))), TextSpan(text: v, style: const TextStyle(fontWeight: FontWeight.w600)),
-  ]));
+  ])));
 
   Widget _section(String title, bool dark, Widget child) => Container(width: double.infinity, padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider(dark))), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
     Text(title, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))), const SizedBox(height: 8), child,
