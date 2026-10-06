@@ -350,11 +350,14 @@ class AppColors {
   static const beanGreen = primary;
   static const beanGreenLight = Color(0xFFDDF5E7);
 
-  static const ter = Color(0xFF8B4513);
+  // Identité visuelle unique : tous les réseaux restent dans le vert Dakar Bus.
+  // La distinction métier repose sur les libellés/icônes, jamais sur une
+  // palette concurrente. Les couleurs warning/error restent sémantiques.
+  static const ter = primary;
   static const brt = primary;
-  static const aftu = Color(0xFFFF8C42);
-  static const tata = Color(0xFF87CEEB);
-  static const ddd = Color(0xFF3B82F6);
+  static const aftu = primary;
+  static const tata = primary;
+  static const ddd = primary;
 
   static Color background(bool dark) => dark ? const Color(0xFF0A0A0B) : const Color(0xFFFAFAFA);
   static Color surface(bool dark) => dark ? const Color(0xFF1E1E1E) : const Color(0xFFFFFFFF);
