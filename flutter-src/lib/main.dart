@@ -4689,7 +4689,7 @@ class _PublicLineDetailPageState extends State<PublicLineDetailPage> {
       final dark = globalState.darkMode;
       final color = line.operator == 'DDD' ? AppColors.ddd : AppColors.aftu;
       final seq = _selectedSequence;
-      final departures = _nextDepartures(DateTime.now().toUtc());
+      final departures = _nextDepartures(DakarClock.now());
       final hasTwoDirections = _directions.length >= 2;
       return Scaffold(
         backgroundColor: AppColors.background(dark),
