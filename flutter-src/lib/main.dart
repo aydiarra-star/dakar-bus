@@ -7502,8 +7502,7 @@ class SingleStopView extends StatelessWidget {
                                 final String? remaining = departure.computedRemainingLabel;
                                 final String? clock = scheduled == null
                                     ? null
-                                    : scheduled.hour.toString().padLeft(2, '0') + ':' +
-                                        scheduled.minute.toString().padLeft(2, '0');
+                                    : '${scheduled.hour.toString().padLeft(2, '0')}:${scheduled.minute.toString().padLeft(2, '0')}';
                                 return Padding(
                                   padding: const EdgeInsets.only(bottom: 4),
                                   child: Text(
