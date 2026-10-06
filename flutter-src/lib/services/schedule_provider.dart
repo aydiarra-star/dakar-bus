@@ -224,6 +224,7 @@ class ScheduleProvider {
     required String pbStopId,
     required DateTime requestedAt,
     String? pbRouteId,
+    String? directionId,
     bool isPublicHoliday = false,
   }) {
     final net = passBi.network(networkKey);
@@ -247,6 +248,7 @@ class ScheduleProvider {
       pbStopId: pbStopId,
       at: t,
       onlyRouteId: pbRouteId,
+      onlyDirectionId: directionId,
     );
 
     if (found == null) {
@@ -352,6 +354,7 @@ class ScheduleProvider {
     required String pbStopId,
     required DateTime requestedAt,
     String? pbRouteId,
+    String? directionId,
     int limit = 3,
   }) {
     final out = <DepartureInfo>[];
@@ -365,6 +368,7 @@ class ScheduleProvider {
         pbStopId: pbStopId,
         requestedAt: cursor,
         pbRouteId: pbRouteId,
+        directionId: directionId,
       );
       if (info.status != ScheduleStatus.scheduled) break;
       final DateTime? departureTime = info.scheduledTime;
