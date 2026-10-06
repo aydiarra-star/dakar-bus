@@ -573,7 +573,7 @@ class PassBiSource {
   /// vaut `false` et l'appelant le signale. Retourne `null` si la route est
   /// inconnue ou sans aucun `stop_time` (jamais de fiche vide fabriquée).
   PassBiRouteStopSequence? routeStopSequence(
-      String networkKey, String pbRouteId) {
+      String networkKey, String pbRouteId, {String? directionId}) {
     final net = networks[networkKey];
     if (net == null) return null;
     final routeIndex = net.routeIndexById[pbRouteId];
@@ -584,6 +584,8 @@ class PassBiSource {
     List<GtfsStopTime>? best;
     int bestTrip = -1;
     for (final ti in tripIndexes) {
+      final trip = net.trips[ti];
+      if (directionId != null && trip.direction != directionId) continue;
       final rows = net.stopTimesByTrip[ti];
       if (rows == null || rows.isEmpty) continue;
       if (best == null || rows.length > best.length) {
@@ -766,6 +768,7 @@ class PassBiSource {
     required String pbStopId,
     required DateTime at,
     String? onlyRouteId,
+    String? onlyDirectionId,
   }) {
     final net = networks[networkKey];
     if (net == null) return null;
@@ -794,6 +797,7 @@ class PassBiSource {
         routeIndexes: routeIndexes,
         stopIndex: ci,
         at: at,
+        onlyDirectionId: onlyDirectionId,
       );
       if (found == null) continue;
       if (best == null || found.sec < best.sec) best = found;

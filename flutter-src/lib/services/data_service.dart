@@ -71,11 +71,11 @@ class DataService {
   /// `stop_times` réels, ordonnés par `stop_sequence`. Retourne `null` si la
   /// ligne n'est pas raccordée à une route réelle : aucune fiche n'est
   /// fabriquée pour une ligne BLOCKED / NOT_VERIFIED.
-  PassBiRouteStopSequence? publicLineStopSequence(PublicBusLine line) {
+  PassBiRouteStopSequence? publicLineStopSequence(PublicBusLine line, {String? directionId}) {
     if (!line.hasRealSchedule) return null;
     final network = line.operator; // DDD | AFTU — clés de feed PassBi
     for (final routeId in line.feedRouteIds) {
-      final seq = passBiSource.routeStopSequence(network, routeId);
+      final seq = passBiSource.routeStopSequence(network, routeId, directionId: directionId);
       if (seq != null && !seq.isEmpty) return seq;
     }
     return null;

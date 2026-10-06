@@ -227,8 +227,8 @@ void main() {
       // ~30 m l'un de l'autre mais AUCUN lien de transfert documenté ne les
       // relie dans le crosswalk.
       final from =
-          app.appDataService.passBiStopSearch('Westerne Cbao Parcelles');
-      final to = app.appDataService.passBiStopSearch('Lpa');
+          app.appDataService.passBiStopSearch('Westerne Cbao Parcelles', networks: {'DDD'});
+      final to = app.appDataService.passBiStopSearch('Lpa', networks: {'AFTU'});
       expect(from, isNotEmpty);
       expect(to, isNotEmpty);
       final fromKey = '${from.first.network}:${from.first.stopId}';
