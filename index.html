@@ -32,7 +32,11 @@ tailwind.config = {
 <style>
 * { font-family: 'Outfit', sans-serif; }
 .glass { backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
-.leaflet-container { font-family: 'Outfit', sans-serif; }
+.leaflet-container { font-family: 'Outfit', sans-serif; cursor: grab; }
+.leaflet-container.leaflet-dragging { cursor: grabbing; }
+#map, #map .leaflet-container { cursor: grab; }
+#map .leaflet-marker-icon, #map .leaflet-interactive { cursor: pointer; }
+button, a, [role="button"], input[type="checkbox"], .cursor-pointer { cursor: pointer; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 .tab-active { background: #00B140; color: white !important; box-shadow: 0 8px 20px rgba(0,177,64,0.25); border-color: #00B140 !important; }
