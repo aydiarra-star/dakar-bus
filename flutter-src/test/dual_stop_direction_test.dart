@@ -106,7 +106,7 @@ void main() {
   });
 
   test('toutes les directions GTFS réelles restent accessibles, headsign ou direction_id', () {
-    final summaries = <app.PassBiRouteSummary>[
+    final summaries = [
       ...app.appDataService.passBiRouteSummaries('TER'),
       ...app.appDataService.passBiRouteSummaries('BRT'),
       ...app.appDataService.passBiRouteSummaries('DDD'),
