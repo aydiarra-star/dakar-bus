@@ -833,6 +833,7 @@ class PassBiSource {
     required String pbStopId,
     required DateTime at,
     String? onlyRouteId,
+    String? onlyDirectionId,
     int limit = 3,
   }) {
     final out = <({int sec, String routeId, String tripId, int dayOffset})>[];
@@ -846,6 +847,7 @@ class PassBiSource {
         pbStopId: pbStopId,
         at: cursor,
         onlyRouteId: onlyRouteId,
+        onlyDirectionId: onlyDirectionId,
       );
       if (found == null) break;
       out.add(found);

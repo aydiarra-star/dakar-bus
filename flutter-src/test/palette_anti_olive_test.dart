@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:dakar_bus/main.dart' as app;
+
 void main() {
   test('palette guard: legacy olive/mustard variants are absent from runtime UI sources', () {
     final runtimeDir = Directory('lib');
@@ -59,3 +61,13 @@ void main() {
     }
   });
 }
+
+
+test('palette guard: all transport networks use the Dakar Bus primary green', () {
+  expect(app.AppColors.primary.value, 0xFF00B140);
+  expect(app.AppColors.ter, app.AppColors.primary);
+  expect(app.AppColors.brt, app.AppColors.primary);
+  expect(app.AppColors.ddd, app.AppColors.primary);
+  expect(app.AppColors.aftu, app.AppColors.primary);
+  expect(app.AppColors.tata, app.AppColors.primary);
+});
