@@ -35,8 +35,33 @@ class EtaCalculator {
     'AFTU',
   };
 
-  bool _usesPassBiExclusively(String network) =>
-      _passBiOnlyNetworks.contains(network.trim().toUpperCase());
+  bool _usesPassBiExclusively(String network, String? routeId) {
+    final normalizedNetwork =
+        network.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
+    const networkAliases = <String>{
+      'TER',
+      'TERDAKAR',
+      'BRT',
+      'SUNUBRT',
+      'DDD',
+      'DAKARDEMDIKK',
+      'AFTU',
+    };
+    final id = (routeId ?? '').toLowerCase();
+    final routePrefixes = <String>[
+      'ter_',
+      'brt_',
+      'ddd_',
+      'aftu_',
+      'line_ter_',
+      'line_brt_',
+      'line_ddd_',
+      'line_aftu_',
+    ];
+    return _passBiOnlyNetworks.contains(normalizedNetwork) ||
+        networkAliases.contains(normalizedNetwork) ||
+        routePrefixes.any(id.startsWith);
+  }
 
   /// Calcule le meilleur [DepartureInfo] pour (route, arrêt, instant).
   ///
@@ -72,7 +97,7 @@ class EtaCalculator {
 
     // Verrou d'exclusivité : aucun repli fréquence sur TER/BRT/DDD/AFTU,
     // même si le feed n'est pas chargé ou si l'identité n'est pas raccordée.
-    if (_usesPassBiExclusively(network)) {
+    if (_usesPassBiExclusively(network, routeId)) {
       return DepartureInfo.unknown(
         operator: operatorName ?? network,
         routeId: routeId ?? 'unknown',
