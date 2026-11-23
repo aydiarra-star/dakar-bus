@@ -268,7 +268,7 @@ void tapChip(WidgetTester tester, String label) {
 /// `Opacity` (densité au zoom) → `Transform` (échelle) → `GestureDetector`
 /// (interaction, inchangée) → `Container` (couleur réseau, inchangée).
 /// Le parcours descend jusqu'au `GestureDetector` sans en supposer la place.
-int transmittedByColor(MarkerLayer layer, Color color) =>
+int transmittedByIcon(MarkerLayer layer, IconData icon) =>
     layer.markers.where((Marker m) {
       // `Transform.child` est nullable dans Flutter : parcours en Widget?.
       Widget? w = m.child;
@@ -276,12 +276,12 @@ int transmittedByColor(MarkerLayer layer, Color color) =>
         w = w is Opacity ? w.child : (w as Transform).child;
       }
       final Container c = (w as GestureDetector).child as Container;
-      return (c.decoration as BoxDecoration).color == color;
+      return c.child is Icon && (c.child as Icon).icon == icon;
     }).length;
 
 /// Marqueurs RENDUS dans l'arbre de la carte, par couleur (disques
 /// `BoxDecoration(shape: circle, color: …)` instanciés sous le `FlutterMap`).
-int renderedByColor(WidgetTester tester, Color color) => find
+int renderedByIcon(WidgetTester tester, IconData icon) => find
     .descendant(
       of: find.byType(FlutterMap),
       matching: find.byWidgetPredicate((Widget w) =>
@@ -319,10 +319,10 @@ void main() {
     expect(map.children.whereType<MarkerLayer>().length, 1,
         reason: 'sans GPS, une seule couche marqueurs (les arrêts)');
 
-    debugPrint('[RENDER-TEST][CAS A] transmis: ter=${transmittedByColor(stops, AppColors.ter)} '
-        'brt=${transmittedByColor(stops, AppColors.brt)} total=${stops.markers.length} | '
-        'rendus: ter=${renderedByColor(tester, AppColors.ter)} '
-        'brt=${renderedByColor(tester, AppColors.brt)} total=${renderedTotal(tester)}');
+    debugPrint('[RENDER-TEST][CAS A] transmis: ter=${transmittedByIcon(stops, Icons.train_rounded)} '
+        'brt=${transmittedByIcon(stops, Icons.directions_bus_rounded)} total=${stops.markers.length} | '
+        'rendus: ter=${renderedByIcon(tester, Icons.train_rounded)} '
+        'brt=${renderedByIcon(tester, Icons.directions_bus_rounded)} total=${renderedTotal(tester)}');
 
     expect(transmittedByColor(stops, AppColors.ter), 13,
         reason: '13 gares TER officielles transmises au MarkerLayer');
