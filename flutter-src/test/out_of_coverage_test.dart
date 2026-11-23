@@ -37,7 +37,7 @@ const LatLng _paris = LatLng(48.8566, 2.3522);
 /// Position réelle simulée à Dakar (gare TER) — en zone de service.
 const LatLng _dakarUser = LatLng(14.67599, -17.43352);
 
-Stop _stop(String name, LatLng at, {Color? color, double distanceMeters = 500}) =>
+Stop _stop(String name, LatLng at, {Color? color, String modeLabel = 'BRT', double distanceMeters = 500}) =>
     Stop(
       name: name,
       direction: 'Aller',
@@ -46,7 +46,7 @@ Stop _stop(String name, LatLng at, {Color? color, double distanceMeters = 500}) 
       icon: Icons.directions_bus,
       color: color ?? AppColors.brt,
       location: at,
-      modeLabel: 'BRT',
+      modeLabel: modeLabel,
     );
 
 /// Retire les commentaires d'un fichier source (chaînes conservées) — même
@@ -318,15 +318,15 @@ void main() {
 
   group('Exploration — filtres Tous, Favoris, TER, BRT, DDD, TATA, AFTU', () {
     final source = <Stop>[
-      _stop('ter_1', const LatLng(14.6800, -17.4400), color: AppColors.ter),
-      _stop('ter_2', const LatLng(14.7000, -17.4300), color: AppColors.ter),
+      _stop('ter_1', const LatLng(14.6800, -17.4400), color: AppColors.ter, modeLabel: 'TER'),
+      _stop('ter_2', const LatLng(14.7000, -17.4300), color: AppColors.ter, modeLabel: 'TER'),
       _stop('brt_1', const LatLng(14.7100, -17.4500), color: AppColors.brt),
       _stop('brt_2', const LatLng(14.7200, -17.4400), color: AppColors.brt),
-      _stop('ddd_1', const LatLng(14.7300, -17.4200), color: AppColors.ddd),
-      _stop('tata_1', const LatLng(14.7400, -17.4100), color: AppColors.tata),
-      _stop('aftu_1', const LatLng(14.7500, -17.4000), color: AppColors.aftu),
+      _stop('ddd_1', const LatLng(14.7300, -17.4200), color: AppColors.ddd, modeLabel: 'DDD'),
+      _stop('tata_1', const LatLng(14.7400, -17.4100), color: AppColors.tata, modeLabel: 'TATA'),
+      _stop('aftu_1', const LatLng(14.7500, -17.4000), color: AppColors.aftu, modeLabel: 'AFTU'),
       _stop('fav_ddd', const LatLng(14.7600, -17.3900),
-          color: AppColors.ddd),
+          color: AppColors.ddd, modeLabel: 'DDD'),
     ];
     const favorites = {'fav_ddd', 'brt_1'};
 
