@@ -888,7 +888,7 @@ void main() {
       expect(ter.length, 13, reason: 'un marqueur par gare officielle');
       expect(
           ter.where((Stop s) =>
-                  s.stopId != null && s.color == AppColors.ter).length,
+                  s.stopId != null && networkKeyForStop(s) == 'TER').length,
           13);
       expect(ter.where((Stop s) => networkKeyForStop(s) == 'BRT').length, 0);
     });
@@ -899,7 +899,7 @@ void main() {
       expect(brt.length, 23, reason: 'un marqueur par station officielle');
       expect(
           brt.where((Stop s) =>
-                  s.stopId != null && s.color == AppColors.brt).length,
+                  s.stopId != null && networkKeyForStop(s) == 'BRT').length,
           23);
       expect(brt.where((Stop s) => networkKeyForStop(s) == 'TER').length, 0);
     });
