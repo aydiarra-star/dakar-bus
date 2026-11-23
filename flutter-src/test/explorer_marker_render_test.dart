@@ -288,7 +288,7 @@ int renderedByIcon(WidgetTester tester, IconData icon) => find
           w is Container &&
           w.decoration is BoxDecoration &&
           (w.decoration as BoxDecoration).shape == BoxShape.circle &&
-          (w.decoration as BoxDecoration).color == color),
+          w.child is Icon && (w.child as Icon).icon == icon),
     )
     .evaluate()
     .length;
