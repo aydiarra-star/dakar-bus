@@ -276,7 +276,7 @@ void main() {
         expect(seg.departureInfo?.frequencyMinutes, isNull);
       }
       final String txt = AssistantReplies.itinerary(r, 'Dakar', 'Rufisque');
-      expect(txt, contains('Horaire indisponible'));
+      expect(txt, contains('Je ne dispose pas d\'un horaire vérifié pour ce trajet.'));
       expect(txt, isNot(contains('0–10 min')),
           reason: 'aucun intervalle affiché (règle anti-régression)');
       expect(txt, isNot(contains('estimation non garantie')));
