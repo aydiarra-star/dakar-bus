@@ -22,45 +22,45 @@ void main() {
   });
 
   group('fréquences officielles SunuBRT', () {
-    test('B1 lundi à 14h est ESTIMATED, avec la source et les métadonnées', () {
+    test('B1 : aucune fréquence historique ne contourne le GTFS exclusif', () {
       final info = service.departureInfoForRoute(
         'brt_b1_guediawaye_petersen',
         at(2026, 9, 28, 14), // lundi
       );
 
-      expect(info.status, ScheduleStatus.estimated);
-      expect(info.serviceActive, isTrue);
-      expect(info.frequencyMinutes, 6);
-      expect(info.operatingHours, '06:00–21:00');
+      expect(info.status, ScheduleStatus.unknown);
+      expect(info.serviceActive, isFalse);
+      expect(info.frequencyMinutes, isNull);
+      expect(info.operatingHours, isNull);
       expect(info.operator, 'SunuBRT');
       expect(info.routeId, 'brt_b1_guediawaye_petersen');
-      expect(info.source, 'https://www.sunubrt.sn/brt-1-omnibus/');
-      expect(info.sourceType, SourceType.officialStatic);
+      expect(info.source, isNull);
+      expect(info.sourceType, SourceType.unknown);
       expect(info.dateSource, isNull, reason: 'la date de publication est absente');
-      expect(info.dateVerified, '2026-09-26');
+      expect(info.dateVerified, isNull);
       expect(info.validFrom, isNull);
       expect(info.validTo, isNull);
       expect(info.confidence, greaterThan(0));
     });
 
-    test('B1 dimanche 08h utilise 10 minutes', () {
+    test('B1 dimanche : aucun repli sur la fréquence historique', () {
       final info = service.departureInfoForRoute(
         'brt_b1_guediawaye_petersen',
         at(2026, 9, 27, 8), // dimanche
       );
-      expect(info.status, ScheduleStatus.estimated);
-      expect(info.frequencyMinutes, 10);
-      expect(info.operatingHours, '06:00–11:00');
+      expect(info.status, ScheduleStatus.unknown);
+      expect(info.frequencyMinutes, isNull);
+      expect(info.operatingHours, isNull);
     });
 
-    test('B1 dimanche 14h utilise 7 minutes', () {
+    test('B1 dimanche après-midi : aucun repli sur la fréquence historique', () {
       final info = service.departureInfoForRoute(
         'brt_b1_guediawaye_petersen',
         at(2026, 9, 27, 14),
       );
-      expect(info.status, ScheduleStatus.estimated);
-      expect(info.frequencyMinutes, 7);
-      expect(info.operatingHours, '11:00–21:00');
+      expect(info.status, ScheduleStatus.unknown);
+      expect(info.frequencyMinutes, isNull);
+      expect(info.operatingHours, isNull);
     });
 
     test('B1 hors de la plage 06h–21h reste UNKNOWN', () {
@@ -71,28 +71,28 @@ void main() {
       expect(info.status, ScheduleStatus.unknown);
       expect(info.serviceActive, isFalse);
       expect(info.frequencyMinutes, isNull);
-      expect(info.source, 'https://www.sunubrt.sn/brt-1-omnibus/');
+      expect(info.source, isNull);
     });
 
-    test('B1 applique les plages dimanche/jour férié à un jour férié', () {
+    test('B1 jour férié : aucun repli sur la fréquence historique', () {
       final info = service.departureInfoForRoute(
         'brt_b1_guediawaye_petersen',
         at(2026, 9, 28, 8), // lundi férié déclaré explicitement
         isPublicHoliday: true,
       );
-      expect(info.status, ScheduleStatus.estimated);
-      expect(info.frequencyMinutes, 10);
+      expect(info.status, ScheduleStatus.unknown);
+      expect(info.frequencyMinutes, isNull);
     });
 
-    test('B2 lundi à 14h est ESTIMATED', () {
+    test('B2 : aucun repli sur la fréquence historique', () {
       final info = service.departureInfoForRoute(
         'brt_b2_express',
         at(2026, 9, 28, 14),
       );
-      expect(info.status, ScheduleStatus.estimated);
-      expect(info.frequencyMinutes, 6);
-      expect(info.operatingHours, '06:00–21:00');
-      expect(info.source, 'https://www.sunubrt.sn/brt-2-semi-express/');
+      expect(info.status, ScheduleStatus.unknown);
+      expect(info.frequencyMinutes, isNull);
+      expect(info.operatingHours, isNull);
+      expect(info.source, isNull);
     });
 
     test('B2 dimanche reste UNKNOWN sans extrapoler B1', () {
@@ -137,16 +137,16 @@ void main() {
       expect(app.departureDataStatus(unsupported.status), app.DataStatus.unknown);
     });
 
-    test('la fréquence ne fabrique aucun horaire station par station', () {
+    test('aucune fréquence historique ne fabrique un horaire station par station', () {
       final info = service.departureInfoForRoute(
         'brt_b1_guediawaye_petersen',
         at(2026, 9, 28, 14),
       );
-      expect(info.status, ScheduleStatus.estimated);
-      expect(info.frequencyMinutes, 6);
+      expect(info.status, ScheduleStatus.unknown);
+      expect(info.frequencyMinutes, isNull);
       // DepartureInfo ne transporte qu'une fréquence/plage et aucune heure de
       // départ ni collection de stop_times.
-      expect(info.operatingHours, '06:00–21:00');
+      expect(info.operatingHours, isNull);
     });
 
     test('DDD et AFTU restent UNKNOWN', () {
@@ -160,29 +160,29 @@ void main() {
       }
     });
 
-    test('TER utilise seulement les fréquences publiées et vérifiées', () {
+    test('TER : aucune fréquence historique ne contourne le GTFS exclusif', () {
       final weekday = service.departureInfoForRoute(
         'ter_dakar_diamniadio',
         at(2026, 9, 28, 14),
       );
-      expect(weekday.status, ScheduleStatus.estimated);
-      expect(weekday.frequencyMinutes, 10);
-      expect(weekday.source, 'https://www.terdakar.sn/les_horaires_des_trains');
-      expect(weekday.dateVerified, '2026-09-26');
+      expect(weekday.status, ScheduleStatus.unknown);
+      expect(weekday.frequencyMinutes, isNull);
+      expect(weekday.source, isNull);
+      expect(weekday.dateVerified, isNull);
 
       final late = service.departureInfoForRoute(
         'ter_dakar_diamniadio',
         at(2026, 9, 28, 21, 30),
       );
-      expect(late.status, ScheduleStatus.estimated);
-      expect(late.frequencyMinutes, 20);
+      expect(late.status, ScheduleStatus.unknown);
+      expect(late.frequencyMinutes, isNull);
 
       final sunday = service.departureInfoForRoute(
         'ter_dakar_diamniadio',
         at(2026, 9, 27, 14),
       );
-      expect(sunday.status, ScheduleStatus.estimated);
-      expect(sunday.frequencyMinutes, 20);
+      expect(sunday.status, ScheduleStatus.unknown);
+      expect(sunday.frequencyMinutes, isNull);
 
       final beforeService = service.departureInfoForRoute(
         'ter_dakar_diamniadio',
@@ -209,7 +209,7 @@ void main() {
           <String>['scheduled', 'live', 'unknown', 'estimated']);
     });
 
-    test('chemin complet DataProvider → DataService → Stop → moteur', () {
+    test('le chemin DataService → Stop → moteur ne contourne pas le GTFS exclusif', () {
       final savedStops = List<app.Stop>.of(app.allStops);
       app.Stop fixtureStop(String name, String stopId) => app.Stop(
             name: name,
@@ -234,10 +234,10 @@ void main() {
 
         // La réponse obtenue sur le Stop est déjà de type ScheduleStatus.estimated.
         final throughStop = from.departureInfoAt(at: requestedAt);
-        expect(throughStop.status, ScheduleStatus.estimated);
-        expect(from.departureStatusAt(requestedAt), app.DataStatus.estimated);
-        expect(throughStop.serviceActive, isTrue);
-        expect(throughStop.frequencyMinutes, 6);
+        expect(throughStop.status, ScheduleStatus.unknown);
+        expect(from.departureStatusAt(requestedAt), app.DataStatus.unknown);
+        expect(throughStop.serviceActive, isFalse);
+        expect(throughStop.frequencyMinutes, isNull);
         expect(throughStop.scheduledTime, isNull);
         expect(from.departureMinutesFromMidnight, isEmpty);
 
@@ -248,15 +248,15 @@ void main() {
         );
         expect(result.hasRoutes, isTrue);
         final route = result.routes.single;
-        expect(route.status, app.DataStatus.estimated);
+        expect(route.status, app.DataStatus.unknown);
         expect(route.status, isNot(app.DataStatus.live));
-        expect(route.segments.single.status, app.DataStatus.estimated);
-        expect(route.segments.single.departureInfo?.frequencyMinutes, 6);
+        expect(route.segments.single.status, app.DataStatus.unknown);
+        expect(route.segments.single.departureInfo?.frequencyMinutes, isNull);
         expect(route.segments.single.departureTime, isNull);
         expect(route.segments.single.arrivalTime, isNull);
         expect(
           app.AssistantReplies.itinerary(route, route.fromName, route.toName),
-          contains('Passage estimé dans 6 min'),
+          contains('Horaire indisponible'),
         );
         expect(
           app.AssistantReplies.itinerary(route, route.fromName, route.toName),
