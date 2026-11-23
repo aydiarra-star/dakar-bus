@@ -120,7 +120,7 @@ const Map<String, Set<String>> _allowedPassBiLiterals = <String, Set<String>>{
   },
   'lib/services/data_service.dart': <String>{
     // Journal de développement (print sous ignore), jamais rendu.
-    '⚠️ Flux GTFS indisponible : TER, BRT, DDD et AFTU restent sans horaire PassBi. \$e',
+    'Horaires PassBi non chargés : aucun repli legacy pour TER, BRT, DDD et AFTU. \$e',
   },
   'lib/services/gtfs/passbi_source.dart': <String>{
     // Métadonnée de provenance (nom + URL), non rendue dans l'UI.
