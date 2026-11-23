@@ -4034,26 +4034,23 @@ class _ExplorerPageState extends State<ExplorerPage> {
   Widget build(BuildContext context) {
     final dark = globalState.darkMode;
     final stops = _filteredStops;
-    // ✅ Filtre les tracés par mobilité pour éviter le spaghetti orange : n'affiche que la couleur sélectionnée
-    final Color? filterColor = _selectedFilter == 'Tous' ? null : _colorFor(_selectedFilter);
-    final basePolylines = _dynamicPolylines.isNotEmpty
-        ? _dynamicPolylines
-        : demoRoutes
-            .map((r) => Polyline(
-                  // Même géométrie de rendu que `_loadDynamicRoutes` (CAS A)
-                  // pour un état de chargement cohérent.
-                  points: explorerRenderedRoutePoints(r, demoRoutes)
-                      .where((pt) => DakarBounds.isValid(pt))
-                      .toList(),
-                  color: r.color,
-                  strokeWidth: 5.0,
-                  borderColor: Colors.white,
-                  borderStrokeWidth: 2,
-                ))
-            .toList();
-    final activePolylines = filterColor == null
-        ? basePolylines.where((p) => p.color == AppColors.ter || p.color == AppColors.brt).toList() // Tous : seulement TER/BRT (tracés dédiés, pas le spaghetti)
-        : basePolylines.where((p) => p.color == filterColor).toList();
+    // Les couleurs TER/BRT sont volontairement communes dans la palette.
+    // Le filtre cartographique doit donc utiliser l'identité de la ligne
+    // (type TER/BRT), jamais sa couleur, qui ne permet pas de les distinguer.
+    final activeRoutes = demoRoutes.where((route) =>
+        route.isDedicated &&
+        (_selectedFilter == 'Tous' || route.type == _selectedFilter));
+    final activePolylines = activeRoutes
+        .map((route) => Polyline(
+              points: explorerRenderedRoutePoints(route, demoRoutes)
+                  .where((pt) => DakarBounds.isValid(pt))
+                  .toList(),
+              color: route.color,
+              strokeWidth: 5.5,
+              borderColor: Colors.white,
+              borderStrokeWidth: 2,
+            ))
+        .toList();
     final mapStops = _filteredStops; // ✅ Toujours filtré à proximité (30 max — Groupe 4), pas allStops
     // ✅ CORRECTIF ARRÊTS TER/BRT — garantit sur la carte les gares/stations
     //    officielles des réseaux affichés (même prédicat que `activePolylines`
