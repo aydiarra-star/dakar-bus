@@ -88,7 +88,7 @@ class DataService {
       await passBiSource.loadAll();
     } catch (e) {
       // ignore: avoid_print
-      print('⚠️ PassBi GTFS indisponible (mode legacy) : $e');
+      print('⚠️ Flux GTFS indisponible : TER, BRT, DDD et AFTU restent sans horaire PassBi. $e');
     }
   }
 
