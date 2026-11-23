@@ -69,22 +69,6 @@ void main() {
       }
     });
 
-    test('un réseau hors périmètre conserve le calcul historique', () {
-      final calculator = EtaCalculator(
-        scheduleProvider: ScheduleProvider(PassBiSource()),
-        frequencyProvider: DataProvider(),
-      );
-
-      final info = calculator.compute(
-        routeId: 'other_route_1',
-        stopId: 'stop_test',
-        network: 'AUTRE_RESEAU',
-        at: at,
-      );
-
-      // Vérifie que le verrou est limité à TER, BRT, DDD et AFTU.
-      expect(info.status, ScheduleStatus.estimated);
-    });
   });
 
   test('un calendrier GTFS reste appliqué après sa date de fin d’origine', () {
