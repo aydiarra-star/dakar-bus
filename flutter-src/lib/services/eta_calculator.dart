@@ -4,12 +4,15 @@
 ///  1. REAL_TIME — aucun flux temps réel n'existe dans le projet → JAMAIS ;
 ///  2. SCHEDULED — horaires programmés PassBi (source opérationnelle
 ///     actuelle, `ScheduleProvider`) → 🟢 X min quand calculable ;
-///  3. ESTIMATED — fréquences officielles publiées (DataProvider legacy) ;
-///  4. UNKNOWN — aucune donnée suffisante (pas de faux retard, pas de
-///     fréquence présentée comme prochain passage).
+///  3. ESTIMATED — fréquences officielles publiées (DataProvider legacy),
+///     uniquement hors des quatre réseaux couverts par le GTFS ;
+///  4. UNKNOWN — aucune donnée suffisante.
+///
+/// Pour TER, BRT, DDD et AFTU, le GTFS est exclusif : absence de mapping,
+/// de départ ou de chargement = UNKNOWN, sans repli sur les fréquences.
 ///
 /// Affichages interdits : « 0 min » comme pseudo-temps réel, « 0–20 min »,
-/// « Passage non communiqué », une fréquence comme prochain passage.
+/// une fréquence comme prochain passage.
 library;
 
 import '../models/departure_info.dart';
@@ -26,10 +29,20 @@ class EtaCalculator {
     required this.frequencyProvider,
   });
 
+  static const Set<String> _passBiOnlyNetworks = <String>{
+    'TER',
+    'BRT',
+    'DDD',
+    'AFTU',
+  };
+
+  bool _usesPassBiExclusively(String network) =>
+      _passBiOnlyNetworks.contains(network.trim().toUpperCase());
+
   /// Calcule le meilleur [DepartureInfo] pour (route, arrêt, instant).
   ///
-  /// Retourne toujours une réponse exploitable : SCHEDULED (PassBi) si
-  /// disponible, sinon ESTIMATED (fréquences officielles), sinon UNKNOWN.
+  /// TER/BRT/DDD/AFTU : PassBi uniquement, sinon UNKNOWN.
+  /// Les autres réseaux conservent le comportement historique.
   DepartureInfo compute({
     required String? routeId,
     required String? stopId,
@@ -38,7 +51,7 @@ class EtaCalculator {
     bool isPublicHoliday = false,
     String? operatorName,
   }) {
-    // 2. SCHEDULED — PassBi (source opérationnelle actuelle).
+    // SCHEDULED — PassBi (source opérationnelle actuelle).
     if (routeId != null) {
       final scheduled = scheduleProvider.departureAt(
         routeId: routeId,
@@ -50,9 +63,7 @@ class EtaCalculator {
       if (scheduled != null) return scheduled;
     }
 
-    // Lot 4.21 §15 — un UNKNOWN restant porte sa raison précise. Le repli
-    // legacy ci-dessous ne connaît pas le crosswalk : la raison est résolue
-    // ici, une seule fois, depuis la source PassBi.
+    // Résolution de la raison d'absence depuis la source GTFS.
     final String? reason = routeId == null
         ? null
         : scheduleProvider.unresolvedReasonFor(
@@ -60,28 +71,35 @@ class EtaCalculator {
             stopId: stopId,
           );
 
-    // 3. ESTIMATED — fréquences officielles legacy (routes sans mappage).
+    // Verrou d'exclusivité : aucun repli fréquence sur TER/BRT/DDD/AFTU,
+    // même si le feed n'est pas chargé ou si l'identité n'est pas raccordée.
+    if (_usesPassBiExclusively(network)) {
+      return DepartureInfo.unknown(
+        operator: operatorName ?? network,
+        routeId: routeId ?? 'unknown',
+        requestedAt: at,
+        unresolvedReason: reason ??
+            (routeId == null
+                ? UnresolvedReason.stopNotMatched
+                : UnresolvedReason.sourceInactive),
+      );
+    }
+
+    // ESTIMATED — fréquences legacy uniquement hors des quatre réseaux GTFS.
     if (routeId != null) {
-      final estimated = frequencyProvider.departureInfoForRoute(
+      return frequencyProvider.departureInfoForRoute(
         routeId,
         at,
         isPublicHoliday: isPublicHoliday,
         operatorName: operatorName,
       );
-      if (reason != null &&
-          estimated.status == ScheduleStatus.unknown &&
-          estimated.unresolvedReason == null) {
-        return estimated.withUnresolvedReason(reason);
-      }
-      return estimated;
     }
 
-    // 4. UNKNOWN.
     return DepartureInfo.unknown(
       operator: operatorName ?? 'Inconnu',
       routeId: 'unknown',
       requestedAt: at,
-      unresolvedReason: reason ?? UnresolvedReason.stopNotMatched,
+      unresolvedReason: UnresolvedReason.stopNotMatched,
     );
   }
 
