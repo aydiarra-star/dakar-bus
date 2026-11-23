@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:dakar_bus/models/departure_info.dart';
 import 'package:dakar_bus/models/transport_network.dart';
 import 'package:dakar_bus/services/data_provider.dart';
+import 'package:dakar_bus/services/data_service.dart';
 import 'package:dakar_bus/services/eta_calculator.dart';
 import 'package:dakar_bus/services/gtfs/passbi_source.dart';
 import 'package:dakar_bus/services/schedule_provider.dart';
@@ -42,6 +43,20 @@ void main() {
         expect(info.scheduledTime, isNull);
         expect(info.frequencyMinutes, isNull);
         expect(info.unresolvedReason, UnresolvedReason.sourceInactive);
+      }
+    });
+
+    test('API fréquence directe : route TER/BRT ne contourne pas le verrou', () {
+      final service = DataService();
+
+      for (final routeId in <String>[
+        'ter_dakar_diamniadio',
+        'brt_b1_guediawaye_petersen',
+      ]) {
+        final info = service.departureInfoForRoute(routeId, at);
+        expect(info.status, ScheduleStatus.unknown);
+        expect(info.frequencyMinutes, isNull);
+        expect(info.unresolvedReason, UnresolvedReason.stopNotMatched);
       }
     });
 
