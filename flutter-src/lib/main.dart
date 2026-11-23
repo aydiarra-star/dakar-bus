@@ -1357,6 +1357,19 @@ class Stop {
   }
 }
 
+/// Les quatre réseaux couverts utilisent exclusivement les horaires GTFS.
+/// Sans stop_time calculable, l'interface reste neutre : aucune heure n'est
+/// fabriquée et le libellé « Horaire indisponible » n'est pas affiché.
+bool usesPassBiExclusiveSchedule(Stop stop) {
+  final String network = stop.modeLabel.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
+  final String routeId = (stop.scheduleRouteId ?? '').toLowerCase();
+  return const <String>{'TER', 'BRT', 'DDD', 'AFTU', 'TERDAKAR', 'SUNUBRT', 'DAKARDEMDIKK'}.contains(network) ||
+      routeId.startsWith('ter_') || routeId.startsWith('brt_') ||
+      routeId.startsWith('ddd_') || routeId.startsWith('aftu_') ||
+      routeId.startsWith('line_ter_') || routeId.startsWith('line_brt_') ||
+      routeId.startsWith('line_ddd_') || routeId.startsWith('line_aftu_');
+}
+
 enum DataStatus { scheduled, live, unknown, estimated }
 
 /// Keep the existing 4-value status contract. A realtime classification can
@@ -4705,8 +4718,8 @@ class _PublicLineDetailPageState extends State<PublicLineDetailPage> {
             if (seq != null && seq.stops.isNotEmpty) _kv('Trajet', '${seq.stops.first.name} → ${seq.stops.last.name}', dark),
             if (seq != null && seq.direction.isNotEmpty) _kv('direction_id GTFS', seq.direction, dark),
             const SizedBox(height: 5),
-            if (departures.isEmpty) Text('Horaire indisponible pour ce sens à cet arrêt.', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark)))
-            else ...departures.map((d) => Padding(padding: const EdgeInsets.symmetric(vertical: 3), child: Row(children: [
+            if (departures.isEmpty && !const <String>{'TER', 'BRT', 'DDD', 'AFTU'}.contains(line.operator.toUpperCase())) Text('Horaire indisponible pour ce sens à cet arrêt.', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark)))
+            else ...departures.where((d) => d.scheduledTime != null).map((d) => Padding(padding: const EdgeInsets.symmetric(vertical: 3), child: Row(children: [
               Icon(Icons.schedule_rounded, size: 17, color: AppColors.primary), const SizedBox(width: 7),
               Text(d.scheduledTime == null ? 'Horaire indisponible' : 'Départ programmé · ${_timeLabel(d.scheduledTime!)}', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary(dark)))
             ])))
@@ -5214,7 +5227,7 @@ class StopCard extends StatelessWidget {
                           : (legacyRemaining ??
                               (serviceNotice ??
                                   (estimatedShort ??
-                                      ReliabilityLabel.scheduleUnavailable))),
+                                      (usesPassBiExclusiveSchedule(stop) ? '' : ReliabilityLabel.scheduleUnavailable)))),
                       style: TextStyle(
                         fontSize: hasWaits || legacyRemaining != null ? 14 : 11,
                         fontWeight: hasWaits || legacyRemaining != null
@@ -5649,7 +5662,7 @@ class _TripsPageState extends State<TripsPage> {
                       child: Padding(
                         padding: EdgeInsets.only(bottom: isLast ? 0 : 16),
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Row(children: [Icon(s.icon, size: 14, color: s.color), const SizedBox(width: 6), Text(stripPassBiFromLabel(s.modeLabel), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: s.color)), const Spacer(), Text(s.departureTime ?? ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))]),
+                          Row(children: [Icon(s.icon, size: 14, color: s.color), const SizedBox(width: 6), Text(stripPassBiFromLabel(s.modeLabel), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: s.color)), const Spacer(), Text(s.departureTime ?? (usesPassBiExclusiveSchedule(s.stop) ? '' : ReliabilityLabel.scheduleUnavailable), style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))]),
                           const SizedBox(height: 4),
                           Text('${s.from} - ${s.to}', style: TextStyle(fontSize: 12, color: AppColors.textPrimary(dark))),
                           const SizedBox(height: 2),
@@ -6754,8 +6767,10 @@ class AssistantReplies {
     }
     final String? notice = serviceNoticeFor(availability, now);
     if (notice != null) return '🚏 ${stop.name} : $notice.';
-    return '🚏 ${stop.name} : ${ReliabilityLabel.scheduleUnavailable} '
-        '(aucun départ programmé connu pour cet arrêt).';
+    return usesPassBiExclusiveSchedule(stop)
+        ? '🚏 ${stop.name} : aucun prochain passage calculable pour cet arrêt.'
+        : '🚏 ${stop.name} : ${ReliabilityLabel.scheduleUnavailable} '
+            '(aucun départ programmé connu pour cet arrêt).';
   }
 }
 
@@ -7527,7 +7542,7 @@ class SingleStopView extends StatelessWidget {
                                   ? formatWaitingMinutes(ficheWaits)
                                   : (ficheServiceNotice ??
                                       (ficheEstimatedShort ??
-                                          ReliabilityLabel.scheduleUnavailable)),
+                                          (usesPassBiExclusiveSchedule(stop) ? '' : ReliabilityLabel.scheduleUnavailable))),
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
