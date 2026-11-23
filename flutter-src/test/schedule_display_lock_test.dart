@@ -95,7 +95,7 @@ void main() {
       expect(info.label, ReliabilityLabel.scheduleUnavailable);
     });
 
-    test('Fith Mith : idem (fréquence documentée, pas de départ fabriqué)', () {
+    test('Fith Mith : aucun repli sur la fréquence historique', () {
       final app.Stop s = explorerStop(
         name: 'Fith Mith - BRT',
         stopId: 'stop_brt_20_fith_mith',
@@ -104,8 +104,8 @@ void main() {
       );
       expect(s.nextRealWaitingMinutes(at: lundi1438, limit: 3), isEmpty);
       final DepartureInfo info = s.departureInfoAt(at: lundi1438);
-      expect(info.status, ScheduleStatus.estimated);
-      expect(info.frequencyMinutes, 6);
+      expect(info.status, ScheduleStatus.unknown);
+      expect(info.frequencyMinutes, isNull);
     });
   });
 
@@ -113,7 +113,7 @@ void main() {
   // 3. Rendu Explorer : l'estimation documentée remplace l'indisponibilité.
   // ------------------------------------------------------------------
   group('3 — rendu StopCard / SingleStopView sans horaire GTFS', () {
-    testWidgets('StopCard Gadaye affiche « Horaire indisponible »',
+    testWidgets('StopCard Gadaye reste neutre sans passage GTFS',
         (WidgetTester t) async {
       final app.Stop s = explorerStop(
         name: 'Gadaye - Cambérène - BRT',
@@ -127,12 +127,11 @@ void main() {
       await t.pump();
       final List<String> texts =
           t.widgetList<Text>(find.byType(Text)).map((w) => w.data ?? '').toList();
-      expect(texts, contains(ReliabilityLabel.scheduleUnavailable));
-      expect(texts.contains(ReliabilityLabel.scheduleUnavailable), isFalse,
-          reason: 'une estimation documentée ne doit pas être masquée');
+      expect(texts, isNot(contains(ReliabilityLabel.scheduleUnavailable)));
+      expect(texts.any((x) => x.startsWith('Passage estimé')), isFalse);
     });
 
-    testWidgets('SingleStopView Gadaye affiche « Horaire indisponible »',
+    testWidgets('SingleStopView Gadaye reste neutre sans passage GTFS',
         (WidgetTester t) async {
       final app.Stop s = explorerStop(
         name: 'Gadaye - Cambérène - BRT',
@@ -146,7 +145,8 @@ void main() {
       await t.pump();
       final List<String> texts =
           t.widgetList<Text>(find.byType(Text)).map((w) => w.data ?? '').toList();
-      expect(texts, contains('Passage estimé · 6 mn'));
+      expect(texts, isNot(contains(ReliabilityLabel.scheduleUnavailable)));
+      expect(texts.any((x) => x.startsWith('Passage estimé')), isFalse);
     });
   });
 
@@ -182,7 +182,7 @@ void main() {
       expect(info.frequencyMinutes, isNull);
     });
 
-    testWidgets('StopCard DDD non mappé garde « Horaire indisponible »',
+    testWidgets('StopCard DDD non mappé reste neutre',
         (WidgetTester t) async {
       final app.Stop s = explorerStop(
         name: 'HLM Grand Yoff',
@@ -196,7 +196,7 @@ void main() {
       await t.pump();
       final List<String> texts =
           t.widgetList<Text>(find.byType(Text)).map((w) => w.data ?? '').toList();
-      expect(texts, contains(ReliabilityLabel.scheduleUnavailable));
+      expect(texts, isNot(contains(ReliabilityLabel.scheduleUnavailable)));
       expect(texts.any((x) => x.startsWith('Passage estimé')), isFalse);
     });
   });
