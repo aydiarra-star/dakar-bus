@@ -238,15 +238,14 @@ void main() {
           reason: 'le temps restant réel doit être affiché en vert');
     });
 
-    testWidgets('une fréquence estimée n\'affiche pas de faux « X min »',
+    testWidgets('un arrêt TER sans départ GTFS affiche indisponible',
         (WidgetTester tester) async {
-      // À l'heure réelle du test, une gare TER peut être hors plage (UNKNOWN).
-      // Le point vérifié est qu'aucun arrêt, quel que soit son état, ne produit
-      // de faux compte à rebours à partir d'une fréquence.
-      final Stop estime = allStops.firstWhere(
-        (Stop s) => s.departureInfoAt(at: kBase).status == ScheduleStatus.estimated,
+      final Stop sansDepart = allStops.firstWhere(
+        (Stop s) => s.modeLabel == 'TER',
       );
-      await monte(tester, StopCard(stop: estime, distanceMeters: 300));
+      expect(sansDepart.departureInfoAt(at: kBase).status,
+          ScheduleStatus.unknown);
+      await monte(tester, StopCard(stop: sansDepart, distanceMeters: 300));
 
       final List<String> textes = tester
           .widgetList<Text>(find.byType(Text))
