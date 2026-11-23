@@ -1767,8 +1767,7 @@ bool _explorerSamePoint(LatLng a, LatLng b) =>
 /// arrêt retiré de la donnée.
 @visibleForTesting
 bool explorerStopIsStructuring(Stop s) =>
-    s.color == AppColors.ter ||
-    s.color == AppColors.brt ||
+    const <String>{'TER', 'BRT'}.contains(networkKeyForStop(s)) ||
     s.stopType == StopType.terminus ||
     s.stopType == StopType.correspondence;
 
@@ -4060,16 +4059,20 @@ class _ExplorerPageState extends State<ExplorerPage> {
     //    officielles des réseaux affichés (même prédicat que `activePolylines`
     //    ci-dessus), que le plafond de proximité évinçait. Cause, périmètre et
     //    déduplication documentés sur [explorerMapMarkerStops].
+    final bool terDisplayed =
+        _selectedFilter == 'Tous' || _selectedFilter == 'TER';
+    final bool brtDisplayed =
+        _selectedFilter == 'Tous' || _selectedFilter == 'BRT';
     final mapMarkerStops = explorerMapMarkerStops(
       proximityStops: mapStops,
-      terDisplayed: filterColor == null || filterColor == AppColors.ter,
-      brtDisplayed: filterColor == null || filterColor == AppColors.brt,
+      terDisplayed: terDisplayed,
+      brtDisplayed: brtDisplayed,
     );
     // ✅ DIAGNOSTIC RUNTIME (correctif TER/BRT) — une ligne par reconstruction :
     //    compte réel de ce qui est transmis au MarkerLayer de CETTE carte,
     //    après le seul filtrage résiduel (DakarBounds) ci-dessous.
     final markerStops = mapMarkerStops.where((s) => DakarBounds.isValid(s.location)).toList();
-    debugPrint('[EXPLORER][MARKERS] transmis au MarkerLayer: total=${markerStops.length} TER=${markerStops.where((s) => s.color == AppColors.ter).length} BRT=${markerStops.where((s) => s.color == AppColors.brt).length} | allStops=${allStops.length} proximité=${mapStops.length} | filtre=$_selectedFilter gps=${widget.gpsState} rayon=${GpsResolver.nearbyRadiusMeters}m limite=${GpsResolver.nearbyLimit}');
+    debugPrint('[EXPLORER][MARKERS] transmis au MarkerLayer: total=${markerStops.length} TER=${markerStops.where((s) => networkKeyForStop(s) == 'TER').length} BRT=${markerStops.where((s) => networkKeyForStop(s) == 'BRT').length} | allStops=${allStops.length} proximité=${mapStops.length} | filtre=$_selectedFilter gps=${widget.gpsState} rayon=${GpsResolver.nearbyRadiusMeters}m limite=${GpsResolver.nearbyLimit}');
 
     return AnimatedBuilder(
       animation: globalState,
