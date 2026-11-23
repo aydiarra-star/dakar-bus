@@ -1480,17 +1480,32 @@ final List<Stop> allStops = [...terStations, ...brtStations]
 // dans un itinéraire officiel au seul motif qu'il apparaît sur la carte (§1).
 // ============================================================
 
+/// Identifiant de réseau métier : il reste fiable même lorsque plusieurs
+/// mobilités partagent la même couleur d'interface.
+String networkKeyForStop(Stop stop) {
+  final String label = stop.modeLabel.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
+  if (label.contains('TER')) return 'TER';
+  if (label.contains('BRT')) return 'BRT';
+  if (label.contains('DDD')) return 'DDD';
+  if (label.contains('AFTU')) return 'AFTU';
+  if (label.contains('TATA')) return 'TATA';
+  final String route = (stop.scheduleRouteId ?? '').toLowerCase();
+  for (final key in <String>['ter', 'brt', 'ddd', 'aftu']) {
+    if (route.startsWith('${key}_') || route.startsWith('line_${key}_')) {
+      return key.toUpperCase();
+    }
+  }
+  return '';
+}
+
 /// `<MODE>_NETWORK_POINTS` — points du réseau affichables dans Explorer.
-///
-/// Explorer peut afficher **davantage** de points que l'itinéraire officiel ne
-/// compte de stations (§6). Cette liste n'est donc jamais réduite pour
-/// correspondre à un itinéraire, et le compteur Explorer n'est jamais ajusté
-/// artificiellement.
-///
-/// Le prédicat reproduit à l'identique celui, existant, de `_filteredStops` :
-/// le mode y est porté par la couleur (`AppColors.ter`, `AppColors.brt`, …).
-/// Aucun filtre, aucune couleur et aucun calcul de proximité n'est modifié
-/// (§1, §10).
+/// Le filtrage utilise l'identité métier, jamais la couleur graphique partagée.
+List<Stop> networkPointsForNetwork(String network) =>
+    allStops.where((Stop s) => networkKeyForStop(s) == network.toUpperCase()).toList();
+
+/// Ancienne couture conservée pour compatibilité. Les couleurs communes ne
+/// permettent plus de distinguer deux réseaux ; préférer networkPointsForNetwork.
+@Deprecated('Use networkPointsForNetwork(network)')
 List<Stop> networkPoints(Color modeColor) =>
     allStops.where((Stop s) => s.color == modeColor).toList();
 
@@ -1535,8 +1550,8 @@ List<Stop> explorerMapMarkerStops({
           .where((Stop s) =>
               s.stopId != null &&
               DakarBounds.isValid(s.location) &&
-              ((terDisplayed && s.color == AppColors.ter) ||
-                  (brtDisplayed && s.color == AppColors.brt)))
+              ((terDisplayed && networkKeyForStop(s) == 'TER') ||
+                  (brtDisplayed && networkKeyForStop(s) == 'BRT')))
           .toList()
       : const <Stop>[];
   if (official.isEmpty) return List<Stop>.of(proximityStops);
@@ -1544,16 +1559,16 @@ List<Stop> explorerMapMarkerStops({
       '${s.name}_${s.location.latitude}_${s.location.longitude}';
   final Set<String> officialKeys = official.map(keyOf).toSet();
   final bool hasOfficialTer =
-      official.any((Stop s) => s.color == AppColors.ter);
+      official.any((Stop s) => networkKeyForStop(s) == 'TER');
   final bool hasOfficialBrt =
-      official.any((Stop s) => s.color == AppColors.brt);
+      official.any((Stop s) => networkKeyForStop(s) == 'BRT');
   return <Stop>[
     ...official,
     ...proximityStops.where((Stop s) =>
         !officialKeys.contains(keyOf(s)) &&
         !(s.stopId == null &&
-            ((s.color == AppColors.ter && hasOfficialTer) ||
-                (s.color == AppColors.brt && hasOfficialBrt)))),
+            ((networkKeyForStop(s) == 'TER' && hasOfficialTer) ||
+                (networkKeyForStop(s) == 'BRT' && hasOfficialBrt)))),
   ];
 }
 
@@ -1581,15 +1596,15 @@ List<Stop> explorerBaseStopsForFilter({
   }
   switch (selectedFilter) {
     case 'TER':
-      return source.where((Stop s) => s.color == AppColors.ter).toList();
+      return source.where((Stop s) => networkKeyForStop(s) == 'TER').toList();
     case 'BRT':
-      return source.where((Stop s) => s.color == AppColors.brt).toList();
+      return source.where((Stop s) => networkKeyForStop(s) == 'BRT').toList();
     case 'DDD':
-      return source.where((Stop s) => s.color == AppColors.ddd).toList();
+      return source.where((Stop s) => networkKeyForStop(s) == 'DDD').toList();
     case 'TATA':
-      return source.where((Stop s) => s.color == AppColors.tata).toList();
+      return source.where((Stop s) => networkKeyForStop(s) == 'TATA').toList();
     case 'AFTU':
-      return source.where((Stop s) => s.color == AppColors.aftu).toList();
+      return source.where((Stop s) => networkKeyForStop(s) == 'AFTU').toList();
     default:
       return List<Stop>.of(source);
   }
