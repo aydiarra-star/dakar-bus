@@ -330,6 +330,8 @@ class DataService {
         id.startsWith('brt_') ||
         id.startsWith('ddd_') ||
         id.startsWith('aftu_') ||
+        id.startsWith('line_ter_') ||
+        id.startsWith('line_brt_') ||
         id.startsWith('line_ddd_') ||
         id.startsWith('line_aftu_');
     if (passBiOnly) {
