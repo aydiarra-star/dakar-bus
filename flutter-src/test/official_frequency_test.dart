@@ -256,7 +256,7 @@ void main() {
         expect(route.segments.single.arrivalTime, isNull);
         expect(
           app.AssistantReplies.itinerary(route, route.fromName, route.toName),
-          contains('Horaire indisponible'),
+          contains('Je ne dispose pas d\'un horaire vérifié pour ce trajet.'),
         );
         expect(
           app.AssistantReplies.itinerary(route, route.fromName, route.toName),
