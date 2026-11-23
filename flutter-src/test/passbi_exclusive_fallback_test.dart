@@ -9,6 +9,13 @@ import 'package:dakar_bus/services/gtfs/passbi_source.dart';
 import 'package:dakar_bus/services/schedule_provider.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  final expiredFeed = PassBiSource();
+
+  setUpAll(() async {
+    await expiredFeed.loadAll();
+  });
+
   group('exclusivité GTFS pour les quatre réseaux couverts', () {
     final at = DateTime.utc(2026, 9, 28, 10, 0);
 
@@ -52,6 +59,8 @@ void main() {
       for (final routeId in <String>[
         'ter_dakar_diamniadio',
         'brt_b1_guediawaye_petersen',
+        'line_ter_dakar_diamniadio',
+        'line_brt_b1_guediawaye_petersen',
       ]) {
         final info = service.departureInfoForRoute(routeId, at);
         expect(info.status, ScheduleStatus.unknown);
@@ -67,7 +76,7 @@ void main() {
       );
 
       final info = calculator.compute(
-        routeId: 'ter_dakar_diamniadio',
+        routeId: 'other_route_1',
         stopId: 'stop_test',
         network: 'AUTRE_RESEAU',
         at: at,
@@ -76,5 +85,31 @@ void main() {
       // Vérifie que le verrou est limité à TER, BRT, DDD et AFTU.
       expect(info.status, ScheduleStatus.estimated);
     });
+  });
+
+  test('un calendrier GTFS reste appliqué après sa date de fin d’origine', () {
+    final network = expiredFeed.network('TER')!;
+    final entry = network.services.asMap().entries.firstWhere(
+      (item) => item.value.mask != 0 &&
+          item.value.end.compareTo('20350101') < 0,
+    );
+    final service = entry.value;
+
+    DateTime? matchingDay;
+    for (var offset = 0; offset < 7; offset++) {
+      final day = DateTime.utc(2035, 1, 1 + offset);
+      final weekdayBit = day.weekday - 1;
+      if ((service.mask & (1 << weekdayBit)) != 0) {
+        matchingDay = day;
+        break;
+      }
+    }
+
+    expect(matchingDay, isNotNull,
+        reason: 'le service doit conserver au moins un jour hebdomadaire');
+    expect(service.end.compareTo('20350101'), lessThan(0),
+        reason: 'le test doit réellement utiliser une date de fin expirée');
+    expect(network.serviceActiveOn(entry.key, matchingDay!), isTrue,
+        reason: 'la date de fin historique ne doit pas désactiver le GTFS');
   });
 }
