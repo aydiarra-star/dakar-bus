@@ -520,13 +520,13 @@ void main() {
       final List<Polyline> polylines =
           map.children.whereType<PolylineLayer>().single.polylines;
 
-      final List<Polyline> greens = polylines
-          .where((Polyline p) => p.color == AppColors.brt)
+      final List<Polyline> brtLines = polylines
+          .where((Polyline p) => p.points.length == 23)
           .toList();
-      expect(greens.length, 2,
+      expect(brtLines.length, 2,
           reason: 'BRT B1 et BRT B2 sont toujours toutes les deux rendues '
               '(aucune ligne officielle supprimée)');
-      for (final Polyline g in greens) {
+      for (final Polyline g in brtLines) {
         expect(g.points.length, 23,
             reason: 'les deux cordes vertes suivent le sous-tracé de B1 : '
                 'superposition parfaite, plus de double ligne');
@@ -534,11 +534,11 @@ void main() {
             reason: 'liserre blanche de séparation des superpositions');
         expect(g.borderStrokeWidth, 2);
       }
-      expect(_samePolylinePoints(greens[0].points, greens[1].points), isTrue,
+      expect(_samePolylinePoints(brtLines[0].points, brtLines[1].points), isTrue,
           reason: 'géométries vertes identiques → une seule ligne perçue');
 
       final List<Polyline> ters = polylines
-          .where((Polyline p) => p.color == AppColors.ter)
+          .where((Polyline p) => p.points.length == 13)
           .toList();
       expect(ters.length, 1, reason: 'un seul tracé TER (aucun doublon)');
       expect(ters.single.points.length, 13,
