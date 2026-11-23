@@ -324,9 +324,9 @@ void main() {
         'rendus: ter=${renderedByIcon(tester, Icons.train_rounded)} '
         'brt=${renderedByIcon(tester, Icons.directions_bus_rounded)} total=${renderedTotal(tester)}');
 
-    expect(transmittedByColor(stops, AppColors.ter), 13,
+    expect(transmittedByIcon(stops, Icons.train_rounded), 13,
         reason: '13 gares TER officielles transmises au MarkerLayer');
-    expect(transmittedByColor(stops, AppColors.brt), 23,
+    expect(transmittedByIcon(stops, Icons.directions_bus_rounded), 23,
         reason: '23 stations BRT officielles transmises au MarkerLayer');
     // 56 = 36 officiels TER+BRT + 20 arrêts de proximité des autres réseaux.
     //
@@ -352,9 +352,9 @@ void main() {
         reason: '36 officiels TER+BRT + 20 arrêts de proximité des autres '
             'réseaux (flux « à proximité » inchangé, sans point de démo)');
 
-    expect(renderedByColor(tester, AppColors.ter), 13,
+    expect(renderedByIcon(tester, Icons.train_rounded), 13,
         reason: '13 marqueurs TER instanciés dans la carte (viewport initial)');
-    expect(renderedByColor(tester, AppColors.brt), 23,
+    expect(renderedByIcon(tester, Icons.directions_bus_rounded), 23,
         reason: '23 marqueurs BRT instanciés dans la carte (viewport initial)');
     expect(renderedTotal(tester), inInclusiveRange(36, 56),
         reason: 'au moins les 36 officiels ; le reste selon le culling du '
@@ -370,16 +370,16 @@ void main() {
     );
 
     final (FlutterMap _, MarkerLayer stops) = renderedMapAndStopsLayer(tester);
-    debugPrint('[RENDER-TEST][CAS B] transmis: ter=${transmittedByColor(stops, AppColors.ter)} '
-        'brt=${transmittedByColor(stops, AppColors.brt)} total=${stops.markers.length} | '
-        'rendus: ter=${renderedByColor(tester, AppColors.ter)} '
-        'brt=${renderedByColor(tester, AppColors.brt)} total=${renderedTotal(tester)}');
+    debugPrint('[RENDER-TEST][CAS B] transmis: ter=${transmittedByIcon(stops, Icons.train_rounded)} '
+        'brt=${transmittedByIcon(stops, Icons.directions_bus_rounded)} total=${stops.markers.length} | '
+        'rendus: ter=${renderedByIcon(tester, Icons.train_rounded)} '
+        'brt=${renderedByIcon(tester, Icons.directions_bus_rounded)} total=${renderedTotal(tester)}');
 
-    expect(transmittedByColor(stops, AppColors.ter), 13);
-    expect(transmittedByColor(stops, AppColors.brt), 0);
-    expect(renderedByColor(tester, AppColors.ter), 13,
+    expect(transmittedByIcon(stops, Icons.train_rounded), 13);
+    expect(transmittedByIcon(stops, Icons.directions_bus_rounded), 0);
+    expect(renderedByIcon(tester, Icons.train_rounded), 13,
         reason: '13 marqueurs TER rendus sur la carte');
-    expect(renderedByColor(tester, AppColors.brt), 0);
+    expect(renderedByIcon(tester, Icons.directions_bus_rounded), 0);
     expect(renderedTotal(tester), 13,
         reason: 'rien d\'autre que les 13 gares officielles sur la carte');
   });
@@ -393,16 +393,16 @@ void main() {
     );
 
     final (FlutterMap _, MarkerLayer stops) = renderedMapAndStopsLayer(tester);
-    debugPrint('[RENDER-TEST][CAS C] transmis: ter=${transmittedByColor(stops, AppColors.ter)} '
-        'brt=${transmittedByColor(stops, AppColors.brt)} total=${stops.markers.length} | '
-        'rendus: ter=${renderedByColor(tester, AppColors.ter)} '
-        'brt=${renderedByColor(tester, AppColors.brt)} total=${renderedTotal(tester)}');
+    debugPrint('[RENDER-TEST][CAS C] transmis: ter=${transmittedByIcon(stops, Icons.train_rounded)} '
+        'brt=${transmittedByIcon(stops, Icons.directions_bus_rounded)} total=${stops.markers.length} | '
+        'rendus: ter=${renderedByIcon(tester, Icons.train_rounded)} '
+        'brt=${renderedByIcon(tester, Icons.directions_bus_rounded)} total=${renderedTotal(tester)}');
 
-    expect(transmittedByColor(stops, AppColors.brt), 23);
-    expect(transmittedByColor(stops, AppColors.ter), 0);
-    expect(renderedByColor(tester, AppColors.brt), 23,
+    expect(transmittedByIcon(stops, Icons.directions_bus_rounded), 23);
+    expect(transmittedByIcon(stops, Icons.train_rounded), 0);
+    expect(renderedByIcon(tester, Icons.directions_bus_rounded), 23,
         reason: '23 marqueurs BRT rendus sur la carte');
-    expect(renderedByColor(tester, AppColors.ter), 0);
+    expect(renderedByIcon(tester, Icons.train_rounded), 0);
     expect(renderedTotal(tester), 23,
         reason: 'rien d\'autre que les 23 stations officielles sur la carte');
   });
@@ -421,23 +421,23 @@ void main() {
     final (FlutterMap map, MarkerLayer stops) = renderedMapAndStopsLayer(tester);
     expect(map.children.whereType<MarkerLayer>().length, 2,
         reason: 'avec GPS : couche arrêts + couche position utilisateur');
-    debugPrint('[RENDER-TEST][CAS D] transmis: ter=${transmittedByColor(stops, AppColors.ter)} '
-        'brt=${transmittedByColor(stops, AppColors.brt)} total=${stops.markers.length} | '
-        'rendus: ter=${renderedByColor(tester, AppColors.ter)} '
-        'brt=${renderedByColor(tester, AppColors.brt)} total=${renderedTotal(tester)}');
+    debugPrint('[RENDER-TEST][CAS D] transmis: ter=${transmittedByIcon(stops, Icons.train_rounded)} '
+        'brt=${transmittedByIcon(stops, Icons.directions_bus_rounded)} total=${stops.markers.length} | '
+        'rendus: ter=${renderedByIcon(tester, Icons.train_rounded)} '
+        'brt=${renderedByIcon(tester, Icons.directions_bus_rounded)} total=${renderedTotal(tester)}');
 
-    expect(transmittedByColor(stops, AppColors.ter), 13,
+    expect(transmittedByIcon(stops, Icons.train_rounded), 13,
         reason: 'le GPS ne retire aucune gare de la couche — garantie '
             'explorerMapMarkerStops, hors plafond de proximité');
-    expect(transmittedByColor(stops, AppColors.brt), 23);
+    expect(transmittedByIcon(stops, Icons.directions_bus_rounded), 23);
     expect(stops.markers.length, 56,
         reason: '36 officiels + 20 arrêts de proximité (voir CAS A)');
 
     // Le marqueur GPS partage désormais exactement l'identité Dakar #00B140,
     // identique à BRT : le comptage par couleur inclut donc 23 BRT + 1 GPS.
-    expect(renderedByColor(tester, AppColors.brt), 24,
+    expect(renderedByIcon(tester, Icons.directions_bus_rounded), 24,
         reason: '23 stations BRT + 1 marqueur GPS, tous en Dakar Green #00B140');
-    expect(renderedByColor(tester, AppColors.ter), inInclusiveRange(12, 13),
+    expect(renderedByIcon(tester, Icons.train_rounded), inInclusiveRange(12, 13),
         reason: 'les gares TER rendues avec GPS actif — Diamniadio, la plus '
             'orientée, peut sortir de la fenêtre (culling flutter_map, la '
             'caméra est centrée sur l\'utilisateur) ; elle reste transmise');
@@ -482,9 +482,9 @@ void main() {
         reason: 'bandeau « Vous êtes hors de la zone de couverture Dakar Bus »');
 
     // 3) L'exploration des réseaux reste complète (TER + BRT garantis).
-    expect(transmittedByColor(stops, AppColors.ter), 13,
+    expect(transmittedByIcon(stops, Icons.train_rounded), 13,
         reason: '13 gares TER consultables depuis la France');
-    expect(transmittedByColor(stops, AppColors.brt), 23,
+    expect(transmittedByIcon(stops, Icons.directions_bus_rounded), 23,
         reason: '23 stations BRT consultables depuis la France');
     expect(stops.markers.length, 56,
         reason: 'mêmes 56 marqueurs que l\'ouverture sans GPS (CAS A)');
@@ -528,8 +528,8 @@ void main() {
     expect(find.text('Permission GPS refusée.'), findsOneWidget,
         reason: 'bandeau d\'erreur GPS existant visible');
 
-    expect(transmittedByColor(stops, AppColors.ter), 13);
-    expect(transmittedByColor(stops, AppColors.brt), 23);
+    expect(transmittedByIcon(stops, Icons.train_rounded), 13);
+    expect(transmittedByIcon(stops, Icons.directions_bus_rounded), 23);
     expect(stops.markers.length, 56,
         reason: 'consultation complète sans GPS réel (voir CAS A)');
     expect(renderedTotal(tester), greaterThanOrEqualTo(35),
@@ -549,9 +549,9 @@ void main() {
     );
 
     final (FlutterMap _, MarkerLayer stops) = renderedMapAndStopsLayer(tester);
-    expect(transmittedByColor(stops, AppColors.ter), 13,
+    expect(transmittedByIcon(stops, Icons.train_rounded), 13,
         reason: 'filtre TER consultable hors zone comme en zone');
-    expect(transmittedByColor(stops, AppColors.brt), 0);
-    expect(renderedByColor(tester, AppColors.ter), 13);
+    expect(transmittedByIcon(stops, Icons.directions_bus_rounded), 0);
+    expect(renderedByIcon(tester, Icons.train_rounded), 13);
   });
 }
