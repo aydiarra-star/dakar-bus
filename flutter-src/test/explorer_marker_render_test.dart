@@ -294,7 +294,20 @@ int renderedByIcon(WidgetTester tester, IconData icon) => find
     .length;
 
 /// Total des marqueurs rendus (toutes couleurs) sous la carte.
-/// Marqueurs circulaires rendus dans la carte, par couleur métier.\nint renderedByColor(WidgetTester tester, Color color) => find\n    .descendant(\n      of: find.byType(FlutterMap),\n      matching: find.byWidgetPredicate((Widget w) =>\n          w is Container &&\n          w.decoration is BoxDecoration &&\n          (w.decoration as BoxDecoration).shape == BoxShape.circle &&\n          (w.decoration as BoxDecoration).color == color),\n    )\n    .evaluate()\n    .length;\n\nint renderedTotal(WidgetTester tester) => find
+/// Marqueurs circulaires rendus dans la carte, par couleur métier.
+int renderedByColor(WidgetTester tester, Color color) => find
+    .descendant(
+      of: find.byType(FlutterMap),
+      matching: find.byWidgetPredicate((Widget w) =>
+          w is Container &&
+          w.decoration is BoxDecoration &&
+          (w.decoration as BoxDecoration).shape == BoxShape.circle &&
+          (w.decoration as BoxDecoration).color == color),
+    )
+    .evaluate()
+    .length;
+
+int renderedTotal(WidgetTester tester) => find
     .descendant(
       of: find.byType(FlutterMap),
       matching: find.byWidgetPredicate((Widget w) =>
