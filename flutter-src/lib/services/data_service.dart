@@ -324,13 +324,32 @@ class DataService {
     DateTime requestedAt, {
     bool isPublicHoliday = false,
     String? operatorName,
-  }) =>
-      _dataProvider.departureInfoForRoute(
-        routeId,
-        requestedAt,
-        isPublicHoliday: isPublicHoliday,
-        operatorName: operatorName,
+  }) {
+    final String id = routeId.toLowerCase();
+    final bool passBiOnly = id.startsWith('ter_') ||
+        id.startsWith('brt_') ||
+        id.startsWith('ddd_') ||
+        id.startsWith('aftu_') ||
+        id.startsWith('line_ddd_') ||
+        id.startsWith('line_aftu_');
+    if (passBiOnly) {
+      // Cette API n'a pas d'identifiant d'arrêt : elle ne peut donc pas
+      // calculer un stop_time GTFS. Surtout, elle ne doit pas contourner
+      // l'exclusivité en réinjectant une fréquence legacy.
+      return DepartureInfo.unknown(
+        operator: operatorName ?? 'Transport',
+        routeId: routeId,
+        requestedAt: requestedAt,
+        unresolvedReason: UnresolvedReason.stopNotMatched,
       );
+    }
+    return _dataProvider.departureInfoForRoute(
+      routeId,
+      requestedAt,
+      isPublicHoliday: isPublicHoliday,
+      operatorName: operatorName,
+    );
+  }
 
   /// Entry point consumed by Stop. Unknown/incomplete identities remain UNKNOWN.
   DepartureInfo departureFor({
