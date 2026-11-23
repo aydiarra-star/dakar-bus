@@ -82,13 +82,14 @@ class DataService {
   }
 
   /// Chargement des horaires PassBi (distinct de loadNetworkData).
-  /// En cas d'échec, l'app reste sur les données legacy — jamais de plantage.
+  /// En cas d'échec, TER/BRT/DDD/AFTU restent sans horaire calculable :
+  /// aucun repli sur les fréquences ou horaires legacy n'est autorisé.
   Future<void> loadPassBiSchedules() async {
     try {
       await passBiSource.loadAll();
     } catch (e) {
       // ignore: avoid_print
-      print('⚠️ Flux GTFS indisponible : TER, BRT, DDD et AFTU restent sans horaire PassBi. $e');
+      print('Horaires PassBi non chargés : aucun repli legacy pour TER, BRT, DDD et AFTU. $e');
     }
   }
 
