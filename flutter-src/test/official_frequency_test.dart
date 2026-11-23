@@ -32,7 +32,7 @@ void main() {
       expect(info.serviceActive, isFalse);
       expect(info.frequencyMinutes, isNull);
       expect(info.operatingHours, isNull);
-      expect(info.operator, 'SunuBRT');
+      expect(info.operator, 'Transport');
       expect(info.routeId, 'brt_b1_guediawaye_petersen');
       expect(info.source, isNull);
       expect(info.sourceType, SourceType.unknown);
@@ -40,7 +40,7 @@ void main() {
       expect(info.dateVerified, isNull);
       expect(info.validFrom, isNull);
       expect(info.validTo, isNull);
-      expect(info.confidence, greaterThan(0));
+      expect(info.confidence, isNull);
     });
 
     test('B1 dimanche : aucun repli sur la fréquence historique', () {
@@ -232,7 +232,7 @@ void main() {
           ..clear()
           ..addAll(<app.Stop>[from, to]);
 
-        // La réponse obtenue sur le Stop est déjà de type ScheduleStatus.estimated.
+        // Sans stop_time GTFS calculable, le Stop reste UNKNOWN.
         final throughStop = from.departureInfoAt(at: requestedAt);
         expect(throughStop.status, ScheduleStatus.unknown);
         expect(from.departureStatusAt(requestedAt), app.DataStatus.unknown);
