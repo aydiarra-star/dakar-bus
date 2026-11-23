@@ -816,7 +816,7 @@ void main() {
           prox = networkPointsForNetwork('BRT');
           break;
         case 'DDD':
-          prox = networkPoints(AppColors.ddd);
+          prox = networkPointsForNetwork('DDD');
           break;
         default: // « Tous »
           prox = [
@@ -939,7 +939,7 @@ void main() {
     });
 
     test('hors TER/BRT (DDD, TATA, AFTU, Favoris) : comportement inchangé', () {
-      final List<Stop> prox = networkPoints(AppColors.ddd);
+      final List<Stop> prox = networkPointsForNetwork('DDD');
       final List<Stop> out = explorerMapMarkerStops(
           proximityStops: prox, terDisplayed: false, brtDisplayed: false);
       expect(out.length, prox.length,
