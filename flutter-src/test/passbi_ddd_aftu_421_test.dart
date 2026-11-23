@@ -612,7 +612,7 @@ void main() {
       expect(app.passBiNativeNetworkKeys(), <String>['DDD', 'AFTU']);
       expect(app.passBiNativeStops.any((s) => s.modeLabel == 'TATA'), isFalse);
       expect(
-        app.passBiNativeStops.any((s) => s.color == app.AppColors.tata),
+        app.passBiNativeStops.any((s) => app.networkKeyForStop(s) == 'TATA'),
         isFalse,
       );
     });
@@ -627,7 +627,7 @@ void main() {
         same(app.allStops),
       );
       final tataStops = app.allStops
-          .where((s) => s.color == app.AppColors.tata)
+          .where((s) => app.networkKeyForStop(s) == 'TATA')
           .take(5)
           .toList();
       expect(tataStops, isNotEmpty,
