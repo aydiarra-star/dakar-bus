@@ -841,7 +841,7 @@ void main() {
       }
       expect(
           tous.where((Stop s) =>
-                  s.stopId != null && s.color == AppColors.ter).length,
+                  s.stopId != null && networkKeyForStop(s) == 'TER').length,
           13,
           reason: '13 marqueurs TER, un par gare officielle, sans doublon');
     });
@@ -856,7 +856,7 @@ void main() {
       }
       expect(
           tous.where((Stop s) =>
-                  s.stopId != null && s.color == AppColors.brt).length,
+                  s.stopId != null && networkKeyForStop(s) == 'BRT').length,
           23,
           reason: '23 marqueurs BRT, un par station officielle, sans doublon');
     });
@@ -870,12 +870,12 @@ void main() {
       final List<Stop> tous = markersFor('Tous');
       expect(
           tous.where((Stop s) =>
-              s.color == AppColors.ter && s.stopId == null).length,
+              networkKeyForStop(s) == 'TER' && s.stopId == null).length,
           0,
           reason: 'aucun arrêt TER de démonstration redessiné sur la carte');
       expect(
           tous.where((Stop s) =>
-              s.color == AppColors.brt && s.stopId == null).length,
+              networkKeyForStop(s) == 'BRT' && s.stopId == null).length,
           0,
           reason: 'aucune station BRT de démonstration redessinée sur la carte');
       expect(tous.length, 36,
@@ -890,7 +890,7 @@ void main() {
           ter.where((Stop s) =>
                   s.stopId != null && s.color == AppColors.ter).length,
           13);
-      expect(ter.where((Stop s) => s.color == AppColors.brt).length, 0);
+      expect(ter.where((Stop s) => networkKeyForStop(s) == 'BRT').length, 0);
     });
 
     test('filtre BRT : exactement les 23 stations officielles, aucune gare TER',
@@ -901,7 +901,7 @@ void main() {
           brt.where((Stop s) =>
                   s.stopId != null && s.color == AppColors.brt).length,
           23);
-      expect(brt.where((Stop s) => s.color == AppColors.ter).length, 0);
+      expect(brt.where((Stop s) => networkKeyForStop(s) == 'TER').length, 0);
     });
 
     test('chaque marqueur TER officiel est posé sur un sommet du tracé TER',
