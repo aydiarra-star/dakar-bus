@@ -76,7 +76,7 @@ void main() {
   // ------------------------------------------------------------------
   // 2. Données réelles : BRT Gadaye / Fith Mith (B1 mappée, sans stop_time).
   // ------------------------------------------------------------------
-  group('2 — arrêt BRT B1 mappé sans stop_time → ESTIMATED documenté', () {
+  group('2 — arrêt BRT B1 sans stop_time GTFS → UNKNOWN sans repli fréquence', () {
     test('Gadaye : aucun stop_time mais fréquence B1 applicable', () {
       final app.Stop s = explorerStop(
         name: 'Gadaye - Cambérène - BRT',
@@ -86,13 +86,13 @@ void main() {
       );
       // Aucun passage réel calculable à cet instant.
       expect(s.nextRealWaitingMinutes(at: lundi1438, limit: 3), isEmpty);
-      // Mais une fréquence DOCUMENTÉE est applicable.
+      // L'exclusivité GTFS interdit tout repli sur cette fréquence historique.
       final DepartureInfo info = s.departureInfoAt(at: lundi1438);
-      expect(info.status, ScheduleStatus.estimated);
-      expect(info.frequencyMinutes, 6);
+      expect(info.status, ScheduleStatus.unknown);
+      expect(info.frequencyMinutes, isNull);
       expect(info.scheduledTime, isNull,
           reason: 'une fréquence ne fabrique aucune heure de passage');
-      expect(info.label, 'Passage estimé dans 6 min');
+      expect(info.label, ReliabilityLabel.scheduleUnavailable);
     });
 
     test('Fith Mith : idem (fréquence documentée, pas de départ fabriqué)', () {
@@ -112,8 +112,8 @@ void main() {
   // ------------------------------------------------------------------
   // 3. Rendu Explorer : l'estimation documentée remplace l'indisponibilité.
   // ------------------------------------------------------------------
-  group('3 — rendu StopCard / SingleStopView', () {
-    testWidgets('StopCard Gadaye affiche « Passage estimé · 6 mn »',
+  group('3 — rendu StopCard / SingleStopView sans horaire GTFS', () {
+    testWidgets('StopCard Gadaye affiche « Horaire indisponible »',
         (WidgetTester t) async {
       final app.Stop s = explorerStop(
         name: 'Gadaye - Cambérène - BRT',
@@ -127,12 +127,12 @@ void main() {
       await t.pump();
       final List<String> texts =
           t.widgetList<Text>(find.byType(Text)).map((w) => w.data ?? '').toList();
-      expect(texts, contains('Passage estimé · 6 mn'));
+      expect(texts, contains(ReliabilityLabel.scheduleUnavailable));
       expect(texts.contains(ReliabilityLabel.scheduleUnavailable), isFalse,
           reason: 'une estimation documentée ne doit pas être masquée');
     });
 
-    testWidgets('SingleStopView Gadaye affiche « Passage estimé · 6 mn »',
+    testWidgets('SingleStopView Gadaye affiche « Horaire indisponible »',
         (WidgetTester t) async {
       final app.Stop s = explorerStop(
         name: 'Gadaye - Cambérène - BRT',
