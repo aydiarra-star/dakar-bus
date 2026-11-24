@@ -98,6 +98,26 @@ test('la preuve d’identité publique ↔ route reste indépendante des horaire
   }
 });
 
+test('four ambiguous public identities retain schedules but remain unattributed', () => {
+  const cases = [
+    ['AFTU', '28', 'AFTU_28'],
+    ['AFTU', '42', 'AFTU_42'],
+    ['DDD', '121', 'DDD_121'],
+    ['DDD', '234', 'DDD_234'],
+  ];
+  for (const [operator, number, routeId] of cases) {
+    const line = ALL.find((item) =>
+      item.operator === operator && item.line_number === number);
+    assert.ok(line, `${operator} ${number} missing`);
+    assert.equal(line.feed_route_identity_status, 'UNVERIFIED');
+    assert.equal(line.feed_route_identity_proof, null);
+    assert.equal(line.mapping_status, 'CONNECTED');
+    assert.equal(line.schedule_status, 'SCHEDULE_AVAILABLE');
+    assert.deepEqual(line.feed_route_ids, [routeId]);
+    assert.ok(line.stop_times_count > 0);
+  }
+});
+
 test('chaque identité VERIFIED correspond aux terminus réels du feed', () => {
   for (const proof of IDENTITY_PROOFS.proofs) {
     const feed = TERMINI_FEEDS[proof.operator];
