@@ -221,7 +221,7 @@ void main() {
       expect(ddd.publicRouteNumber, '80');
       expect(ddd.vehicleType, isNull,
           reason: 'type de véhicule non établi → pas de « Tata » affiché');
-      // Le numéro AFTU 80 existe, mais le route_id AFTU_80 n'a pas de preuve
+      // Le numéro AFTU 80 existe, mais le route_id AFTU_48 n'a pas de preuve
       // indépendante de correspondance : le pipeline affiche le mode seul.
       expect(
           ScheduleProvider.identityLabelFor(
