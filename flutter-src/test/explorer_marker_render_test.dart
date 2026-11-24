@@ -456,11 +456,13 @@ void main() {
             'caméra est centrée sur l\'utilisateur) ; elle reste transmise');
     expect(renderedTotal(tester), greaterThanOrEqualTo(35));
 
-    // Le marqueur de position utilisateur est présent en plus des arrêts.
-    // GPS et BRT partagent volontairement la même identité #00B140 :
-    // le comptage par couleur voit donc les 23 BRT + le marqueur GPS.
-    expect(renderedByColor(tester, AppColors.primary), 24,
-        reason: '23 BRT + 1 marqueur GPS en Dakar Green #00B140');
+    // La couche GPS est distincte de la couche des arrêts. Son marqueur
+    // peut partager une couleur avec d'autres éléments de l'interface :
+    // un comptage global des Containers verts n'identifie donc pas le GPS.
+    final MarkerLayer gpsLayer =
+        map.children.whereType<MarkerLayer>().last;
+    expect(gpsLayer.markers, hasLength(1),
+        reason: 'un marqueur de position utilisateur dans la couche GPS');
   });
 
   // ===========================================================================
