@@ -446,10 +446,10 @@ void main() {
     expect(stops.markers.length, 56,
         reason: '36 officiels + 20 arrêts de proximité (voir CAS A)');
 
-    // Le marqueur GPS partage désormais exactement l'identité Dakar #00B140,
-    // identique à BRT : le comptage par couleur inclut donc 23 BRT + 1 GPS.
-    expect(renderedByIcon(tester, Icons.directions_bus_rounded), 24,
-        reason: '23 stations BRT + 1 marqueur GPS, tous en Dakar Green #00B140');
+    // Le marqueur GPS est un disque vert sans icône : le comptage par icône
+    // reste donc à 23 BRT. Le comptage par couleur ci-dessous inclut le GPS.
+    expect(renderedByIcon(tester, Icons.directions_bus_rounded), 23,
+        reason: '23 stations BRT avec leur icône bus ; le GPS est sans icône');
     expect(renderedByIcon(tester, Icons.train_rounded), inInclusiveRange(12, 13),
         reason: 'les gares TER rendues avec GPS actif — Diamniadio, la plus '
             'orientée, peut sortir de la fenêtre (culling flutter_map, la '
