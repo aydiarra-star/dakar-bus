@@ -4062,7 +4062,9 @@ class _ExplorerPageState extends State<ExplorerPage> {
     // Le filtre de tracé utilise l'identité du réseau : la palette des tracés
     // est unifiée, donc une couleur ne peut plus distinguer les opérateurs.
     final String? filterNetwork =
-        _selectedFilter == 'Tous' ? null : _selectedFilter.toLowerCase();
+        _selectedFilter == 'Tous' || _selectedFilter == '⭐ Favoris'
+            ? null
+            : _selectedFilter.toLowerCase();
     final bool hasDynamicPolylines = _dynamicPolylines.isNotEmpty;
     final List<Polyline> basePolylines = hasDynamicPolylines
         ? _dynamicPolylines
