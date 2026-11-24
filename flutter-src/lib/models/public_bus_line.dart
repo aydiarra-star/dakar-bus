@@ -199,9 +199,11 @@ class PublicBusLine {
       stopSequencePresent &&
       scheduleStatus == 'SCHEDULE_AVAILABLE';
 
-  /// La ligne possède-t-elle de VRAIS horaires exploitables ? Uniquement quand
-  /// le raccordement est complet ET le statut dérivé du feed l'atteste. Une
-  /// ligne BLOCKED/NOT_VERIFIED ne doit jamais être présentée comme horairée.
+  /// Le feed contient-il de VRAIS horaires exploitables pour cette route ?
+  /// Ce statut est purement technique : il ne certifie PAS que la route est
+  /// bien celle de la ligne publique. Cette seconde preuve est
+  /// [hasVerifiedFeedIdentity]. Une ligne BLOCKED/NOT_VERIFIED n'est jamais
+  /// présentée comme horairée.
   bool get hasRealSchedule =>
       mappingStatus == LineMappingStatus.connected && isScheduleLinked;
 
