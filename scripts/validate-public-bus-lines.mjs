@@ -137,7 +137,7 @@ for (const [network, feed] of [['AFTU', AFTU], ['DDD', DDD]]) {
     if (identityProof) {
       const feedRoute = TERMINUS_FEEDS[network].routes.find(
         (r) => r.id === identityProof.route_id);
-      if (!feedRoute || feedRoute.longName !== identityProof.feed_route_long_name) {
+      if (!feedRoute || feedRoute.long !== identityProof.feed_route_long_name) {
         problems.push('route_long_name du feed différent de la preuve documentaire');
       }
       const actual = routeTermini(TERMINUS_FEEDS[network], identityProof.route_id);
