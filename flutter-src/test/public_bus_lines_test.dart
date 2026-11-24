@@ -460,6 +460,30 @@ void main() {
           reason: 'les arrêts ne doivent pas être attribués à DDD 502 sans preuve d’identité');
     });
 
+    test('quatre identités ambiguës gardent leurs horaires sans attribution publique', () {
+      const cases = <(String, String, String)>[
+        ('AFTU 28', 'AFTU', 'AFTU_28'),
+        ('AFTU 42', 'AFTU', 'AFTU_42'),
+        ('DDD 121', 'DDD', 'DDD_121'),
+        ('DDD 234', 'DDD', 'DDD_234'),
+      ];
+      final entries = NetworkSearchCatalogBuilder.fromPublicLines(
+          app.appDataService.publicBusLineCatalog.publicLines);
+      for (final (label, network, routeId) in cases) {
+        final PublicBusLine line = app.appDataService.publicBusLineCatalog.publicLines
+            .singleWhere((l) => l.publicLabel == label);
+        expect(line.hasRealSchedule, isTrue, reason: '$label : horaires conservés');
+        expect(line.hasVerifiedFeedIdentity, isFalse);
+        expect(line.feedRouteIds, <String>[routeId]);
+        expect(app.appDataService.passBiSource.routeSummary(network, routeId), isNotNull);
+        expect(app.appDataService.publicBusLineCatalog.publicLabelForFeedRouteId(routeId), isNull);
+        expect(app.appDataService.publicLineStopSequence(line), isNull);
+        final entry = entries.singleWhere(
+            (e) => e.kind == NetworkSearchKind.line && e.label == label);
+        expect(entry.routeId, isNull);
+      }
+    });
+
     test('une ligne non raccordée n’a AUCUNE fiche d’arrêts fabriquée', () {
       for (final l in app.appDataService.publicBusLineCatalog.reference!
           .unresolvedPublicLines) {
