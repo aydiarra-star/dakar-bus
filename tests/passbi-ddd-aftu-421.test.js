@@ -366,7 +366,7 @@ test('J. aucune identité inventée : le crosswalk ne rattache QUE ce qu\'il a p
   {
     assert.equal(exemple.lineLabel, 'DDD');
     assert.equal(exemple.identityStatus, IDENTITY.UNCONFIRMED);
-    assert.match(exemple.identityNote, /UNCONFIRMED/);
+    assert.match(exemple.identityNote, /UNVERIFIED/);
   }
   // 4) Aucune route PassBi ne porte de nom d'arrêt du référentiel dakar : la
   //    correspondance n'est jamais déduite.
