@@ -1,5 +1,5 @@
 // CHANTIER UI — SUPPRESSION DE « PassBi » DE L'INTERFACE + IDENTIFICATION
-// DDD / TATA + VERT HARICOT CLAIR.
+// DDD / TATA + VERT WHATSAPP.
 //
 // Ces tests portent sur la PRÉSENTATION uniquement. Le pipeline horaire
 // (PassBi → route → trip → direction → arrêt → stop_times → DakarClock →
@@ -305,9 +305,9 @@ void main() {
   // 4. Vert haricot clair homogène
   // ==================================================================
   group('4 — identité verte Dakar', () {
-    test('le vert Dakar pur unifie aussi le vert des départs', () {
-      expect(app.AppColors.beanGreen, const Color(0xFF00B140));
-      expect(app.AppColors.beanGreenLight, const Color(0xFFDDF5E7));
+    test('le vert WhatsApp unifie aussi les actions et départs', () {
+      expect(app.AppColors.beanGreen, const Color(0xFF25D366));
+      expect(app.AppColors.beanGreenLight, const Color(0xFFE5F9EC));
       // Le vert positif des départs reprend l'identité Dakar pure.
       // La RÈGLE horaire (quand ce vert s'affiche) reste inchangée.
       expect(app.AppColors.success, app.AppColors.beanGreen);
@@ -315,7 +315,7 @@ void main() {
       expect(app.AppColors.warning, const Color(0xFFEF6C00));
     });
 
-    test('les boutons principaux et la navigation utilisent le vert haricot',
+    test('les boutons principaux et la navigation utilisent le vert WhatsApp',
         () {
       final String code = File('lib/main.dart')
           .readAsStringSync()
