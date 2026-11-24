@@ -456,10 +456,10 @@ void main() {
     expect(stops.markers.length, 56,
         reason: '36 officiels + 20 arrêts de proximité (voir CAS A)');
 
-    // Le marqueur GPS partage désormais exactement l'identité Dakar #00B140,
-    // identique à BRT : le comptage par couleur inclut donc 23 BRT + 1 GPS.
-    expect(renderedByNetwork(tester, stops, 'brt'), 24,
-        reason: 'une couche GPS distincte contient un seul marqueur de position');
+    // Le comptage métier BRT ne compte que ses 23 stations. Le GPS est
+    // contrôlé séparément par la présence de sa seconde MarkerLayer ci-dessus.
+    expect(renderedByNetwork(tester, stops, 'brt'), 23,
+        reason: 'le marqueur GPS ne doit pas être compté comme station BRT');
     expect(renderedByNetwork(tester, stops, 'ter'), inInclusiveRange(12, 13),
         reason: 'les gares TER rendues avec GPS actif — Diamniadio, la plus '
             'orientée, peut sortir de la fenêtre (culling flutter_map, la '
