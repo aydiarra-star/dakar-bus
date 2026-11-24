@@ -5218,7 +5218,7 @@ class StopCard extends StatelessWidget {
                             : FontWeight.bold,
                         letterSpacing: hasWaits || legacyRemaining != null ? 0.2 : 0,
                         color: hasWaits || legacyRemaining != null
-                            ? AppColors.success
+                            ? AppColors.beanGreen
                             : AppColors.textSecondary(dark),
                       ),
                     ),
