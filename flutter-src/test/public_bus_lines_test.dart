@@ -289,6 +289,19 @@ void main() {
     // donc que la baseline des 16 identités non raccordables reste honnête
     // (présente, non CONNECTED, sans faux horaire) — et jamais « 100 % » obtenu
     // par invention.
+    test('les 20 routes PassBi sans identité publique restent hors catalogue', () {
+      // Audit du feed : 19 routes DDD et AFTU_90 n'ont pas de correspondance
+      // publique prouvée. Elles restent consignées en audit, jamais exposées
+      // comme lignes voyageurs et jamais rattachées par simple numéro.
+      final Map<String, int> counts =
+          app.appDataService.publicBusLineCatalog.reference!.counts;
+      expect(counts['feed_routes_without_public_line'], 20);
+      expect(counts['ddd_public'], 48);
+      expect(counts['aftu_official'], 72);
+      expect(counts['connected'], 104);
+      expect(counts['unresolved'], 16);
+    });
+
     test('les 16 identités publiées non raccordables restent honnêtes', () {
       const List<String> baseline = <String>[
         'AFTU 47', 'AFTU 52',
