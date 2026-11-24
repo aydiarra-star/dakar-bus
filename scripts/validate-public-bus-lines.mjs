@@ -33,6 +33,10 @@ import { dirname, resolve } from 'node:path';
 const ROOT = resolve(dirname(new URL(import.meta.url).pathname), '..');
 const REF = JSON.parse(
   readFileSync(resolve(ROOT, 'data/reference/public_bus_lines_dakar.json'), 'utf8'));
+const IDENTITY_PROOFS_PATH = 'data/reference/passbi_route_identity_proofs.json';
+const IDENTITY_PROOFS = JSON.parse(readFileSync(resolve(ROOT, IDENTITY_PROOFS_PATH), 'utf8'));
+const IDENTITY_PROOF_BY_KEY = new Map(
+  IDENTITY_PROOFS.proofs.map((p) => [`${p.operator}:${p.line_number}`, p]));
 
 function feedEvidence(path, prefix) {
   const feed = JSON.parse(readFileSync(path, 'utf8'));
@@ -96,21 +100,31 @@ for (const [network, feed] of [['AFTU', AFTU], ['DDD', DDD]]) {
 
     // L'identité publique ↔ route est une preuve séparée du raccordement horaire.
     const identityStatus = l.feed_route_identity_status ?? 'UNVERIFIED';
+    const identityProof = IDENTITY_PROOF_BY_KEY.get(`${network}:${l.line_number}`);
+    const expectedProofReference = `${IDENTITY_PROOFS_PATH}#${network}:${l.line_number}`;
     if (!['VERIFIED', 'UNVERIFIED'].includes(identityStatus)) {
       problems.push(`feed_route_identity_status invalide : ${identityStatus}`);
     }
-    if (identityStatus === 'VERIFIED' &&
-        !(typeof l.feed_route_identity_proof === 'string' && l.feed_route_identity_proof.trim())) {
-      problems.push('identité VERIFIED sans référence documentaire');
+    if (identityStatus === 'VERIFIED' && !identityProof) {
+      problems.push('identité VERIFIED absente du registre documentaire');
+    }
+    if (identityStatus === 'VERIFIED' && l.feed_route_identity_proof !== expectedProofReference) {
+      problems.push('référence de preuve VERIFIED incorrecte');
     }
     if (identityStatus !== 'VERIFIED' && l.feed_route_identity_proof != null) {
       problems.push('preuve documentaire présente sans statut VERIFIED');
+    }
+    if (identityProof && identityStatus !== 'VERIFIED') {
+      problems.push('preuve du registre non appliquée au référentiel généré');
     }
 
     // Chaîne dérivée du feed : ce que la ligne DEVRAIT déclarer.
     const routeIds = l.feed_route_ids ?? [];
     if (identityStatus === 'VERIFIED' && routeIds.length === 0) {
       problems.push('identité VERIFIED sans route_id associé');
+    }
+    if (identityProof && (routeIds.length !== 1 || routeIds[0] !== identityProof.route_id)) {
+      problems.push(`route_id différent de la preuve documentaire (${identityProof.route_id})`);
     }
     let chainComplete = routeIds.length > 0;
     // Les maillons manquants sont consignés à part : pour une ligne NON
