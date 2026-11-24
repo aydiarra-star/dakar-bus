@@ -44,9 +44,9 @@ class PublicBusLineCatalog {
   /// preuve indépendante relie ce route_id à cette ligne publique. Un simple
   /// numéro identique ou un raccordement horaire CONNECTED ne suffit pas.
   ///
-  /// Un `route_id` interne n'est jamais converti en numéro public : seul le
-  /// raccordement établi par le référentiel ([PublicBusLine.feedRouteIds]) est
-  /// une preuve. Sans raccordement → `null` (l'appelant n'affiche que le mode).
+  /// Un `route_id` interne n'est jamais converti en numéro public : la liste
+  /// `feed_route_ids` seule ne suffit pas. Sans preuve VERIFIED → `null`
+  /// (l'appelant n'affiche que le mode).
   String? publicLabelForFeedRouteId(String feedRouteId) {
     final Map<String, String>? index = _labelByFeedRouteId;
     if (index == null) return null;
