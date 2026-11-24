@@ -4601,9 +4601,10 @@ class PublicLineCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final dark = globalState.darkMode;
     final Color color = line.operator == 'DDD' ? AppColors.ddd : AppColors.aftu;
-    // Statut RÉEL : une ligne BLOCKED/NOT_VERIFIED n'est jamais présentée comme
-    // horairée. `hasRealSchedule` exige la chaîne de raccordement complète.
-    final bool connected = line.hasRealSchedule;
+    // Un flux complet ne devient un horaire de ligne publique qu'avec une
+    // preuve indépendante route_id ↔ numéro officiel.
+    final bool connected = line.hasVerifiedPublicSchedule;
+    final bool scheduleUnattributed = line.hasRealSchedule && !line.hasVerifiedFeedIdentity;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -4679,13 +4680,17 @@ class PublicLineCard extends StatelessWidget {
                         child: Text(
                           connected
                               ? '${line.mappingStatus.label} · ${line.servedStopCount} arrêts réels'
-                              : '${line.mappingStatus.label} — ${line.unresolvedReason ?? 'raccordement incomplet'}',
+                              : scheduleUnattributed
+                                  ? 'Flux horaire présent · identité de la ligne à confirmer'
+                                  : '${line.mappingStatus.label} — ${line.unresolvedReason ?? 'raccordement incomplet'}',
                           style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
                               color: connected
                                   ? AppColors.success
-                                  : AppColors.textSecondary(dark)),
+                                  : scheduleUnattributed
+                                      ? AppColors.warning
+                                      : AppColors.textSecondary(dark)),
                         ),
                       ),
                     ]),
@@ -4718,7 +4723,9 @@ class PublicLineDetailPage extends StatefulWidget {
 class _PublicLineDetailPageState extends State<PublicLineDetailPage> {
   int _directionIndex = 0;
   PublicBusLine get line => widget.line;
-  List<String> get _directions => line.directionIds.where((id) => id.isNotEmpty).toSet().toList()..sort();
+  List<String> get _directions => !line.hasVerifiedPublicSchedule
+      ? const <String>[]
+      : (line.directionIds.where((id) => id.isNotEmpty).toSet().toList()..sort());
   String? get _selectedDirection => _directions.isEmpty ? null : _directions[_directionIndex.clamp(0, _directions.length - 1)];
   PassBiRouteStopSequence? get _selectedSequence => appDataService.publicLineStopSequence(line, directionId: _selectedDirection);
 
@@ -4776,14 +4783,20 @@ class _PublicLineDetailPageState extends State<PublicLineDetailPage> {
         backgroundColor: AppColors.background(dark),
         appBar: AppBar(backgroundColor: AppColors.primary, foregroundColor: Colors.white, title: Text(line.publicLabel, style: const TextStyle(fontSize: 16))),
         body: ListView(padding: const EdgeInsets.all(16), children: [
-          _header(dark, color, line.hasRealSchedule),
+          _header(dark, color, line.hasVerifiedPublicSchedule),
           if (hasTwoDirections) ...[const SizedBox(height: 12), _directionSwitcher(dark)],
           const SizedBox(height: 12),
           _section('Sens ${_directionLabel()}', dark, Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             if (seq != null && seq.stops.isNotEmpty) _kv('Trajet', '${seq.stops.first.name} → ${seq.stops.last.name}', dark),
             if (seq != null && seq.direction.isNotEmpty) _kv('direction_id GTFS', seq.direction, dark),
             const SizedBox(height: 5),
-            if (departures.isEmpty && !usesPassBiExclusiveModeLabel(line.operator)) Text('Horaire indisponible pour ce sens à cet arrêt.', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark)))
+            if (!line.hasVerifiedPublicSchedule)
+              Text(line.hasRealSchedule
+                  ? 'Les horaires du flux ne sont pas attribués à cette ligne : identité de la route non confirmée.'
+                  : 'Aucun horaire exploitable n’est raccordé à cette ligne.',
+                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark)))
+            else if (departures.isEmpty)
+              Text('Aucun départ disponible pour ce sens à cet arrêt.', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark)))
             else ...departures.where((d) => d.scheduledTime != null).map((d) => Padding(padding: const EdgeInsets.symmetric(vertical: 3), child: Row(children: [
               Icon(Icons.schedule_rounded, size: 17, color: AppColors.primary), const SizedBox(width: 7),
               Text(d.scheduledTime == null ? 'Horaire indisponible' : 'Départ programmé · ${_timeLabel(d.scheduledTime!)}', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary(dark)))
@@ -4793,14 +4806,25 @@ class _PublicLineDetailPageState extends State<PublicLineDetailPage> {
           _section('Statut des données', dark, Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             _kv('Statut de raccordement', line.mappingStatus.code, dark), _kv('Statut horaire', line.scheduleStatus, dark),
             if (line.publishedScheduleStatus.isNotEmpty) _kv('Statut publié (source)', line.publishedScheduleStatus, dark),
-            _kv('Identité', line.identityStatus, dark), _kv('Itinéraire', line.routeStatus, dark), _kv('Arrêts', line.stopsStatus, dark),
-            _kv('Ordre des arrêts (feed)', line.sequenceQuality.code, dark), _kv('Source', line.source, dark), _kv('Vérifié le', line.verifiedAt, dark),
+            _kv('Identité', line.identityStatus, dark),
+            _kv('Identité route ↔ ligne', line.hasVerifiedFeedIdentity ? 'VERIFIED' : 'UNVERIFIED', dark),
+            if (line.feedRouteIdentityVerifiedAt != null) _kv('Preuve route ↔ ligne vérifiée le', line.feedRouteIdentityVerifiedAt!, dark),
+            _kv('Itinéraire', line.routeStatus, dark), _kv('Arrêts', line.stopsStatus, dark),
+            _kv('Ordre des arrêts (feed)', line.sequenceQuality.code, dark), _kv('Vérifié le', line.verifiedAt, dark),
           ])),
           const SizedBox(height: 12),
-          if (line.hasRealSchedule) _section('Données horaires raccordées', dark, Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            _kv('Route(s) feed', line.feedRouteIds.join(', '), dark), _kv('Trips réels', '${line.tripIdsCount}', dark),
-            _kv('Directions', line.directionIds.join(', '), dark), _kv('stop_times', '${line.stopTimesCount}', dark), _kv('Arrêts desservis', '${line.servedStopCount}', dark),
-          ])) else _blockedSection(dark),
+          if (line.hasVerifiedPublicSchedule) _section('Horaires de la ligne vérifiés', dark, Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            _kv('Trips réels', '${line.tripIdsCount}', dark),
+            _kv('Directions', '${line.directionIds.length}', dark), _kv('stop_times', '${line.stopTimesCount}', dark), _kv('Arrêts desservis', '${line.servedStopCount}', dark),
+          ]))
+          else if (line.hasRealSchedule) _section('Flux horaires détecté — attribution suspendue', dark, Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text('Le flux contient des horaires, mais aucune preuve suffisante ne permet de les attribuer à cette ligne publique. Les départs et les arrêts restent masqués.', style: TextStyle(fontSize: 12)),
+            _kv('Trips dans le flux', '${line.tripIdsCount}', dark),
+            _kv('Directions dans le flux', '${line.directionIds.length}', dark),
+            _kv('stop_times dans le flux', '${line.stopTimesCount}', dark),
+            _kv('Arrêts présents dans le flux', '${line.servedStopCount}', dark),
+          ]))
+          else _blockedSection(dark),
           const SizedBox(height: 12), _stopsSection(dark, color, seq), const SizedBox(height: 24),
         ]),
       );
@@ -4829,7 +4853,7 @@ class _PublicLineDetailPageState extends State<PublicLineDetailPage> {
   );
 
   Widget _header(bool dark, Color color, bool connected) => Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: color.withOpacity(0.10), borderRadius: BorderRadius.circular(16), border: Border.all(color: color.withOpacity(0.4))), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-    Row(children: [Icon(connected ? Icons.check_circle : Icons.info_outline, color: connected ? AppColors.success : AppColors.warning, size: 20), const SizedBox(width: 8), Expanded(child: Text(line.mappingStatus.label, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))))]),
+    Row(children: [Icon(connected ? Icons.check_circle : Icons.info_outline, color: connected ? AppColors.success : AppColors.warning, size: 20), const SizedBox(width: 8), Expanded(child: Text(connected ? 'Identité et horaires vérifiés' : line.hasRealSchedule ? 'Flux horaire présent · identité à confirmer' : line.mappingStatus.label, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))))]),
     const SizedBox(height: 8), Text(line.hasPublishedTerminus ? '${line.origin} ➔ ${line.destination}' : 'Terminus non publiés par la source', style: TextStyle(fontSize: 14, color: AppColors.textPrimary(dark))),
   ]));
 
@@ -4842,7 +4866,13 @@ class _PublicLineDetailPageState extends State<PublicLineDetailPage> {
   }
 
   Widget _stopsSection(bool dark, Color color, PassBiRouteStopSequence? seq) {
-    if (seq == null || seq.isEmpty) return _section('Arrêts', dark, Text(line.hasRealSchedule ? 'Séquence d’arrêts indisponible dans le feed.' : 'Aucun arrêt : la ligne n’est pas raccordée à une route réelle du feed.', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark))));
+    if (seq == null || seq.isEmpty) return _section('Arrêts', dark, Text(
+      line.hasRealSchedule && !line.hasVerifiedFeedIdentity
+          ? 'Le flux contient des arrêts, mais leur attribution à cette ligne publique n’est pas confirmée.'
+          : line.hasRealSchedule
+              ? 'Séquence d’arrêts indisponible dans le feed.'
+              : 'Aucun arrêt : la ligne n’est pas raccordée à une route réelle du feed.',
+      style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark))));
     return _section('Arrêts (${seq.stops.length}, ordre stop_sequence)', dark, Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       if (!seq.ordered) Padding(padding: const EdgeInsets.only(bottom: 6), child: Text('Ordre du feed non strictement croissant (artefact de donnée source).', style: TextStyle(fontSize: 11, color: AppColors.warning))),
       ...List<Widget>.generate(seq.stops.length, (i) { final s = seq.stops[i]; return Padding(padding: const EdgeInsets.symmetric(vertical: 3), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [

@@ -30,8 +30,11 @@ const DDD_FEED = resolve(ROOT, 'flutter-src/assets/data/passbi/ddd.json');
 const AFTU_FEED = resolve(ROOT, 'flutter-src/assets/data/passbi/aftu.json');
 const NETWORK = resolve(ROOT, 'flutter-src/assets/data/dakar_network.json');
 
-const VERIFIED_AT = '2026-09-25'; // date de vérification des sources officielles (§M du canonique).
-const GENERATED_AT = '2026-09-30';
+const VERIFIED_AT = '2026-09-25'; // dernière vérification des sources officielles du référentiel canonique (§M).
+const GENERATED_AT = process.env.PUBLIC_BUS_LINES_GENERATED_AT ?? new Date().toISOString().slice(0, 10);
+if (!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(GENERATED_AT)) {
+  throw new Error(`PUBLIC_BUS_LINES_GENERATED_AT invalide : ${GENERATED_AT}`);
+}
 
 const SOURCES = {
   aftu: 'https://aftu-senegal.org/infos-pratiques/',
@@ -65,7 +68,7 @@ function routeIdentityProof(operator, number, routeIds) {
     [d.depart, d.arrivee].filter(Boolean).map((stop) => stop.name)));
   if (JSON.stringify(actualIds) !== JSON.stringify(proof.feed_terminal_stop_ids ?? [])) return null;
   if (JSON.stringify(actualNames) !== JSON.stringify(proof.feed_terminal_stop_names ?? [])) return null;
-  return `${IDENTITY_PROOFS_PATH}#${operator}:${number}`;
+  return proof;
 }
 
 // ---------------------------------------------------------------------------
@@ -359,7 +362,8 @@ const aftuLines = aftu.map((l) => {
     schedule_status: sch.status,
     // Statut issu exclusivement du registre de preuves indépendant.
     feed_route_identity_status: identityProof ? 'VERIFIED' : 'UNVERIFIED',
-    feed_route_identity_proof: identityProof,
+    feed_route_identity_proof: identityProof ? `${IDENTITY_PROOFS_PATH}#${identityProof.operator}:${identityProof.line_number}` : null,
+    feed_route_identity_verified_at: identityProof?.verified_at ?? null,
     mapping_status: mappingStatus(sch),
     feed_route_ids: sch.routeIds,
     trip_ids_count: sch.tripIds.length,
@@ -407,7 +411,8 @@ const dddLines = ddd.map((l) => {
     // Le registre n'autorise que les identités et route_id explicitement prouvés.
     // Les variantes A/B et les routes au numéro nu ambiguës restent UNVERIFIED.
     feed_route_identity_status: identityProof ? 'VERIFIED' : 'UNVERIFIED',
-    feed_route_identity_proof: identityProof,
+    feed_route_identity_proof: identityProof ? `${IDENTITY_PROOFS_PATH}#${identityProof.operator}:${identityProof.line_number}` : null,
+    feed_route_identity_verified_at: identityProof?.verified_at ?? null,
     published_schedule_status: l.schedule_status, // publié (canonique)
     mapping_status: mappingStatus(sch),
     feed_route_ids: sch.routeIds,

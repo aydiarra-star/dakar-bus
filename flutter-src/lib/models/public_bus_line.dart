@@ -137,7 +137,8 @@ class PublicBusLine {
   /// Preuve indépendante que le route_id représente bien cette ligne publique.
   /// UNVERIFIED par défaut : CONNECTED ne suffit jamais à établir l'identité.
   final String feedRouteIdentityStatus; // VERIFIED | UNVERIFIED
-  final String? feedRouteIdentityProof; // référence datée de la preuve, obligatoire si VERIFIED
+  final String? feedRouteIdentityProof; // référence de la preuve, obligatoire si VERIFIED
+  final String? feedRouteIdentityVerifiedAt; // date propre à la preuve route ↔ ligne
   final String publishedScheduleStatus; // publié par la source (DDD), sinon ''
   final LineMappingStatus mappingStatus; // CONNECTED | BLOCKED | NOT_VERIFIED | PARTIAL
   final List<String> feedRouteIds; // route_id PassBi raccordés (peut être vide)
@@ -173,6 +174,7 @@ class PublicBusLine {
     this.publishedScheduleStatus = '',
     this.feedRouteIdentityStatus = 'UNVERIFIED',
     this.feedRouteIdentityProof,
+    this.feedRouteIdentityVerifiedAt,
     this.mappingStatus = LineMappingStatus.notVerified,
     this.tripIdsCount = 0,
     this.sampleTripIds = const <String>[],
@@ -213,6 +215,10 @@ class PublicBusLine {
       feedRouteIdentityProof != null &&
       feedRouteIdentityProof!.trim().isNotEmpty;
 
+  /// Les horaires ne sont attribuables à la ligne publique que si la chaîne
+  /// horaire est complète ET l'identité route ↔ ligne est prouvée.
+  bool get hasVerifiedPublicSchedule => hasRealSchedule && hasVerifiedFeedIdentity;
+
   /// Le terminus publié est-il exploitable (≠ constat de non-publication) ?
   bool get hasPublishedTerminus =>
       origin.isNotEmpty && origin != 'NON PUBLIÉE' && destination != 'NON PUBLIÉE';
@@ -232,6 +238,7 @@ class PublicBusLine {
         feedRouteIdentityStatus:
             (json['feed_route_identity_status'] ?? 'UNVERIFIED') as String,
         feedRouteIdentityProof: json['feed_route_identity_proof'] as String?,
+        feedRouteIdentityVerifiedAt: json['feed_route_identity_verified_at'] as String?,
         publishedScheduleStatus: (json['published_schedule_status'] ?? '') as String,
         mappingStatus: LineMappingStatusCode.parse(json['mapping_status'] as String?),
         feedRouteIds:

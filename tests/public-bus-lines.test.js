@@ -75,6 +75,16 @@ test('chaque ligne publique porte un numéro et un libellé officiels', () => {
   }
 });
 
+test('les dates distinguent génération, vérification officielle et preuve route ↔ ligne', () => {
+  assert.match(REF.generated_at, /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/);
+  assert.equal(REF.sources_verified_at, '2026-09-25');
+  for (const line of ALL) {
+    const proof = IDENTITY_PROOF_BY_KEY.get(`${line.operator}:${line.line_number}`);
+    assert.equal(line.feed_route_identity_verified_at, proof?.verified_at ?? null,
+      `${line.public_label} : date de preuve incohérente`);
+  }
+});
+
 test('la preuve d’identité publique ↔ route reste indépendante des horaires', () => {
   assert.equal(REF.counts.feed_route_identity_verified, IDENTITY_PROOFS.proofs.length);
   assert.equal(REF.counts.feed_route_identity_unverified, ALL.length - IDENTITY_PROOFS.proofs.length);
@@ -86,9 +96,11 @@ test('la preuve d’identité publique ↔ route reste indépendante des horaire
       assert.deepEqual(l.feed_route_ids, [proof.route_id], l.public_label);
       assert.equal(l.feed_route_identity_proof,
         `${IDENTITY_PROOFS_PATH}#${l.operator}:${l.line_number}`);
+      assert.equal(l.feed_route_identity_verified_at, proof.verified_at);
     } else {
       assert.equal(l.feed_route_identity_status, 'UNVERIFIED', l.public_label);
       assert.equal(l.feed_route_identity_proof, null);
+      assert.equal(l.feed_route_identity_verified_at, null);
     }
     // La preuve d'identité n'altère jamais la disponibilité horaire réelle.
     if (l.mapping_status === 'CONNECTED') {

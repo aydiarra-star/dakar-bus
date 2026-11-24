@@ -402,11 +402,15 @@ void main() {
         if (line.hasVerifiedFeedIdentity) {
           expect(line.feedRouteIdentityProof, startsWith(
               'data/reference/passbi_route_identity_proofs.json#'));
+          expect(line.feedRouteIdentityVerifiedAt, isNotEmpty);
+          expect(line.hasVerifiedPublicSchedule, line.hasRealSchedule);
           expect(line.feedRouteIds, hasLength(1));
         } else {
           expect(line.feedRouteIdentityStatus, 'UNVERIFIED',
               reason: '${line.publicLabel} : preuve indépendante absente');
           expect(line.feedRouteIdentityProof, isNull);
+          expect(line.feedRouteIdentityVerifiedAt, isNull);
+          expect(line.hasVerifiedPublicSchedule, isFalse);
         }
       }
     });
@@ -491,6 +495,8 @@ void main() {
             .singleWhere((l) => l.publicLabel == label);
         expect(line.hasRealSchedule, isTrue, reason: '$label : horaires conservés');
         expect(line.hasVerifiedFeedIdentity, isFalse);
+        expect(line.hasVerifiedPublicSchedule, isFalse,
+            reason: '$label : horaires techniques non attribuables');
         expect(line.feedRouteIds, <String>[routeId]);
         expect(app.appDataService.passBiSource.routeSummary(network, routeId), isNotNull);
         expect(app.appDataService.publicBusLineCatalog.publicLabelForFeedRouteId(routeId), isNull);
