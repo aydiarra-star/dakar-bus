@@ -308,7 +308,17 @@ export function nextNativeDeparture(all, networkKey, pbStopId, at, { onlyRouteId
 }
 
 /// §2 — Identité d'affichage (métadonnées PassBi réelles uniquement).
-export function identityLabelFor(networkKey, pbRouteId, identity, shortName = null) {
+export function identityLabelFor(networkKey, pbRouteId, identity, shortName = null, documentedCatalogLabel = null) {
+  // AFTU/DDD : numéro public uniquement si le catalogue fournit une preuve
+  // route_id ↔ ligne indépendante. L'existence du numéro ne suffit pas.
+  if (networkKey === 'AFTU' || networkKey === 'DDD') {
+    if (typeof documentedCatalogLabel === 'string' &&
+        documentedCatalogLabel.startsWith(`${networkKey} `) &&
+        documentedCatalogLabel.slice(networkKey.length + 1).trim()) {
+      return documentedCatalogLabel;
+    }
+    return networkKey;
+  }
   if (identity === IDENTITY.CONFIRMED) {
     return pbRouteId.startsWith(networkKey) ? pbRouteId : `${networkKey} ${pbRouteId}`;
   }
@@ -317,7 +327,7 @@ export function identityLabelFor(networkKey, pbRouteId, identity, shortName = nu
 }
 
 /// Miroir de ScheduleProvider.departureAtPassBiStop.
-export function departureAtPassBiStop(all, networkKey, pbStopId, at, { pbRouteId = null } = {}) {
+export function departureAtPassBiStop(all, networkKey, pbStopId, at, { pbRouteId = null, documentedCatalogLabel = null } = {}) {
   const net = all.networks[networkKey];
   if (!net) {
     return { status: 'UNKNOWN', unresolvedReason: REASON.NETWORK_ABSENT, identityStatus: IDENTITY.UNCONFIRMED };
