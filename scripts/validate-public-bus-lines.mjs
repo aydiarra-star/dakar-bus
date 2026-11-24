@@ -29,6 +29,7 @@
 // Usage : node scripts/validate-public-bus-lines.mjs
 import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
+import { loadFeed, routeTermini } from './lib/ddd-aftu-terminus.mjs';
 
 const ROOT = resolve(dirname(new URL(import.meta.url).pathname), '..');
 const REF = JSON.parse(
@@ -37,6 +38,13 @@ const IDENTITY_PROOFS_PATH = 'data/reference/passbi_route_identity_proofs.json';
 const IDENTITY_PROOFS = JSON.parse(readFileSync(resolve(ROOT, IDENTITY_PROOFS_PATH), 'utf8'));
 const IDENTITY_PROOF_BY_KEY = new Map(
   IDENTITY_PROOFS.proofs.map((p) => [`${p.operator}:${p.line_number}`, p]));
+const TERMINUS_REF = JSON.parse(readFileSync(
+  resolve(ROOT, 'data/reference/ddd_aftu_poles_terminus.json'), 'utf8'));
+const TERMINUS_FEEDS = {
+  AFTU: loadFeed(resolve(ROOT, 'flutter-src/assets/data/passbi/aftu.json')),
+  DDD: loadFeed(resolve(ROOT, 'flutter-src/assets/data/passbi/ddd.json')),
+};
+function sortedUnique(values) { return [...new Set(values)].sort(); }
 
 function feedEvidence(path, prefix) {
   const feed = JSON.parse(readFileSync(path, 'utf8'));
@@ -125,6 +133,26 @@ for (const [network, feed] of [['AFTU', AFTU], ['DDD', DDD]]) {
     }
     if (identityProof && (routeIds.length !== 1 || routeIds[0] !== identityProof.route_id)) {
       problems.push(`route_id différent de la preuve documentaire (${identityProof.route_id})`);
+    }
+    if (identityProof) {
+      const actual = routeTermini(TERMINUS_FEEDS[network], identityProof.route_id);
+      const actualStops = sortedUnique((actual?.directions ?? []).flatMap((d) =>
+        [d.depart, d.arrivee].filter(Boolean).map((stop) => stop.id)));
+      const actualNames = sortedUnique((actual?.directions ?? []).flatMap((d) =>
+        [d.depart, d.arrivee].filter(Boolean).map((stop) => stop.name)));
+      if (JSON.stringify(actualStops) !== JSON.stringify(identityProof.feed_terminal_stop_ids ?? [])) {
+        problems.push('terminus stop_id du feed différents du registre de preuves');
+      }
+      if (JSON.stringify(actualNames) !== JSON.stringify(identityProof.feed_terminal_stop_names ?? [])) {
+        problems.push('noms des terminus du feed différents du registre de preuves');
+      }
+      const auditRoute = TERMINUS_REF[network.toLowerCase()].routes.find(
+        (r) => r.routeId === identityProof.route_id);
+      const auditStops = sortedUnique((auditRoute?.directions ?? []).flatMap((d) =>
+        [d.depart, d.arrivee].filter(Boolean).map((stop) => stop.stopId)));
+      if (!auditRoute || JSON.stringify(auditStops) !== JSON.stringify(identityProof.feed_terminal_stop_ids ?? [])) {
+        problems.push('référentiel terminus et preuve documentaire désynchronisés');
+      }
     }
     let chainComplete = routeIds.length > 0;
     // Les maillons manquants sont consignés à part : pour une ligne NON
