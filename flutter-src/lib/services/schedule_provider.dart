@@ -310,8 +310,10 @@ class ScheduleProvider {
       // Aucune fréquence n'est attachée à un départ programmé.
       frequencyMinutes: null,
       operatingHours: null,
-      // Sens réel du trip (direction_id du feed) — jamais déduit.
+      // Sens réel du trip : headsign lisible + direction_id technique.
+      // Le second reste nécessaire lorsque le feed ne publie aucun headsign.
       direction: _tripDirection(net, found.tripId),
+      directionId: _tripDirectionId(net, found.tripId),
       identityStatus: identity,
       identityNote: identity == IdentityStatus.confirmed
           ? 'Identité publique confirmée par le référentiel documenté '
