@@ -456,3 +456,38 @@ Aucune correspondance AFTU ne peut être marquée `VERIFIED` sur la seule base d
 ### 14.4 Décision de cette passe
 
 Constat de consommation et de risque ajouté à l'audit. Aucun changement de code, de JSON, de libellé, de fiche, d'horaire, d'arrêt ou d'interface n'est effectué dans cette passe : la correction doit être implémentée avec tests ciblés et contrôle de régression Flutter, car elle peut modifier les libellés publics visibles. Aucun déploiement ni fusion.
+
+
+## 15. Mise en place de la preuve indépendante d'identité — 24 novembre 2026
+
+### Schéma ajouté
+
+Le référentiel porte désormais deux statuts distincts :
+
+- `mapping_status` / `schedule_status` : existence de la chaîne technique et disponibilité des horaires PassBi ;
+- `feed_route_identity_status` : preuve que le `route_id` est bien la ligne publique affichée ;
+- `feed_route_identity_proof` : référence documentaire obligatoire si le statut devient `VERIFIED`.
+
+Le générateur attribue `UNVERIFIED` tant qu'aucune preuve explicite n'est enregistrée. Le validateur refuse un statut inconnu, un statut `VERIFIED` sans référence documentaire, ou une référence associée à un statut non vérifié.
+
+### Conséquence Flutter
+
+- Le catalogue ne fournit plus de libellé public à un `route_id` dont l'identité n'est pas vérifiée.
+- La fiche publique d'arrêts exige à la fois un horaire technique exploitable et une identité route ↔ ligne publique vérifiée.
+- Les données brutes PassBi, trips, directions, stop_times et le calcul natif des départs ne sont pas supprimés ni réécrits par cette séparation.
+- `hasRealSchedule` reste un indicateur de disponibilité horaire technique ; il ne certifie pas l'identité publique.
+
+### État de départ
+
+Les 120 identités publiques présentes dans le référentiel (72 AFTU et 48 DDD) sont explicitement `UNVERIFIED` pour leur association aux routes PassBi. Cela ne signifie pas que les 120 lignes publiques sont inexistantes ou que les horaires du feed sont faux : cela signifie que le dépôt ne contient pas encore de pièce documentaire suffisante pour certifier ces associations.
+
+Aucune permutation de numéro, aucun transfert d'horaire et aucune modification TER/BRT n'ont été effectués. Les variantes DDD lettrées restent distinctes des routes au numéro nu.
+
+### Vérifications à effectuer
+
+- Régénérer le référentiel avec `node scripts/build-public-bus-lines.mjs`.
+- Exécuter `node scripts/validate-public-bus-lines.mjs`.
+- Exécuter les tests Flutter du référentiel public et des départs natifs.
+- Contrôler visuellement qu'un horaire PassBi reste calculable sous son réseau technique, sans être attribué à tort à une ligne publique non vérifiée.
+
+Cette passe modifie le schéma, le garde-fou de libellé et l'accès aux fiches publiques d'arrêts. Elle ne fusionne pas la PR, ne déploie pas l'application et ne publie aucune nouvelle version.
