@@ -1487,12 +1487,11 @@ final List<Stop> allStops = [...terStations, ...brtStations]
 /// correspondre à un itinéraire, et le compteur Explorer n'est jamais ajusté
 /// artificiellement.
 ///
-/// Le prédicat reproduit à l'identique celui, existant, de `_filteredStops` :
-/// le mode y est porté par la couleur (`AppColors.ter`, `AppColors.brt`, …).
-/// Aucun filtre, aucune couleur et aucun calcul de proximité n'est modifié
-/// (§1, §10).
-List<Stop> networkPoints(Color modeColor) =>
-    allStops.where((Stop s) => s.color == modeColor).toList();
+/// Sélection des points d'un réseau par identité métier, jamais par couleur.
+/// Les couleurs restent volontairement identiques sur la carte ; elles ne sont
+/// donc pas un identifiant exploitable pour distinguer TER, BRT, DDD, etc.
+List<Stop> networkPoints(String networkId) =>
+    allStops.where((Stop s) => s.servesNetwork(networkId)).toList();
 
 /// Arrêts à dessiner sur la **couche marqueurs** de la carte Explorer.
 ///
