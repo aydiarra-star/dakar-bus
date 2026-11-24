@@ -34,3 +34,5 @@ jobs:
         run: flutter analyze
       - name: Validate WhatsApp palette and transport network colors
         run: flutter test --reporter expanded test/palette_anti_olive_test.dart
+      - name: Build web for GitHub Pages
+        run: flutter build web --release --base-href /dakar-bus/
