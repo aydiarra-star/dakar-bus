@@ -176,7 +176,7 @@ npm run validate:data
 
 Mission UI/UX **sans aucune modification de données ni de règle métier**.
 
-**Identité UI 2026 validée** : le vert WhatsApp `#25D366` est la couleur d'action de l'interface. Le vert Dakar historique `#00B140` est la couleur unifiée des marqueurs et tracés TER/BRT/DDD/TATA/AFTU ainsi que du GPS. L'identité métier des réseaux est portée par `Stop.networkIds` et `TransitRoute.type`, jamais par la couleur.
+**Identité UI 2026 validée** : le vert WhatsApp `#25D366` est la couleur d'action de l'interface. Le vert Dakar historique `#00B140` est la couleur unifiée des marqueurs et tracés TER/BRT/DDD/TATA/AFTU ainsi que du GPS. L'identité métier des réseaux est portée par `Stop.networkIds` et `TransitRoute.type`, jamais par la couleur. Pour les arrêts partagés, `Stop.scheduleRouteIdsByNetwork` conserve aussi la référence horaire propre à chaque réseau.
 
 - **Palette verrouillée par les tests** : ne jamais changer les hex de
   `AppColors.ter`, `brt`, `ddd`, `tata`, `aftu` (#00B140), `beanGreen` (#25D366),
