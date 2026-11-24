@@ -21,6 +21,11 @@ const ASSET = JSON.parse(
   readFileSync(
     resolve(ROOT, 'flutter-src/assets/data/reference/public_bus_lines_dakar.json'),
     'utf8'));
+const IDENTITY_PROOFS_PATH = 'data/reference/passbi_route_identity_proofs.json';
+const IDENTITY_PROOFS = JSON.parse(
+  readFileSync(resolve(ROOT, IDENTITY_PROOFS_PATH), 'utf8'));
+const IDENTITY_PROOF_BY_KEY = new Map(
+  IDENTITY_PROOFS.proofs.map((p) => [`${p.operator}:${p.line_number}`, p]));
 
 function feedRouteIds(path) {
   const feed = JSON.parse(readFileSync(path, 'utf8'));
@@ -61,15 +66,22 @@ test('chaque ligne publique porte un numéro et un libellé officiels', () => {
   }
 });
 
-test('la preuve d’identité publique ↔ route est indépendante des horaires', () => {
-  assert.equal(REF.counts.feed_route_identity_verified, 0);
-  assert.equal(REF.counts.feed_route_identity_unverified, ALL.length);
+test('la preuve d’identité publique ↔ route reste indépendante des horaires', () => {
+  assert.equal(REF.counts.feed_route_identity_verified, IDENTITY_PROOFS.proofs.length);
+  assert.equal(REF.counts.feed_route_identity_unverified, ALL.length - IDENTITY_PROOFS.proofs.length);
+  assert.equal(IDENTITY_PROOFS.proofs.length, 25);
   for (const l of ALL) {
-    assert.equal(l.feed_route_identity_status, 'UNVERIFIED',
-      `${l.public_label} : une égalité de numéro ne prouve pas l’identité`);
-    assert.equal(l.feed_route_identity_proof, null);
-    // Les routes peuvent conserver leur chaîne horaire technique sans être
-    // attribuées à une identité publique non vérifiée.
+    const proof = IDENTITY_PROOF_BY_KEY.get(`${l.operator}:${l.line_number}`);
+    if (proof) {
+      assert.equal(l.feed_route_identity_status, 'VERIFIED', l.public_label);
+      assert.deepEqual(l.feed_route_ids, [proof.route_id], l.public_label);
+      assert.equal(l.feed_route_identity_proof,
+        `${IDENTITY_PROOFS_PATH}#${l.operator}:${l.line_number}`);
+    } else {
+      assert.equal(l.feed_route_identity_status, 'UNVERIFIED', l.public_label);
+      assert.equal(l.feed_route_identity_proof, null);
+    }
+    // La preuve d'identité n'altère jamais la disponibilité horaire réelle.
     if (l.mapping_status === 'CONNECTED') {
       assert.equal(l.schedule_status, 'SCHEDULE_AVAILABLE');
       assert.ok(l.stop_times_count > 0);
