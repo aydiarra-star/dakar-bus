@@ -60,7 +60,6 @@ void main() {
       }
     }
   });
-}
 
   test('palette guard: all transport networks use the Dakar Bus primary green', () {
     expect(app.AppColors.primary.value, 0xFF00B140);
@@ -69,5 +68,11 @@ void main() {
     expect(app.AppColors.ddd, app.AppColors.primary);
     expect(app.AppColors.aftu, app.AppColors.primary);
     expect(app.AppColors.tata, app.AppColors.primary);
+  });
+
+  test('palette guard: countdown and action green are exactly WhatsApp green', () {
+    expect(app.AppColors.beanGreen.value, 0xFF25D366);
+    expect(app.AppColors.success, app.AppColors.beanGreen);
+    expect(app.AppColors.accent, app.AppColors.beanGreen);
   });
 }
