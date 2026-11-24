@@ -106,3 +106,25 @@ Ces différences sont consignées comme **écarts entre une sélection événeme
 - Aucun changement d'arrêt, d'horaire, de fréquence ou de direction.
 - Les éléments du guide sont conservés comme preuve contextuelle datée, à rapprocher d'une confirmation permanente des opérateurs.
 - Les pages et documents sources restent strictement dans la documentation du dépôt ; aucune mention de source ne doit apparaître dans l'interface voyageurs.
+
+
+## Contrôle du catalogue embarqué : lignes nues 15, 502 et 503 — 24 novembre 2026
+
+Le contrôle du référentiel généré `data/reference/public_bus_lines_dakar.json` révèle trois entrées DDD au numéro nu qui doivent être distinguées des variantes actuellement affichées dans « Info voyageurs » :
+
+| Entrée du référentiel embarqué | Identité publiée dans « Info voyageurs » | Route PassBi actuelle | Observation |
+|---|---|---|---|
+| DDD 15 — Rufisque ↔ Palais 1 | 15A et 15B — Rufisque ↔ Palais 1 | `DDD_15` | La page des itinéraires décrit une ligne 15 générique, mais ne démontre pas la correspondance de `DDD_15` avec chacune des variantes A/B |
+| DDD 502 — origine/destination générées « GARE DE GARE » | 502A — Colobane ↔ UCAD ; 502B — Colobane ↔ Abass Ndao | `DDD_502` | La page des itinéraires décrit une boucle 502, mais ne prouve pas qu'elle représente les deux variantes publiées |
+| DDD 503 — origine/destination générées « GARE DE GARE » | 503A — Colobane ↔ Môle 8 ; 503B — Colobane ↔ Hydrocarbure | `DDD_503` | La page des itinéraires décrit une boucle 503, mais ne prouve pas qu'elle représente les deux variantes publiées |
+
+La page « Info voyageurs » distingue explicitement les variantes A/B. La page des itinéraires présente des parcours génériques 15, 502 et 503. Ces deux présentations ne fournissent pas la correspondance exacte entre les identités publiques et les routes du feed. Le libellé « GARE DE GARE » présent dans les deux entrées du référentiel n'est pas un terminus public exploitable et ne doit pas être présenté comme tel.
+
+### Décision
+- Ne pas interpréter `DDD_502` comme 502A **et** 502B ; même interdiction pour `DDD_503` et les variantes 503A/503B.
+- Ne pas fusionner `DDD_15` avec 15A/15B.
+- Ne pas considérer les valeurs « GARE DE GARE » comme des terminus validés.
+- Conserver les identités A/B distinctes et leur statut non vérifié tant qu'une correspondance explicite n'est pas disponible.
+- Ne pas modifier les horaires PassBi, ne pas inventer de lignes ou de directions, et ne pas modifier l'interface par cette note.
+
+**Anomalie à traiter avant validation finale du catalogue :** les entrées génériques 15/502/503 et leurs libellés doivent être réconciliés avec les identités publiques actuelles. Cette note ne tranche pas si les lignes génériques sont des services additionnels, des désignations historiques ou des libellés incomplets.
