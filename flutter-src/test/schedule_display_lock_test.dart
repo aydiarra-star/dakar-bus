@@ -173,17 +173,17 @@ void main() {
       }
       expect(
         app.shouldShowScheduleLabelForNetwork(
-            'BRT L1', app.ReliabilityLabel.scheduleUnavailable),
+            'BRT L1', ReliabilityLabel.scheduleUnavailable),
         isFalse,
       );
       expect(
         app.shouldShowScheduleLabelForNetwork(
-            'Dakar Dem Dikk', app.ReliabilityLabel.scheduleUnavailable),
+            'Dakar Dem Dikk', ReliabilityLabel.scheduleUnavailable),
         isFalse,
       );
       expect(
         app.shouldShowScheduleLabelForNetwork(
-            'TATA', app.ReliabilityLabel.scheduleUnavailable),
+            'TATA', ReliabilityLabel.scheduleUnavailable),
         isTrue,
       );
       expect(
