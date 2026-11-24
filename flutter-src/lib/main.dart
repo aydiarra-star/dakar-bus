@@ -1763,8 +1763,8 @@ bool _explorerSamePoint(LatLng a, LatLng b) =>
 /// arrêt retiré de la donnée.
 @visibleForTesting
 bool explorerStopIsStructuring(Stop s) =>
-    s.color == AppColors.ter ||
-    s.color == AppColors.brt ||
+    s.servesNetwork('ter') ||
+    s.servesNetwork('brt') ||
     s.stopType == StopType.terminus ||
     s.stopType == StopType.correspondence;
 
@@ -4079,7 +4079,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
     //    compte réel de ce qui est transmis au MarkerLayer de CETTE carte,
     //    après le seul filtrage résiduel (DakarBounds) ci-dessous.
     final markerStops = mapMarkerStops.where((s) => DakarBounds.isValid(s.location)).toList();
-    debugPrint('[EXPLORER][MARKERS] transmis au MarkerLayer: total=${markerStops.length} TER=${markerStops.where((s) => s.color == AppColors.ter).length} BRT=${markerStops.where((s) => s.color == AppColors.brt).length} | allStops=${allStops.length} proximité=${mapStops.length} | filtre=$_selectedFilter gps=${widget.gpsState} rayon=${GpsResolver.nearbyRadiusMeters}m limite=${GpsResolver.nearbyLimit}');
+    debugPrint('[EXPLORER][MARKERS] transmis au MarkerLayer: total=${markerStops.length} TER=${markerStops.where((s) => s.servesNetwork('ter')).length} BRT=${markerStops.where((s) => s.servesNetwork('brt')).length} | allStops=${allStops.length} proximité=${mapStops.length} | filtre=$_selectedFilter gps=${widget.gpsState} rayon=${GpsResolver.nearbyRadiusMeters}m limite=${GpsResolver.nearbyLimit}');
 
     return AnimatedBuilder(
       animation: globalState,
