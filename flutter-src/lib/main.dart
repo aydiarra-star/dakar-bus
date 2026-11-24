@@ -4058,7 +4058,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
     final basePolylines = _dynamicPolylines.isNotEmpty
         ? _dynamicPolylines
         : demoRoutes
-            .map((r) => (networkId: r.operatorId.toLowerCase(), polyline: Polyline(
+            .map((r) => (networkId: r.type.toLowerCase(), polyline: Polyline(
                   // Même géométrie de rendu que `_loadDynamicRoutes` (CAS A).
                   points: explorerRenderedRoutePoints(r, demoRoutes)
                       .where((pt) => DakarBounds.isValid(pt))
