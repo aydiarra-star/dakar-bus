@@ -349,7 +349,7 @@ class AppColors {
   // Identité visuelle unique : tous les réseaux restent dans le vert Dakar Bus.
   // La distinction métier repose sur les libellés/icônes, jamais sur une
   // palette concurrente. Les couleurs warning/error restent sémantiques.
-  static const ter = primary;
+  static const ter = Color(0xFF8B4513);
   static const brt = primary;
   static const aftu = primary;
   static const tata = primary;
