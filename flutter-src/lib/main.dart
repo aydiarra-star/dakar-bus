@@ -1977,7 +1977,7 @@ void _integrateNetworkData() {
       final int? existingIndex = existingIndices[key];
       if (existingIndex != null) {
         final Stop existing = allStops[existingIndex];
-        final Set<String> memberships = <String>{...existing.networkIds, route.type.toLowerCase()};
+        final Set<String> memberships = <String>{...existing.networkIds, label.toLowerCase()};
         allStops[existingIndex] = existing.copyWith(
           stopId: existing.stopId ?? busStop.id,
           networkIds: memberships,
@@ -2005,7 +2005,7 @@ void _integrateNetworkData() {
         source: source,
         stopType: aggregatedRoles[busStop.id] ??
             stopTypeForIndex(i, stopIds.length),
-        networkIds: <String>{route.type.toLowerCase()},
+        networkIds: <String>{label.toLowerCase()},
       );
       allStops.add(stop);
       existingIndices[key] = allStops.length - 1;
