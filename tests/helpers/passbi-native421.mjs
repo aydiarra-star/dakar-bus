@@ -347,11 +347,19 @@ export function departureAtPassBiStop(all, networkKey, pbStopId, at, { pbRouteId
 
   if (found === null) {
     const summary = pbRouteId === null ? null : routeSummaries(all, networkKey).find((s) => s.routeId === pbRouteId);
+    const documentedCatalogLabel = pbRouteId === null ? null : PUBLIC_ROUTE_LABELS.get(pbRouteId) ?? null;
+    const rawIdentity = pbRouteId === null ? IDENTITY.UNCONFIRMED : identityStatusOf(all.cw, networkKey, pbRouteId);
+    const displayIdentity = networkKey === 'AFTU' || networkKey === 'DDD'
+      ? (documentedCatalogLabel ? IDENTITY.CONFIRMED : IDENTITY.UNCONFIRMED)
+      : rawIdentity;
     return {
       status: 'UNKNOWN',
       unresolvedReason:
         summary && !summary.scheduleAvailable ? REASON.NO_STOP_TIMES : REASON.NO_DEPARTURE,
-      identityStatus: pbRouteId === null ? IDENTITY.UNCONFIRMED : identityStatusOf(all.cw, networkKey, pbRouteId),
+      identityStatus: displayIdentity,
+      identityNote: documentedCatalogLabel
+        ? `Identité publique VERIFIED par le registre indépendant (${documentedCatalogLabel}).`
+        : 'Identité publique UNVERIFIED.',
       lineLabel: null,
       label: 'Horaire indisponible',
       scheduledTime: null,
