@@ -39,6 +39,20 @@ const SOURCES = {
   canonical: 'docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md',
 };
 
+// Registre explicite : aucune identité n'est certifiée par la seule égalité
+// numérique. Chaque preuve exige un route_id exact et une concordance publiée
+// des deux terminus. Les variantes ou contradictions restent UNVERIFIED.
+const IDENTITY_PROOFS_PATH = 'data/reference/passbi_route_identity_proofs.json';
+const IDENTITY_PROOFS = JSON.parse(
+  readFileSync(resolve(ROOT, IDENTITY_PROOFS_PATH), 'utf8'));
+const IDENTITY_PROOF_BY_KEY = new Map(
+  IDENTITY_PROOFS.proofs.map((p) => [`${p.operator}:${p.line_number}`, p]));
+function routeIdentityProof(operator, number, routeIds) {
+  const proof = IDENTITY_PROOF_BY_KEY.get(`${operator}:${number}`);
+  if (!proof || routeIds.length !== 1 || routeIds[0] !== proof.route_id) return null;
+  return `${IDENTITY_PROOFS_PATH}#${operator}:${number}`;
+}
+
 // ---------------------------------------------------------------------------
 // Parsing du référentiel canonique.
 // ---------------------------------------------------------------------------
@@ -314,6 +328,7 @@ function endpoints(origin, destination, officialName) {
 
 const aftuLines = aftu.map((l) => {
   const sch = scheduleFor(aftuFeed, l.number);
+  const identityProof = routeIdentityProof('AFTU', l.number, sch.routeIds);
   const { origin, destination } = endpoints(l.origin, l.destination, l.official_name);
   return {
     operator: 'AFTU',
@@ -327,10 +342,9 @@ const aftuLines = aftu.map((l) => {
     route_status: l.route_status,
     stops_status: l.stops_status,
     schedule_status: sch.status,
-    // La chaîne horaire prouve la disponibilité, pas l'identité publique.
-    // Aucun crosswalk officiel ligne ↔ route PassBi n'est encore fourni ici.
-    feed_route_identity_status: 'UNVERIFIED',
-    feed_route_identity_proof: null,
+    // Statut issu exclusivement du registre de preuves indépendant.
+    feed_route_identity_status: identityProof ? 'VERIFIED' : 'UNVERIFIED',
+    feed_route_identity_proof: identityProof,
     mapping_status: mappingStatus(sch),
     feed_route_ids: sch.routeIds,
     trip_ids_count: sch.tripIds.length,
@@ -362,6 +376,7 @@ const dddLines = ddd.map((l) => {
         stopSequencePresent: false, stopSequenceStrict: false, complete: false,
         status: 'NO_SCHEDULE' }
     : scheduleFor(dddFeed, l.number);
+  const identityProof = routeIdentityProof('DDD', l.number, sch.routeIds);
   const { origin, destination } = endpoints(l.origin, l.destination, '');
   return {
     operator: 'DDD',
@@ -374,9 +389,10 @@ const dddLines = ddd.map((l) => {
     route_status: l.route_status,
     stops_status: l.stops_status,
     schedule_status: sch.status, // dérivé du feed (raccordement réel)
-    // Le numéro nu ne certifie pas l'identité publique (notamment 15/502/503).
-    feed_route_identity_status: 'UNVERIFIED',
-    feed_route_identity_proof: null,
+    // Le registre n'autorise que les identités et route_id explicitement prouvés.
+    // Les variantes A/B et les routes au numéro nu ambiguës restent UNVERIFIED.
+    feed_route_identity_status: identityProof ? 'VERIFIED' : 'UNVERIFIED',
+    feed_route_identity_proof: identityProof,
     published_schedule_status: l.schedule_status, // publié (canonique)
     mapping_status: mappingStatus(sch),
     feed_route_ids: sch.routeIds,
