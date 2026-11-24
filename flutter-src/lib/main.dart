@@ -3724,6 +3724,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
   final TextEditingController _searchCtrl = TextEditingController();
 
   List<Polyline> _dynamicPolylines = [];
+  // Métadonnée parallèle : la couleur est partagée par tous les réseaux.
+  List<String> _dynamicPolylineNetworks = <String>[];
   bool _isLoadingRoutes = true;
 
   /// Zoom courant de la carte, suivi via `MapOptions.onPositionChanged`
@@ -3770,6 +3772,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
   Future<void> _loadDynamicRoutes() async {
     // ✅ Fluidité : charge uniquement TER/BRT (dédié) au démarrage — instantané, pas d'OSRM
     final List<Polyline> loaded = [];
+    final List<String> loadedNetworks = <String>[];
     final initialRoutes = demoRoutes.where((r) => r.isDedicated).toList();
     for (final route in initialRoutes) {
       // ✅ RENDU ANTI-DOUBLE-LIGNE (CAS A) — géométrie éventuellement calée
@@ -3791,9 +3794,14 @@ class _ExplorerPageState extends State<ExplorerPage> {
           borderColor: Colors.white,
           borderStrokeWidth: 2,
         ));
+        loadedNetworks.add(route.type.toLowerCase());
       }
     }
-    if (mounted) setState(() { _dynamicPolylines = loaded; _isLoadingRoutes = false; });
+    if (mounted) setState(() {
+      _dynamicPolylines = loaded;
+      _dynamicPolylineNetworks = loadedNetworks;
+      _isLoadingRoutes = false;
+    });
     // Charge le reste en arrière-plan, paresseusement et par petits lots (cache OSRM)
     _lazyLoadRemainingRoutes();
   }
@@ -3802,6 +3810,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
     // Ne charge les autres tracés que si besoin et de manière non bloquante
     await Future.delayed(const Duration(milliseconds: 800));
     final List<Polyline> extra = [];
+    final List<String> extraNetworks = <String>[];
     final remaining = demoRoutes.where((r) => !r.isDedicated).take(20).toList(); // limite à 20 pour ne pas surcharger
     for (final route in remaining) {
       if (route.points.length < 2) continue;
@@ -3833,12 +3842,16 @@ class _ExplorerPageState extends State<ExplorerPage> {
           borderColor: Colors.white,
           borderStrokeWidth: 2,
         ));
+        extraNetworks.add(route.type.toLowerCase());
       }
       // Petite pause pour ne pas saturer
       await Future.delayed(const Duration(milliseconds: 50));
     }
     if (mounted && extra.isNotEmpty) {
-      setState(() => _dynamicPolylines = [..._dynamicPolylines, ...extra]);
+      setState(() {
+        _dynamicPolylines = [..._dynamicPolylines, ...extra];
+        _dynamicPolylineNetworks = [..._dynamicPolylineNetworks, ...extraNetworks];
+      });
     }
   }
 
@@ -4046,7 +4059,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
     // est unifiée, donc une couleur ne peut plus distinguer les opérateurs.
     final String? filterNetwork =
         _selectedFilter == 'Tous' ? null : _selectedFilter.toLowerCase();
-    final basePolylines = _dynamicPolylines.isNotEmpty
+    final bool hasDynamicPolylines = _dynamicPolylines.isNotEmpty;
+    final List<Polyline> basePolylines = hasDynamicPolylines
         ? _dynamicPolylines
         : demoRoutes
             .map((r) => Polyline(
@@ -4061,11 +4075,17 @@ class _ExplorerPageState extends State<ExplorerPage> {
                   borderStrokeWidth: 2,
                 ))
             .toList();
-    final activePolylines = filterNetwork == null
-        ? basePolylines.where((p) => p.isDedicated).toList()
-        : basePolylines
-            .where((p) => p.type.toLowerCase() == filterNetwork)
-            .toList();
+    final List<String> polylineNetworks = hasDynamicPolylines
+        ? _dynamicPolylineNetworks
+        : demoRoutes.map((r) => r.type.toLowerCase()).toList();
+    final List<Polyline> activePolylines = <Polyline>[];
+    for (int i = 0; i < basePolylines.length && i < polylineNetworks.length; i++) {
+      final String network = polylineNetworks[i];
+      final bool show = filterNetwork == null
+          ? network == 'ter' || network == 'brt'
+          : network == filterNetwork;
+      if (show) activePolylines.add(basePolylines[i]);
+    }
     final mapStops = _filteredStops; // ✅ Toujours filtré à proximité (30 max — Groupe 4), pas allStops
     // ✅ CORRECTIF ARRÊTS TER/BRT — garantit sur la carte les gares/stations
     //    officielles des réseaux affichés (même prédicat que `activePolylines`
