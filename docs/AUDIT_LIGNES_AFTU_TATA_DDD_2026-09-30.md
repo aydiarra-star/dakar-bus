@@ -283,3 +283,34 @@ Le générateur actuel raccorde les routes AFTU au numéro identique (AFTU_<n>),
 - Aucun changement d'interface, d'horaire, de fréquence, de sens, de ligne TER/BRT ou de source de données n'est effectué par cette note.
 
 **Action attendue pour lever l'écart :** obtenir d'AFTU/CETUD la version datée du plan de lignes et la correspondance explicite entre chaque numéro public, chaque route PassBi et ses terminus. En attendant, toute correction de numérotation serait une supposition.
+
+
+## 11. Triangulation AFTU : catalogue public, guide CETUD des JOJ et métadonnées PassBi — 24 novembre 2026
+
+### Sources distinctes
+- Catalogue public AFTU consulté le 24 novembre 2026 : https://aftu-senegal.org/infos-pratiques/
+- Guide officiel de mobilité JOJ Dakar publié pour la période événementielle du 31 octobre au 13 novembre 2026 : https://montrajetjoj.sn/guide-mobilite-joj.pdf
+- Inventaire technique PassBi déjà relevé dans `docs/INTEGRATION_PASSBI_DDD_AFTU_4_21_2026-09-28.md`.
+- Référentiel canonique local daté du 25 septembre 2026.
+
+### Comparaison de quelques identités
+| Ligne | Catalogue AFTU consulté le 24-11 | Guide officiel JOJ 2026 | Nom technique PassBi | Référentiel local du 25-09 |
+|---|---|---|---|---|
+| 46 | SDE Serigne Assane – Lat Dior | Guédiawaye – Lat Dior | Guédiawaye – Lat Dior | SDE Serigne Assane – Lat Dior |
+| 48 | Gadaye – Ngor | Kounoune – Lat Dior | Lat Dior – Rufisque | Cité Serigne Mansour – Lat Dior |
+| 50 | Jaxaay – Gare des Baux Maraîchers | Cité APIX – Petersen | Malika – Petersen | Petersen – Malika Cimetière |
+| 55 | Jaxaay 2 – Petersen | Rufisque – Petersen | Petersen – Rufisque | Rufisque Sonadis – Petersen |
+| 58 | Diamalaye – Cité Gendarmerie | Comico Yeumbeul – Sahm | Comico – Sahm | Sahm – Comico |
+| 82 | Rufisque Arafat – Zone de Captage | Comico Yeumbeul – Lat Dior | Comico Yeumbeul – Lat Dior | Lat Dior – Comico Yeumbeul |
+
+Le guide JOJ apporte une corroboration indépendante pour certains noms techniques du feed (notamment 46, 55 et 82), mais il s'agit d'un document de mobilité événementielle et non d'une table de correspondance permanente entre les identifiants PassBi et le catalogue AFTU. Il ne résout donc pas les contradictions avec la page AFTU consultée le même jour. Pour 48, 50 et 58, les trois sources donnent même des terminus différents.
+
+### Conséquence pour le raccordement
+- Le champ technique du feed confirme l'existence de routes et de chaînes horaires ; il ne constitue pas, à lui seul, une preuve d'identité publique.
+- La similitude des terminus entre le guide JOJ et le feed ne suffit pas à valider définitivement une correspondance durable.
+- La ligne 55 illustre une contradiction de catalogue : le guide JOJ et le nom technique PassBi convergent sur le corridor Rufisque–Petersen, tandis que la page AFTU actuelle publie Jaxaay 2–Petersen. La page officielle AFTU et le référentiel local avaient déjà été relevés comme contradictoires.
+- Aucun décalage de numéros, aucune permutation de lignes et aucun transfert d'horaires ne sont autorisés par ces éléments.
+- Les statuts d'identité doivent rester prudents jusqu'à réception d'une table AFTU/CETUD datée reliant explicitement numéro public, identifiant de route PassBi et terminus.
+
+### Décision
+Cette triangulation est ajoutée comme preuve d'audit, pas comme correction de données. Aucun fichier GTFS/PassBi, horaire, arrêt, sens, fréquence, référentiel public, code applicatif ou interface n'est modifié par cette section.
