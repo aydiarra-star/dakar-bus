@@ -289,7 +289,7 @@ test('4a. DDD_217 / D217OT : horaire disponible, identité UNKNOWN, libellé hon
   assert.equal(res.frequencyMinutes, null, 'jamais une fréquence transformée en horaire');
   assert.equal(res.lineLabel, 'DDD',
     'sans preuve route ↔ ligne, seul le mode est affiché');
-  assert.match(res.identityNote, /UNCONFIRMED/);
+  assert.match(res.identityNote, /UNVERIFIED/);
 });
 
 test('4b. AFTU_3 : horaire disponible + identité publique VERIFIED par le registre', () => {
