@@ -3,8 +3,8 @@
   "verified_at": "2026-11-24",
   "policy": "VERIFIED uniquement si le numéro public, la publication officielle et les deux terminus observés dans le feed concordent. Une égalité de numéro seule ne suffit pas. Les contradictions, variantes A/B et terminus ambigus restent UNVERIFIED.",
   "counts": {
-    "verified": 24,
-    "unverified_public_lines": 96
+    "verified": 20,
+    "unverified_public_lines": 100
   },
   "proofs": [
     {
@@ -81,44 +81,6 @@
       "feed_terminal_stop_names": [
         "Petersen 1",
         "Terminus Parcelles Assainies"
-      ]
-    },
-    {
-      "operator": "AFTU",
-      "line_number": "28",
-      "route_id": "AFTU_28",
-      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-28/",
-      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
-      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
-      "feed_terminals": "Hamo V/VI ↔ Petersen",
-      "basis": "L’itinéraire officiel AFTU ligne 28 relie Hamo V/VI à Petersen ; concordance des extrémités de AFTU_28 (Hamo VI dans le feed).",
-      "verified_at": "2026-11-24",
-      "feed_terminal_stop_ids": [
-        "A_1559",
-        "A_1562"
-      ],
-      "feed_terminal_stop_names": [
-        "Petersen 2",
-        "Terminus 28"
-      ]
-    },
-    {
-      "operator": "AFTU",
-      "line_number": "42",
-      "route_id": "AFTU_42",
-      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-42/",
-      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
-      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
-      "feed_terminals": "Gadaye ↔ Ouakam Baye",
-      "basis": "L’itinéraire officiel AFTU ligne 42 relie Gadaye à Ouakam Baye ; concordance des extrémités de AFTU_42.",
-      "verified_at": "2026-11-24",
-      "feed_terminal_stop_ids": [
-        "A_1746",
-        "A_453"
-      ],
-      "feed_terminal_stop_names": [
-        "Devant Terminus 42 Et 44 Marché Jeudi",
-        "Terminus 30 49"
       ]
     },
     {
@@ -355,25 +317,6 @@
     },
     {
       "operator": "DDD",
-      "line_number": "121",
-      "route_id": "DDD_121",
-      "official_reference": "https://demdikk.sn/info-voyageurs/",
-      "catalog_reference": "https://demdikk.sn/info-voyageurs/",
-      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
-      "feed_terminals": "SCAT Urbam ↔ Leclerc",
-      "basis": "La publication DDD ligne 121 et les terminus du feed DDD_121 concordent : SCAT Urbam et Leclerc.",
-      "verified_at": "2026-11-24",
-      "feed_terminal_stop_ids": [
-        "D_1264",
-        "D_140"
-      ],
-      "feed_terminal_stop_names": [
-        "Terminus 121",
-        "Terminus Leclerc"
-      ]
-    },
-    {
-      "operator": "DDD",
       "line_number": "208",
       "route_id": "DDD_208",
       "official_reference": "https://demdikk.sn/info-voyageurs/",
@@ -446,25 +389,6 @@
       "feed_terminal_stop_names": [
         "Gare Des Baux MaraichéRs",
         "Terminus Palais 1"
-      ]
-    },
-    {
-      "operator": "DDD",
-      "line_number": "234",
-      "route_id": "DDD_234",
-      "official_reference": "https://demdikk.sn/info-voyageurs/",
-      "catalog_reference": "https://demdikk.sn/info-voyageurs/",
-      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
-      "feed_terminals": "Jaxaay ↔ Place Leclerc",
-      "basis": "La publication DDD ligne 234 et les terminus du feed DDD_234 concordent : Jaxaay et Leclerc.",
-      "verified_at": "2026-11-24",
-      "feed_terminal_stop_ids": [
-        "D_1181",
-        "D_140"
-      ],
-      "feed_terminal_stop_names": [
-        "Terminus La LinguèRe",
-        "Terminus Leclerc"
       ]
     }
   ]
