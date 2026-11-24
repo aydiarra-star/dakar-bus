@@ -174,13 +174,13 @@ void main() {
       expect(info.scheduledTime!.isBefore(lundi12.add(const Duration(hours: 3))),
           isTrue);
       expect(info.estimatedWaitFrom, greaterThanOrEqualTo(0));
-      // Identité publique NON confirmée (§3) : champ DISTINCT du statut horaire.
-      expect(info.identityStatus, IdentityStatus.unconfirmed);
-      expect(info.identityNote, contains('UNVERIFIED'));
-      // §2 : l'affichage vient des métadonnées réelles du feed. Chantier UI :
-      // la source de données (PassBi) n'est plus nommée dans l'interface.
+      // DDD 1 possède une preuve indépendante dans le catalogue public.
+      // Le statut d'identité reste distinct du statut horaire.
+      expect(info.identityStatus, IdentityStatus.confirmed);
+      expect(info.identityNote, contains('VERIFIED'));
+      // Le libellé public est affiché sans exposer la source technique.
+      expect(info.lineLabel, 'DDD 1');
       expect(info.lineLabel, isNot(contains('PassBi')));
-      expect(info.lineLabel, startsWith('DDD'));
     });
 
     test('audit §1 : 53 routes DDD, 52 avec horaires calculables', () {
