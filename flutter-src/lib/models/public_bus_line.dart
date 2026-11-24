@@ -315,3 +315,33 @@ class PublicBusLineReference {
     );
   }
 }
+
+
+/// Libellé honnête du sens d'une ligne publique.
+///
+/// « Aller » / « Retour » ne sont utilisés que si les deux extrémités du trip
+/// GTFS correspondent exactement (casse/espaces ignorés) aux terminus publiés.
+/// Sinon, direction_id reste un identifiant technique et l'interface affiche
+/// « Sens <id> » au lieu de lui attribuer une orientation non prouvée.
+String publicDirectionLabel({
+  required String directionId,
+  required String firstStopName,
+  required String lastStopName,
+  required String origin,
+  required String destination,
+}) {
+  String normalize(String value) =>
+      value.trim().toLowerCase().replaceAll(RegExp(r'\\s+'), ' ');
+  final first = normalize(firstStopName);
+  final last = normalize(lastStopName);
+  final from = normalize(origin);
+  final to = normalize(destination);
+  final endpointsPublished = from.isNotEmpty &&
+      to.isNotEmpty &&
+      !from.contains('non publiée') &&
+      !to.contains('non publiée') &&
+      from != to;
+  if (endpointsPublished && first == from && last == to) return 'Aller';
+  if (endpointsPublished && first == to && last == from) return 'Retour';
+  return directionId.isEmpty ? 'Sens non renseigné' : 'Sens $directionId';
+}
