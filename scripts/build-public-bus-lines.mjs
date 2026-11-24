@@ -568,7 +568,9 @@ const ref = {
     'exacte et sa preuve de blocage (`blocking`), jamais masqué. `mapping_status` vaut ' +
     'CONNECTED uniquement si la chaîne complète existe ; sinon BLOCKED (route présente, ' +
     'maillon manquant) ou NOT_VERIFIED (aucune route de ce numéro). Aucune ligne n’est ' +
-    'supprimée pour masquer un blocage, aucune identité publique distincte n’est fusionnée.',
+    'supprimée pour masquer un blocage, aucune identité publique distincte n’est fusionnée. ' +
+    '`feed_route_identity_status` est indépendant de `mapping_status` : CONNECTED ' +
+    'ne certifie pas l’identité publique ↔ route ; VERIFIED exige une référence documentaire explicite.',
   sources: SOURCES,
   counts: {
     aftu_official: aftuLines.length,
@@ -580,6 +582,8 @@ const ref = {
     blocked: countStatus('BLOCKED'),
     not_verified: countStatus('NOT_VERIFIED'),
     partial: countStatus('PARTIAL'),
+    feed_route_identity_verified: allPublic.filter((l) => l.feed_route_identity_status === 'VERIFIED').length,
+    feed_route_identity_unverified: allPublic.filter((l) => l.feed_route_identity_status !== 'VERIFIED').length,
     feed_routes_without_public_line:
       dddFeedOrphans.length + aftuFeedOrphans.length,
   },
