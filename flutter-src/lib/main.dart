@@ -1040,6 +1040,11 @@ class Stop {
   /// dépend jamais de la couleur d'affichage (tous les marqueurs restent verts).
   final List<String> networkIds;
 
+  /// Référence de ligne propre à chaque réseau desservant un arrêt partagé.
+  /// `scheduleRouteId` reste la référence historique par défaut ; l'Explorer
+  /// sélectionne celle du réseau filtré pour éviter un horaire TER sur TATA.
+  final Map<String, String> scheduleRouteIdsByNetwork;
+
   /// Identifiant métier dans `dakar_network.json` (ex. `stop_dakar_ter`).
   ///
   /// GROUPE 2 (§8) : seul lien fiable entre un arrêt affiché et la source unique
@@ -1241,6 +1246,7 @@ class Stop {
     this.source = DataSourceInfo.demo, this.stopType = StopType.departure,
     this.stopId, this.scheduleRouteId, this.passBiStopKey,
     this.networkIds = const <String>[],
+    this.scheduleRouteIdsByNetwork = const <String, String>{},
   }) : _legacyStatus = status;
 
   /// Compatibilité avec les arrêts historiques qui n'ont pas encore de liste
@@ -1259,6 +1265,7 @@ class Stop {
     DataSourceInfo? source, StopType? stopType, String? stopId,
     String? scheduleRouteId, String? passBiStopKey,
     List<String>? networkIds,
+    Map<String, String>? scheduleRouteIdsByNetwork,
   }) => Stop(
     name: name ?? this.name,
     direction: direction ?? this.direction,
@@ -1275,6 +1282,8 @@ class Stop {
     scheduleRouteId: scheduleRouteId ?? this.scheduleRouteId,
     passBiStopKey: passBiStopKey ?? this.passBiStopKey,
     networkIds: networkIds ?? this.networkIds,
+    scheduleRouteIdsByNetwork:
+        scheduleRouteIdsByNetwork ?? this.scheduleRouteIdsByNetwork,
   );
 
   // AUDIT DONNÉES 2026-09-24 — horaires.
@@ -1578,17 +1587,25 @@ List<Stop> explorerBaseStopsForFilter({
         .where((Stop s) => favoriteStopNames.contains(s.name))
         .toList();
   }
+  List<Stop> forNetwork(String networkId) => source
+      .where((Stop s) => s.servesNetwork(networkId))
+      .map((Stop s) => s.copyWith(
+            modeLabel: networkId == 'tata' ? 'Tata' : networkId.toUpperCase(),
+            scheduleRouteId:
+                s.scheduleRouteIdsByNetwork[networkId] ?? s.scheduleRouteId,
+          ))
+      .toList();
   switch (selectedFilter) {
     case 'TER':
-      return source.where((Stop s) => s.servesNetwork('ter')).toList();
+      return forNetwork('ter');
     case 'BRT':
-      return source.where((Stop s) => s.servesNetwork('brt')).toList();
+      return forNetwork('brt');
     case 'DDD':
-      return source.where((Stop s) => s.servesNetwork('ddd')).toList();
+      return forNetwork('ddd');
     case 'TATA':
-      return source.where((Stop s) => s.servesNetwork('tata')).toList();
+      return forNetwork('tata');
     case 'AFTU':
-      return source.where((Stop s) => s.servesNetwork('aftu')).toList();
+      return forNetwork('aftu');
     default:
       return List<Stop>.of(source);
   }
@@ -1972,10 +1989,14 @@ void _integrateNetworkData() {
             if (existing.networkIds.isEmpty) existing.modeLabel.toLowerCase(),
             networkId,
           };
+          final Map<String, String> routeIdsByNetwork =
+              Map<String, String>.of(existing.scheduleRouteIdsByNetwork);
+          routeIdsByNetwork.putIfAbsent(networkId, () => route.id);
           allStops[existingIndex] = existing.copyWith(
             stopId: existing.stopId ?? busStop.id,
             scheduleRouteId: existing.scheduleRouteId ?? route.id,
             networkIds: memberships.toList()..sort(),
+            scheduleRouteIdsByNetwork: routeIdsByNetwork,
           );
         }
         continue;
@@ -2002,6 +2023,7 @@ void _integrateNetworkData() {
         stopType: aggregatedRoles[busStop.id] ??
             stopTypeForIndex(i, stopIds.length),
         networkIds: <String>[networkId],
+        scheduleRouteIdsByNetwork: <String, String>{networkId: route.id},
       );
       allStops.add(stop);
       existingKeys.add(key);
