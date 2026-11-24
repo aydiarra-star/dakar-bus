@@ -778,7 +778,10 @@ class DocumentedRouteRegistry {
     return tataLabelForStatus(status, c?.routeNumber ?? number);
   }
 
-  /// Résout l'identité à partir d'un `route_id` interne de feed.
+  /// Extrait un numéro candidat depuis un `route_id` interne et vérifie que
+  /// ce numéro existe dans la publication officielle. Cela prouve l'existence
+  /// de la ligne publique, PAS que ce route_id représente cette ligne.
+  /// Ne jamais utiliser seul pour attribuer un libellé AFTU/DDD à un feed.
   static DocumentedRouteIdentity resolveRouteId(String operator, String routeId) {
     final String op = normalizeOperator(operator);
     // BRT : l'identité publique est « B1 »/« B2 » (et non « BRT 1 »). Un
