@@ -1378,6 +1378,10 @@ bool usesPassBiExclusiveModeLabel(String modeLabel) {
       network.startsWith('AFTU');
 }
 
+bool shouldShowScheduleLabelForNetwork(String modeLabel, String label) =>
+    !(usesPassBiExclusiveModeLabel(modeLabel) &&
+        label == ReliabilityLabel.scheduleUnavailable);
+
 bool usesPassBiExclusiveSchedule(Stop stop) {
   final String routeId = (stop.scheduleRouteId ?? '').toLowerCase();
   return usesPassBiExclusiveModeLabel(stop.modeLabel) ||
@@ -7230,9 +7234,15 @@ class DetailedRoutePage extends StatelessWidget {
                                       stopId: stop.stopId,
                                       network: route.operator,
                                     );
+                                    final String scheduleLabel =
+                                        ReliabilityLabel.sanitizeScheduleLabel(
+                                            info.label);
+                                    if (!shouldShowScheduleLabelForNetwork(
+                                        route.operator, scheduleLabel)) {
+                                      return const SizedBox.shrink();
+                                    }
                                     return Text(
-                                      ReliabilityLabel.sanitizeScheduleLabel(
-                                          info.label),
+                                      scheduleLabel,
                                       style: TextStyle(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w600,
