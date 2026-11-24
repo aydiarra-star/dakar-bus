@@ -245,3 +245,41 @@ terminé qu’une fois les données manquantes publiées par les opérateurs
 ## 9. Validation
 
 Voir le rapport final (SHA, fichiers modifiés, build, compteurs).
+
+
+## 10. Contrôle de dérive du catalogue AFTU — 24 novembre 2026
+
+### Sources comparées
+
+- Page publique AFTU « Infos pratiques », relue le 24 novembre 2026 : https://aftu-senegal.org/infos-pratiques/
+- Référentiel canonique embarqué dans ce dépôt : §A.2, vérifié le 25 septembre 2026 (docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md).
+
+La page AFTU actuellement publiée présente plusieurs numéros avec des terminus qui diffèrent de ceux inscrits dans le référentiel canonique embarqué. Exemples contrôlés :
+
+| Numéro | Page AFTU consultée le 24-11-2026 | Référentiel canonique embarqué (25-09-2026) |
+|---|---|---|
+| 46 | Lat Dior – Almadies | SDE Serigne Assane – Lat Dior |
+| 47 | Cité Serigne Mansour – Lat Dior | Lat Dior – Almadies |
+| 48 | Gadaye – Ngor | Cité Serigne Mansour – Lat Dior |
+| 50 | Jaxaay – Gare des Baux Maraîchers | Petersen – Malika Cimetière |
+| 55 | Jaxaay 2 – Petersen | Terminus Rufisque Sonadis – Petersen |
+| 58 | Diamalaye – Cité Gendarmerie (Jaxaay) | Sahm – Comico |
+| 62 | Terminus Camp Marchand Rufisque – Stade LSS | Arrêt Chérif (Rufisque) – Penc Mi (Gueule Tapée) |
+| 82 | Rufisque Arafat – Zone de Captage | Lat Dior – Comico Yeumbeul |
+
+### Interprétation prudente
+
+Ces différences sont une **dérive documentaire à résoudre**, pas une preuve que les identifiants de ligne ont tous été renumérotés ni que les données PassBi sont erronées. La page AFTU actuelle et le référentiel de septembre ne sont pas synchronisés sur ces entrées. Le présent contrôle ne permet pas d'établir si les écarts résultent d'une renumérotation, d'une évolution d'itinéraire, d'une erreur de publication ou d'une version différente du réseau.
+
+Le générateur actuel raccorde les routes AFTU au numéro identique (AFTU_<n>), puis vérifie la chaîne technique des trips et stop_times. Cette vérification prouve que la route du feed existe et contient des horaires ; elle ne prouve pas à elle seule que ses terminus correspondent à l'identité actuellement publiée par AFTU.
+
+### Décision de sûreté
+
+- Ne pas réécrire automatiquement le référentiel canonique à partir d'un seul relevé de page web.
+- Ne pas décaler les numéros AFTU et ne pas déplacer les horaires d'une ligne vers une autre.
+- Ne pas déclarer que la correspondance AFTU_<n> ↔ ligne publique <n> est validée uniquement parce que les numéros coïncident.
+- Conserver les données PassBi brutes et les horaires inchangés tant qu'une table de correspondance datée de l'opérateur ou une confirmation écrite n'est pas disponible.
+- Ajouter ce contrôle à la liste des vérifications bloquantes avant de considérer les raccordements AFTU 46–82 comme définitivement validés.
+- Aucun changement d'interface, d'horaire, de fréquence, de sens, de ligne TER/BRT ou de source de données n'est effectué par cette note.
+
+**Action attendue pour lever l'écart :** obtenir d'AFTU/CETUD la version datée du plan de lignes et la correspondance explicite entre chaque numéro public, chaque route PassBi et ses terminus. En attendant, toute correction de numérotation serait une supposition.
