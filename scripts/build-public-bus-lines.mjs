@@ -327,6 +327,10 @@ const aftuLines = aftu.map((l) => {
     route_status: l.route_status,
     stops_status: l.stops_status,
     schedule_status: sch.status,
+    // La chaîne horaire prouve la disponibilité, pas l'identité publique.
+    // Aucun crosswalk officiel ligne ↔ route PassBi n'est encore fourni ici.
+    feed_route_identity_status: 'UNVERIFIED',
+    feed_route_identity_proof: null,
     mapping_status: mappingStatus(sch),
     feed_route_ids: sch.routeIds,
     trip_ids_count: sch.tripIds.length,
@@ -370,6 +374,9 @@ const dddLines = ddd.map((l) => {
     route_status: l.route_status,
     stops_status: l.stops_status,
     schedule_status: sch.status, // dérivé du feed (raccordement réel)
+    // Le numéro nu ne certifie pas l'identité publique (notamment 15/502/503).
+    feed_route_identity_status: 'UNVERIFIED',
+    feed_route_identity_proof: null,
     published_schedule_status: l.schedule_status, // publié (canonique)
     mapping_status: mappingStatus(sch),
     feed_route_ids: sch.routeIds,
