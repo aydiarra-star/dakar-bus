@@ -3831,7 +3831,9 @@ class _ExplorerPageState extends State<ExplorerPage> {
           }
         }
       } catch (_) {}
-      if (fullRoutePoints.isEmpty) fullRoutePoints = route.points.where((pt) => DakarBounds.isValid(pt)).toList();
+      if (fullRoutePoints.isEmpty) {
+        fullRoutePoints = route.points.where((pt) => DakarBounds.isValid(pt)).toList();
+      }
       if (fullRoutePoints.length >= 2) {
         extra.add(Polyline(
           points: fullRoutePoints,
