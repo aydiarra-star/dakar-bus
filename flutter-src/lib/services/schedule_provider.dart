@@ -255,6 +255,18 @@ class ScheduleProvider {
       final summary = pbRouteId == null
           ? null
           : passBi.routeSummary(networkKey, pbRouteId);
+      final String? documentedCatalogLabel = pbRouteId == null
+          ? null
+          : documentedCatalogLabelForFeedRouteId(pbRouteId);
+      final bool publicBusNetwork = networkKey == 'AFTU' || networkKey == 'DDD';
+      final IdentityStatus rawIdentity = pbRouteId == null
+          ? IdentityStatus.unconfirmed
+          : passBi.identityStatusOf(networkKey, pbRouteId);
+      final IdentityStatus displayIdentity = publicBusNetwork
+          ? (documentedCatalogLabel == null
+              ? IdentityStatus.unconfirmed
+              : IdentityStatus.confirmed)
+          : rawIdentity;
       final String reason = (summary != null && !summary.scheduleAvailable)
           ? UnresolvedReason.noStopTimesInFeed
           : UnresolvedReason.noComputableDeparture;
@@ -273,13 +285,18 @@ class ScheduleProvider {
         frequencyMinutes: null,
         operatingHours: null,
         direction: null,
-        identityStatus: pbRouteId == null
-            ? IdentityStatus.unconfirmed
-            : passBi.identityStatusOf(networkKey, pbRouteId),
+        identityStatus: displayIdentity,
         identityNote: pbRouteId == null
             ? null
-            : 'Identité publique non confirmée ; métadonnées du feed utilisées '
-                'telles quelles (route_id, short_name, long_name).',
+            : publicBusNetwork
+                ? (documentedCatalogLabel == null
+                    ? 'Identité publique UNVERIFIED ; aucune attribution de numéro. '
+                        'Les horaires techniques du feed restent indépendants.'
+                    : 'Identité publique VERIFIED par le registre indépendant '
+                        '($documentedCatalogLabel) ; le crosswalk technique historique reste distinct.')
+                : (rawIdentity == IdentityStatus.confirmed
+                    ? 'Identité publique confirmée par le référentiel documenté.'
+                    : 'Identité publique non confirmée ; métadonnées du feed conservées.'),
         unresolvedReason: reason,
       );
     }
@@ -290,6 +307,14 @@ class ScheduleProvider {
     final scheduledTime = day.add(Duration(seconds: found.sec));
     final IdentityStatus identity =
         passBi.identityStatusOf(networkKey, routeId);
+    final String? documentedCatalogLabel =
+        documentedCatalogLabelForFeedRouteId(routeId);
+    final bool publicBusNetwork = networkKey == 'AFTU' || networkKey == 'DDD';
+    final IdentityStatus displayIdentity = publicBusNetwork
+        ? (documentedCatalogLabel == null
+            ? IdentityStatus.unconfirmed
+            : IdentityStatus.confirmed)
+        : identity;
     final summary = passBi.routeSummary(networkKey, routeId);
 
     return DepartureInfo(
@@ -314,17 +339,21 @@ class ScheduleProvider {
       // Le second reste nécessaire lorsque le feed ne publie aucun headsign.
       direction: _tripDirection(net, found.tripId),
       directionId: _tripDirectionId(net, found.tripId),
-      identityStatus: identity,
-      identityNote: identity == IdentityStatus.confirmed
-          ? 'Identité publique confirmée par le référentiel documenté '
-              '(${passBi.dakarRouteIdsFor(networkKey, routeId).join(', ')}).'
-          : 'Identité publique UNCONFIRMED ; horaire techniquement calculable '
-              '(route + trip + stop + stop_time + service actif). '
-              'Affichage : mode du réseau seul, sans attribution de numéro public.',
-      lineLabel: identityLabelFor(networkKey, routeId, identity,
+      identityStatus: displayIdentity,
+      identityNote: publicBusNetwork
+          ? (documentedCatalogLabel == null
+              ? 'Identité publique UNVERIFIED ; horaire techniquement calculable '
+                  '(route + trip + stop + stop_time + service actif). '
+                  'Affichage : mode du réseau seul.'
+              : 'Identité publique VERIFIED par le registre indépendant '
+                  '($documentedCatalogLabel) ; le crosswalk technique historique reste distinct.')
+          : (identity == IdentityStatus.confirmed
+              ? 'Identité publique confirmée par le référentiel documenté '
+                  '(${passBi.dakarRouteIdsFor(networkKey, routeId).join(', ')}).'
+              : 'Identité publique non confirmée ; horaires techniques conservés.'),
+      lineLabel: identityLabelFor(networkKey, routeId, displayIdentity,
           shortName: summary?.shortName,
-          documentedCatalogLabel:
-              documentedCatalogLabelForFeedRouteId(routeId)),
+          documentedCatalogLabel: documentedCatalogLabel),
       unresolvedReason: null,
     );
   }
