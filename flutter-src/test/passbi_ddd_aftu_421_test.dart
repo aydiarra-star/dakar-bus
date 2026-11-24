@@ -627,7 +627,7 @@ void main() {
         same(app.allStops),
       );
       final tataStops = app.allStops
-          .where((s) => s.color == app.AppColors.tata)
+          .where((s) => s.servesNetwork('tata'))
           .take(5)
           .toList();
       expect(tataStops, isNotEmpty,
