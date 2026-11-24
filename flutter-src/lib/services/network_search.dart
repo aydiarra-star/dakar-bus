@@ -240,9 +240,10 @@ class NetworkSearchCatalogBuilder {
   /// Lignes PUBLIQUES AFTU / DDD (référentiel public, numéros officiels).
   ///
   /// Le libellé recherchable est « AFTU 26 » / « DDD 221 » — un NUMÉRO PUBLIC
-  /// établi par une source, jamais un identifiant de feed. Le nom officiel et
-  /// les terminus publiés complètent la recherche (mobilité, ligne, arrêt).
-  /// Aucune identité Tata n'est exposée : TATA est un type de véhicule.
+  /// établi par une source. Un route_id n'est attaché à cette entrée que si la
+  /// correspondance route ↔ ligne possède une preuve indépendante VERIFIED.
+  /// Sans cette preuve, la ligne reste recherchable mais ne pilote aucun horaire
+  /// ou itinéraire attribué. Aucune identité Tata n'est exposée.
   static List<NetworkSearchEntry> fromPublicLines(List<PublicBusLine> lines) {
     final List<NetworkSearchEntry> out = <NetworkSearchEntry>[];
     for (final l in lines) {
@@ -252,7 +253,9 @@ class NetworkSearchCatalogBuilder {
         kind: NetworkSearchKind.line,
         label: l.publicLabel,
         network: net,
-        routeId: l.feedRouteIds.isNotEmpty ? l.feedRouteIds.first : null,
+        routeId: l.hasVerifiedFeedIdentity && l.feedRouteIds.isNotEmpty
+            ? l.feedRouteIds.first
+            : null,
         source: l.source,
       ));
       // Mobilité : la ligne publique prouve que l'opérateur est réellement
