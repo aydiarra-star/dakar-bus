@@ -8,7 +8,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:dakar_bus/main.dart' as app;
 import 'package:dakar_bus/models/public_bus_line.dart';
-import 'package:dakar_bus/services/gtfs/passbi_source.dart';
 import 'package:dakar_bus/services/network_search.dart';
 
 void main() {
