@@ -141,7 +141,7 @@ void main() {
       final natifs = ddd.where((s) => s.passBiStopKey != null).toList();
       expect(natifs, isNotEmpty,
           reason: 'le filtre DDD doit exposer les arrêts PassBi DDD réels');
-      expect(ddd.every((s) => s.color == app.AppColors.ddd), isTrue);
+      expect(ddd.every((s) => s.servesNetwork('ddd')), isTrue);
       // Un de ces arrêts calcule un vrai prochain départ.
       final avecDepart = natifs
           .map((s) => s.departureInfoAt(at: lundi12))
@@ -227,7 +227,7 @@ void main() {
       );
       final natifs = aftu.where((s) => s.passBiStopKey != null).toList();
       expect(natifs, isNotEmpty);
-      expect(aftu.every((s) => s.color == app.AppColors.aftu), isTrue);
+      expect(aftu.every((s) => s.servesNetwork('aftu')), isTrue);
     });
 
     test('arrêt natif : nom et coordonnées viennent du feed (§2)', () {
