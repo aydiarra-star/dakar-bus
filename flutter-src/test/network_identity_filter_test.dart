@@ -65,4 +65,35 @@ void main() {
     expect(legacy.servesNetwork('ter'), isTrue);
     expect(legacy.servesNetwork('brt'), isFalse);
   });
+  test('un arrêt partagé utilise la référence horaire du réseau filtré', () {
+    final Stop shared = Stop(
+      name: 'Colobane - Marché & Gare TER',
+      direction: 'Dir. Dakar',
+      distanceMeters: 0,
+      departureMinutesFromMidnight: const <int>[],
+      icon: Icons.train,
+      color: AppColors.primary,
+      location: const LatLng(14.7, -17.4),
+      modeLabel: 'TER',
+      scheduleRouteId: 'ter_route',
+      networkIds: const <String>['ter', 'tata'],
+      scheduleRouteIdsByNetwork: const <String, String>{
+        'ter': 'ter_route',
+        'tata': 'tata_route',
+      },
+    );
+
+    final List<Stop> tata = explorerBaseStopsForFilter(
+      selectedFilter: 'TATA',
+      favoriteStopNames: const <String>{},
+      source: <Stop>[shared],
+    );
+
+    expect(tata, hasLength(1));
+    expect(tata.single.modeLabel, 'Tata');
+    expect(tata.single.scheduleRouteId, 'tata_route');
+    expect(tata.single.servesNetwork('ter'), isTrue);
+    expect(tata.single.servesNetwork('tata'), isTrue);
+  });
+
 }
