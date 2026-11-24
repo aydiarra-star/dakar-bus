@@ -4042,8 +4042,10 @@ class _ExplorerPageState extends State<ExplorerPage> {
   Widget build(BuildContext context) {
     final dark = globalState.darkMode;
     final stops = _filteredStops;
-    // ✅ Filtre les tracés par mobilité pour éviter le spaghetti orange : n'affiche que la couleur sélectionnée
-    final Color? filterColor = _selectedFilter == 'Tous' ? null : _colorFor(_selectedFilter);
+    // Le filtre de tracé utilise l'identité du réseau : la palette des tracés
+    // est unifiée, donc une couleur ne peut plus distinguer les opérateurs.
+    final String? filterNetwork =
+        _selectedFilter == 'Tous' ? null : _selectedFilter.toLowerCase();
     final basePolylines = _dynamicPolylines.isNotEmpty
         ? _dynamicPolylines
         : demoRoutes
@@ -4059,9 +4061,11 @@ class _ExplorerPageState extends State<ExplorerPage> {
                   borderStrokeWidth: 2,
                 ))
             .toList();
-    final activePolylines = filterColor == null
-        ? basePolylines.where((p) => p.isDedicated).toList() // Tous : seulement TER/BRT par identité métier
-        : basePolylines.where((p) => p.color == filterColor).toList();
+    final activePolylines = filterNetwork == null
+        ? basePolylines.where((p) => p.isDedicated).toList()
+        : basePolylines
+            .where((p) => p.type.toLowerCase() == filterNetwork)
+            .toList();
     final mapStops = _filteredStops; // ✅ Toujours filtré à proximité (30 max — Groupe 4), pas allStops
     // ✅ CORRECTIF ARRÊTS TER/BRT — garantit sur la carte les gares/stations
     //    officielles des réseaux affichés (même prédicat que `activePolylines`
@@ -4069,8 +4073,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
     //    déduplication documentés sur [explorerMapMarkerStops].
     final mapMarkerStops = explorerMapMarkerStops(
       proximityStops: mapStops,
-      terDisplayed: filterColor == null || filterColor == AppColors.ter,
-      brtDisplayed: filterColor == null || filterColor == AppColors.brt,
+      terDisplayed: filterNetwork == null || filterNetwork == 'ter',
+      brtDisplayed: filterNetwork == null || filterNetwork == 'brt',
     );
     // ✅ DIAGNOSTIC RUNTIME (correctif TER/BRT) — une ligne par reconstruction :
     //    compte réel de ce qui est transmis au MarkerLayer de CETTE carte,
