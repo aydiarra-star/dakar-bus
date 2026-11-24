@@ -19,7 +19,9 @@
     "blocked": 2,
     "not_verified": 14,
     "partial": 0,
-    "feed_routes_without_public_line": 20
+    "feed_routes_without_public_line": 20,
+    "feed_route_identity_verified": 0,
+    "feed_route_identity_unverified": 120
   },
   "unresolved_public_lines": [
     {
