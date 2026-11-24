@@ -201,6 +201,12 @@ Mission UI/UX **sans aucune modification de données ni de règle métier**.
   l'identité est portée par `Stop.networkIds` et la clé de test
   `network-stop:...`, jamais par la couleur. Ne pas changer la couleur ni la
   forme ; seule la profondeur (ombre) peut varier.
+- **Arrêts partagés** : `Stop.scheduleRouteIdsByNetwork` conserve une référence
+  de ligne par réseau. Tout filtre réseau doit sélectionner ensemble le bon
+  `modeLabel` et le bon `scheduleRouteId` via
+  `explorerBaseStopsForFilter` ; ne jamais réutiliser la ligne du premier
+  opérateur rencontré. Le calage des tracés compare `TransitRoute.type`, pas
+  leur couleur.
 - **Viewport carte** : la carte garde toute la largeur (marge verticale seule).
   Un rétrécissement latéral évince des gares par culling flutter_map
   (`explorer_marker_render_test.dart` CAS D exige >= 12 gares TER rendues).
