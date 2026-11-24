@@ -49,3 +49,24 @@ En conséquence :
 Aucun horaire n’a été modifié par cet audit. Aucun feed_route_id n’a été ajouté. Les règles d’exclusivité PassBi et les horaires TER/BRT validés restent inchangés.
 
 La source officielle est conservée dans la documentation du dépôt uniquement ; son nom ne doit jamais apparaître dans l’interface voyageurs.
+
+
+## Recoupement des itinéraires publiés — 24 novembre 2026
+
+Une seconde page officielle de l’exploitant a été relue :
+https://demdikk.sn/reseau-urbain-dakar/
+
+Elle publie des listes d’arrêts ordonnées pour plusieurs lignes qui permettent de préciser les limites du raccordement :
+
+- **DDD 18 et DDD 20** : deux boucles Dieuppeul–centre-ville–Dieuppeul, avec des séquences d’arrêts différentes. Le feed contient bien `DDD_18` et `DDD_20`, mais chacun ne présente qu’un seul `direction_id`. Le raccordement au numéro de ligne est distinct de la preuve d’un aller/retour : ne pas fabriquer une seconde direction GTFS.
+- **DDD 502 et DDD 503** : la page décrit deux boucles distinctes depuis/vers la gare de Colobane. La page « Info voyageurs » distingue cependant 502A/502B et 503A/503B, avec des destinations différentes. Les descriptions de boucle ne démontrent pas quelle variante A/B correspond à quel trajet. Les routes nues `DDD_502` et `DDD_503` restent donc non attribuées aux variantes.
+- **DDD 16A et 16B** : les séquences publiées sont différentes. Elles confirment que les deux services ne doivent pas être fusionnés ; le route_id nu `DDD_16` ne suffit pas à identifier l’un ou l’autre.
+- **DDD 327** : la séquence d’arrêts est publiée sur cette page et l’identité est également publiée dans « Info voyageurs ». Cela renforce la preuve de l’identité publique, mais aucun `route_id` PassBi `DDD_327` n’est présent dans l’inventaire audité.
+- **DDD 501** : les deux pages officielles ne concordent pas sur les terminus. « Info voyageurs » indique Gare de Dakar ↔ Palais 2, tandis que la page des itinéraires indique Palais 2 ↔ Leclerc. La contradiction demeure ouverte ; aucun changement de terminus ni de raccordement n’est autorisé sur cette seule base.
+- **DDD 15A/15B** : la page des itinéraires décrit une ligne générique 15, mais ne publie pas deux séquences distinctes A et B. Elle ne permet donc pas de choisir entre les deux variantes officielles.
+
+### Décision de raccordement
+
+Aucun nouveau `feed_route_id` n’est ajouté à la suite de ce recoupement. Les éléments ci-dessus renforcent ou précisent les identités et les limites documentaires, mais ne fournissent pas une table de correspondance exacte entre chaque variante publique et chaque route PassBi.
+
+Les statuts de raccordement du catalogue ne sont pas modifiés. Les quatre routes DDD à direction GTFS unique restent sans direction Aller/Retour inventée. Les horaires, arrêts, identifiants et affichages TER/BRT restent inchangés.
