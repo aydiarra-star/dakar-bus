@@ -102,8 +102,10 @@ test('four ambiguous public identities retain schedules but remain unattributed'
   const cases = [
     ['AFTU', '28', 'AFTU_28'],
     ['AFTU', '42', 'AFTU_42'],
-    ['DDD', '121', 'DDD_121'],
-    ['DDD', '234', 'DDD_234'],
+    ['AFTU', '48', 'AFTU_48'],
+    ['AFTU', '58', 'AFTU_58'],
+    ['AFTU', '66', 'AFTU_66'],
+    ['DDD', '502', 'DDD_502'],
   ];
   for (const [operator, number, routeId] of cases) {
     const line = ALL.find((item) =>
@@ -151,7 +153,7 @@ test('le validateur complet accepte le registre et les feeds réels', () => {
   );
   assert.equal(result.error, undefined, result.error?.message);
   assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
-  assert.match(result.stdout, /Identité publique ↔ route PassBi : VERIFIED=20 UNVERIFIED=100/);
+  assert.match(result.stdout, /Identité publique ↔ route PassBi : VERIFIED=46 UNVERIFIED=74/);
   assert.match(result.stdout, /VALIDATION OK/);
 });
 
