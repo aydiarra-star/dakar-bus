@@ -136,6 +136,10 @@ test('les compteurs déclarés correspondent aux listes', () => {
   assert.equal(REF.counts.blocked, byStatus('BLOCKED'));
   assert.equal(REF.counts.not_verified, byStatus('NOT_VERIFIED'));
   assert.equal(REF.counts.partial, byStatus('PARTIAL'));
+  assert.equal(REF.counts.feed_route_identity_verified,
+    ALL.filter((l) => l.feed_route_identity_status === 'VERIFIED').length);
+  assert.equal(REF.counts.feed_route_identity_unverified,
+    ALL.filter((l) => l.feed_route_identity_status !== 'VERIFIED').length);
   assert.equal(
     REF.counts.connected + REF.counts.blocked + REF.counts.not_verified + REF.counts.partial,
     ALL.length);
