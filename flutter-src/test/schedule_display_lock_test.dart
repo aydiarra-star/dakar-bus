@@ -151,6 +151,21 @@ void main() {
   });
 
   // ------------------------------------------------------------------
+  // 3 bis — les libellés des quatre réseaux gardent le rendu neutre
+  // lorsqu'un segment d'itinéraire ne possède aucun départ calculable.
+  // ------------------------------------------------------------------
+  group('3 bis — identité des réseaux à horaires PassBi exclusifs', () {
+    test('reconnaît les libellés réseau sans exposer la source', () {
+      for (final String label in <String>['TER', 'BRT', 'DDD', 'AFTU']) {
+        expect(app.usesPassBiExclusiveModeLabel(label), isTrue,
+            reason: '$label doit masquer le texte d’horaire indisponible');
+      }
+      expect(app.usesPassBiExclusiveModeLabel('TATA'), isFalse);
+      expect(app.usesPassBiExclusiveModeLabel('Marche'), isFalse);
+    });
+  });
+
+  // ------------------------------------------------------------------
   // 4. Anti-invention : sans fréquence documentée, « Horaire indisponible ».
   //    DDD/AFTU non mappés (IDENTITE_NON_CONFIRMEE) et TATA (absent du feed)
   //    ne doivent JAMAIS produire d'estimation.
