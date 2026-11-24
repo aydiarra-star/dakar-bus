@@ -109,6 +109,9 @@ for (const [network, feed] of [['AFTU', AFTU], ['DDD', DDD]]) {
 
     // Chaîne dérivée du feed : ce que la ligne DEVRAIT déclarer.
     const routeIds = l.feed_route_ids ?? [];
+    if (identityStatus === 'VERIFIED' && routeIds.length === 0) {
+      problems.push('identité VERIFIED sans route_id associé');
+    }
     let chainComplete = routeIds.length > 0;
     // Les maillons manquants sont consignés à part : pour une ligne NON
     // raccordée, c'est exactement la cause documentée (`blocking`), pas une
@@ -219,6 +222,15 @@ if (actualTotal !== expectedTotal) {
 // silencieusement. Le nombre de CONNECTED ne doit jamais diminuer sous la
 // référence publiée, et les compteurs doivent rester cohérents.
 const byStatus = (s) => REF.aftu.concat(REF.ddd).filter((l) => l.mapping_status === s).length;
+const identityVerifiedCount = REF.aftu.concat(REF.ddd)
+  .filter((l) => l.feed_route_identity_status === 'VERIFIED').length;
+const identityUnverifiedCount = REF.aftu.concat(REF.ddd).length - identityVerifiedCount;
+if (REF.counts.feed_route_identity_verified !== identityVerifiedCount) {
+  failures.push({ label: 'RÉFÉRENTIEL', problems: ['counts.feed_route_identity_verified incohérent'] });
+}
+if (REF.counts.feed_route_identity_unverified !== identityUnverifiedCount) {
+  failures.push({ label: 'RÉFÉRENTIEL', problems: ['counts.feed_route_identity_unverified incohérent'] });
+}
 if (REF.counts.connected !== byStatus('CONNECTED')) {
   failures.push({ label: 'RÉFÉRENTIEL', problems: ['counts.connected ≠ nombre réel de CONNECTED'] });
 }
