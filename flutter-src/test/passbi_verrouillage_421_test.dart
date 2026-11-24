@@ -225,7 +225,7 @@ void main() {
 
   // ================================================= 3. AFTU identité/horaire
   group('3 — AFTU : horaire disponible + identité UNKNOWN, aucune fusion', () {
-    test('3a. AFTU_3 : SCHEDULED + identité UNCONFIRMED', () {
+    test('3a. AFTU_3 : SCHEDULED + identité publique VERIFIED par le registre', () {
       final summary =
           app.appDataService.passBiSource.routeSummary('AFTU', 'AFTU_3');
       expect(summary, isNotNull);
@@ -240,12 +240,13 @@ void main() {
         at: lundi10,
       );
       expect(info.status, ScheduleStatus.scheduled);
-      expect(info.identityStatus, IdentityStatus.unconfirmed);
+      expect(info.identityStatus, IdentityStatus.confirmed);
+      expect(info.identityNote, contains('VERIFIED'));
+      expect(info.lineLabel, 'AFTU 3');
       final String label = ScheduleProvider.identityLabelFor(
           'AFTU', 'AFTU_3', IdentityStatus.unconfirmed,
           shortName: summary.shortName);
-      expect(label, isNot(contains('PassBi')));
-      expect(label, startsWith('AFTU'));
+      expect(label, 'AFTU', reason: 'sans libellé de preuve, aucun numéro n’est déduit');
     });
 
     test('3b. aftu_8 / aftu_11 → AFTU_3 : hypothèses NON confirmées, jamais '
