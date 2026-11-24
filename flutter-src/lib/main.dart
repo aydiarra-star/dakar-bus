@@ -3797,11 +3797,13 @@ class _ExplorerPageState extends State<ExplorerPage> {
         loadedNetworks.add(route.type.toLowerCase());
       }
     }
-    if (mounted) setState(() {
-      _dynamicPolylines = loaded;
-      _dynamicPolylineNetworks = loadedNetworks;
-      _isLoadingRoutes = false;
-    });
+    if (mounted) {
+      setState(() {
+        _dynamicPolylines = loaded;
+        _dynamicPolylineNetworks = loadedNetworks;
+        _isLoadingRoutes = false;
+      });
+    }
     // Charge le reste en arrière-plan, paresseusement et par petits lots (cache OSRM)
     _lazyLoadRemainingRoutes();
   }
