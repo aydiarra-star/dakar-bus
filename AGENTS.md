@@ -176,15 +176,15 @@ npm run validate:data
 
 Mission UI/UX **sans aucune modification de données ni de règle métier**.
 
-**Identité UI 2026 validée** : le vert pur Dakar `#00B140` est la couleur principale de l'interface. Les couleurs propres aux réseaux TER/BRT/DDD/TATA/AFTU restent inchangées.
+**Identité UI 2026 validée** : le vert WhatsApp `#25D366` est la couleur d'action de l'interface. Le vert Dakar historique `#00B140` reste réservé aux marqueurs/GPS et aux couleurs propres aux réseaux TER/BRT/DDD/TATA/AFTU, qui restent inchangées.
 
 - **Palette verrouillée par les tests** : ne jamais changer les hex de
-  `AppColors.ter` (#8B4513), `brt` (#00B140), `beanGreen` (#00B140),
-  `beanGreenLight` (#DDF5E7), `success`, `warning`, ni les littéraux testés
+  `AppColors.ter` (#8B4513), `brt` (#00B140), `beanGreen` (#25D366),
+  `beanGreenLight` (#E5F9EC), `success`, `warning`, ni les littéraux testés
   (`0xFF00B140` dans `explorer_prochains_passages_test.dart`,
   `service_end_resume_timezone_test.dart`).
 - **Rôles verts (alias, aucune nouvelle teinte)** dans `AppColors` :
-  - `accent` = `beanGreen` -> vert d'ACTION (AppBar, boutons, onglet actif,
+  - `accent` = `beanGreen` (#25D366) -> vert d'ACTION (AppBar, boutons, onglet actif,
     sélection, icônes d'action, puces non-réseau).
   - `accentStrong` = `primary` (#00B140) -> **réservé** au marqueur GPS et aux
     palettes de réseau. `explorer_marker_render_test.dart` exige que le marqueur
