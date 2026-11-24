@@ -340,15 +340,11 @@ class AppColors {
   static const primary = Color(0xFF00B140);
   static const primaryDark = Color(0xFF008A32);
 
-  /// Vert haricot clair — teinte unifiée de l'interface (boutons principaux,
-  /// indicateurs, éléments de navigation, mise en avant des départs au statut
-  /// positif). Identité Dakar verte pure (#00B140) : contraste ≈ 3,6:1
-  /// en texte blanc et ≈ 5,8:1 en texte noir, équilibré pour les deux fonds.
-  ///
-  /// [primary] (le vert historique) est conservé pour la carte, le GPS et la
-  /// palette des réseaux.
-  static const beanGreen = primary;
-  static const beanGreenLight = Color(0xFFDDF5E7);
+  /// Vert WhatsApp — teinte d'action de l'interface (boutons, onglets,
+  /// sélections et éléments interactifs). Le vert Dakar historique [primary]
+  /// reste réservé aux marqueurs, au GPS et aux couleurs des réseaux.
+  static const beanGreen = Color(0xFF25D366);
+  static const beanGreenLight = Color(0xFFE5F9EC);
 
   // Identité visuelle unique : tous les réseaux restent dans le vert Dakar Bus.
   // La distinction métier repose sur les libellés/icônes, jamais sur une
