@@ -391,32 +391,40 @@ void main() {
     });
   });
 
-  group('Fiche ligne — arrêts ordonnés (stop_sequence réels)', () {
-    test('une ligne CONNECTED expose ses arrêts réels ordonnés par stop_sequence',
-        () {
-      final PublicBusLine line = app.appDataService.publicBusLineCatalog.publicLines
-          .firstWhere((l) => l.hasRealSchedule);
-      final PassBiRouteStopSequence? seq =
-          app.appDataService.publicLineStopSequence(line);
-      expect(seq, isNotNull);
-      expect(seq!.stops, isNotEmpty);
-      expect(seq.stops.length, greaterThan(1));
-      expect(seq.routeId, line.feedRouteIds.first);
-      expect(seq.tripId, isNotEmpty);
+  group('Identité publique ↔ route PassBi — preuve indépendante', () {
+    test('aucun raccordement horaire ne certifie seul l’identité publique', () {
+      final lines = app.appDataService.publicBusLineCatalog.publicLines;
+      expect(lines, hasLength(120));
+      for (final line in lines) {
+        expect(line.feedRouteIdentityStatus, 'UNVERIFIED',
+            reason: '${line.publicLabel} : preuve d’identité non fournie');
+        expect(line.hasVerifiedFeedIdentity, isFalse);
+        expect(line.feedRouteIdentityProof, isNull);
+      }
     });
 
-    test('la séquence d’arrêts correspond aux stop_times réels de la route', () {
+    test('les libellés publics ne sont pas attribués aux route_id non vérifiés', () {
+      expect(
+        app.appDataService.publicBusLineCatalog.publicLabelForFeedRouteId('AFTU_46'),
+        isNull,
+      );
+      expect(
+        app.appDataService.publicBusLineCatalog.publicLabelForFeedRouteId('DDD_502'),
+        isNull,
+      );
+    });
+
+    test('les horaires techniques restent présents sans attribution publique', () {
       final PublicBusLine line = app.appDataService.publicBusLineCatalog.publicLines
-          .firstWhere((l) => l.hasRealSchedule);
-      final PassBiRouteStopSequence seq =
-          app.appDataService.publicLineStopSequence(line)!;
-      final int served =
-          app.appDataService.passBiSource.routeSummary(line.operator, seq.routeId)!
-              .servedStops;
-      // Le trip le plus complet couvre au plus l'ensemble des arrêts desservis,
-      // et au moins une partie : aucun arrêt inventé, aucun arrêt en trop.
-      expect(seq.stops.length, lessThanOrEqualTo(served));
-      expect(seq.stops.length, greaterThan(0));
+          .singleWhere((l) => l.publicLabel == 'DDD 502');
+      expect(line.hasRealSchedule, isTrue,
+          reason: 'la disponibilité horaire PassBi ne doit pas être supprimée');
+      expect(line.feedRouteIds, <String>['DDD_502']);
+      final summary = app.appDataService.passBiSource.routeSummary('DDD', 'DDD_502');
+      expect(summary, isNotNull);
+      expect(summary!.servedStops, greaterThan(0));
+      expect(app.appDataService.publicLineStopSequence(line), isNull,
+          reason: 'les arrêts ne doivent pas être attribués à DDD 502 sans preuve d’identité');
     });
 
     test('une ligne non raccordée n’a AUCUNE fiche d’arrêts fabriquée', () {
