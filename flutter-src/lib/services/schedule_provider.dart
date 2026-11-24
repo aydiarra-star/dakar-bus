@@ -208,9 +208,9 @@ class ScheduleProvider {
   /// PassBi dont le service est actif — jamais d'une fréquence, jamais d'une
   /// estimation, jamais REAL_TIME.
   ///
-  /// L'identité d'affichage est construite exclusivement à partir des
-  /// métadonnées PassBi réellement présentes ([identityLabelFor]) :
-  /// « Ligne PassBi DDD_217 » lorsque l'identité publique n'est pas confirmée.
+  /// L'identité d'affichage respecte la preuve publique indépendante :
+  /// AFTU/DDD non vérifiés → mode seul ; ligne vérifiée → libellé public ;
+  /// TER/BRT → crosswalk documentaire existant.
   ///
   /// Retourne un [DepartureInfo] `scheduled` (🟢 X min) ou `unknown`
   /// (horaire indisponible + raison précise).
@@ -320,7 +320,7 @@ class ScheduleProvider {
               '(${passBi.dakarRouteIdsFor(networkKey, routeId).join(', ')}).'
           : 'Identité publique UNCONFIRMED ; horaire techniquement calculable '
               '(route + trip + stop + stop_time + service actif). '
-              'Affichage : métadonnées réelles du feed.',
+              'Affichage : mode du réseau seul, sans attribution de numéro public.',
       lineLabel: identityLabelFor(networkKey, routeId, identity,
           shortName: summary?.shortName,
           documentedCatalogLabel:
