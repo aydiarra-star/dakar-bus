@@ -380,3 +380,47 @@ La page AFTU, le référentiel canonique de septembre, le guide événementiel J
 5. La présente section est une pièce d'audit uniquement. Aucun code, asset JSON, horaire, arrêt, sens, fréquence ou élément d'interface n'est modifié.
 
 **Point de vigilance majeur :** tant que cette correspondance n'est pas établie, le statut technique `CONNECTED` signifie seulement que la route choisie contient une chaîne exploitable de trips, directions, arrêts et stop_times. Il ne doit pas être interprété comme une certification de l'identité de la ligne publique.
+
+
+## 13. Contrôle du générateur et du validateur — séparation des preuves — 24 novembre 2026
+
+### 13.1 Trois preuves distinctes
+
+L'inspection de `scripts/build-public-bus-lines.mjs`, `scripts/validate-public-bus-lines.mjs`, de `tests/public-bus-lines.test.js` et du modèle Flutter confirme que trois notions doivent rester indépendantes :
+
+1. **Identité publique** : la ligne et son numéro existent dans le catalogue officiel AFTU ou DDD.
+2. **Disponibilité horaire technique** : la route PassBi sélectionnée possède effectivement des trips, des direction_id, des stop_id, des stop_sequence et des stop_times permettant de calculer un départ.
+3. **Correspondance identité ↔ route PassBi** : une preuve documentaire établit que cette route technique est bien celle de la ligne publique affichée.
+
+Une preuve pour l'une de ces notions ne vaut pas preuve pour les deux autres.
+
+### 13.2 Ce que le code vérifie actuellement
+
+- Le générateur AFTU sélectionne les routes PassBi par égalité numérique (`AFTU 46` → `AFTU_46`, etc.).
+- Le générateur DDD sélectionne également les routes par numéro nu ; les variantes lettrées sont correctement laissées sans raccordement et les routes nues 15/502/503 ne sont pas fusionnées automatiquement avec 15A/15B, 502A/502B ou 503A/503B.
+- Le validateur reconstitue la chaîne technique et vérifie que le `route_id` appartient au groupe portant le même numéro. Il vérifie aussi les trips, directions, arrêts, stop_times et la possibilité d'embarquer.
+- Les tests vérifient la cohérence de cette chaîne et l'absence de fusion des variantes lettrées.
+
+Ces contrôles sont utiles et doivent être conservés. Toutefois, l'égalité du numéro technique et du numéro public ne démontre pas, à elle seule, l'identité de l'itinéraire. Le validateur actuel ne compare pas systématiquement les terminus et les séquences du feed aux publications officielles pour établir cette preuve. Les divergences AFTU documentées à la section 12 et les ambiguïtés DDD documentées dans l'audit DDD illustrent ce risque.
+
+### 13.3 Risque sémantique identifié
+
+Le champ `mapping_status = CONNECTED` est aujourd'hui calculé à partir de la chaîne horaire et le libellé Flutter associé est « Horaires raccordés ». Il décrit donc un raccordement technique exploitable. Il ne doit pas être présenté dans la documentation, les contrôles ou les décisions métier comme une validation de l'identité publique de la route.
+
+De même, les champs `identity_status`, `route_status` et `mapping_status` ne doivent pas être confondus : l'identité officielle d'une ligne publique peut être connue alors que sa correspondance avec un `route_id` PassBi reste non prouvée.
+
+### 13.4 Correction à préparer, sans régression horaire
+
+La prochaine évolution technique devra ajouter une preuve indépendante de correspondance identité ↔ route (par exemple un statut explicite de correspondance de route et sa référence documentaire), puis des tests qui couvrent au minimum :
+
+- AFTU 46 à 89 : une route au même numéro ne suffit pas à certifier la correspondance lorsque les noms du feed divergent du catalogue public ;
+- DDD 15, 502 et 503 : une route au numéro nu ne certifie pas l'une des variantes lettrées ;
+- DDD 15A/15B, 502A/502B et 503A/503B : aucune fusion avec la route au numéro nu ;
+- les lignes dont la correspondance est prouvée : la preuve doit être explicite, datée et traçable ;
+- indépendance stricte : une correspondance non prouvée ne doit pas effacer les horaires techniques réellement présents dans PassBi.
+
+Cette évolution ne doit ni modifier les feeds, ni changer les horaires, ni réintroduire une fréquence de secours, ni modifier les libellés ou l'interface sans validation spécifique. Le comportement horaire actuel reste inchangé tant que les tests d'impact ne démontrent pas que la séparation peut être ajoutée sans régression.
+
+### 13.5 Décision de cette passe
+
+Audit et diagnostic uniquement. Aucun changement du générateur, du validateur, des tests, des JSON, des horaires, des arrêts ou de l'interface dans cette passe. La correction de schéma est isolée comme chantier suivant afin de ne pas confondre une amélioration de traçabilité avec une modification du service affiché.
