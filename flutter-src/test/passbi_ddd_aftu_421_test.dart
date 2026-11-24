@@ -630,27 +630,25 @@ void main() {
         ),
         same(app.allStops),
       );
-      final tataStops = app.allStops
-          .where((s) => s.servesNetwork('tata'))
-          .take(5)
-          .toList();
+      final tataStops = app.explorerBaseStopsForFilter(
+        selectedFilter: 'TATA',
+        favoriteStopNames: const <String>{},
+        source: app.allStops,
+      );
       expect(tataStops, isNotEmpty,
           reason: 'les arrêts des lignes TATA du référentiel dakar sont '
               'affichés (aucun n\'est retiré par le lot)');
       for (final s in tataStops) {
+        expect(s.modeLabel, 'Tata', reason: s.name);
+        final linkedRoutes = app.appDataService.routes
+            .where((route) => route.id == s.scheduleRouteId)
+            .toList();
+        expect(linkedRoutes, hasLength(1), reason: s.name);
+        expect(linkedRoutes.single.operatorId, 'tata', reason: s.name);
+
         final info = s.departureInfoAt(at: lundi12);
-        if (info.status == ScheduleStatus.scheduled) {
-          // A shared stop may legitimately expose a TER departure. It must
-          // never be mistaken for a TATA schedule: TATA has no feed here.
-          final linkedRoutes = app.appDataService.routes
-              .where((route) => route.id == s.scheduleRouteId)
-              .toList();
-          expect(linkedRoutes, isNotEmpty, reason: s.name);
-          expect(linkedRoutes.single.operatorId, isNot('tata'), reason: s.name);
-        } else {
-          expect(info.status, ScheduleStatus.unknown, reason: s.name);
-          expect(info.label, 'Horaire indisponible');
-        }
+        expect(info.status, ScheduleStatus.unknown, reason: s.name);
+        expect(info.label, 'Horaire indisponible', reason: s.name);
       }
     });
   });
