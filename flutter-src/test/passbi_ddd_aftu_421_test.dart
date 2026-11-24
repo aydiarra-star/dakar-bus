@@ -612,7 +612,7 @@ void main() {
       expect(app.passBiNativeNetworkKeys(), <String>['DDD', 'AFTU']);
       expect(app.passBiNativeStops.any((s) => s.modeLabel == 'TATA'), isFalse);
       expect(
-        app.passBiNativeStops.any((s) => s.color == app.AppColors.tata),
+        app.passBiNativeStops.any((s) => s.servesNetwork('tata')),
         isFalse,
       );
     });
