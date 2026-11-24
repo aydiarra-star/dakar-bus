@@ -1977,7 +1977,7 @@ void _integrateNetworkData() {
       final int? existingIndex = existingIndices[key];
       if (existingIndex != null) {
         final Stop existing = allStops[existingIndex];
-        final Set<String> memberships = <String>{...existing.networkIds, route.operatorId.toLowerCase()};
+        final Set<String> memberships = <String>{...existing.networkIds, route.type.toLowerCase()};
         allStops[existingIndex] = existing.copyWith(
           stopId: existing.stopId ?? busStop.id,
           networkIds: memberships,
@@ -2005,7 +2005,7 @@ void _integrateNetworkData() {
         source: source,
         stopType: aggregatedRoles[busStop.id] ??
             stopTypeForIndex(i, stopIds.length),
-        networkIds: <String>{route.operatorId.toLowerCase()},
+        networkIds: <String>{route.type.toLowerCase()},
       );
       allStops.add(stop);
       existingIndices[key] = allStops.length - 1;
@@ -3787,7 +3787,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
           .where((pt) => DakarBounds.isValid(pt))
           .toList();
       if (points.length >= 2) {
-        loaded.add((networkId: route.operatorId.toLowerCase(), polyline: Polyline(
+        loaded.add((networkId: route.type.toLowerCase(), polyline: Polyline(
           points: points,
           color: route.color,
           strokeWidth: 5.5,
@@ -3827,7 +3827,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
       } catch (_) {}
       if (fullRoutePoints.isEmpty) fullRoutePoints = route.points.where((pt) => DakarBounds.isValid(pt)).toList();
       if (fullRoutePoints.length >= 2) {
-        extra.add((networkId: route.operatorId.toLowerCase(), polyline: Polyline(
+        extra.add((networkId: route.type.toLowerCase(), polyline: Polyline(
           points: fullRoutePoints,
           color: route.color,
           strokeWidth: 4.5,
