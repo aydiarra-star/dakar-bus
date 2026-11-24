@@ -210,6 +210,36 @@ test('les 19 routes DDD et la route AFTU sans identité publique restent orpheli
   assert.equal(REF.counts.feed_routes_without_public_line, 20);
 });
 
+test('les identités DDD A/B, 327 et TO1 sont officielles mais non raccordées sans route_id exact', () => {
+  // Vérification de la page Info voyageurs DDD du 2026-11-24 : les identités
+  // existent, mais les routes PassBi disponibles ne distinguent pas les variantes.
+  const expected = {
+    '502A': ['COLOBANE', 'UCAD'],
+    '502B': ['COLOBANE', 'ABASS NDAO'],
+    '503A': ['COLOBANE', 'MOLE 8'],
+    '503B': ['COLOBANE', 'HYDROCARBURE'],
+    '504A': ['GARE DIAMNIADIO', 'SPHERE MINISTERIEL'],
+    '504B': ['SEBIKOTANE', 'GARE DIAMNIADIO'],
+    '15A': ['RUFISQUE', 'PALAIS 1'],
+    '15B': ['RUFISQUE', 'PALAIS 1'],
+    '16A': ['MALIKA', 'PALAIS 1'],
+    '16B': ['MALIKA', 'PALAIS 1'],
+    '327': ['KEUR MASSAR', 'TERMINUS PARCELLES'],
+    'TO1': ['TAF TAF OUAKAM (TO1) : OUAKAM', 'PALAIS 2'],
+  };
+  for (const [number, [origin, destination]] of Object.entries(expected)) {
+    const line = REF.ddd.find((item) => item.line_number === number);
+    assert.ok(line, `DDD ${number} : identité officielle absente`);
+    assert.equal(line.identity_status, 'CONFIRMED');
+    assert.equal(line.origin, origin, `DDD ${number} : origine publiée`);
+    assert.equal(line.destination, destination, `DDD ${number} : destination publiée`);
+    assert.equal(line.source, 'https://demdikk.sn/info-voyageurs/');
+    assert.equal(line.mapping_status, 'NOT_VERIFIED',
+      `DDD ${number} : aucune route PassBi exacte ne distingue cette identité`);
+    assert.deepEqual(line.feed_route_ids, [],
+      `DDD ${number} : ne pas rattacher une route au numéro nu`);
+  }
+});
 test('aucune ligne publique sans source ni date de vérification', () => {
   for (const l of [...REF.aftu, ...REF.ddd]) {
     assert.ok(l.source.startsWith('http'), `source manquante : ${l.public_label}`);
