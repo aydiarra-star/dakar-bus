@@ -342,7 +342,8 @@ class AppColors {
 
   /// Vert WhatsApp — teinte d'action de l'interface (boutons, onglets,
   /// sélections et éléments interactifs). Le vert Dakar historique [primary]
-  /// reste réservé aux marqueurs, au GPS et aux couleurs des réseaux.
+  /// reste réservé au GPS et aux marqueurs BRT/DDD/AFTU/TATA ; le TER garde
+  /// son brun historique.
   static const beanGreen = Color(0xFF25D366);
   static const beanGreenLight = Color(0xFFE5F9EC);
 
