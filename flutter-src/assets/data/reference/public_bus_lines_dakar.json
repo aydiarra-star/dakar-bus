@@ -20,8 +20,8 @@
     "not_verified": 14,
     "partial": 0,
     "feed_routes_without_public_line": 20,
-    "feed_route_identity_verified": 0,
-    "feed_route_identity_unverified": 120
+    "feed_route_identity_verified": 25,
+    "feed_route_identity_unverified": 95
   },
   "unresolved_public_lines": [
     {
@@ -260,8 +260,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:2"
     },
     {
       "operator": "AFTU",
@@ -299,8 +299,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:3"
     },
     {
       "operator": "AFTU",
@@ -377,8 +377,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:5"
     },
     {
       "operator": "AFTU",
@@ -455,8 +455,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:25"
     },
     {
       "operator": "AFTU",
@@ -572,8 +572,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:28"
     },
     {
       "operator": "AFTU",
@@ -1118,8 +1118,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:42"
     },
     {
       "operator": "AFTU",
@@ -1926,8 +1926,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:62"
     },
     {
       "operator": "AFTU",
@@ -2082,8 +2082,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:66"
     },
     {
       "operator": "AFTU",
@@ -3412,8 +3412,8 @@
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
       "canonical_status": "CONFIRMED",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#DDD:1"
     },
     {
       "operator": "DDD",
@@ -3452,8 +3452,8 @@
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
       "canonical_status": "CONFIRMED",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#DDD:4"
     },
     {
       "operator": "DDD",
@@ -3532,8 +3532,8 @@
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
       "canonical_status": "CONFIRMED",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#DDD:8"
     },
     {
       "operator": "DDD",
@@ -3572,8 +3572,8 @@
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
       "canonical_status": "CONFIRMED",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#DDD:9"
     },
     {
       "operator": "DDD",
@@ -3612,8 +3612,8 @@
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
       "canonical_status": "CONFIRMED",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#DDD:10"
     },
     {
       "operator": "DDD",
@@ -3652,8 +3652,8 @@
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
       "canonical_status": "CONFIRMED",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#DDD:13"
     },
     {
       "operator": "DDD",
@@ -3810,8 +3810,8 @@
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
       "canonical_status": "CONFIRMED",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#DDD:121"
     },
     {
       "operator": "DDD",
@@ -4118,8 +4118,8 @@
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
       "canonical_status": "CONFIRMED",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#DDD:2"
     },
     {
       "operator": "DDD",
@@ -4158,8 +4158,8 @@
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
       "canonical_status": "CONFIRMED",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#DDD:5"
     },
     {
       "operator": "DDD",
@@ -4198,8 +4198,8 @@
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
       "canonical_status": "CONFLICTING",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#DDD:6"
     },
     {
       "operator": "DDD",
@@ -4238,8 +4238,8 @@
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
       "canonical_status": "CONFIRMED",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#DDD:11"
     },
     {
       "operator": "DDD",
@@ -4278,8 +4278,8 @@
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
       "canonical_status": "CONFIRMED",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#DDD:12"
     },
     {
       "operator": "DDD",
@@ -4566,8 +4566,8 @@
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
       "canonical_status": "CONFLICTING",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#DDD:208"
     },
     {
       "operator": "DDD",
@@ -4846,8 +4846,8 @@
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
       "canonical_status": "CONFIRMED",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#DDD:227"
     },
     {
       "operator": "DDD",
@@ -4926,8 +4926,8 @@
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
       "canonical_status": "CONFLICTING",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#DDD:232"
     },
     {
       "operator": "DDD",
@@ -4966,8 +4966,8 @@
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
       "canonical_status": "CONFLICTING",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#DDD:233"
     },
     {
       "operator": "DDD",
@@ -5006,8 +5006,8 @@
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
       "canonical_status": "CONFIRMED",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#DDD:234"
     },
     {
       "operator": "DDD",
