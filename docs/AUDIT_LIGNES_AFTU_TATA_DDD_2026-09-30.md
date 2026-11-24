@@ -493,7 +493,7 @@ Aucune permutation de numéro, aucun transfert d'horaire et aucune modification 
 Cette passe modifie le schéma, le garde-fou de libellé et l'accès aux fiches publiques d'arrêts. Elle ne fusionne pas la PR, ne déploie pas l'application et ne publie aucune nouvelle version.
 
 
-## 16. Première vague de correspondances identité ↔ route prouvées — 24 novembre 2026
+## 16. Correspondances identité ↔ route prouvées — actualisation du 24 novembre 2026
 
 La preuve indépendante est maintenant conservée dans `data/reference/passbi_route_identity_proofs.json`. Le générateur ne certifie une identité que si :
 1. le numéro public apparaît dans la publication officielle de l'opérateur ;
@@ -505,7 +505,7 @@ La preuve indépendante est maintenant conservée dans `data/reference/passbi_ro
 
 **AFTU — 29 lignes :** 2, 3, 5, 25, 30, 32, 33, 34, 35, 37, 39, 40, 44, 46, 49, 51, 54, 60, 62, 67, 71, 73, 75, 76, 78, 80, 82, 83 et 84.
 
-Les pages officielles AFTU consultées entre le 24 juin et le 14 juillet 2026 confirment les itinéraires de ces lignes. Chaque preuve conserve le `route_id`, le `route_long_name` exact, les `stop_id` et noms de terminus observés, ainsi que l'URL officielle. Les lignes 28, 42, 48, 58 et 66 restent non vérifiées lorsque les terminus sont génériques, contradictoires ou ambigus.
+Les pages officielles AFTU consultées le 24 novembre 2026 confirment les itinéraires de ces lignes. Chaque preuve conserve le `route_id`, le `route_long_name` exact, les `stop_id` et noms de terminus observés, ainsi que l'URL officielle. Les lignes 28, 42, 48, 58 et 66 restent non vérifiées lorsque les terminus sont génériques, contradictoires ou ambigus.
 
 **DDD — 17 lignes :** 1, 2, 4, 5, 6, 8, 9, 10, 11, 12, 13, 121, 208, 227, 232, 233 et 234.
 
