@@ -268,13 +268,11 @@ void main() {
       expect(info.status, ScheduleStatus.scheduled);
       expect(info.routeId, 'AFTU_3');
       expect(info.sourceType, SourceType.publicGtfs);
-      // Suite Lot 4.21 : les anciens mappings TERMINI_MATCH (aftu_8, aftu_11)
-      // sont des HYPOTHÈSES non confirmées — des terminus proches ne
-      // confirment jamais une identité, et deux lignes publiques distinctes ne
-      // fusionnent jamais sur un même identifiant PassBi.
-      expect(info.identityStatus, IdentityStatus.unconfirmed);
-      expect(info.lineLabel, isNot(contains('PassBi')));
-      expect(info.lineLabel, startsWith('AFTU'));
+      // Le crosswalk historique aftu_8/aftu_11 reste non confirmé ; le
+      // registre indépendant prouve séparément que AFTU_3 est la ligne AFTU 3.
+      expect(info.identityStatus, IdentityStatus.confirmed);
+      expect(info.identityNote, contains('VERIFIED'));
+      expect(info.lineLabel, 'AFTU 3');
     });
 
     test('audit §1 : 73 routes AFTU, 71 avec horaires calculables', () {
