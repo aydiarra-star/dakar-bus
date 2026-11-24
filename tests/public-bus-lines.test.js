@@ -61,6 +61,22 @@ test('chaque ligne publique porte un numéro et un libellé officiels', () => {
   }
 });
 
+test('la preuve d’identité publique ↔ route est indépendante des horaires', () => {
+  assert.equal(REF.counts.feed_route_identity_verified, 0);
+  assert.equal(REF.counts.feed_route_identity_unverified, ALL.length);
+  for (const l of ALL) {
+    assert.equal(l.feed_route_identity_status, 'UNVERIFIED',
+      `${l.public_label} : une égalité de numéro ne prouve pas l’identité`);
+    assert.equal(l.feed_route_identity_proof, null);
+    // Les routes peuvent conserver leur chaîne horaire technique sans être
+    // attribuées à une identité publique non vérifiée.
+    if (l.mapping_status === 'CONNECTED') {
+      assert.equal(l.schedule_status, 'SCHEDULE_AVAILABLE');
+      assert.ok(l.stop_times_count > 0);
+    }
+  }
+});
+
 test('le raccordement horaire pointe vers des route_id réellement présents', () => {
   for (const l of REF.aftu) {
     for (const id of l.feed_route_ids) assert.ok(AFTU_ROUTES.has(id), `route AFTU inconnue : ${id}`);
