@@ -113,9 +113,10 @@ test('B. AFTU — prochain départ PassBi réellement calculable (SCHEDULED)', (
     10 * 3600,
   );
   assert.equal(res.depAbs, independant);
-  // Verrouillage : l'horaire est calculable alors que l'identité publique
-  // reste NON confirmée (aftu_8/aftu_11 ne fusionnent jamais sur AFTU_3).
-  assert.equal(res.identityStatus, IDENTITY.UNCONFIRMED);
+  // Le crosswalk historique aftu_8/aftu_11 reste distinct ; le registre
+  // indépendant confirme désormais l'identité publique de la route AFTU_3.
+  assert.equal(res.identityStatus, IDENTITY.CONFIRMED);
+  assert.equal(res.feedRouteIdentityStatus, 'VERIFIED');
   assert.equal(res.lineLabel, 'AFTU 3');
 });
 
