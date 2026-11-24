@@ -94,6 +94,19 @@ for (const [network, feed] of [['AFTU', AFTU], ['DDD', DDD]]) {
     if (!l.line_number) problems.push('line_number absent');
     if (l.operator !== network) problems.push('operator incohérent');
 
+    // L'identité publique ↔ route est une preuve séparée du raccordement horaire.
+    const identityStatus = l.feed_route_identity_status ?? 'UNVERIFIED';
+    if (!['VERIFIED', 'UNVERIFIED'].includes(identityStatus)) {
+      problems.push(`feed_route_identity_status invalide : ${identityStatus}`);
+    }
+    if (identityStatus === 'VERIFIED' &&
+        !(typeof l.feed_route_identity_proof === 'string' && l.feed_route_identity_proof.trim())) {
+      problems.push('identité VERIFIED sans référence documentaire');
+    }
+    if (identityStatus !== 'VERIFIED' && l.feed_route_identity_proof != null) {
+      problems.push('preuve documentaire présente sans statut VERIFIED');
+    }
+
     // Chaîne dérivée du feed : ce que la ligne DEVRAIT déclarer.
     const routeIds = l.feed_route_ids ?? [];
     let chainComplete = routeIds.length > 0;
@@ -213,7 +226,11 @@ if ((REF.counts.unresolved ?? 0) !== byStatus('BLOCKED') + byStatus('NOT_VERIFIE
   failures.push({ label: 'RÉFÉRENTIEL', problems: ['counts.unresolved ≠ nombre réel de lignes non raccordées'] });
 }
 
-console.log(`Raccordement vérifié : ${linked.length} lignes publiques AFTU/DDD CONNECTED (chaîne + départ exploitable).`);
+const identityVerified = REF.aftu.concat(REF.ddd)
+  .filter((l) => l.feed_route_identity_status === 'VERIFIED').length;
+const identityUnverified = REF.aftu.concat(REF.ddd).length - identityVerified;
+console.log(`Raccordement horaire vérifié : ${linked.length} lignes publiques AFTU/DDD CONNECTED (chaîne + départ exploitable).`);
+console.log(`Identité publique ↔ route PassBi : VERIFIED=${identityVerified} UNVERIFIED=${identityUnverified}.`);
 console.log(`Statuts : CONNECTED=${REF.counts.connected} BLOCKED=${REF.counts.blocked} ` +
   `NOT_VERIFIED=${REF.counts.not_verified} PARTIAL=${REF.counts.partial}`);
 if (unresolvedHonest.length > 0) {
