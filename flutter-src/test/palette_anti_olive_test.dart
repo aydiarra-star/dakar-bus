@@ -61,9 +61,10 @@ void main() {
     }
   });
 
-  test('palette guard: all transport networks use the Dakar Bus primary green', () {
+  test('palette guard: transport networks retain their designated colors', () {
     expect(app.AppColors.primary.value, 0xFF00B140);
-    expect(app.AppColors.ter, app.AppColors.primary);
+    // TER keeps its documented historic brown; the other networks keep Dakar green.
+    expect(app.AppColors.ter.value, 0xFF8B4513);
     expect(app.AppColors.brt, app.AppColors.primary);
     expect(app.AppColors.ddd, app.AppColors.primary);
     expect(app.AppColors.aftu, app.AppColors.primary);
