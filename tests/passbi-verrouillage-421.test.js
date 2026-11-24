@@ -287,11 +287,8 @@ test('4a. DDD_217 / D217OT : horaire disponible, identité UNKNOWN, libellé hon
   assert.equal(res.status, 'SCHEDULED', 'l identité non confirmée n bloque pas l horaire');
   assert.equal(res.identityStatus, IDENTITY.UNCONFIRMED);
   assert.equal(res.frequencyMinutes, null, 'jamais une fréquence transformée en horaire');
-  assert.match(res.lineLabel, /^Ligne PassBi DDD_217/,
-    'un identifiant PassBi n est jamais présenté comme le numéro public DDD');
-  assert.match(res.lineLabel, /D217OT/, 'le short_name du feed reste visible tel quel');
-  assert.equal(res.lineLabel.startsWith('D217OT'), false);
-  assert.notEqual(res.lineLabel, 'D217OT');
+  assert.equal(res.lineLabel, 'DDD',
+    'sans preuve route ↔ ligne, seul le mode est affiché');
   assert.match(res.identityNote, /UNCONFIRMED/);
 });
 
