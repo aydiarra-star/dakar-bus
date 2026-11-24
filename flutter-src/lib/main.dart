@@ -1274,7 +1274,9 @@ class Stop {
     icon: icon ?? this.icon,
     color: color ?? this.color,
     location: location ?? this.location,
-    status: status ?? this.status,
+    // Preserve the stored legacy value without eagerly recalculating a
+    // route-bound departure while cloning a stop for a network-specific view.
+    status: status ?? _legacyStatus,
     modeLabel: modeLabel ?? this.modeLabel,
     source: source ?? this.source,
     stopType: stopType ?? this.stopType,
