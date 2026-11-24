@@ -20,8 +20,8 @@
     "not_verified": 14,
     "partial": 0,
     "feed_routes_without_public_line": 20,
-    "feed_route_identity_verified": 25,
-    "feed_route_identity_unverified": 95
+    "feed_route_identity_verified": 24,
+    "feed_route_identity_unverified": 96
   },
   "unresolved_public_lines": [
     {
@@ -2082,8 +2082,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "VERIFIED",
-      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:66"
+      "feed_route_identity_status": "UNVERIFIED",
+      "feed_route_identity_proof": null
     },
     {
       "operator": "AFTU",
