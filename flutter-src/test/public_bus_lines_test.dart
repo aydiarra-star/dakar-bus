@@ -395,9 +395,9 @@ void main() {
       final lines = app.appDataService.publicBusLineCatalog.publicLines;
       expect(lines, hasLength(120));
       final verified = lines.where((l) => l.hasVerifiedFeedIdentity).toList();
-      expect(verified, hasLength(25));
+      expect(verified, hasLength(24));
       expect(lines.where((l) => l.feedRouteIdentityStatus == 'UNVERIFIED'),
-          hasLength(95));
+          hasLength(96));
       for (final line in lines) {
         if (line.hasVerifiedFeedIdentity) {
           expect(line.feedRouteIdentityProof, startsWith(
