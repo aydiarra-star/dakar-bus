@@ -4754,7 +4754,7 @@ class _PublicLineDetailPageState extends State<PublicLineDetailPage> {
             if (seq != null && seq.stops.isNotEmpty) _kv('Trajet', '${seq.stops.first.name} → ${seq.stops.last.name}', dark),
             if (seq != null && seq.direction.isNotEmpty) _kv('direction_id GTFS', seq.direction, dark),
             const SizedBox(height: 5),
-            if (departures.isEmpty && !const <String>{'TER', 'BRT', 'DDD', 'AFTU'}.contains(line.operator.toUpperCase())) Text('Horaire indisponible pour ce sens à cet arrêt.', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark)))
+            if (departures.isEmpty && !usesPassBiExclusiveModeLabel(line.operator)) Text('Horaire indisponible pour ce sens à cet arrêt.', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark)))
             else ...departures.where((d) => d.scheduledTime != null).map((d) => Padding(padding: const EdgeInsets.symmetric(vertical: 3), child: Row(children: [
               Icon(Icons.schedule_rounded, size: 17, color: AppColors.primary), const SizedBox(width: 7),
               Text(d.scheduledTime == null ? 'Horaire indisponible' : 'Départ programmé · ${_timeLabel(d.scheduledTime!)}', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary(dark)))
