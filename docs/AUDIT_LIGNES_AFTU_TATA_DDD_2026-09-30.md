@@ -503,17 +503,17 @@ La preuve indépendante est maintenant conservée dans `data/reference/passbi_ro
 
 ### Identités vérifiées
 
-**AFTU — 5 lignes :** 2, 3, 5, 25 et 62.
+**AFTU — 29 lignes :** 2, 3, 5, 25, 30, 32, 33, 34, 35, 37, 39, 40, 44, 46, 49, 51, 54, 60, 62, 67, 71, 73, 75, 76, 78, 80, 82, 83 et 84.
 
-Pour 2, 3, 5, 25 et 62, les pages d'itinéraire AFTU consultées le 24 novembre 2026 concordent avec les terminus observés dans le feed. AFTU 28 et 42 restent non vérifiées : les noms de terminus du feed ne permettent pas de confirmer les deux extrémités officielles. AFTU 66 reste également non vérifiée.
+Les pages officielles AFTU consultées entre le 24 juin et le 14 juillet 2026 confirment les itinéraires de ces lignes. Chaque preuve conserve le `route_id`, le `route_long_name` exact, les `stop_id` et noms de terminus observés, ainsi que l'URL officielle. Les lignes 28, 42, 48, 58 et 66 restent non vérifiées lorsque les terminus sont génériques, contradictoires ou ambigus.
 
-**DDD — 15 lignes :** 1, 2, 4, 5, 6, 8, 9, 10, 11, 12, 13, 208, 227, 232 et 233.
+**DDD — 17 lignes :** 1, 2, 4, 5, 6, 8, 9, 10, 11, 12, 13, 121, 208, 227, 232, 233 et 234.
 
-Pour ces lignes, les identités et terminus publiés sur la page officielle « Info voyageurs » concordent avec les terminus relevés dans l'audit du feed. DDD 121 reste non vérifiée car le feed indique « Terminus 121 » plutôt que SCAT Urbam ; DDD 234 reste non vérifiée car le feed indique « Terminus La Linguère » plutôt que Jaxaay. Les variantes DDD 15A/15B, 16A/16B, 502A/502B et 503A/503B ne sont pas incluses.
+Pour ces lignes, les identités et terminus publiés sur la page officielle « Info voyageurs » concordent avec les métadonnées de route et les terminus relevés dans l'audit du feed. Les variantes DDD 15A/15B, 16A/16B, 502A/502B et 503A/503B ne sont pas incluses.
 
 ### Identités qui restent non vérifiées
 
-- **100 lignes publiques** restent `UNVERIFIED` : 67 AFTU et 33 DDD.
+- **74 lignes publiques** restent `UNVERIFIED` : 43 AFTU et 31 DDD.
 - Les AFTU dont les terminus du feed divergent de la liste officielle, les pages AFTU contradictoires, les lignes sans stop_times et les lignes sans preuve suffisante restent non attribuées.
 - DDD 15, 16, 501, 502, 503, 504 et les variantes A/B restent non vérifiés lorsque les terminus sont contradictoires, ambigus ou non distingués par le feed.
 - Le fait qu'un numéro soit officiellement publié ne suffit pas à certifier le `route_id` correspondant.
@@ -529,10 +529,10 @@ Pour ces lignes, les identités et terminus publiés sur la page officielle « I
 
 ### Résultat de cette passe
 
-- 20 identités publiques ↔ route PassBi vérifiées (5 AFTU + 15 DDD).
-- 100 identités conservées comme non vérifiées.
-- AFTU 28 et 42, AFTU 66, DDD 121 et DDD 234 restent non vérifiées faute de terminus explicites concordants. Aucune permutation de numéros, aucun transfert d'horaire et aucune fusion A/B.
+- 46 identités publiques ↔ route PassBi vérifiées (29 AFTU + 17 DDD).
+- 74 identités conservées comme non vérifiées.
+- AFTU 28, 42, 48, 58 et 66 restent non vérifiées faute de terminus explicites concordants. Aucune permutation de numéros, aucun transfert d'horaire et aucune fusion A/B.
 - TER/BRT inchangés ; TATA reste exclu du catalogue public.
 - Aucune modification de l'application publiée, aucune fusion et aucun déploiement.
 
-La validation automatisée doit être relancée sur ce dernier durcissement, puis la compilation Flutter doit réussir avant de considérer cette étape technique comme validée.
+Le générateur et le validateur comparent désormais aussi le `route_long_name` exact du feed avec la preuve, en plus des terminus et des identifiants d'arrêt. Les validations Node et Flutter doivent réussir sur le dernier commit avant de considérer cette étape technique comme validée.
