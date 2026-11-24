@@ -70,3 +70,39 @@ Elle publie des listes d’arrêts ordonnées pour plusieurs lignes qui permette
 Aucun nouveau `feed_route_id` n’est ajouté à la suite de ce recoupement. Les éléments ci-dessus renforcent ou précisent les identités et les limites documentaires, mais ne fournissent pas une table de correspondance exacte entre chaque variante publique et chaque route PassBi.
 
 Les statuts de raccordement du catalogue ne sont pas modifiés. Les quatre routes DDD à direction GTFS unique restent sans direction Aller/Retour inventée. Les horaires, arrêts, identifiants et affichages TER/BRT restent inchangés.
+
+## Recoupement institutionnel complémentaire — guide de mobilité JOJ Dakar 2026
+
+Document consulté le 24 novembre 2026 :
+https://www.vie-publique.sn/docs/270ed4e5-ab8f-47b6-9e77-cfd6ed491f02/guide-mobilite-dakar-joj-2026.pdf
+
+Le guide officiel du dispositif de mobilité des JOJ (période annoncée du 31 octobre au 13 novembre 2026) présente une sélection de lignes DDD et AFTU. Il s'agit d'un document de mobilité événementielle ; il ne constitue pas, à lui seul, un référentiel permanent ni une table de correspondance vers les identifiants PassBi.
+
+### Écarts DDD à conserver comme points de vérification
+
+- Le guide décrit **504A** comme « circulaire Diamniadio – Sphères ministérielles », alors que la page « Info voyageurs » consultée le même jour publie « Gare Diamniadio ↔ Sphère ministérielle ». Le guide ne permet pas de conclure que le terminus Gare Diamniadio est supprimé ou remplacé : conserver l'écart documentaire, ne pas modifier le référentiel ni le feed.
+- Le guide présente **TAF TAF OUAKAM – VILLE**, tandis que la page « Info voyageurs » décrit les trajets Ouakam–AIBD et Ouakam–Sphère ministérielle, et présente séparément TO1. Ces libellés peuvent relever de périmètres ou de périodes différents ; aucun alias ni fusion n'est établi.
+- Le guide événementiel ne fournit pas de preuve de raccordement pour les identifiants DDD nus et les variantes publiques A/B du flux PassBi.
+
+### Recoupement AFTU : sélection événementielle, pas mise à jour du référentiel
+
+Le guide cite notamment les lignes AFTU 1, 2, 3, 4, 5, 24, 25, 27, 28, 29, 34, 38, 40, 41, 46, 48, 50, 54, 55, 58, 62, 71 et 82, avec certains terminus. Plusieurs descriptions ne concordent pas avec la liste actuelle affichée sur la page officielle AFTU « Infos pratiques ». Exemples relevés :
+
+| Ligne | Guide de mobilité JOJ | Liste AFTU « Infos pratiques » |
+|---|---|---|
+| 46 | Guédiawaye – Lat Dior | Lat-Dior – Almadies |
+| 50 | Cité APIX – Petersen | Jaxaay – Gare des Baux Maraîchers |
+| 55 | Rufisque – Petersen | Jaxaay 2 – Petersen |
+| 58 | Comico Yeumbeul – Sahm | Diamalaye – Cité Gendarmerie (Jaxaay) |
+| 62 | Rufisque – Guelle Tapée | Arrêt Chérif (Rufisque) – Penc Mi (Gueule Tapée) |
+| 82 | Comico Yeumbeul – Lat Dior | Rufisque Arafat – Zone de Captage |
+
+Ces différences sont consignées comme **écarts entre une sélection événementielle et la liste générale consultée**, et non comme preuve d'une erreur de l'une des sources. Le guide peut refléter des dessertes mobilisées ou adaptées pour les Jeux. Il ne faut donc ni remplacer les terminus du référentiel AFTU par ceux du guide, ni en déduire un raccordement PassBi nouveau.
+
+### Décision technique
+
+- Aucune modification des identités canoniques AFTU/DDD sur la seule base de ce guide.
+- Aucun nouveau raccordement route_id PassBi.
+- Aucun changement d'arrêt, d'horaire, de fréquence ou de direction.
+- Les éléments du guide sont conservés comme preuve contextuelle datée, à rapprocher d'une confirmation permanente des opérateurs.
+- Les pages et documents sources restent strictement dans la documentation du dépôt ; aucune mention de source ne doit apparaître dans l'interface voyageurs.
