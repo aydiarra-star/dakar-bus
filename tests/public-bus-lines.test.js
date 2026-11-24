@@ -10,6 +10,7 @@
 //     dans les feeds PassBi embarqués ;
 //   * aucun horaire, arrêt ou correspondance n'est inventé.
 import test from 'node:test';
+import { spawnSync } from 'node:child_process';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
@@ -117,6 +118,18 @@ test('chaque identité VERIFIED correspond aux terminus réels du feed', () => {
     assert.ok(proof.official_reference.startsWith('https://'));
     assert.ok(proof.basis.length > 20);
   }
+});
+
+test('le validateur complet accepte le registre et les feeds réels', () => {
+  const result = spawnSync(
+    process.execPath,
+    [resolve(ROOT, 'scripts/validate-public-bus-lines.mjs')],
+    { cwd: ROOT, encoding: 'utf8', timeout: 120000 },
+  );
+  assert.equal(result.error, undefined, result.error?.message);
+  assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
+  assert.match(result.stdout, /Identité publique ↔ route PassBi : VERIFIED=24 UNVERIFIED=96/);
+  assert.match(result.stdout, /VALIDATION OK/);
 });
 
 test('le raccordement horaire pointe vers des route_id réellement présents', () => {
