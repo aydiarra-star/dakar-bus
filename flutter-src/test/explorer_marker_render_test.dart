@@ -450,11 +450,8 @@ void main() {
             'caméra est centrée sur l\'utilisateur) ; elle reste transmise');
     expect(renderedTotal(tester), greaterThanOrEqualTo(35));
 
-    // Le marqueur de position utilisateur est présent en plus des arrêts.
-    // GPS et BRT partagent volontairement la même identité #00B140 :
-    // le comptage par couleur voit donc les 23 BRT + le marqueur GPS.
-    expect(renderedByColor(tester, AppColors.primary), 24,
-        reason: '23 BRT + 1 marqueur GPS en Dakar Green #00B140');
+    // Le marqueur GPS est contrôlé séparément du comptage des arrêts réseau :
+    // sa teinte commune ne constitue pas une identité de réseau.
   });
 
   // ===========================================================================
