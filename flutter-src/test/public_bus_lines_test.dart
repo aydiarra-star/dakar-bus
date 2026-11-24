@@ -391,18 +391,27 @@ void main() {
   });
 
   group('Identité publique ↔ route PassBi — preuve indépendante', () {
-    test('aucun raccordement horaire ne certifie seul l’identité publique', () {
+    test('seules les identités du registre de preuves sont VERIFIED', () {
       final lines = app.appDataService.publicBusLineCatalog.publicLines;
       expect(lines, hasLength(120));
+      final verified = lines.where((l) => l.hasVerifiedFeedIdentity).toList();
+      expect(verified, hasLength(25));
+      expect(lines.where((l) => l.feedRouteIdentityStatus == 'UNVERIFIED'),
+          hasLength(95));
       for (final line in lines) {
-        expect(line.feedRouteIdentityStatus, 'UNVERIFIED',
-            reason: '${line.publicLabel} : preuve d’identité non fournie');
-        expect(line.hasVerifiedFeedIdentity, isFalse);
-        expect(line.feedRouteIdentityProof, isNull);
+        if (line.hasVerifiedFeedIdentity) {
+          expect(line.feedRouteIdentityProof, startsWith(
+              'data/reference/passbi_route_identity_proofs.json#'));
+          expect(line.feedRouteIds, hasLength(1));
+        } else {
+          expect(line.feedRouteIdentityStatus, 'UNVERIFIED',
+              reason: '${line.publicLabel} : preuve indépendante absente');
+          expect(line.feedRouteIdentityProof, isNull);
+        }
       }
     });
 
-    test('les libellés publics ne sont pas attribués aux route_id non vérifiés', () {
+    test('un raccordement horaire non prouvé ne reçoit aucun libellé public', () {
       expect(
         app.appDataService.publicBusLineCatalog.publicLabelForFeedRouteId('AFTU_46'),
         isNull,
@@ -411,6 +420,21 @@ void main() {
         app.appDataService.publicBusLineCatalog.publicLabelForFeedRouteId('DDD_502'),
         isNull,
       );
+      expect(
+        app.appDataService.publicBusLineCatalog.publicLabelForFeedRouteId('AFTU_62'),
+        'AFTU 62',
+      );
+    });
+
+    test('une ligne vérifiée expose ses vrais arrêts PassBi', () {
+      final PublicBusLine line = app.appDataService.publicBusLineCatalog.publicLines
+          .singleWhere((l) => l.publicLabel == 'AFTU 62');
+      expect(line.hasRealSchedule, isTrue);
+      expect(line.hasVerifiedFeedIdentity, isTrue);
+      final sequence = app.appDataService.publicLineStopSequence(line);
+      expect(sequence, isNotNull);
+      expect(sequence!.stops, isNotEmpty);
+      expect(sequence.routeId, 'AFTU_62');
     });
 
     test('les horaires techniques restent présents sans attribution publique', () {
