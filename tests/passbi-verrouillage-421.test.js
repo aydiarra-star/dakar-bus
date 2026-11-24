@@ -292,10 +292,11 @@ test('4a. DDD_217 / D217OT : horaire disponible, identité UNKNOWN, libellé hon
   assert.match(res.identityNote, /UNCONFIRMED/);
 });
 
-test('4b. AFTU_3 : horaire disponible + identité UNKNOWN (séparation stricte)', () => {
+test('4b. AFTU_3 : horaire disponible + identité publique VERIFIED par le registre', () => {
   const res = departureAtPassBiStop(ALL, 'AFTU', 'A_1633', LUNDI_10H, { pbRouteId: 'AFTU_3' });
   assert.equal(res.status, 'SCHEDULED');
-  assert.equal(res.identityStatus, IDENTITY.UNCONFIRMED);
+  assert.equal(res.identityStatus, IDENTITY.CONFIRMED);
+  assert.equal(res.feedRouteIdentityStatus, 'VERIFIED');
   assert.equal(res.lineLabel, 'AFTU 3');
 });
 
