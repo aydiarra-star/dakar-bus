@@ -141,7 +141,9 @@ void main() {
       final natifs = ddd.where((s) => s.passBiStopKey != null).toList();
       expect(natifs, isNotEmpty,
           reason: 'le filtre DDD doit exposer les arrêts PassBi DDD réels');
-      expect(ddd.every((s) => s.color == app.AppColors.ddd), isTrue);
+      // Shared stops retain their original network color (for example TER brown);
+      // only native PassBi DDD stops are required to use the DDD presentation color.
+      expect(natifs.every((s) => s.color == app.AppColors.ddd), isTrue);
       // Un de ces arrêts calcule un vrai prochain départ.
       final avecDepart = natifs
           .map((s) => s.departureInfoAt(at: lundi12))
@@ -227,7 +229,9 @@ void main() {
       );
       final natifs = aftu.where((s) => s.passBiStopKey != null).toList();
       expect(natifs, isNotEmpty);
-      expect(aftu.every((s) => s.color == app.AppColors.aftu), isTrue);
+      // Shared stops retain their original network color; native AFTU stops
+      // keep the AFTU presentation color.
+      expect(natifs.every((s) => s.color == app.AppColors.aftu), isTrue);
     });
 
     test('arrêt natif : nom et coordonnées viennent du feed (§2)', () {
@@ -635,8 +639,18 @@ void main() {
               'affichés (aucun n\'est retiré par le lot)');
       for (final s in tataStops) {
         final info = s.departureInfoAt(at: lundi12);
-        expect(info.status, ScheduleStatus.unknown, reason: s.name);
-        expect(info.label, 'Horaire indisponible');
+        if (info.status == ScheduleStatus.scheduled) {
+          // A shared stop may legitimately expose a TER departure. It must
+          // never be mistaken for a TATA schedule: TATA has no feed here.
+          final linkedRoutes = app.appDataService.routes
+              .where((route) => route.id == s.scheduleRouteId)
+              .toList();
+          expect(linkedRoutes, isNotEmpty, reason: s.name);
+          expect(linkedRoutes.single.operatorId, isNot('tata'), reason: s.name);
+        } else {
+          expect(info.status, ScheduleStatus.unknown, reason: s.name);
+          expect(info.label, 'Horaire indisponible');
+        }
       }
     });
   });
