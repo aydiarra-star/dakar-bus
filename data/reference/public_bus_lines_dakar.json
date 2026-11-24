@@ -20,8 +20,8 @@
     "not_verified": 14,
     "partial": 0,
     "feed_routes_without_public_line": 20,
-    "feed_route_identity_verified": 24,
-    "feed_route_identity_unverified": 96
+    "feed_route_identity_verified": 20,
+    "feed_route_identity_unverified": 100
   },
   "unresolved_public_lines": [
     {
@@ -572,8 +572,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "VERIFIED",
-      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:28"
+      "feed_route_identity_status": "UNVERIFIED",
+      "feed_route_identity_proof": null
     },
     {
       "operator": "AFTU",
@@ -1118,8 +1118,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "VERIFIED",
-      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:42"
+      "feed_route_identity_status": "UNVERIFIED",
+      "feed_route_identity_proof": null
     },
     {
       "operator": "AFTU",
@@ -3810,8 +3810,8 @@
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
       "canonical_status": "CONFIRMED",
-      "feed_route_identity_status": "VERIFIED",
-      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#DDD:121"
+      "feed_route_identity_status": "UNVERIFIED",
+      "feed_route_identity_proof": null
     },
     {
       "operator": "DDD",
@@ -5006,8 +5006,8 @@
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
       "canonical_status": "CONFIRMED",
-      "feed_route_identity_status": "VERIFIED",
-      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#DDD:234"
+      "feed_route_identity_status": "UNVERIFIED",
+      "feed_route_identity_proof": null
     },
     {
       "operator": "DDD",
