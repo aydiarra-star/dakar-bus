@@ -109,6 +109,30 @@ void main() {
       }
     });
 
+    test('les quatre routes DDD mono-directionnelles ne gagnent pas un sens fictif',
+        () {
+      // Baseline issue des trips du feed : ces routes ne publient chacune
+      // qu'un seul direction_id. Ne jamais fabriquer un aller/retour à partir
+      // de l'identifiant 0/1 ni du numéro public.
+      const Map<String, String> expected = <String, String>{
+        '18': '1',
+        '20': '0',
+        '502': '0',
+        '503': '1',
+      };
+      final List<PublicBusLine> ddd =
+          app.appDataService.publicBusLineCatalog.reference!.ddd;
+      for (final entry in expected.entries) {
+        final PublicBusLine line =
+            ddd.singleWhere((l) => l.lineNumber == entry.key);
+        expect(line.mappingStatus, LineMappingStatus.connected,
+            reason: '${line.publicLabel} doit conserver son raccordement réel');
+        expect(line.feedRouteIds, <String>['DDD_${entry.key}']);
+        expect(line.directionIds, <String>[entry.value],
+            reason: '${line.publicLabel} : ne pas inventer une deuxième direction');
+      }
+    });
+
     test('les variantes lettrées (15A/15B, 502A…) ne sont pas raccordées '
         'aveuglément au numéro nu du feed', () {
       for (final l in app.appDataService.publicBusLineCatalog.reference!.ddd) {
