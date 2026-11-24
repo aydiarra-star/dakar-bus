@@ -3,8 +3,8 @@
   "verified_at": "2026-11-24",
   "policy": "VERIFIED uniquement si le numéro public, la publication officielle et les deux terminus observés dans le feed concordent. Une égalité de numéro seule ne suffit pas. Les contradictions, variantes A/B et terminus ambigus restent UNVERIFIED.",
   "counts": {
-    "verified": 25,
-    "unverified_public_lines": 95
+    "verified": 24,
+    "unverified_public_lines": 96
   },
   "proofs": [
     {
@@ -142,25 +142,6 @@
         "Gueule Tapée Rue Gt-49",
         "Penc-Mi Boulevard Gueule Tapée",
         "Terminus 62 (Rufisque Nord)"
-      ]
-    },
-    {
-      "operator": "AFTU",
-      "line_number": "66",
-      "route_id": "AFTU_66",
-      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-66/",
-      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
-      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
-      "feed_terminals": "Yoff ↔ Gorom 1",
-      "basis": "L’itinéraire officiel AFTU ligne 66 relie Yoff à Gorom 1 ; le nom de route PassBi AFTU_66 porte Gorom-Yoff et son terminus de feed est celui de la ligne 66.",
-      "verified_at": "2026-11-24",
-      "feed_terminal_stop_ids": [
-        "A_1250",
-        "A_352"
-      ],
-      "feed_terminal_stop_names": [
-        "Terminus 66 Et 79",
-        "Yoff"
       ]
     },
     {
