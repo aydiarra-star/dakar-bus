@@ -128,3 +128,30 @@ La page « Info voyageurs » distingue explicitement les variantes A/B. La page 
 - Ne pas modifier les horaires PassBi, ne pas inventer de lignes ou de directions, et ne pas modifier l'interface par cette note.
 
 **Anomalie à traiter avant validation finale du catalogue :** les entrées génériques 15/502/503 et leurs libellés doivent être réconciliés avec les identités publiques actuelles. Cette note ne tranche pas si les lignes génériques sont des services additionnels, des désignations historiques ou des libellés incomplets.
+
+
+## Registre de preuves indépendant — première vague du 24 novembre 2026
+
+Après comparaison des identités et terminus publiés avec l'audit des terminus du feed, les routes DDD suivantes sont certifiées dans le registre `data/reference/passbi_route_identity_proofs.json` :
+
+- `DDD_01` → DDD 1
+- `DDD_02` → DDD 2
+- `DDD_04` → DDD 4
+- `DDD_05` → DDD 5
+- `DDD_06` → DDD 6
+- `DDD_08` → DDD 8
+- `DDD_09` → DDD 9
+- `DDD_10` → DDD 10
+- `DDD_11` → DDD 11
+- `DDD_12` → DDD 12
+- `DDD_13` → DDD 13
+- `DDD_121` → DDD 121
+- `DDD_208` → DDD 208
+- `DDD_227` → DDD 227
+- `DDD_232` → DDD 232
+- `DDD_233` → DDD 233
+- `DDD_234` → DDD 234
+
+Les lignes DDD 15, 16, 18, 20, 23, 217, 218, 219, 501, 502, 503, 504 et les variantes A/B restent non certifiées à cette étape : les preuves disponibles sont contradictoires, ambiguës, incomplètes ou ne distinguent pas les identités publiques.
+
+La présence d'un numéro dans « Info voyageurs » prouve l'existence de cette identité publique ; elle ne prouve pas, à elle seule, que le `route_id` du feed lui correspond. Les 17 associations ci-dessus sont enregistrées avec leur référence officielle et les terminus du feed observés. Aucune route ni aucun horaire n'a été déplacé.
