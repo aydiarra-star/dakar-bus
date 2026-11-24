@@ -68,11 +68,13 @@ class DataService {
   /// Fiche ligne — séquence d'arrêts ORDONNÉE d'une ligne publique raccordée.
   ///
   /// Lit la route PassBi RÉELLE de la ligne (`feed_route_ids`) et ses
-  /// `stop_times` réels, ordonnés par `stop_sequence`. Retourne `null` si la
-  /// ligne n'est pas raccordée à une route réelle : aucune fiche n'est
-  /// fabriquée pour une ligne BLOCKED / NOT_VERIFIED.
+  /// `stop_times` réels, ordonnés par `stop_sequence`. La fiche publique exige
+  /// DEUX preuves indépendantes : horaires techniques exploitables ET identité
+  /// publique ↔ route PassBi vérifiée avec une référence documentaire.
+  /// L'absence de preuve d'identité ne supprime jamais les horaires natifs du
+  /// feed ; elle interdit seulement de les attribuer à une ligne publique.
   PassBiRouteStopSequence? publicLineStopSequence(PublicBusLine line, {String? directionId}) {
-    if (!line.hasRealSchedule) return null;
+    if (!line.hasRealSchedule || !line.hasVerifiedFeedIdentity) return null;
     final network = line.operator; // DDD | AFTU — clés de feed PassBi
     for (final routeId in line.feedRouteIds) {
       final seq = passBiSource.routeStopSequence(network, routeId, directionId: directionId);
