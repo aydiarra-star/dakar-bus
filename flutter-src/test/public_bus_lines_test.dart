@@ -424,6 +424,10 @@ void main() {
         app.appDataService.publicBusLineCatalog.publicLabelForFeedRouteId('AFTU_62'),
         'AFTU 62',
       );
+      expect(
+        app.appDataService.publicBusLineCatalog.publicLabelForFeedRouteId('DDD_01'),
+        'DDD 1',
+      );
     });
 
     test('la recherche ne transmet un route_id qu’avec une identité vérifiée', () {
@@ -432,6 +436,7 @@ void main() {
       NetworkSearchEntry line(String label) => entries.singleWhere(
           (e) => e.kind == NetworkSearchKind.line && e.label == label);
       expect(line('AFTU 62').routeId, 'AFTU_62');
+      expect(line('DDD 1').routeId, 'DDD_01');
       expect(line('AFTU 46').routeId, 'AFTU_46');
       expect(line('AFTU 48').routeId, isNull);
       expect(line('DDD 502').routeId, isNull);
@@ -446,6 +451,17 @@ void main() {
       expect(sequence, isNotNull);
       expect(sequence!.stops, isNotEmpty);
       expect(sequence.routeId, 'AFTU_62');
+    });
+
+    test('une ligne DDD vérifiée expose ses vrais arrêts PassBi', () {
+      final PublicBusLine line = app.appDataService.publicBusLineCatalog.publicLines
+          .singleWhere((l) => l.publicLabel == 'DDD 1');
+      expect(line.hasRealSchedule, isTrue);
+      expect(line.hasVerifiedFeedIdentity, isTrue);
+      final sequence = app.appDataService.publicLineStopSequence(line);
+      expect(sequence, isNotNull);
+      expect(sequence!.stops, isNotEmpty);
+      expect(sequence.routeId, 'DDD_01');
     });
 
     test('les horaires techniques restent présents sans attribution publique', () {
