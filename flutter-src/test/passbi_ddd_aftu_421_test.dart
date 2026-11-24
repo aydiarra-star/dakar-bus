@@ -175,7 +175,7 @@ void main() {
       expect(info.estimatedWaitFrom, greaterThanOrEqualTo(0));
       // Identité publique NON confirmée (§3) : champ DISTINCT du statut horaire.
       expect(info.identityStatus, IdentityStatus.unconfirmed);
-      expect(info.identityNote, contains('UNCONFIRMED'));
+      expect(info.identityNote, contains('UNVERIFIED'));
       // §2 : l'affichage vient des métadonnées réelles du feed. Chantier UI :
       // la source de données (PassBi) n'est plus nommée dans l'interface.
       expect(info.lineLabel, isNot(contains('PassBi')));
@@ -256,7 +256,7 @@ void main() {
 
   // ==================================================================== B
   group('B — AFTU : prochain départ PassBi calculable', () {
-    test('route AFTU_3 : SCHEDULED, identité UNCONFIRMED (verrouillage)', () {
+    test('route AFTU_3 : SCHEDULED, identité VERIFIED par le registre indépendant', () {
       final stopId = firstStopOf('AFTU', 'AFTU_3');
       final info = app.appDataService.passBiDepartureFor(
         networkKey: 'AFTU',
