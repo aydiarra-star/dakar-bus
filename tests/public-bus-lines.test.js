@@ -98,10 +98,10 @@ test('la preuve d’identité publique ↔ route reste indépendante des horaire
   }
 });
 
-test('four ambiguous public identities retain schedules but remain unattributed', () => {
+test('six ambiguous public identities retain schedules but remain unattributed', () => {
   const cases = [
     ['AFTU', '28', 'AFTU_28'],
-    ['AFTU', '42', 'AFTU_42'],
+    ['AFTU', '45', 'AFTU_45'],
     ['AFTU', '48', 'AFTU_48'],
     ['AFTU', '58', 'AFTU_58'],
     ['AFTU', '66', 'AFTU_66'],
@@ -153,7 +153,7 @@ test('le validateur complet accepte le registre et les feeds réels', () => {
   );
   assert.equal(result.error, undefined, result.error?.message);
   assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
-  assert.match(result.stdout, /Identité publique ↔ route PassBi : VERIFIED=46 UNVERIFIED=74/);
+  assert.match(result.stdout, /Identité publique ↔ route PassBi : VERIFIED=48 UNVERIFIED=72/);
   assert.match(result.stdout, /VALIDATION OK/);
 });
 
