@@ -40,8 +40,9 @@ class PublicBusLineCatalog {
   List<TataIdentityAudit> get tataAudit =>
       _reference?.tataAudit ?? const <TataIdentityAudit>[];
 
-  /// Libellé public DOCUMENTÉ d'un `route_id` de feed (ex. « DDD 5 » pour
-  /// `DDD_05`), `null` si aucune ligne publique ne le documente.
+  /// Libellé public DOCUMENTÉ d'un `route_id` de feed, uniquement si une
+  /// preuve indépendante relie ce route_id à cette ligne publique. Un simple
+  /// numéro identique ou un raccordement horaire CONNECTED ne suffit pas.
   ///
   /// Un `route_id` interne n'est jamais converti en numéro public : seul le
   /// raccordement établi par le référentiel ([PublicBusLine.feedRouteIds]) est
@@ -55,6 +56,7 @@ class PublicBusLineCatalog {
   void _indexLabels() {
     final Map<String, String> index = <String, String>{};
     for (final PublicBusLine line in publicLines) {
+      if (!line.hasVerifiedFeedIdentity) continue;
       for (final String feedRouteId in line.feedRouteIds) {
         index[feedRouteId] = line.publicLabel;
       }
