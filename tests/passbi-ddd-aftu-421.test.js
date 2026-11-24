@@ -113,10 +113,11 @@ test('B. AFTU — prochain départ PassBi réellement calculable (SCHEDULED)', (
     10 * 3600,
   );
   assert.equal(res.depAbs, independant);
-  // Verrouillage : l'horaire est calculable alors que l'identité publique
-  // reste NON confirmée (aftu_8/aftu_11 ne fusionnent jamais sur AFTU_3).
-  assert.equal(res.identityStatus, IDENTITY.UNCONFIRMED);
-  assert.match(res.lineLabel, /^Ligne PassBi AFTU_3/);
+  // Le crosswalk historique aftu_8/aftu_11 reste distinct ; le registre
+  // indépendant confirme désormais l'identité publique de la route AFTU_3.
+  assert.equal(res.identityStatus, IDENTITY.CONFIRMED);
+  assert.equal(res.feedRouteIdentityStatus, 'VERIFIED');
+  assert.equal(res.lineLabel, 'AFTU 3');
 });
 
 test('B bis. AFTU — 71 des 73 routes du feed ont des horaires calculables', () => {
@@ -356,16 +357,16 @@ test('J. aucune identité inventée : le crosswalk ne rattache QUE ce qu\'il a p
   }
   assert.deepEqual(dakarRouteIdsFor(ALL.cw, 'AFTU', 'AFTU_3'), [],
     'AFTU_3 ne devient l identité publique d aucune ligne sans preuve');
-  // 3) L'identité affichée vient du feed (route_id / short_name), jamais d'un
-  //    nom commercial ni d'un numéro déduit.
+  // 3) Sans preuve route ↔ ligne, seul le mode est affiché ; aucun numéro
+  //    n'est déduit du route_id / short_name.
   const ref15 = firstStopOf('DDD', 'DDD_15');
   assert.ok(ref15, 'DDD_15 doit desservir des arrêts');
   const exemple = departureAtPassBiStop(ALL, 'DDD', ref15.stopId, LUNDI_12H, { pbRouteId: 'DDD_15' });
   assert.equal(exemple.status, 'SCHEDULED');
   {
-    assert.match(exemple.lineLabel, /^Ligne PassBi DDD_15/);
+    assert.equal(exemple.lineLabel, 'DDD');
     assert.equal(exemple.identityStatus, IDENTITY.UNCONFIRMED);
-    assert.match(exemple.identityNote, /UNCONFIRMED/);
+    assert.match(exemple.identityNote, /UNVERIFIED/);
   }
   // 4) Aucune route PassBi ne porte de nom d'arrêt du référentiel dakar : la
   //    correspondance n'est jamais déduite.

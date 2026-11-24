@@ -134,6 +134,11 @@ class PublicBusLine {
   final String routeStatus;
   final String stopsStatus;
   final String scheduleStatus; // dérivé du feed (raccordement réel)
+  /// Preuve indépendante que le route_id représente bien cette ligne publique.
+  /// UNVERIFIED par défaut : CONNECTED ne suffit jamais à établir l'identité.
+  final String feedRouteIdentityStatus; // VERIFIED | UNVERIFIED
+  final String? feedRouteIdentityProof; // référence de la preuve, obligatoire si VERIFIED
+  final String? feedRouteIdentityVerifiedAt; // date propre à la preuve route ↔ ligne
   final String publishedScheduleStatus; // publié par la source (DDD), sinon ''
   final LineMappingStatus mappingStatus; // CONNECTED | BLOCKED | NOT_VERIFIED | PARTIAL
   final List<String> feedRouteIds; // route_id PassBi raccordés (peut être vide)
@@ -167,6 +172,9 @@ class PublicBusLine {
     required this.verifiedAt,
     this.officialName = '',
     this.publishedScheduleStatus = '',
+    this.feedRouteIdentityStatus = 'UNVERIFIED',
+    this.feedRouteIdentityProof,
+    this.feedRouteIdentityVerifiedAt,
     this.mappingStatus = LineMappingStatus.notVerified,
     this.tripIdsCount = 0,
     this.sampleTripIds = const <String>[],
@@ -193,11 +201,23 @@ class PublicBusLine {
       stopSequencePresent &&
       scheduleStatus == 'SCHEDULE_AVAILABLE';
 
-  /// La ligne possède-t-elle de VRAIS horaires exploitables ? Uniquement quand
-  /// le raccordement est complet ET le statut dérivé du feed l'atteste. Une
-  /// ligne BLOCKED/NOT_VERIFIED ne doit jamais être présentée comme horairée.
+  /// Le feed contient-il de VRAIS horaires exploitables pour cette route ?
+  /// Ce statut est purement technique : il ne certifie PAS que la route est
+  /// bien celle de la ligne publique. Cette seconde preuve est
+  /// [hasVerifiedFeedIdentity]. Une ligne BLOCKED/NOT_VERIFIED n'est jamais
+  /// présentée comme horairée.
   bool get hasRealSchedule =>
       mappingStatus == LineMappingStatus.connected && isScheduleLinked;
+
+  /// Correspondance publique ↔ route PassBi certifiée par une preuve distincte.
+  bool get hasVerifiedFeedIdentity =>
+      feedRouteIdentityStatus == 'VERIFIED' &&
+      feedRouteIdentityProof != null &&
+      feedRouteIdentityProof!.trim().isNotEmpty;
+
+  /// Les horaires ne sont attribuables à la ligne publique que si la chaîne
+  /// horaire est complète ET l'identité route ↔ ligne est prouvée.
+  bool get hasVerifiedPublicSchedule => hasRealSchedule && hasVerifiedFeedIdentity;
 
   /// Le terminus publié est-il exploitable (≠ constat de non-publication) ?
   bool get hasPublishedTerminus =>
@@ -215,6 +235,10 @@ class PublicBusLine {
         routeStatus: (json['route_status'] ?? 'UNKNOWN') as String,
         stopsStatus: (json['stops_status'] ?? 'UNKNOWN') as String,
         scheduleStatus: (json['schedule_status'] ?? 'UNKNOWN') as String,
+        feedRouteIdentityStatus:
+            (json['feed_route_identity_status'] ?? 'UNVERIFIED') as String,
+        feedRouteIdentityProof: json['feed_route_identity_proof'] as String?,
+        feedRouteIdentityVerifiedAt: json['feed_route_identity_verified_at'] as String?,
         publishedScheduleStatus: (json['published_schedule_status'] ?? '') as String,
         mappingStatus: LineMappingStatusCode.parse(json['mapping_status'] as String?),
         feedRouteIds:
@@ -314,4 +338,34 @@ class PublicBusLineReference {
           .toList(growable: false),
     );
   }
+}
+
+
+/// Libellé honnête du sens d'une ligne publique.
+///
+/// « Aller » / « Retour » ne sont utilisés que si les deux extrémités du trip
+/// GTFS correspondent exactement (casse/espaces ignorés) aux terminus publiés.
+/// Sinon, direction_id reste un identifiant technique et l'interface affiche
+/// « Sens <id> » au lieu de lui attribuer une orientation non prouvée.
+String publicDirectionLabel({
+  required String directionId,
+  required String firstStopName,
+  required String lastStopName,
+  required String origin,
+  required String destination,
+}) {
+  String normalize(String value) =>
+      value.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+  final first = normalize(firstStopName);
+  final last = normalize(lastStopName);
+  final from = normalize(origin);
+  final to = normalize(destination);
+  final endpointsPublished = from.isNotEmpty &&
+      to.isNotEmpty &&
+      !from.contains('non publiée') &&
+      !to.contains('non publiée') &&
+      from != to;
+  if (endpointsPublished && first == from && last == to) return 'Aller';
+  if (endpointsPublished && first == to && last == from) return 'Retour';
+  return directionId.isEmpty ? 'Sens non renseigné' : 'Sens $directionId';
 }

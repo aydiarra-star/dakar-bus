@@ -10,9 +10,11 @@
 //     dans les feeds PassBi embarqués ;
 //   * aucun horaire, arrêt ou correspondance n'est inventé.
 import test from 'node:test';
+import { spawnSync } from 'node:child_process';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
+import { loadFeed, routeTermini } from '../scripts/lib/ddd-aftu-terminus.mjs';
 
 const ROOT = resolve(dirname(new URL(import.meta.url).pathname), '..');
 const REF = JSON.parse(
@@ -21,6 +23,18 @@ const ASSET = JSON.parse(
   readFileSync(
     resolve(ROOT, 'flutter-src/assets/data/reference/public_bus_lines_dakar.json'),
     'utf8'));
+const IDENTITY_PROOFS_PATH = 'data/reference/passbi_route_identity_proofs.json';
+const IDENTITY_PROOFS = JSON.parse(
+  readFileSync(resolve(ROOT, IDENTITY_PROOFS_PATH), 'utf8'));
+const IDENTITY_PROOF_BY_KEY = new Map(
+  IDENTITY_PROOFS.proofs.map((p) => [`${p.operator}:${p.line_number}`, p]));
+const TERMINI_REF = JSON.parse(readFileSync(
+  resolve(ROOT, 'data/reference/ddd_aftu_poles_terminus.json'), 'utf8'));
+const TERMINI_FEEDS = {
+  AFTU: loadFeed(resolve(ROOT, 'flutter-src/assets/data/passbi/aftu.json')),
+  DDD: loadFeed(resolve(ROOT, 'flutter-src/assets/data/passbi/ddd.json')),
+};
+const sortedUnique = (values) => [...new Set(values)].sort();
 
 function feedRouteIds(path) {
   const feed = JSON.parse(readFileSync(path, 'utf8'));
@@ -59,6 +73,100 @@ test('chaque ligne publique porte un numéro et un libellé officiels', () => {
     assert.ok(!l.public_label.includes('_'), 'identifiant de feed dans le libellé');
     assert.ok(l.identity_status === 'CONFIRMED');
   }
+});
+
+test('les dates distinguent génération, vérification officielle et preuve route ↔ ligne', () => {
+  assert.match(REF.generated_at, /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/);
+  assert.equal(REF.sources_verified_at, '2026-09-25');
+  for (const line of ALL) {
+    const proof = IDENTITY_PROOF_BY_KEY.get(`${line.operator}:${line.line_number}`);
+    assert.equal(line.feed_route_identity_verified_at, proof?.verified_at ?? null,
+      `${line.public_label} : date de preuve incohérente`);
+  }
+});
+
+test('la preuve d’identité publique ↔ route reste indépendante des horaires', () => {
+  assert.equal(REF.counts.feed_route_identity_verified, IDENTITY_PROOFS.proofs.length);
+  assert.equal(REF.counts.feed_route_identity_unverified, ALL.length - IDENTITY_PROOFS.proofs.length);
+  assert.equal(IDENTITY_PROOFS.proofs.length, 48);
+  for (const l of ALL) {
+    const proof = IDENTITY_PROOF_BY_KEY.get(`${l.operator}:${l.line_number}`);
+    if (proof) {
+      assert.equal(l.feed_route_identity_status, 'VERIFIED', l.public_label);
+      assert.deepEqual(l.feed_route_ids, [proof.route_id], l.public_label);
+      assert.equal(l.feed_route_identity_proof,
+        `${IDENTITY_PROOFS_PATH}#${l.operator}:${l.line_number}`);
+      assert.equal(l.feed_route_identity_verified_at, proof.verified_at);
+    } else {
+      assert.equal(l.feed_route_identity_status, 'UNVERIFIED', l.public_label);
+      assert.equal(l.feed_route_identity_proof, null);
+      assert.equal(l.feed_route_identity_verified_at, null);
+    }
+    // La preuve d'identité n'altère jamais la disponibilité horaire réelle.
+    if (l.mapping_status === 'CONNECTED') {
+      assert.equal(l.schedule_status, 'SCHEDULE_AVAILABLE');
+      assert.ok(l.stop_times_count > 0);
+    }
+  }
+});
+
+test('six ambiguous public identities retain schedules but remain unattributed', () => {
+  const cases = [
+    ['AFTU', '28', 'AFTU_28'],
+    ['AFTU', '45', 'AFTU_45'],
+    ['AFTU', '48', 'AFTU_48'],
+    ['AFTU', '58', 'AFTU_58'],
+    ['AFTU', '66', 'AFTU_66'],
+    ['DDD', '502', 'DDD_502'],
+  ];
+  for (const [operator, number, routeId] of cases) {
+    const line = ALL.find((item) =>
+      item.operator === operator && item.line_number === number);
+    assert.ok(line, `${operator} ${number} missing`);
+    assert.equal(line.feed_route_identity_status, 'UNVERIFIED');
+    assert.equal(line.feed_route_identity_proof, null);
+    assert.equal(line.mapping_status, 'CONNECTED');
+    assert.equal(line.schedule_status, 'SCHEDULE_AVAILABLE');
+    assert.deepEqual(line.feed_route_ids, [routeId]);
+    assert.ok(line.stop_times_count > 0);
+  }
+});
+
+test('chaque identité VERIFIED correspond aux terminus réels du feed', () => {
+  for (const proof of IDENTITY_PROOFS.proofs) {
+    const feed = TERMINI_FEEDS[proof.operator];
+    const feedRoute = feed.routes.find((r) => r.id === proof.route_id);
+    assert.ok(feedRoute, `${proof.route_id} absent du feed`);
+    assert.equal(feedRoute.long, proof.feed_route_long_name, proof.route_id);
+    const actual = routeTermini(feed, proof.route_id);
+    assert.ok(actual, `${proof.route_id} absent du feed`);
+    const ids = sortedUnique(actual.directions.flatMap((d) =>
+      [d.depart, d.arrivee].filter(Boolean).map((stop) => stop.id)));
+    const names = sortedUnique(actual.directions.flatMap((d) =>
+      [d.depart, d.arrivee].filter(Boolean).map((stop) => stop.name)));
+    assert.deepEqual(ids, proof.feed_terminal_stop_ids, proof.route_id);
+    assert.deepEqual(names, proof.feed_terminal_stop_names, proof.route_id);
+    const audit = TERMINI_REF[proof.operator.toLowerCase()].routes
+      .find((r) => r.routeId === proof.route_id);
+    assert.ok(audit, `${proof.route_id} absent de l'audit terminus`);
+    const auditIds = sortedUnique(audit.directions.flatMap((d) =>
+      [d.depart, d.arrivee].filter(Boolean).map((stop) => stop.stopId)));
+    assert.deepEqual(auditIds, proof.feed_terminal_stop_ids, proof.route_id);
+    assert.ok(proof.official_reference.startsWith('https://'));
+    assert.ok(proof.basis.length > 20);
+  }
+});
+
+test('le validateur complet accepte le registre et les feeds réels', () => {
+  const result = spawnSync(
+    process.execPath,
+    [resolve(ROOT, 'scripts/validate-public-bus-lines.mjs')],
+    { cwd: ROOT, encoding: 'utf8', timeout: 120000 },
+  );
+  assert.equal(result.error, undefined, result.error?.message);
+  assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
+  assert.match(result.stdout, /Identité publique ↔ route PassBi : VERIFIED=48 UNVERIFIED=72/);
+  assert.match(result.stdout, /VALIDATION OK/);
 });
 
 test('le raccordement horaire pointe vers des route_id réellement présents', () => {
@@ -120,6 +228,10 @@ test('les compteurs déclarés correspondent aux listes', () => {
   assert.equal(REF.counts.blocked, byStatus('BLOCKED'));
   assert.equal(REF.counts.not_verified, byStatus('NOT_VERIFIED'));
   assert.equal(REF.counts.partial, byStatus('PARTIAL'));
+  assert.equal(REF.counts.feed_route_identity_verified,
+    ALL.filter((l) => l.feed_route_identity_status === 'VERIFIED').length);
+  assert.equal(REF.counts.feed_route_identity_unverified,
+    ALL.filter((l) => l.feed_route_identity_status !== 'VERIFIED').length);
   assert.equal(
     REF.counts.connected + REF.counts.blocked + REF.counts.not_verified + REF.counts.partial,
     ALL.length);
@@ -188,6 +300,58 @@ test('aucune route du feed ne reste orpheline sans être documentée (audit §9)
       REF.feed_routes_without_public_line.AFTU.length);
 });
 
+test('les 19 routes DDD et la route AFTU sans identité publique restent orphelines', () => {
+  // Baseline du feed : ces route_id existent, mais aucune identité publique
+  // canonique ne permet de les rattacher à une ligne numérotée.
+  const expectedDdd = [
+    'DDD_102', 'DDD_103', 'DDD_105', 'DDD_111', 'DDD_16',
+    'DDD_210', 'DDD_223', 'DDD_231', 'DDD_301', 'DDD_305',
+    'DDD_308', 'DDD_315', 'DDD_323', 'DDD_401', 'DDD_402',
+    'DDD_403', 'DDD_404', 'DDD_405', 'DDD_504',
+  ];
+  const expectedAftu = ['AFTU_90'];
+  assert.deepEqual(REF.feed_routes_without_public_line.DDD, expectedDdd);
+  assert.deepEqual(REF.feed_routes_without_public_line.AFTU, expectedAftu);
+  const linked = new Set(ALL.flatMap((line) => line.feed_route_ids));
+  for (const routeId of [...expectedDdd, ...expectedAftu]) {
+    assert.ok(DDD_ROUTES.has(routeId) || AFTU_ROUTES.has(routeId),
+      `${routeId} doit réellement exister dans son feed`);
+    assert.equal(linked.has(routeId), false,
+      `${routeId} ne doit pas être rattachée sans identité publique vérifiée`);
+  }
+  assert.equal(REF.counts.feed_routes_without_public_line, 20);
+});
+
+test('les identités DDD A/B, 327 et TO1 sont officielles mais non raccordées sans route_id exact', () => {
+  // Vérification de la page Info voyageurs DDD du 2026-11-24 : les identités
+  // existent, mais les routes PassBi disponibles ne distinguent pas les variantes.
+  const expected = {
+    '502A': ['COLOBANE', 'UCAD'],
+    '502B': ['COLOBANE', 'ABASS NDAO'],
+    '503A': ['COLOBANE', 'MOLE 8'],
+    '503B': ['COLOBANE', 'HYDROCARBURE'],
+    '504A': ['GARE DIAMNIADIO', 'SPHERE MINISTERIEL'],
+    '504B': ['SEBIKOTANE', 'GARE DIAMNIADIO'],
+    '15A': ['RUFISQUE', 'PALAIS 1'],
+    '15B': ['RUFISQUE', 'PALAIS 1'],
+    '16A': ['MALIKA', 'PALAIS 1'],
+    '16B': ['MALIKA', 'PALAIS 1'],
+    '327': ['KEUR MASSAR', 'TERMINUS PARCELLES'],
+    'TO1': ['TAF TAF OUAKAM (TO1) : OUAKAM', 'PALAIS 2'],
+  };
+  for (const [number, [origin, destination]] of Object.entries(expected)) {
+    const line = REF.ddd.find((item) => item.line_number === number);
+    assert.ok(line, `DDD ${number} : identité officielle absente`);
+    assert.equal(line.identity_status, 'CONFIRMED');
+    assert.equal(line.origin, origin, `DDD ${number} : origine publiée`);
+    assert.equal(line.destination, destination, `DDD ${number} : destination publiée`);
+    assert.equal(line.source, 'https://demdikk.sn/info-voyageurs/');
+    assert.equal(line.mapping_status, 'NOT_VERIFIED',
+      `DDD ${number} : aucune route PassBi exacte ne distingue cette identité`);
+    assert.deepEqual(line.feed_route_ids, [],
+      `DDD ${number} : ne pas rattacher une route au numéro nu`);
+  }
+});
 test('aucune ligne publique sans source ni date de vérification', () => {
   for (const l of [...REF.aftu, ...REF.ddd]) {
     assert.ok(l.source.startsWith('http'), `source manquante : ${l.public_label}`);

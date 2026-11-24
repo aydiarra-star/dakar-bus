@@ -8,7 +8,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:dakar_bus/main.dart' as app;
 import 'package:dakar_bus/models/public_bus_line.dart';
-import 'package:dakar_bus/services/gtfs/passbi_source.dart';
 import 'package:dakar_bus/services/network_search.dart';
 
 void main() {
@@ -76,6 +75,29 @@ void main() {
     });
   });
 
+  group('AFTU — routes présentes mais sans horaires exploitables', () {
+    test('AFTU 47 et 52 restent bloquées sans faux horaires', () {
+      final List<PublicBusLine> aftu =
+          app.appDataService.publicBusLineCatalog.reference!.aftu;
+      const Map<String, String> expectedReasons = <String, String>{
+        '47': 'FEED_ROUTE_WITHOUT_TRIP',
+        '52': 'FEED_ROUTE_WITHOUT_STOP_TIME',
+      };
+      for (final entry in expectedReasons.entries) {
+        final PublicBusLine line =
+            aftu.singleWhere((l) => l.lineNumber == entry.key);
+        expect(line.mappingStatus, LineMappingStatus.blocked);
+        expect(line.feedRouteIds, <String>['AFTU_${entry.key}']);
+        expect(line.scheduleStatus, 'NO_SCHEDULE');
+        expect(line.hasRealSchedule, isFalse);
+        expect(line.stopTimesCount, 0);
+        expect(line.servedStopCount, 0);
+        expect(line.blocking, isNotNull);
+        expect(line.blocking!.reason, entry.value);
+      }
+    });
+  });
+
   group('Référentiel public — lignes DDD', () {
     test('les lignes publiques DDD sont présentes et numérotées', () {
       final List<PublicBusLine> ddd =
@@ -106,6 +128,66 @@ void main() {
           expect(feedRouteIds, contains(id),
               reason: 'route_id inconnu du feed : $id');
         }
+      }
+    });
+
+    test('les identités DDD confirmées le 24 novembre restent distinctes et non fusionnées', () {
+      // Vérification officielle des identités publiques : cela ne prouve pas
+      // leur correspondance avec un route_id PassBi. Les variantes A/B restent
+      // séparées et sans horaire tant que le feed ne distingue pas ces services.
+      const Map<String, List<String>> expected = <String, List<String>>{
+        '502A': <String>['COLOBANE', 'UCAD'],
+        '502B': <String>['COLOBANE', 'ABASS NDAO'],
+        '503A': <String>['COLOBANE', 'MOLE 8'],
+        '503B': <String>['COLOBANE', 'HYDROCARBURE'],
+        '504A': <String>['GARE DIAMNIADIO', 'SPHERE MINISTERIEL'],
+        '504B': <String>['SEBIKOTANE', 'GARE DIAMNIADIO'],
+        '15A': <String>['RUFISQUE', 'PALAIS 1'],
+        '15B': <String>['RUFISQUE', 'PALAIS 1'],
+        '16A': <String>['MALIKA', 'PALAIS 1'],
+        '16B': <String>['MALIKA', 'PALAIS 1'],
+        '327': <String>['KEUR MASSAR', 'TERMINUS PARCELLES'],
+        'TO1': <String>['TAF TAF OUAKAM (TO1) : OUAKAM', 'PALAIS 2'],
+      };
+      final List<PublicBusLine> ddd =
+          app.appDataService.publicBusLineCatalog.reference!.ddd;
+      for (final entry in expected.entries) {
+        final PublicBusLine line =
+            ddd.singleWhere((l) => l.lineNumber == entry.key);
+        expect(line.identityStatus, 'CONFIRMED',
+            reason: '${line.publicLabel} : identité officielle perdue');
+        expect(line.origin, entry.value[0],
+            reason: '${line.publicLabel} : origine officielle modifiée');
+        expect(line.destination, entry.value[1],
+            reason: '${line.publicLabel} : destination officielle modifiée');
+        expect(line.mappingStatus, isNot(LineMappingStatus.connected),
+            reason: '${line.publicLabel} : raccordement sans preuve PassBi');
+        expect(line.feedRouteIds, isEmpty);
+        expect(line.hasRealSchedule, isFalse);
+      }
+    });
+
+    test('les quatre routes DDD mono-directionnelles ne gagnent pas un sens fictif',
+        () {
+      // Baseline issue des trips du feed : ces routes ne publient chacune
+      // qu'un seul direction_id. Ne jamais fabriquer un aller/retour à partir
+      // de l'identifiant 0/1 ni du numéro public.
+      const Map<String, String> expected = <String, String>{
+        '18': '1',
+        '20': '0',
+        '502': '0',
+        '503': '1',
+      };
+      final List<PublicBusLine> ddd =
+          app.appDataService.publicBusLineCatalog.reference!.ddd;
+      for (final entry in expected.entries) {
+        final PublicBusLine line =
+            ddd.singleWhere((l) => l.lineNumber == entry.key);
+        expect(line.mappingStatus, LineMappingStatus.connected,
+            reason: '${line.publicLabel} doit conserver son raccordement réel');
+        expect(line.feedRouteIds, <String>['DDD_${entry.key}']);
+        expect(line.directionIds, <String>[entry.value],
+            reason: '${line.publicLabel} : ne pas inventer une deuxième direction');
       }
     });
 
@@ -229,6 +311,19 @@ void main() {
     // donc que la baseline des 16 identités non raccordables reste honnête
     // (présente, non CONNECTED, sans faux horaire) — et jamais « 100 % » obtenu
     // par invention.
+    test('les 20 routes PassBi sans identité publique restent hors catalogue', () {
+      // Audit du feed : 19 routes DDD et AFTU_90 n'ont pas de correspondance
+      // publique prouvée. Elles restent consignées en audit, jamais exposées
+      // comme lignes voyageurs et jamais rattachées par simple numéro.
+      final Map<String, int> counts =
+          app.appDataService.publicBusLineCatalog.reference!.counts;
+      expect(counts['feed_routes_without_public_line'], 20);
+      expect(counts['ddd_public'], 48);
+      expect(counts['aftu_official'], 72);
+      expect(counts['connected'], 104);
+      expect(counts['unresolved'], 16);
+    });
+
     test('les 16 identités publiées non raccordables restent honnêtes', () {
       const List<String> baseline = <String>[
         'AFTU 47', 'AFTU 52',
@@ -295,32 +390,121 @@ void main() {
     });
   });
 
-  group('Fiche ligne — arrêts ordonnés (stop_sequence réels)', () {
-    test('une ligne CONNECTED expose ses arrêts réels ordonnés par stop_sequence',
-        () {
-      final PublicBusLine line = app.appDataService.publicBusLineCatalog.publicLines
-          .firstWhere((l) => l.hasRealSchedule);
-      final PassBiRouteStopSequence? seq =
-          app.appDataService.publicLineStopSequence(line);
-      expect(seq, isNotNull);
-      expect(seq!.stops, isNotEmpty);
-      expect(seq.stops.length, greaterThan(1));
-      expect(seq.routeId, line.feedRouteIds.first);
-      expect(seq.tripId, isNotEmpty);
+  group('Identité publique ↔ route PassBi — preuve indépendante', () {
+    test('seules les identités du registre de preuves sont VERIFIED', () {
+      final lines = app.appDataService.publicBusLineCatalog.publicLines;
+      expect(lines, hasLength(120));
+      final verified = lines.where((l) => l.hasVerifiedFeedIdentity).toList();
+      expect(verified, hasLength(48));
+      expect(lines.where((l) => l.feedRouteIdentityStatus == 'UNVERIFIED'),
+          hasLength(72));
+      for (final line in lines) {
+        if (line.hasVerifiedFeedIdentity) {
+          expect(line.feedRouteIdentityProof, startsWith(
+              'data/reference/passbi_route_identity_proofs.json#'));
+          expect(line.feedRouteIdentityVerifiedAt, isNotEmpty);
+          expect(line.hasVerifiedPublicSchedule, line.hasRealSchedule);
+          expect(line.feedRouteIds, hasLength(1));
+        } else {
+          expect(line.feedRouteIdentityStatus, 'UNVERIFIED',
+              reason: '${line.publicLabel} : preuve indépendante absente');
+          expect(line.feedRouteIdentityProof, isNull);
+          expect(line.feedRouteIdentityVerifiedAt, isNull);
+          expect(line.hasVerifiedPublicSchedule, isFalse);
+        }
+      }
     });
 
-    test('la séquence d’arrêts correspond aux stop_times réels de la route', () {
+    test('un raccordement horaire non prouvé ne reçoit aucun libellé public', () {
+      expect(
+        app.appDataService.publicBusLineCatalog.publicLabelForFeedRouteId('AFTU_48'),
+        isNull,
+      );
+      expect(
+        app.appDataService.publicBusLineCatalog.publicLabelForFeedRouteId('DDD_502'),
+        isNull,
+      );
+      expect(
+        app.appDataService.publicBusLineCatalog.publicLabelForFeedRouteId('AFTU_62'),
+        'AFTU 62',
+      );
+      expect(
+        app.appDataService.publicBusLineCatalog.publicLabelForFeedRouteId('DDD_01'),
+        'DDD 1',
+      );
+    });
+
+    test('la recherche ne transmet un route_id qu’avec une identité vérifiée', () {
+      final entries = NetworkSearchCatalogBuilder.fromPublicLines(
+          app.appDataService.publicBusLineCatalog.publicLines);
+      NetworkSearchEntry line(String label) => entries.singleWhere(
+          (e) => e.kind == NetworkSearchKind.line && e.label == label);
+      expect(line('AFTU 62').routeId, 'AFTU_62');
+      expect(line('DDD 1').routeId, 'DDD_01');
+      expect(line('AFTU 46').routeId, 'AFTU_46');
+      expect(line('AFTU 48').routeId, isNull);
+      expect(line('DDD 502').routeId, isNull);
+    });
+
+    test('une ligne vérifiée expose ses vrais arrêts PassBi', () {
       final PublicBusLine line = app.appDataService.publicBusLineCatalog.publicLines
-          .firstWhere((l) => l.hasRealSchedule);
-      final PassBiRouteStopSequence seq =
-          app.appDataService.publicLineStopSequence(line)!;
-      final int served =
-          app.appDataService.passBiSource.routeSummary(line.operator, seq.routeId)!
-              .servedStops;
-      // Le trip le plus complet couvre au plus l'ensemble des arrêts desservis,
-      // et au moins une partie : aucun arrêt inventé, aucun arrêt en trop.
-      expect(seq.stops.length, lessThanOrEqualTo(served));
-      expect(seq.stops.length, greaterThan(0));
+          .singleWhere((l) => l.publicLabel == 'AFTU 62');
+      expect(line.hasRealSchedule, isTrue);
+      expect(line.hasVerifiedFeedIdentity, isTrue);
+      final sequence = app.appDataService.publicLineStopSequence(line);
+      expect(sequence, isNotNull);
+      expect(sequence!.stops, isNotEmpty);
+      expect(sequence.routeId, 'AFTU_62');
+    });
+
+    test('une ligne DDD vérifiée expose ses vrais arrêts PassBi', () {
+      final PublicBusLine line = app.appDataService.publicBusLineCatalog.publicLines
+          .singleWhere((l) => l.publicLabel == 'DDD 1');
+      expect(line.hasRealSchedule, isTrue);
+      expect(line.hasVerifiedFeedIdentity, isTrue);
+      final sequence = app.appDataService.publicLineStopSequence(line);
+      expect(sequence, isNotNull);
+      expect(sequence!.stops, isNotEmpty);
+      expect(sequence.routeId, 'DDD_01');
+    });
+
+    test('les horaires techniques restent présents sans attribution publique', () {
+      final PublicBusLine line = app.appDataService.publicBusLineCatalog.publicLines
+          .singleWhere((l) => l.publicLabel == 'DDD 502');
+      expect(line.hasRealSchedule, isTrue,
+          reason: 'la disponibilité horaire PassBi ne doit pas être supprimée');
+      expect(line.feedRouteIds, <String>['DDD_502']);
+      final summary = app.appDataService.passBiSource.routeSummary('DDD', 'DDD_502');
+      expect(summary, isNotNull);
+      expect(summary!.servedStops, greaterThan(0));
+      expect(app.appDataService.publicLineStopSequence(line), isNull,
+          reason: 'les arrêts ne doivent pas être attribués à DDD 502 sans preuve d’identité');
+    });
+
+    test('quatre identités ambiguës gardent leurs horaires sans attribution publique', () {
+      const cases = <(String, String, String)>[
+        ('AFTU 48', 'AFTU', 'AFTU_48'),
+        ('AFTU 58', 'AFTU', 'AFTU_58'),
+        ('AFTU 66', 'AFTU', 'AFTU_66'),
+        ('DDD 502', 'DDD', 'DDD_502'),
+      ];
+      final entries = NetworkSearchCatalogBuilder.fromPublicLines(
+          app.appDataService.publicBusLineCatalog.publicLines);
+      for (final (label, network, routeId) in cases) {
+        final PublicBusLine line = app.appDataService.publicBusLineCatalog.publicLines
+            .singleWhere((l) => l.publicLabel == label);
+        expect(line.hasRealSchedule, isTrue, reason: '$label : horaires conservés');
+        expect(line.hasVerifiedFeedIdentity, isFalse);
+        expect(line.hasVerifiedPublicSchedule, isFalse,
+            reason: '$label : horaires techniques non attribuables');
+        expect(line.feedRouteIds, <String>[routeId]);
+        expect(app.appDataService.passBiSource.routeSummary(network, routeId), isNotNull);
+        expect(app.appDataService.publicBusLineCatalog.publicLabelForFeedRouteId(routeId), isNull);
+        expect(app.appDataService.publicLineStopSequence(line), isNull);
+        final entry = entries.singleWhere(
+            (e) => e.kind == NetworkSearchKind.line && e.label == label);
+        expect(entry.routeId, isNull);
+      }
     });
 
     test('une ligne non raccordée n’a AUCUNE fiche d’arrêts fabriquée', () {
@@ -329,6 +513,54 @@ void main() {
         expect(app.appDataService.publicLineStopSequence(l), isNull,
             reason: '${l.publicLabel} : fiche fabriquée pour une ligne non raccordée');
       }
+    });
+  });
+
+  group('Sens des lignes publiques — aucun aller/retour déduit du chiffre', () {
+    test('les terminus exacts du trip déterminent aller et retour', () {
+      expect(
+        publicDirectionLabel(
+          directionId: '0',
+          firstStopName: 'Petersen',
+          lastStopName: 'Rufisque',
+          origin: 'Petersen',
+          destination: 'Rufisque',
+        ),
+        'Aller',
+      );
+      expect(
+        publicDirectionLabel(
+          directionId: '1',
+          firstStopName: 'Rufisque',
+          lastStopName: 'Petersen',
+          origin: 'Petersen',
+          destination: 'Rufisque',
+        ),
+        'Retour',
+      );
+    });
+
+    test('un direction_id sans preuve d’orientation reste un sens neutre', () {
+      expect(
+        publicDirectionLabel(
+          directionId: '0',
+          firstStopName: 'Gare A',
+          lastStopName: 'Gare B',
+          origin: 'Petersen',
+          destination: 'Rufisque',
+        ),
+        'Sens 0',
+      );
+      expect(
+        publicDirectionLabel(
+          directionId: '1',
+          firstStopName: 'Gare B',
+          lastStopName: 'Gare A',
+          origin: 'NON PUBLIÉE',
+          destination: 'NON PUBLIÉE',
+        ),
+        'Sens 1',
+      );
     });
   });
 }

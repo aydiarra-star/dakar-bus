@@ -153,8 +153,8 @@ void main() {
       expect(code.contains('AppColors.success'), isTrue);
     });
 
-    test('la couleur graphique du réseau TER reste marron (non modifiée)', () {
-      expect(AppColors.ter, const Color(0xFF8B4513));
+    test('la couleur graphique TER conserve la palette verte active', () {
+      expect(AppColors.ter, const Color(0xFF00B140));
     });
   });
 

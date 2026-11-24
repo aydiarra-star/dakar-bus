@@ -274,7 +274,7 @@ void main() {
       expect(attendre(DetailedRoute.fromOperator('brt'), 'BRT').color,
           AppColors.brt);
       // Les constantes de l'interface coïncident avec les colorHex du JSON.
-      expect(AppColors.ter, const Color(0xFF8B4513));
+      expect(AppColors.ter, const Color(0xFF00B140));
       expect(AppColors.brt, const Color(0xFF00B140));
     });
   });

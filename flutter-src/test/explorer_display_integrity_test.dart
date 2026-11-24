@@ -185,14 +185,13 @@ void main() {
   // ==================================================================
   group('D — identité de ligne : libellé documenté prioritaire', () {
     test('D1. un libellé de catalogue raccorde une variante de route_id', () {
-      // `DDD_15` n'est pas résolu par le numéro final du route_id ; le libellé
-      // documenté du catalogue, lui, le raccorde.
+      // AFTU_62 possède une preuve indépendante dans le catalogue.
       expect(
-        ScheduleProvider.identityLabelFor('DDD', 'DDD_15',
-            IdentityStatus.unconfirmed, documentedCatalogLabel: 'DDD 15'),
-        'DDD 15',
+        ScheduleProvider.identityLabelFor('AFTU', 'AFTU_62',
+            IdentityStatus.unconfirmed, documentedCatalogLabel: 'AFTU 62'),
+        'AFTU 62',
       );
-      // Sans preuve documentaire : repli honnête sur le MODE seul.
+      // DDD_15 reste ambigu entre 15A/15B : aucun numéro public n'est affiché.
       expect(
         ScheduleProvider.identityLabelFor('DDD', 'DDD_15',
             IdentityStatus.unconfirmed),
@@ -202,9 +201,9 @@ void main() {
 
     test('D2. un libellé de catalogue d\'un autre mode est ignoré', () {
       expect(
-        ScheduleProvider.identityLabelFor('DDD', 'DDD_15',
-            IdentityStatus.unconfirmed, documentedCatalogLabel: 'AFTU 15'),
-        'DDD',
+        ScheduleProvider.identityLabelFor('AFTU', 'AFTU_62',
+            IdentityStatus.unconfirmed, documentedCatalogLabel: 'DDD 62'),
+        'AFTU',
       );
     });
   });

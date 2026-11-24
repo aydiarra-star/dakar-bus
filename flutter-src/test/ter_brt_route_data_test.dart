@@ -156,13 +156,13 @@ void main() {
   group('§1 / §6 — Explorer ≠ itinéraire : les deux ensembles restent distincts',
       () {
     test('TER : Explorer conserve tous ses points existants', () {
-      final List<Stop> points = networkPoints(AppColors.ter);
+      final List<Stop> points = networkPointsForNetwork('TER');
       expect(points.length, kTerExplorerPoints,
           reason: 'aucun point d\'Explorer ne doit disparaître (§6, Test TER 1)');
     });
 
     test('BRT : Explorer conserve tous ses points existants', () {
-      final List<Stop> points = networkPoints(AppColors.brt);
+      final List<Stop> points = networkPointsForNetwork('BRT');
       expect(points.length, kBrtExplorerPoints,
           reason: 'aucun point d\'Explorer ne doit disparaître (§6, Test BRT 1)');
     });
@@ -173,7 +173,7 @@ void main() {
       // d'Explorer et l'ensemble des gares de l'itinéraire officiel sont
       // égaux (mêmes identifiants), tout en restant deux notions distinctes
       // (§1 / §6) : Explorer n'est pas construit à partir de l'itinéraire.
-      final Set<String> explorer = networkPoints(AppColors.ter)
+      final Set<String> explorer = networkPointsForNetwork('TER')
           .map((Stop s) => s.stopId)
           .whereType<String>()
           .toSet();
@@ -181,14 +181,14 @@ void main() {
           officialRouteStops(kTerRouteId)!.map((BusStop s) => s.id).toSet();
       expect(explorer, itineraire,
           reason: 'aucun point TER de démonstration, aucune gare manquante');
-      expect(networkPoints(AppColors.ter).every((Stop s) => s.stopId != null),
+      expect(networkPointsForNetwork('TER').every((Stop s) => s.stopId != null),
           true,
           reason: 'chaque point TER d\'Explorer est un arrêt de la source unique');
     });
 
     test('Explorer affiche EXACTEMENT les stations BRT officielles : mêmes points que B1',
         () {
-      final Set<String> explorer = networkPoints(AppColors.brt)
+      final Set<String> explorer = networkPointsForNetwork('BRT')
           .map((Stop s) => s.stopId)
           .whereType<String>()
           .toSet();
@@ -196,12 +196,12 @@ void main() {
           officialRouteStops(kBrtB1Id)!.map((BusStop s) => s.id).toSet();
       expect(explorer, itineraire,
           reason: 'aucune station BRT de démonstration, aucune station manquante');
-      expect(networkPoints(AppColors.brt).every((Stop s) => s.stopId != null),
+      expect(networkPointsForNetwork('BRT').every((Stop s) => s.stopId != null),
           true);
     });
 
     test('les 13 gares officielles TER sont bien présentes dans Explorer', () {
-      final Set<String> idsAffiches = networkPoints(AppColors.ter)
+      final Set<String> idsAffiches = networkPointsForNetwork('TER')
           .map((Stop s) => s.stopId)
           .whereType<String>()
           .toSet();
@@ -212,7 +212,7 @@ void main() {
     });
 
     test('les 23 stations officielles B1 sont bien présentes dans Explorer', () {
-      final Set<String> idsAffiches = networkPoints(AppColors.brt)
+      final Set<String> idsAffiches = networkPointsForNetwork('BRT')
           .map((Stop s) => s.stopId)
           .whereType<String>()
           .toSet();
@@ -512,7 +512,7 @@ void main() {
       // seuil de résolution de 250 m, et sans homonyme TER. Aucune
       // correspondance fiable : la fiche est `null`, jamais inventée.
       expect(
-          networkPoints(AppColors.ter)
+          networkPointsForNetwork('TER')
               .any((Stop s) => s.name == 'Gare TER Keur Mbaye Fall'),
           false,
           reason: 'la liste de démonstration TER ne doit pas être restaurée');
@@ -547,7 +547,7 @@ void main() {
       // station B1 la plus proche (`stop_brt_21_golf_nord`) et sans homonyme
       // parmi les stations BRT.
       expect(
-          networkPoints(AppColors.brt).any((Stop s) => s.name == 'PEM Guediawaye'),
+          networkPointsForNetwork('BRT').any((Stop s) => s.name == 'PEM Guediawaye'),
           false,
           reason: 'la liste de démonstration BRT ne doit pas être restaurée');
       const Stop legacy = Stop(
@@ -573,7 +573,7 @@ void main() {
     });
 
     test('une gare officielle résout bien vers sa ligne TER', () {
-      final List<Stop> candidats = networkPoints(AppColors.ter)
+      final List<Stop> candidats = networkPointsForNetwork('TER')
           .where((Stop s) => s.stopId == 'stop_thiaroye')
           .toList();
       expect(candidats.length, 1);
@@ -584,7 +584,7 @@ void main() {
     });
 
     test('une station officielle résout bien vers B1 et ses 23 stations', () {
-      final List<Stop> candidates = networkPoints(AppColors.brt)
+      final List<Stop> candidates = networkPointsForNetwork('BRT')
           .where((Stop s) => s.stopId == 'stop_brt_11_scat_urbam')
           .toList();
       expect(candidates.length, 1);
@@ -810,18 +810,18 @@ void main() {
       final List<Stop> prox;
       switch (filtre) {
         case 'TER':
-          prox = networkPoints(AppColors.ter);
+          prox = networkPointsForNetwork('TER');
           break;
         case 'BRT':
-          prox = networkPoints(AppColors.brt);
+          prox = networkPointsForNetwork('BRT');
           break;
         case 'DDD':
-          prox = networkPoints(AppColors.ddd);
+          prox = networkPointsForNetwork('DDD');
           break;
         default: // « Tous »
           prox = [
-            ...networkPoints(AppColors.ter),
-            ...networkPoints(AppColors.brt),
+            ...networkPointsForNetwork('TER'),
+            ...networkPointsForNetwork('BRT'),
           ];
           break;
       }
@@ -841,7 +841,7 @@ void main() {
       }
       expect(
           tous.where((Stop s) =>
-                  s.stopId != null && s.color == AppColors.ter).length,
+                  s.stopId != null && networkKeyForStop(s) == 'TER').length,
           13,
           reason: '13 marqueurs TER, un par gare officielle, sans doublon');
     });
@@ -856,7 +856,7 @@ void main() {
       }
       expect(
           tous.where((Stop s) =>
-                  s.stopId != null && s.color == AppColors.brt).length,
+                  s.stopId != null && networkKeyForStop(s) == 'BRT').length,
           23,
           reason: '23 marqueurs BRT, un par station officielle, sans doublon');
     });
@@ -870,12 +870,12 @@ void main() {
       final List<Stop> tous = markersFor('Tous');
       expect(
           tous.where((Stop s) =>
-              s.color == AppColors.ter && s.stopId == null).length,
+              networkKeyForStop(s) == 'TER' && s.stopId == null).length,
           0,
           reason: 'aucun arrêt TER de démonstration redessiné sur la carte');
       expect(
           tous.where((Stop s) =>
-              s.color == AppColors.brt && s.stopId == null).length,
+              networkKeyForStop(s) == 'BRT' && s.stopId == null).length,
           0,
           reason: 'aucune station BRT de démonstration redessinée sur la carte');
       expect(tous.length, 36,
@@ -888,9 +888,9 @@ void main() {
       expect(ter.length, 13, reason: 'un marqueur par gare officielle');
       expect(
           ter.where((Stop s) =>
-                  s.stopId != null && s.color == AppColors.ter).length,
+                  s.stopId != null && networkKeyForStop(s) == 'TER').length,
           13);
-      expect(ter.where((Stop s) => s.color == AppColors.brt).length, 0);
+      expect(ter.where((Stop s) => networkKeyForStop(s) == 'BRT').length, 0);
     });
 
     test('filtre BRT : exactement les 23 stations officielles, aucune gare TER',
@@ -899,9 +899,9 @@ void main() {
       expect(brt.length, 23, reason: 'un marqueur par station officielle');
       expect(
           brt.where((Stop s) =>
-                  s.stopId != null && s.color == AppColors.brt).length,
+                  s.stopId != null && networkKeyForStop(s) == 'BRT').length,
           23);
-      expect(brt.where((Stop s) => s.color == AppColors.ter).length, 0);
+      expect(brt.where((Stop s) => networkKeyForStop(s) == 'TER').length, 0);
     });
 
     test('chaque marqueur TER officiel est posé sur un sommet du tracé TER',
@@ -939,7 +939,7 @@ void main() {
     });
 
     test('hors TER/BRT (DDD, TATA, AFTU, Favoris) : comportement inchangé', () {
-      final List<Stop> prox = networkPoints(AppColors.ddd);
+      final List<Stop> prox = networkPointsForNetwork('DDD');
       final List<Stop> out = explorerMapMarkerStops(
           proximityStops: prox, terDisplayed: false, brtDisplayed: false);
       expect(out.length, prox.length,

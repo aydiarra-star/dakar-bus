@@ -1,0 +1,984 @@
+{
+  "schema": "passbi-route-identity-proofs/v1",
+  "verified_at": "2026-11-24",
+  "policy": "VERIFIED uniquement si le numéro public, la publication officielle et les deux terminus observés dans le feed concordent. Une égalité de numéro seule ne suffit pas. Les contradictions, variantes A/B et terminus ambigus restent UNVERIFIED.",
+  "counts": {
+    "verified": 48,
+    "unverified_public_lines": 72
+  },
+  "proofs": [
+    {
+      "operator": "AFTU",
+      "line_number": "2",
+      "route_id": "AFTU_2",
+      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-2/",
+      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Parcelles Assainies ↔ Petersen",
+      "basis": "L’itinéraire officiel AFTU ligne 2 part des Parcelles Assainies et termine à Petersen ; les deux extrémités correspondent à la route PassBi AFTU_2.",
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "A_1558",
+        "A_1633"
+      ],
+      "feed_terminal_stop_names": [
+        "Petersen 1",
+        "Terminus Parcelles Assainies"
+      ],
+      "feed_route_long_name": "AFTU_2_Parcelles-Assainies_Petersen"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "3",
+      "route_id": "AFTU_3",
+      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-3/",
+      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Yoff ↔ Petersen",
+      "basis": "L’itinéraire officiel AFTU ligne 3 relie Yoff-Village à Petersen ; la route PassBi AFTU_3 porte les mêmes extrémités.",
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "A_1250",
+        "A_1633"
+      ],
+      "feed_terminal_stop_names": [
+        "Petersen 1",
+        "Yoff"
+      ],
+      "feed_route_long_name": "AFTU_3_Petersen_Yoff"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "5",
+      "route_id": "AFTU_5",
+      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-5/",
+      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Parcelles Assainies ↔ Petersen",
+      "basis": "L’itinéraire officiel AFTU ligne 5 relie les Parcelles Assainies à Petersen ; concordance des extrémités de AFTU_5.",
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "A_1558",
+        "A_1633"
+      ],
+      "feed_terminal_stop_names": [
+        "Petersen 1",
+        "Terminus Parcelles Assainies"
+      ],
+      "feed_route_long_name": "AFTU_5_Parcelles-Assainies_Petersen"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "25",
+      "route_id": "AFTU_25",
+      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-25/",
+      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Parcelles Assainies ↔ Petersen",
+      "basis": "L’itinéraire officiel AFTU ligne 25 relie les Parcelles Assainies à Petersen ; concordance des extrémités de AFTU_25.",
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "A_1558",
+        "A_1633"
+      ],
+      "feed_terminal_stop_names": [
+        "Petersen 1",
+        "Terminus Parcelles Assainies"
+      ],
+      "feed_route_long_name": "AFTU_25_Parcelle-Assainies_Petersen"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "30",
+      "route_id": "AFTU_30",
+      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-30/",
+      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Gadaye ↔ Gare de Colobane",
+      "basis": "L’itinéraire officiel AFTU 30 relie Gadaye à la Gare de Colobane. Le feed AFTU_30 dessert Colobane et le terminus partagé 30/49, corroboré par la ligne 49 officielle qui part également de Gadaye.",
+      "verified_at": "2026-11-24",
+      "feed_route_long_name": "AFTU_30_Colobane_Gadaye",
+      "feed_terminal_stop_ids": [
+        "A_1564",
+        "A_453"
+      ],
+      "feed_terminal_stop_names": [
+        "Colobane",
+        "Terminus 30 49"
+      ]
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "32",
+      "route_id": "AFTU_32",
+      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-32/",
+      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Sahm ↔ Serigne Assane",
+      "basis": "Les stop_times de AFTU_32 terminent à Sahm et Serigne Assane, exactement comme l’itinéraire officiel AFTU 32. Le long_name PassBi conserve un ancien libellé Daroukhane ; les terminus réels du feed et l’itinéraire officiel concordent.",
+      "verified_at": "2026-11-24",
+      "feed_route_long_name": "AFTU_32_Daroukhane_Sham",
+      "feed_terminal_stop_ids": [
+        "A_420",
+        "A_890"
+      ],
+      "feed_terminal_stop_names": [
+        "Serigne Assane Terminus 32 33",
+        "Sham Terminus 32  31"
+      ]
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "33",
+      "route_id": "AFTU_33",
+      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-33/",
+      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Gare de Colobane ↔ Serigne Assane",
+      "basis": "Les stop_times de AFTU_33 terminent à Colobane et Serigne Assane, exactement comme l’itinéraire officiel AFTU 33. Le long_name PassBi conserve un ancien libellé Daroukhane ; les terminus réels du feed et l’itinéraire officiel concordent.",
+      "verified_at": "2026-11-24",
+      "feed_route_long_name": "AFTU_33_Colobane_Daroukane",
+      "feed_terminal_stop_ids": [
+        "A_1911",
+        "A_420"
+      ],
+      "feed_terminal_stop_names": [
+        "Gare Routiére De Colobane",
+        "Serigne Assane Terminus 32 33"
+      ]
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "34",
+      "route_id": "AFTU_34",
+      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-34/",
+      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Nord Foire ↔ Lat Dior",
+      "basis": "L’itinéraire officiel AFTU 34 relie Nord Foire à Lat Dior ; les terminus du feed sont Ecole Japonaise Nord Foire et Lat Dior.",
+      "verified_at": "2026-11-24",
+      "feed_route_long_name": "AFTU_34_LAT-DIOR_Nord-Foire",
+      "feed_terminal_stop_ids": [
+        "A_1062",
+        "A_1601"
+      ],
+      "feed_terminal_stop_names": [
+        "Ecole Japonaise Nord Foire",
+        "Lat Dior"
+      ]
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "35",
+      "route_id": "AFTU_35",
+      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-35/",
+      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Pikine Texaco ↔ Ngor",
+      "basis": "L’itinéraire officiel AFTU 35 relie Pikine Texaco à Ngor ; les terminus du feed sont Texaco et Garage Ngor.",
+      "verified_at": "2026-11-24",
+      "feed_route_long_name": "AFTU_35_Ngor_Pikine-Texaco",
+      "feed_terminal_stop_ids": [
+        "A_1751",
+        "A_447"
+      ],
+      "feed_terminal_stop_names": [
+        "Garage Ngor",
+        "Texaco"
+      ]
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "37",
+      "route_id": "AFTU_37",
+      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-37/",
+      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "APIX ↔ UCAD (Claudel)",
+      "basis": "L’itinéraire officiel AFTU 37 relie APIX à l’UCAD (Claudel) ; le long_name du feed AFTU_37 porte exactement APIX_UCAD et ses stop_times sont conservés dans le registre de terminus.",
+      "verified_at": "2026-11-24",
+      "feed_route_long_name": "AFTU_37_APIX_UCAD",
+      "feed_terminal_stop_ids": [
+        "A_1557",
+        "A_1565"
+      ],
+      "feed_terminal_stop_names": [
+        "Terminus 37 50",
+        "Terminus 37 71"
+      ]
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "39",
+      "route_id": "AFTU_39",
+      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-39/",
+      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Lat Dior ↔ Diamalaye",
+      "basis": "L’itinéraire officiel AFTU 39 relie Lat Dior à Diamalaye ; les terminus du feed sont Lat Dior et Diamalaye.",
+      "verified_at": "2026-11-24",
+      "feed_route_long_name": "AFTU_39_Diamalaye_Lat Dior",
+      "feed_terminal_stop_ids": [
+        "A_1601",
+        "A_299"
+      ],
+      "feed_terminal_stop_names": [
+        "Lat Dior",
+        "Terminus 59-39-69-80 Près De La Plage De Diamalaye"
+      ]
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "40",
+      "route_id": "AFTU_40",
+      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-40/",
+      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Grand Mbao ↔ Petersen",
+      "basis": "L’itinéraire officiel AFTU 40 relie Grand Mbao à Petersen ; les terminus du feed sont Grand Mbao et Petersen.",
+      "verified_at": "2026-11-24",
+      "feed_route_long_name": "AFTU_40_Mbao_Petersen",
+      "feed_terminal_stop_ids": [
+        "A_1559",
+        "A_623"
+      ],
+      "feed_terminal_stop_names": [
+        "Petersen 2",
+        "Terminus Grand Mbao"
+      ]
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "42",
+      "route_id": "AFTU_42",
+      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-42/",
+      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Gadaye ↔ Ouakam Baye",
+      "basis": "L’itinéraire officiel AFTU 42 relie Gadaye à Ouakam Baye ; les stop_times du feed terminent au terminus partagé 30/49 de Gadaye et devant le terminus 42/44 du Marché Jeudi à Ouakam Baye.",
+      "verified_at": "2026-11-24",
+      "feed_route_long_name": "AFTU_42_Gadaye_Ouakam",
+      "feed_terminal_stop_ids": [
+        "A_1746",
+        "A_453"
+      ],
+      "feed_terminal_stop_names": [
+        "Devant Terminus 42 Et 44 Marché Jeudi",
+        "Terminus 30 49"
+      ]
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "44",
+      "route_id": "AFTU_44",
+      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-44/",
+      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Grand Mbao ↔ Ouakam",
+      "basis": "L’itinéraire officiel AFTU 44 relie Grand Mbao à Ouakam ; les terminus du feed sont Grand Mbao et Ouakam.",
+      "verified_at": "2026-11-24",
+      "feed_route_long_name": "AFTU_44_Mbao_Ouakam",
+      "feed_terminal_stop_ids": [
+        "A_6",
+        "A_623"
+      ],
+      "feed_terminal_stop_names": [
+        "Terminus 43",
+        "Terminus Grand Mbao"
+      ]
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "46",
+      "route_id": "AFTU_46",
+      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-46/",
+      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "SDE Serigne Assane ↔ Lat Dior",
+      "basis": "Les stop_times de AFTU_46 terminent à SDE Serigne Assane et Lat Dior, exactement comme l’itinéraire officiel AFTU 46. Le long_name PassBi utilise Guédiawaye comme zone générale ; les terminus réels du feed et l’itinéraire officiel concordent.",
+      "verified_at": "2026-11-24",
+      "feed_route_long_name": "AFTU_46_Guediawaye_Lat Dior",
+      "feed_terminal_stop_ids": [
+        "A_1601",
+        "A_527"
+      ],
+      "feed_terminal_stop_names": [
+        "Lat Dior",
+        "Serigne Assane Terminus 36 46 70"
+      ]
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "49",
+      "route_id": "AFTU_49",
+      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-49/",
+      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Gadaye ↔ Ngor",
+      "basis": "L’itinéraire officiel AFTU 49 relie Gadaye à Ngor ; les terminus du feed sont le terminus partagé 30/49 à Gadaye et Garage Ngor.",
+      "verified_at": "2026-11-24",
+      "feed_route_long_name": "AFTU_49_Gadaye_Ngor",
+      "feed_terminal_stop_ids": [
+        "A_1751",
+        "A_453"
+      ],
+      "feed_terminal_stop_names": [
+        "Garage Ngor",
+        "Terminus 30 49"
+      ]
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "51",
+      "route_id": "AFTU_51",
+      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-51/",
+      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Jaxaay ↔ Gare des Baux Maraîchers",
+      "basis": "L’itinéraire officiel AFTU 51 relie Jaxaay à la Gare des Baux Maraîchers ; les terminus du feed concordent.",
+      "verified_at": "2026-11-24",
+      "feed_route_long_name": "AFTU_51_Baux Maraichers_Jaxaay",
+      "feed_terminal_stop_ids": [
+        "A_1570",
+        "A_90"
+      ],
+      "feed_terminal_stop_names": [
+        "Gare Des Baux MaraîChers",
+        "Terminus Pénitence"
+      ]
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "54",
+      "route_id": "AFTU_54",
+      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-54/",
+      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Keur Massar (MTOA) ↔ UCAD",
+      "basis": "L’itinéraire officiel AFTU 54 relie MTOA à l’UCAD ; le feed identifie MTOA et le terminus partagé 37/71 de l’UCAD-Claudel, corroboré par les itinéraires officiels 37 et 71.",
+      "verified_at": "2026-11-24",
+      "feed_route_long_name": "AFTU_54_M T O A_UCAD",
+      "feed_terminal_stop_ids": [
+        "A_1557",
+        "A_599"
+      ],
+      "feed_terminal_stop_names": [
+        "Terminus 37 71",
+        "Terminus 54 Pres De La Pharmacie Pascal"
+      ]
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "60",
+      "route_id": "AFTU_60",
+      "official_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Colobane ↔ Bargny",
+      "basis": "La fiche officielle AFTU liste la ligne 60 Colobane-Bargny ; les deux terminus du feed AFTU_60 sont Colobane et Bargny.",
+      "verified_at": "2026-11-24",
+      "feed_route_long_name": "AFTU_60_bargny_Colobane",
+      "feed_terminal_stop_ids": [
+        "A_1564",
+        "A_2182",
+        "A_372"
+      ],
+      "feed_terminal_stop_names": [
+        "Colobane",
+        "Diouma Ndal Dalli",
+        "En Face Angle Baye Laye"
+      ]
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "62",
+      "route_id": "AFTU_62",
+      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-62/",
+      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Arrêt Chérif (Rufisque) ↔ Penc Mi (Gueule Tapée)",
+      "basis": "L’itinéraire officiel AFTU ligne 62 et les extrémités PassBi AFTU_62 concordent sur Arrêt Chérif et Penc Mi.",
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "A_146",
+        "A_1730",
+        "A_876",
+        "A_877"
+      ],
+      "feed_terminal_stop_names": [
+        "Arrêt Chérif (Rufisque Nord)",
+        "Gueule Tapée Rue Gt-49",
+        "Penc-Mi Boulevard Gueule Tapée",
+        "Terminus 62 (Rufisque Nord)"
+      ],
+      "feed_route_long_name": "AFTU_62_gueule tapee_youssou mbergane"
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "67",
+      "route_id": "AFTU_67",
+      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-67/",
+      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Thiawlène ↔ Ouakam",
+      "basis": "L’itinéraire officiel AFTU 67 relie Thiawlène à Ouakam ; le long_name du feed AFTU_67 porte exactement Ouakam-Thiawlène et l’un des terminus du feed est explicitement Ouakam.",
+      "verified_at": "2026-11-24",
+      "feed_route_long_name": "AFTU_67_Ouakam_thiawlene",
+      "feed_terminal_stop_ids": [
+        "A_1541",
+        "A_378"
+      ],
+      "feed_terminal_stop_names": [
+        "Ouakam Terminus 67",
+        "Terminus 67"
+      ]
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "70",
+      "route_id": "AFTU_70",
+      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-70/",
+      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Daroukhane (Keur Serigne Assane) ↔ Jaxaay 2",
+      "basis": "L’itinéraire officiel AFTU 70 relie Daroukhane Keur Serigne Assane à Jaxaay 2 ; les stop_times du feed terminent à Serigne Assane et au terminus Jaxaay 2 Pénitence. Le long_name PassBi conserve Diaxaye comme ancien libellé de destination.",
+      "verified_at": "2026-11-24",
+      "feed_route_long_name": "AFTU_70_darouhane_diaxaye",
+      "feed_terminal_stop_ids": [
+        "A_414",
+        "A_527"
+      ],
+      "feed_terminal_stop_names": [
+        "Jaxaay 2 En Face Cabinet Médical Matlaboul Chifa I",
+        "Serigne Assane Terminus 36 46 70"
+      ]
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "71",
+      "route_id": "AFTU_71",
+      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-71/",
+      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Keur Massar Extension ↔ Claudel (UCAD)",
+      "basis": "L’itinéraire officiel AFTU 71 relie Keur Massar Extension à Claudel ; le feed identifie Keur Massar et le terminus partagé 37/71 de l’UCAD-Claudel.",
+      "verified_at": "2026-11-24",
+      "feed_route_long_name": "AFTU_71_claudel_KEUR MASSAR",
+      "feed_terminal_stop_ids": [
+        "A_1557",
+        "A_531"
+      ],
+      "feed_terminal_stop_names": [
+        "Pharmacie Elimane Aly Drame Keur Massar",
+        "Terminus 37 71"
+      ]
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "73",
+      "route_id": "AFTU_73",
+      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-73/",
+      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Poste Thiaroye ↔ Lac Rose",
+      "basis": "L’itinéraire officiel AFTU 73 relie Poste Thiaroye à Lac Rose ; le long_name du feed AFTU_73 porte exactement ces deux terminus et son arrêt de départ est Station Ciel Oil.",
+      "verified_at": "2026-11-24",
+      "feed_route_long_name": "AFTU_73_Lac Rose_POSTE THIAROYE",
+      "feed_terminal_stop_ids": [
+        "A_266",
+        "A_559",
+        "A_586"
+      ],
+      "feed_terminal_stop_names": [
+        "Station Ciel Oil",
+        "Terminus De La Ligne 73"
+      ]
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "75",
+      "route_id": "AFTU_75",
+      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-75/",
+      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Malika (Cité Sonatel) ↔ Gare de Colobane",
+      "basis": "L’itinéraire officiel AFTU 75 relie Malika Cité Sonatel à Colobane ; les terminus du feed sont Terminus75 Malika et Colobane.",
+      "verified_at": "2026-11-24",
+      "feed_route_long_name": "AFTU_75_Colobane_MALIKA",
+      "feed_terminal_stop_ids": [
+        "A_1564",
+        "A_1661"
+      ],
+      "feed_terminal_stop_names": [
+        "Colobane",
+        "Terminus 75 Malika"
+      ]
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "76",
+      "route_id": "AFTU_76",
+      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-76/",
+      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Sipres ↔ Cité Assurance",
+      "basis": "L’itinéraire officiel AFTU 76 relie Sipres à Cité Assurance ; le long_name du feed AFTU_76 porte exactement Assurance-Sipress et les deux terminus du feed sont les terminus dédiés de la ligne 76.",
+      "verified_at": "2026-11-24",
+      "feed_route_long_name": "AFTU_76_ASSURANCE_SIPRESS",
+      "feed_terminal_stop_ids": [
+        "A_1545",
+        "A_1546"
+      ],
+      "feed_terminal_stop_names": [
+        "Onfp Terminus 76",
+        "Terminus 76"
+      ]
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "78",
+      "route_id": "AFTU_78",
+      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-78/",
+      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Diamaguène ↔ Liberté 5",
+      "basis": "L’itinéraire officiel AFTU 78 relie Diamaguène à Liberté 5 ; les terminus du feed sont Marché Diamaguène et Terminus Liberté 5.",
+      "verified_at": "2026-11-24",
+      "feed_route_long_name": "AFTU_78_DIAMAGUENE_LIBERTE 5",
+      "feed_terminal_stop_ids": [
+        "A_1421",
+        "A_648"
+      ],
+      "feed_terminal_stop_names": [
+        "Marche Diamegeune",
+        "Terminus Liberté 5"
+      ]
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "80",
+      "route_id": "AFTU_80",
+      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-80/",
+      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Diamalaye ↔ Darou Thioub",
+      "basis": "L’itinéraire officiel AFTU 80 relie Diamalaye à Darou Thioub ; les terminus du feed concordent exactement.",
+      "verified_at": "2026-11-24",
+      "feed_route_long_name": "AFTU_80_DAROU THIOUB_Diamalaye",
+      "feed_terminal_stop_ids": [
+        "A_1549",
+        "A_299"
+      ],
+      "feed_terminal_stop_names": [
+        "Terminus 59-39-69-80 Près De La Plage De Diamalaye",
+        "Terminus 80"
+      ]
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "82",
+      "route_id": "AFTU_82",
+      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-82/",
+      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Comico Yeumbeul ↔ Lat Dior",
+      "basis": "L’itinéraire officiel AFTU 82 relie Comico Yeumbeul à Lat Dior ; les terminus du feed identifient Yeumbeul Nord/Comico et Lat Dior.",
+      "verified_at": "2026-11-24",
+      "feed_route_long_name": "AFTU_82_CITE COMICO_Lat Dior",
+      "feed_terminal_stop_ids": [
+        "A_118",
+        "A_1629",
+        "A_50"
+      ],
+      "feed_terminal_stop_names": [
+        "Garage Lat Dior",
+        "Service D'Hygiène",
+        "Terminus 43 Yeumbeul Nord"
+      ]
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "83",
+      "route_id": "AFTU_83",
+      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-83/",
+      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Rufisque Arafat ↔ Zone de Captage",
+      "basis": "L’itinéraire officiel AFTU 83 relie Rufisque Arafat à Zone de Captage ; les terminus du feed sont Sonadis à Rufisque et Zone de Captage.",
+      "verified_at": "2026-11-24",
+      "feed_route_long_name": "AFTU_83_ARAFAT_ZONE CAPTAGE",
+      "feed_terminal_stop_ids": [
+        "A_1047",
+        "A_1651",
+        "A_710"
+      ],
+      "feed_terminal_stop_names": [
+        "Rufisque Ville Devant La Boutique Orange À  Coté De La Mairie",
+        "Sonadis près du Jardin En Face Hôtel De Ville",
+        "Zone De Captage"
+      ]
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "84",
+      "route_id": "AFTU_84",
+      "official_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "UCAD ↔ Jaxaay",
+      "basis": "La fiche officielle AFTU liste la ligne 84 UCAD-Jaxaay ; le long_name du feed AFTU_84 porte Jaxaay-UCAD et ses terminus observés sont Jaxaay 2 et l’arrêt derrière l’UCAD.",
+      "verified_at": "2026-11-24",
+      "feed_route_long_name": "AFTU_84_Jaxaay_UCAD",
+      "feed_terminal_stop_ids": [
+        "A_1571",
+        "A_1933",
+        "A_292"
+      ],
+      "feed_terminal_stop_names": [
+        "Delafosse Commerce",
+        "Jaxaay 2 Pénitence",
+        "Terminus 84_54Derrière Ucad En Face Canal 4"
+      ]
+    },
+    {
+      "operator": "DDD",
+      "line_number": "1",
+      "route_id": "DDD_01",
+      "official_reference": "https://demdikk.sn/info-voyageurs/",
+      "catalog_reference": "https://demdikk.sn/info-voyageurs/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Parcelles Assainies ↔ Place Leclerc",
+      "basis": "La publication DDD ligne 1 et les terminus du feed DDD_01 concordent : Parcelles Assainies et Leclerc.",
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "D_140",
+        "D_805"
+      ],
+      "feed_terminal_stop_names": [
+        "Terminus Leclerc",
+        "Terminus Parcelles Assaines"
+      ],
+      "feed_route_long_name": "DDD_01_LECLERC_PARCELLES-ASSAINIES"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "2",
+      "route_id": "DDD_02",
+      "official_reference": "https://demdikk.sn/info-voyageurs/",
+      "catalog_reference": "https://demdikk.sn/info-voyageurs/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Daroukhane ↔ Place Leclerc",
+      "basis": "La publication DDD ligne 2 et les terminus du feed DDD_02 concordent : Daroukhane et Leclerc.",
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "D_1056",
+        "D_140"
+      ],
+      "feed_terminal_stop_names": [
+        "Terminus Daroukhane",
+        "Terminus Leclerc"
+      ],
+      "feed_route_long_name": "DDD_02_DAROUKHANE_LECLERC"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "4",
+      "route_id": "DDD_04",
+      "official_reference": "https://demdikk.sn/info-voyageurs/",
+      "catalog_reference": "https://demdikk.sn/info-voyageurs/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Liberté 5 ↔ Place Leclerc",
+      "basis": "La publication DDD ligne 4 et les terminus du feed DDD_04 concordent : Liberté 5 et Leclerc.",
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "D_140",
+        "D_713"
+      ],
+      "feed_terminal_stop_names": [
+        "Terminus Leclerc",
+        "Terminus Liberté 5"
+      ],
+      "feed_route_long_name": "DDD_04_DIEUPPEUL_LECLERC"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "5",
+      "route_id": "DDD_05",
+      "official_reference": "https://demdikk.sn/info-voyageurs/",
+      "catalog_reference": "https://demdikk.sn/info-voyageurs/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Guédiawaye ↔ Palais 1",
+      "basis": "La publication DDD ligne 5 et les terminus du feed DDD_05 concordent : Guédiawaye et Palais 1.",
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "D_1082",
+        "D_709"
+      ],
+      "feed_terminal_stop_names": [
+        "Terminus Guédiawayee",
+        "Terminus Palais 1"
+      ],
+      "feed_route_long_name": "DDD_05_GUEDIAWAYE_PALAIS1"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "6",
+      "route_id": "DDD_06",
+      "official_reference": "https://demdikk.sn/info-voyageurs/",
+      "catalog_reference": "https://demdikk.sn/info-voyageurs/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Cambérène 2 ↔ Palais 2",
+      "basis": "La publication DDD ligne 6 et les terminus du feed DDD_06 concordent : Cambérène 2 et Palais 2.",
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "D_1227",
+        "D_708"
+      ],
+      "feed_terminal_stop_names": [
+        "Terminus Canberene 2",
+        "Terminus Palais 2"
+      ],
+      "feed_route_long_name": "DDD_06_CAMBERENE_PALAIS2"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "8",
+      "route_id": "DDD_08",
+      "official_reference": "https://demdikk.sn/info-voyageurs/",
+      "catalog_reference": "https://demdikk.sn/info-voyageurs/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Aéroport LSS ↔ Palais 2",
+      "basis": "La publication DDD ligne 8 et les terminus du feed DDD_08 concordent : Aéroport LSS et Palais 2.",
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "D_1229",
+        "D_708"
+      ],
+      "feed_terminal_stop_names": [
+        "AéRoport LéOpold SéDar Senghor",
+        "Terminus Palais 2"
+      ],
+      "feed_route_long_name": "DDD_08_AEROPORT-LSS_PALAIS-02"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "9",
+      "route_id": "DDD_09",
+      "official_reference": "https://demdikk.sn/info-voyageurs/",
+      "catalog_reference": "https://demdikk.sn/info-voyageurs/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Liberté 6 ↔ Palais 2",
+      "basis": "La publication DDD ligne 9 et les terminus du feed DDD_09 concordent : Liberté 6 et Palais 2.",
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "D_450",
+        "D_708"
+      ],
+      "feed_terminal_stop_names": [
+        "Terminus 9 Liberté 6",
+        "Terminus Palais 2"
+      ],
+      "feed_route_long_name": "DDD_09_LIBERTE-06_PALAIS-02"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "10",
+      "route_id": "DDD_10",
+      "official_reference": "https://demdikk.sn/info-voyageurs/",
+      "catalog_reference": "https://demdikk.sn/info-voyageurs/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Liberté 5 ↔ Palais 2",
+      "basis": "La publication DDD ligne 10 et les terminus du feed DDD_10 concordent : Liberté 5 et Palais 2.",
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "D_708",
+        "D_713"
+      ],
+      "feed_terminal_stop_names": [
+        "Terminus Liberté 5",
+        "Terminus Palais 2"
+      ],
+      "feed_route_long_name": "DDD_10_LIBERTE 5_PALAIS-02"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "11",
+      "route_id": "DDD_11",
+      "official_reference": "https://demdikk.sn/info-voyageurs/",
+      "catalog_reference": "https://demdikk.sn/info-voyageurs/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Keur Massar ↔ Lat Dior",
+      "basis": "La publication DDD ligne 11 et les terminus du feed DDD_11 concordent : Keur Massar et Lat Dior.",
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "D_1266",
+        "D_989"
+      ],
+      "feed_terminal_stop_names": [
+        "Lat-Dior",
+        "Terminus Keur Massar"
+      ],
+      "feed_route_long_name": "DDD_11_KEUR MASSAR_LAT DIOR"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "12",
+      "route_id": "DDD_12",
+      "official_reference": "https://demdikk.sn/info-voyageurs/",
+      "catalog_reference": "https://demdikk.sn/info-voyageurs/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Guédiawaye ↔ Palais 1",
+      "basis": "La publication DDD ligne 12 et les terminus du feed DDD_12 concordent : Guédiawaye et Palais 1.",
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "D_1082",
+        "D_709"
+      ],
+      "feed_terminal_stop_names": [
+        "Terminus Guédiawayee",
+        "Terminus Palais 1"
+      ],
+      "feed_route_long_name": "DDD_12_Guediawaye_Palais-1"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "13",
+      "route_id": "DDD_13",
+      "official_reference": "https://demdikk.sn/info-voyageurs/",
+      "catalog_reference": "https://demdikk.sn/info-voyageurs/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Liberté 5 ↔ Palais 2",
+      "basis": "La publication DDD ligne 13 et les terminus du feed DDD_13 concordent : Liberté 5 et Palais 2.",
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "D_708",
+        "D_713"
+      ],
+      "feed_terminal_stop_names": [
+        "Terminus Liberté 5",
+        "Terminus Palais 2"
+      ],
+      "feed_route_long_name": "DDD_13_PALAIS-02_TERMINUS-DIEUPPEUL"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "121",
+      "route_id": "DDD_121",
+      "official_reference": "https://demdikk.sn/info-voyageurs/",
+      "catalog_reference": "https://demdikk.sn/info-voyageurs/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "SCAT Urbam ↔ Terminus Leclerc",
+      "basis": "La publication officielle DDD ligne 121 indique SCAT Urbam-Leclerc ; le feed DDD_121 porte le long_name SCAT URBAM-LECLERC et les terminus observés sont Terminus 121 et Terminus Leclerc.",
+      "verified_at": "2026-11-24",
+      "feed_route_long_name": "DDD_121_LECLERC_SCAT URBAM",
+      "feed_terminal_stop_ids": [
+        "D_1264",
+        "D_140"
+      ],
+      "feed_terminal_stop_names": [
+        "Terminus 121",
+        "Terminus Leclerc"
+      ]
+    },
+    {
+      "operator": "DDD",
+      "line_number": "208",
+      "route_id": "DDD_208",
+      "official_reference": "https://demdikk.sn/info-voyageurs/",
+      "catalog_reference": "https://demdikk.sn/info-voyageurs/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Bayakh ↔ Rufisque",
+      "basis": "La publication DDD ligne 208 et les terminus du feed DDD_208 concordent : Bayakh et Rufisque.",
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "D_1265",
+        "D_961"
+      ],
+      "feed_terminal_stop_names": [
+        "Bayakh",
+        "Terminus Rufisque P15"
+      ],
+      "feed_route_long_name": "DDD_208_BAYAKH_RUFISQUE"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "227",
+      "route_id": "DDD_227",
+      "official_reference": "https://demdikk.sn/info-voyageurs/",
+      "catalog_reference": "https://demdikk.sn/info-voyageurs/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Keur Massar ↔ Parcelles Assainies",
+      "basis": "La publication DDD ligne 227 et les terminus du feed DDD_227 concordent : Keur Massar et Parcelles Assainies.",
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "D_805",
+        "D_989"
+      ],
+      "feed_terminal_stop_names": [
+        "Terminus Keur Massar",
+        "Terminus Parcelles Assaines"
+      ],
+      "feed_route_long_name": "DDD_227_KEUR-MASSAR_TERMINUS-PARCELLES"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "232",
+      "route_id": "DDD_232",
+      "official_reference": "https://demdikk.sn/info-voyageurs/",
+      "catalog_reference": "https://demdikk.sn/info-voyageurs/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Baux Maraîchers ↔ Aéroport LSS",
+      "basis": "La publication DDD ligne 232 et les terminus du feed DDD_232 concordent : Baux Maraîchers et Aéroport LSS.",
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "D_1229",
+        "D_1254"
+      ],
+      "feed_terminal_stop_names": [
+        "AéRoport LéOpold SéDar Senghor",
+        "Gare Des Baux MaraichéRs"
+      ],
+      "feed_route_long_name": "DDD_232_AEROPORT_BAUX-MARAICHERS"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "233",
+      "route_id": "DDD_233",
+      "official_reference": "https://demdikk.sn/info-voyageurs/",
+      "catalog_reference": "https://demdikk.sn/info-voyageurs/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Baux Maraîchers ↔ Palais 1",
+      "basis": "La publication DDD ligne 233 et les terminus du feed DDD_233 concordent : Baux Maraîchers et Palais 1.",
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "D_1254",
+        "D_709"
+      ],
+      "feed_terminal_stop_names": [
+        "Gare Des Baux MaraichéRs",
+        "Terminus Palais 1"
+      ],
+      "feed_route_long_name": "DDD_233_BAUX-MARAICHERS_ Palais-1"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "234",
+      "route_id": "DDD_234",
+      "official_reference": "https://demdikk.sn/info-voyageurs/",
+      "catalog_reference": "https://demdikk.sn/info-voyageurs/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Jaxaay ↔ Terminus Leclerc",
+      "basis": "La publication officielle DDD ligne 234 indique Jaxaay-Leclerc ; le feed DDD_234 porte le long_name JAXAAY-LECLERC et les terminus observés sont Terminus La Linguère et Terminus Leclerc.",
+      "verified_at": "2026-11-24",
+      "feed_route_long_name": "DDD_234_JAXAAY_LECLERC",
+      "feed_terminal_stop_ids": [
+        "D_1181",
+        "D_140"
+      ],
+      "feed_terminal_stop_names": [
+        "Terminus La LinguèRe",
+        "Terminus Leclerc"
+      ]
+    }
+  ]
+}

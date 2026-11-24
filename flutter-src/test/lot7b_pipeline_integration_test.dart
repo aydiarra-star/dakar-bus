@@ -155,27 +155,28 @@ void main() {
       ));
       await t.pump();
 
-      // Le composant rend, à l'instant Dakar courant, soit les minutes réelles
-      // calculées par le pipeline (« N mn · … », vert), soit l'indicateur neutre
-      // « Horaire indisponible ». Aucun autre texte n'est admis.
+      // Aucun prochain passage calculable à l'instant courant : la carte reste
+      // neutre. Si un passage réel est disponible, seul son compte à rebours
+      // vert est admis ; le texte « Horaire indisponible » est interdit.
       final Finder finder = find.byWidgetPredicate(_isDepartureOrUnavailable);
-      expect(finder, findsWidgets);
-      final Text rendered = t.widget<Text>(finder.first);
-      final String text = rendered.data!;
-      if (_isServiceEndedText(text) ||
-          text == ReliabilityLabel.scheduleUnavailable) {
-        expect(rendered.style?.color, isNot(app.AppColors.success));
-      } else {
-        expect(rendered.style?.color, app.AppColors.success,
-            reason: 'un délai réel est VERT : « $text »');
-        for (final m in RegExp(r'\d+').allMatches(text)) {
-          expect(int.parse(m.group(0)!), greaterThanOrEqualTo(1),
-              reason: 'jamais 0 mn');
+      expect(find.text(ReliabilityLabel.scheduleUnavailable), findsNothing);
+      if (finder.evaluate().isNotEmpty) {
+        final Text rendered = t.widget<Text>(finder.first);
+        final String text = rendered.data!;
+        if (_isServiceEndedText(text)) {
+          expect(rendered.style?.color, isNot(app.AppColors.success));
+        } else {
+          expect(rendered.style?.color, app.AppColors.success,
+              reason: 'un délai réel est VERT : « $text »');
+          for (final m in RegExp(r'\d+').allMatches(text)) {
+            expect(int.parse(m.group(0)!), greaterThanOrEqualTo(1),
+                reason: 'jamais 0 mn');
+          }
         }
+        expect(text.contains('moins'), isFalse);
+        expect(text.toLowerCase().contains('fréquence'), isFalse);
+        expect(RegExp(r'\d\s*[–-]\s*\d').hasMatch(text), isFalse);
       }
-      expect(text.contains('moins'), isFalse);
-      expect(text.toLowerCase().contains('fréquence'), isFalse);
-      expect(RegExp(r'\d\s*[–-]\s*\d').hasMatch(text), isFalse);
     });
   });
 
@@ -208,18 +209,19 @@ void main() {
       await t.pumpWidget(MaterialApp(home: Scaffold(body: app.SingleStopView(stop: stop))));
       await t.pump();
 
-      // La fiche arrêt rend les minutes réelles calculées (« N mn · … », vert)
-      // à l'instant Dakar courant, ou « Horaire indisponible ». Rien d'autre.
+      // La fiche reste neutre si aucun stop_time n'est calculable maintenant.
+      // Si un passage réel apparaît, son délai est vert ; aucun message
+      // « Horaire indisponible » n'est autorisé.
       final Finder finder = find.byWidgetPredicate(_isDepartureOrUnavailable);
-      expect(finder, findsWidgets);
-      final Text rendered = t.widget<Text>(finder.first);
-      final String text = rendered.data!;
-      if (!_isServiceEndedText(text) &&
-          text != ReliabilityLabel.scheduleUnavailable) {
-        expect(rendered.style?.color, app.AppColors.success);
-        for (final m in RegExp(r'\d+').allMatches(text)) {
-          expect(int.parse(m.group(0)!), greaterThanOrEqualTo(1),
-              reason: 'jamais 0 mn');
+      expect(find.text(ReliabilityLabel.scheduleUnavailable), findsNothing);
+      if (finder.evaluate().isNotEmpty) {
+        final Text rendered = t.widget<Text>(finder.first);
+        if (!_isServiceEndedText(rendered.data!)) {
+          expect(rendered.style?.color, app.AppColors.success);
+          for (final m in RegExp(r'\d+').allMatches(rendered.data!)) {
+            expect(int.parse(m.group(0)!), greaterThanOrEqualTo(1),
+                reason: 'jamais 0 mn');
+          }
         }
       }
     });
@@ -269,13 +271,14 @@ void main() {
       await t.pump();
 
       final Finder finder = find.byWidgetPredicate(_isDepartureOrUnavailable);
-      expect(finder, findsWidgets);
-      final Text rendered = t.widget<Text>(finder.first);
-      if (!_isServiceEndedText(rendered.data!) &&
-          rendered.data != ReliabilityLabel.scheduleUnavailable) {
-        expect(rendered.style?.color, app.AppColors.success);
-        for (final m in RegExp(r'\d+').allMatches(rendered.data!)) {
-          expect(int.parse(m.group(0)!), greaterThanOrEqualTo(1));
+      expect(find.text(ReliabilityLabel.scheduleUnavailable), findsNothing);
+      if (finder.evaluate().isNotEmpty) {
+        final Text rendered = t.widget<Text>(finder.first);
+        if (!_isServiceEndedText(rendered.data!)) {
+          expect(rendered.style?.color, app.AppColors.success);
+          for (final m in RegExp(r'\d+').allMatches(rendered.data!)) {
+            expect(int.parse(m.group(0)!), greaterThanOrEqualTo(1));
+          }
         }
       }
     });

@@ -1357,6 +1357,44 @@ class Stop {
   }
 }
 
+/// Les quatre réseaux couverts utilisent exclusivement les horaires GTFS.
+/// Sans stop_time calculable, l'interface reste neutre : aucune heure n'est
+/// fabriquée et le libellé « Horaire indisponible » n'est pas affiché.
+bool usesPassBiExclusiveModeLabel(String modeLabel) {
+  final String network =
+      modeLabel.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
+  return const <String>{
+    'TER',
+    'BRT',
+    'DDD',
+    'AFTU',
+    'TERDAKAR',
+    'SUNUBRT',
+    'DAKARDEMDIKK',
+  }.contains(network) ||
+      network.startsWith('TER') ||
+      network.startsWith('BRT') ||
+      network.startsWith('DDD') ||
+      network.startsWith('AFTU');
+}
+
+bool shouldShowScheduleLabelForNetwork(String modeLabel, String label) =>
+    !(usesPassBiExclusiveModeLabel(modeLabel) &&
+        label == ReliabilityLabel.scheduleUnavailable);
+
+bool usesPassBiExclusiveSchedule(Stop stop) {
+  final String routeId = (stop.scheduleRouteId ?? '').toLowerCase();
+  return usesPassBiExclusiveModeLabel(stop.modeLabel) ||
+      routeId.startsWith('ter_') ||
+      routeId.startsWith('brt_') ||
+      routeId.startsWith('ddd_') ||
+      routeId.startsWith('aftu_') ||
+      routeId.startsWith('line_ter_') ||
+      routeId.startsWith('line_brt_') ||
+      routeId.startsWith('line_ddd_') ||
+      routeId.startsWith('line_aftu_');
+}
+
 enum DataStatus { scheduled, live, unknown, estimated }
 
 /// Keep the existing 4-value status contract. A realtime classification can
@@ -1467,17 +1505,32 @@ final List<Stop> allStops = [...terStations, ...brtStations]
 // dans un itinéraire officiel au seul motif qu'il apparaît sur la carte (§1).
 // ============================================================
 
+/// Identifiant de réseau métier : il reste fiable même lorsque plusieurs
+/// mobilités partagent la même couleur d'interface.
+String networkKeyForStop(Stop stop) {
+  final String label = stop.modeLabel.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
+  if (label.contains('TER')) return 'TER';
+  if (label.contains('BRT')) return 'BRT';
+  if (label.contains('DDD')) return 'DDD';
+  if (label.contains('AFTU')) return 'AFTU';
+  if (label.contains('TATA')) return 'TATA';
+  final String route = (stop.scheduleRouteId ?? '').toLowerCase();
+  for (final key in <String>['ter', 'brt', 'ddd', 'aftu']) {
+    if (route.startsWith('${key}_') || route.startsWith('line_${key}_')) {
+      return key.toUpperCase();
+    }
+  }
+  return '';
+}
+
 /// `<MODE>_NETWORK_POINTS` — points du réseau affichables dans Explorer.
-///
-/// Explorer peut afficher **davantage** de points que l'itinéraire officiel ne
-/// compte de stations (§6). Cette liste n'est donc jamais réduite pour
-/// correspondre à un itinéraire, et le compteur Explorer n'est jamais ajusté
-/// artificiellement.
-///
-/// Le prédicat reproduit à l'identique celui, existant, de `_filteredStops` :
-/// le mode y est porté par la couleur (`AppColors.ter`, `AppColors.brt`, …).
-/// Aucun filtre, aucune couleur et aucun calcul de proximité n'est modifié
-/// (§1, §10).
+/// Le filtrage utilise l'identité métier, jamais la couleur graphique partagée.
+List<Stop> networkPointsForNetwork(String network) =>
+    allStops.where((Stop s) => networkKeyForStop(s) == network.toUpperCase()).toList();
+
+/// Ancienne couture conservée pour compatibilité. Les couleurs communes ne
+/// permettent plus de distinguer deux réseaux ; préférer networkPointsForNetwork.
+@Deprecated('Use networkPointsForNetwork(network)')
 List<Stop> networkPoints(Color modeColor) =>
     allStops.where((Stop s) => s.color == modeColor).toList();
 
@@ -1522,8 +1575,8 @@ List<Stop> explorerMapMarkerStops({
           .where((Stop s) =>
               s.stopId != null &&
               DakarBounds.isValid(s.location) &&
-              ((terDisplayed && s.color == AppColors.ter) ||
-                  (brtDisplayed && s.color == AppColors.brt)))
+              ((terDisplayed && networkKeyForStop(s) == 'TER') ||
+                  (brtDisplayed && networkKeyForStop(s) == 'BRT')))
           .toList()
       : const <Stop>[];
   if (official.isEmpty) return List<Stop>.of(proximityStops);
@@ -1531,16 +1584,16 @@ List<Stop> explorerMapMarkerStops({
       '${s.name}_${s.location.latitude}_${s.location.longitude}';
   final Set<String> officialKeys = official.map(keyOf).toSet();
   final bool hasOfficialTer =
-      official.any((Stop s) => s.color == AppColors.ter);
+      official.any((Stop s) => networkKeyForStop(s) == 'TER');
   final bool hasOfficialBrt =
-      official.any((Stop s) => s.color == AppColors.brt);
+      official.any((Stop s) => networkKeyForStop(s) == 'BRT');
   return <Stop>[
     ...official,
     ...proximityStops.where((Stop s) =>
         !officialKeys.contains(keyOf(s)) &&
         !(s.stopId == null &&
-            ((s.color == AppColors.ter && hasOfficialTer) ||
-                (s.color == AppColors.brt && hasOfficialBrt)))),
+            ((networkKeyForStop(s) == 'TER' && hasOfficialTer) ||
+                (networkKeyForStop(s) == 'BRT' && hasOfficialBrt)))),
   ];
 }
 
@@ -1568,15 +1621,15 @@ List<Stop> explorerBaseStopsForFilter({
   }
   switch (selectedFilter) {
     case 'TER':
-      return source.where((Stop s) => s.color == AppColors.ter).toList();
+      return source.where((Stop s) => networkKeyForStop(s) == 'TER').toList();
     case 'BRT':
-      return source.where((Stop s) => s.color == AppColors.brt).toList();
+      return source.where((Stop s) => networkKeyForStop(s) == 'BRT').toList();
     case 'DDD':
-      return source.where((Stop s) => s.color == AppColors.ddd).toList();
+      return source.where((Stop s) => networkKeyForStop(s) == 'DDD').toList();
     case 'TATA':
-      return source.where((Stop s) => s.color == AppColors.tata).toList();
+      return source.where((Stop s) => networkKeyForStop(s) == 'TATA').toList();
     case 'AFTU':
-      return source.where((Stop s) => s.color == AppColors.aftu).toList();
+      return source.where((Stop s) => networkKeyForStop(s) == 'AFTU').toList();
     default:
       return List<Stop>.of(source);
   }
@@ -1739,8 +1792,7 @@ bool _explorerSamePoint(LatLng a, LatLng b) =>
 /// arrêt retiré de la donnée.
 @visibleForTesting
 bool explorerStopIsStructuring(Stop s) =>
-    s.color == AppColors.ter ||
-    s.color == AppColors.brt ||
+    const <String>{'TER', 'BRT'}.contains(networkKeyForStop(s)) ||
     s.stopType == StopType.terminus ||
     s.stopType == StopType.correspondence;
 
@@ -4007,41 +4059,42 @@ class _ExplorerPageState extends State<ExplorerPage> {
   Widget build(BuildContext context) {
     final dark = globalState.darkMode;
     final stops = _filteredStops;
-    // ✅ Filtre les tracés par mobilité pour éviter le spaghetti orange : n'affiche que la couleur sélectionnée
-    final Color? filterColor = _selectedFilter == 'Tous' ? null : _colorFor(_selectedFilter);
-    final basePolylines = _dynamicPolylines.isNotEmpty
-        ? _dynamicPolylines
-        : demoRoutes
-            .map((r) => Polyline(
-                  // Même géométrie de rendu que `_loadDynamicRoutes` (CAS A)
-                  // pour un état de chargement cohérent.
-                  points: explorerRenderedRoutePoints(r, demoRoutes)
-                      .where((pt) => DakarBounds.isValid(pt))
-                      .toList(),
-                  color: r.color,
-                  strokeWidth: 5.0,
-                  borderColor: Colors.white,
-                  borderStrokeWidth: 2,
-                ))
-            .toList();
-    final activePolylines = filterColor == null
-        ? basePolylines.where((p) => p.color == AppColors.ter || p.color == AppColors.brt).toList() // Tous : seulement TER/BRT (tracés dédiés, pas le spaghetti)
-        : basePolylines.where((p) => p.color == filterColor).toList();
+    // Les couleurs TER/BRT sont volontairement communes dans la palette.
+    // Le filtre cartographique doit donc utiliser l'identité de la ligne
+    // (type TER/BRT), jamais sa couleur, qui ne permet pas de les distinguer.
+    final activeRoutes = demoRoutes.where((route) =>
+        route.isDedicated &&
+        (_selectedFilter == 'Tous' || route.type == _selectedFilter));
+    final activePolylines = activeRoutes
+        .map((route) => Polyline(
+              points: explorerRenderedRoutePoints(route, demoRoutes)
+                  .where((pt) => DakarBounds.isValid(pt))
+                  .toList(),
+              color: route.color,
+              strokeWidth: 5.5,
+              borderColor: Colors.white,
+              borderStrokeWidth: 2,
+            ))
+        .toList();
     final mapStops = _filteredStops; // ✅ Toujours filtré à proximité (30 max — Groupe 4), pas allStops
     // ✅ CORRECTIF ARRÊTS TER/BRT — garantit sur la carte les gares/stations
     //    officielles des réseaux affichés (même prédicat que `activePolylines`
     //    ci-dessus), que le plafond de proximité évinçait. Cause, périmètre et
     //    déduplication documentés sur [explorerMapMarkerStops].
+    final bool terDisplayed =
+        _selectedFilter == 'Tous' || _selectedFilter == 'TER';
+    final bool brtDisplayed =
+        _selectedFilter == 'Tous' || _selectedFilter == 'BRT';
     final mapMarkerStops = explorerMapMarkerStops(
       proximityStops: mapStops,
-      terDisplayed: filterColor == null || filterColor == AppColors.ter,
-      brtDisplayed: filterColor == null || filterColor == AppColors.brt,
+      terDisplayed: terDisplayed,
+      brtDisplayed: brtDisplayed,
     );
     // ✅ DIAGNOSTIC RUNTIME (correctif TER/BRT) — une ligne par reconstruction :
     //    compte réel de ce qui est transmis au MarkerLayer de CETTE carte,
     //    après le seul filtrage résiduel (DakarBounds) ci-dessous.
     final markerStops = mapMarkerStops.where((s) => DakarBounds.isValid(s.location)).toList();
-    debugPrint('[EXPLORER][MARKERS] transmis au MarkerLayer: total=${markerStops.length} TER=${markerStops.where((s) => s.color == AppColors.ter).length} BRT=${markerStops.where((s) => s.color == AppColors.brt).length} | allStops=${allStops.length} proximité=${mapStops.length} | filtre=$_selectedFilter gps=${widget.gpsState} rayon=${GpsResolver.nearbyRadiusMeters}m limite=${GpsResolver.nearbyLimit}');
+    debugPrint('[EXPLORER][MARKERS] transmis au MarkerLayer: total=${markerStops.length} TER=${markerStops.where((s) => networkKeyForStop(s) == 'TER').length} BRT=${markerStops.where((s) => networkKeyForStop(s) == 'BRT').length} | allStops=${allStops.length} proximité=${mapStops.length} | filtre=$_selectedFilter gps=${widget.gpsState} rayon=${GpsResolver.nearbyRadiusMeters}m limite=${GpsResolver.nearbyLimit}');
 
     return AnimatedBuilder(
       animation: globalState,
@@ -4548,9 +4601,10 @@ class PublicLineCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final dark = globalState.darkMode;
     final Color color = line.operator == 'DDD' ? AppColors.ddd : AppColors.aftu;
-    // Statut RÉEL : une ligne BLOCKED/NOT_VERIFIED n'est jamais présentée comme
-    // horairée. `hasRealSchedule` exige la chaîne de raccordement complète.
-    final bool connected = line.hasRealSchedule;
+    // Un flux complet ne devient un horaire de ligne publique qu'avec une
+    // preuve indépendante route_id ↔ numéro officiel.
+    final bool connected = line.hasVerifiedPublicSchedule;
+    final bool scheduleUnattributed = line.hasRealSchedule && !line.hasVerifiedFeedIdentity;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -4626,13 +4680,17 @@ class PublicLineCard extends StatelessWidget {
                         child: Text(
                           connected
                               ? '${line.mappingStatus.label} · ${line.servedStopCount} arrêts réels'
-                              : '${line.mappingStatus.label} — ${line.unresolvedReason ?? 'raccordement incomplet'}',
+                              : scheduleUnattributed
+                                  ? 'Flux horaire présent · identité de la ligne à confirmer'
+                                  : '${line.mappingStatus.label} — ${line.unresolvedReason ?? 'raccordement incomplet'}',
                           style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
                               color: connected
                                   ? AppColors.success
-                                  : AppColors.textSecondary(dark)),
+                                  : scheduleUnattributed
+                                      ? AppColors.warning
+                                      : AppColors.textSecondary(dark)),
                         ),
                       ),
                     ]),
@@ -4665,7 +4723,9 @@ class PublicLineDetailPage extends StatefulWidget {
 class _PublicLineDetailPageState extends State<PublicLineDetailPage> {
   int _directionIndex = 0;
   PublicBusLine get line => widget.line;
-  List<String> get _directions => line.directionIds.where((id) => id.isNotEmpty).toSet().toList()..sort();
+  List<String> get _directions => !line.hasVerifiedPublicSchedule
+      ? const <String>[]
+      : (line.directionIds.where((id) => id.isNotEmpty).toSet().toList()..sort());
   String? get _selectedDirection => _directions.isEmpty ? null : _directions[_directionIndex.clamp(0, _directions.length - 1)];
   PassBiRouteStopSequence? get _selectedSequence => appDataService.publicLineStopSequence(line, directionId: _selectedDirection);
 
@@ -4683,7 +4743,32 @@ class _PublicLineDetailPageState extends State<PublicLineDetailPage> {
     return out.where((d) => seen.add('${d.routeId}|${d.scheduledTime?.toIso8601String()}')).take(3).toList();
   }
 
-  String _directionLabel() => _directionIndex == 0 ? 'Aller' : 'Retour';
+  String _directionLabelFor(String directionId) {
+    final sequence = appDataService.publicLineStopSequence(
+      line,
+      directionId: directionId,
+    );
+    if (sequence == null || sequence.stops.isEmpty) {
+      return publicDirectionLabel(
+        directionId: directionId,
+        firstStopName: '',
+        lastStopName: '',
+        origin: line.origin,
+        destination: line.destination,
+      );
+    }
+    return publicDirectionLabel(
+      directionId: directionId,
+      firstStopName: sequence.stops.first.name,
+      lastStopName: sequence.stops.last.name,
+      origin: line.origin,
+      destination: line.destination,
+    );
+  }
+
+  String _directionLabel() => _selectedDirection == null
+      ? 'Sens non renseigné'
+      : _directionLabelFor(_selectedDirection!);
   String _timeLabel(DateTime value) => '${value.toUtc().hour.toString().padLeft(2, '0')}:${value.toUtc().minute.toString().padLeft(2, '0')}';
 
   @override
@@ -4698,15 +4783,21 @@ class _PublicLineDetailPageState extends State<PublicLineDetailPage> {
         backgroundColor: AppColors.background(dark),
         appBar: AppBar(backgroundColor: AppColors.primary, foregroundColor: Colors.white, title: Text(line.publicLabel, style: const TextStyle(fontSize: 16))),
         body: ListView(padding: const EdgeInsets.all(16), children: [
-          _header(dark, color, line.hasRealSchedule),
+          _header(dark, color, line.hasVerifiedPublicSchedule),
           if (hasTwoDirections) ...[const SizedBox(height: 12), _directionSwitcher(dark)],
           const SizedBox(height: 12),
           _section('Sens ${_directionLabel()}', dark, Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             if (seq != null && seq.stops.isNotEmpty) _kv('Trajet', '${seq.stops.first.name} → ${seq.stops.last.name}', dark),
             if (seq != null && seq.direction.isNotEmpty) _kv('direction_id GTFS', seq.direction, dark),
             const SizedBox(height: 5),
-            if (departures.isEmpty) Text('Horaire indisponible pour ce sens à cet arrêt.', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark)))
-            else ...departures.map((d) => Padding(padding: const EdgeInsets.symmetric(vertical: 3), child: Row(children: [
+            if (!line.hasVerifiedPublicSchedule)
+              Text(line.hasRealSchedule
+                  ? 'Les horaires du flux ne sont pas attribués à cette ligne : identité de la route non confirmée.'
+                  : 'Aucun horaire exploitable n’est raccordé à cette ligne.',
+                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark)))
+            else if (departures.isEmpty)
+              Text('Aucun départ disponible pour ce sens à cet arrêt.', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark)))
+            else ...departures.where((d) => d.scheduledTime != null).map((d) => Padding(padding: const EdgeInsets.symmetric(vertical: 3), child: Row(children: [
               Icon(Icons.schedule_rounded, size: 17, color: AppColors.primary), const SizedBox(width: 7),
               Text(d.scheduledTime == null ? 'Horaire indisponible' : 'Départ programmé · ${_timeLabel(d.scheduledTime!)}', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary(dark)))
             ])))
@@ -4715,14 +4806,25 @@ class _PublicLineDetailPageState extends State<PublicLineDetailPage> {
           _section('Statut des données', dark, Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             _kv('Statut de raccordement', line.mappingStatus.code, dark), _kv('Statut horaire', line.scheduleStatus, dark),
             if (line.publishedScheduleStatus.isNotEmpty) _kv('Statut publié (source)', line.publishedScheduleStatus, dark),
-            _kv('Identité', line.identityStatus, dark), _kv('Itinéraire', line.routeStatus, dark), _kv('Arrêts', line.stopsStatus, dark),
-            _kv('Ordre des arrêts (feed)', line.sequenceQuality.code, dark), _kv('Source', line.source, dark), _kv('Vérifié le', line.verifiedAt, dark),
+            _kv('Identité', line.identityStatus, dark),
+            _kv('Identité route ↔ ligne', line.hasVerifiedFeedIdentity ? 'VERIFIED' : 'UNVERIFIED', dark),
+            if (line.feedRouteIdentityVerifiedAt != null) _kv('Preuve route ↔ ligne vérifiée le', line.feedRouteIdentityVerifiedAt!, dark),
+            _kv('Itinéraire', line.routeStatus, dark), _kv('Arrêts', line.stopsStatus, dark),
+            _kv('Ordre des arrêts (feed)', line.sequenceQuality.code, dark), _kv('Vérifié le', line.verifiedAt, dark),
           ])),
           const SizedBox(height: 12),
-          if (line.hasRealSchedule) _section('Données horaires raccordées', dark, Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            _kv('Route(s) feed', line.feedRouteIds.join(', '), dark), _kv('Trips réels', '${line.tripIdsCount}', dark),
-            _kv('Directions', line.directionIds.join(', '), dark), _kv('stop_times', '${line.stopTimesCount}', dark), _kv('Arrêts desservis', '${line.servedStopCount}', dark),
-          ])) else _blockedSection(dark),
+          if (line.hasVerifiedPublicSchedule) _section('Horaires de la ligne vérifiés', dark, Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            _kv('Trips réels', '${line.tripIdsCount}', dark),
+            _kv('Directions', '${line.directionIds.length}', dark), _kv('stop_times', '${line.stopTimesCount}', dark), _kv('Arrêts desservis', '${line.servedStopCount}', dark),
+          ]))
+          else if (line.hasRealSchedule) _section('Flux horaires détecté — attribution suspendue', dark, Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text('Le flux contient des horaires, mais aucune preuve suffisante ne permet de les attribuer à cette ligne publique. Les départs et les arrêts restent masqués.', style: TextStyle(fontSize: 12)),
+            _kv('Trips dans le flux', '${line.tripIdsCount}', dark),
+            _kv('Directions dans le flux', '${line.directionIds.length}', dark),
+            _kv('stop_times dans le flux', '${line.stopTimesCount}', dark),
+            _kv('Arrêts présents dans le flux', '${line.servedStopCount}', dark),
+          ]))
+          else _blockedSection(dark),
           const SizedBox(height: 12), _stopsSection(dark, color, seq), const SizedBox(height: 24),
         ]),
       );
@@ -4730,10 +4832,18 @@ class _PublicLineDetailPageState extends State<PublicLineDetailPage> {
   }
 
   Widget _directionSwitcher(bool dark) => SegmentedButton<int>(
-    segments: const [
-      ButtonSegment<int>(value: 0, label: Text('Aller'), icon: Icon(Icons.arrow_forward_rounded)),
-      ButtonSegment<int>(value: 1, label: Text('Retour'), icon: Icon(Icons.arrow_back_rounded)),
-    ],
+    segments: _directions.asMap().entries.map((entry) {
+      final label = _directionLabelFor(entry.value);
+      return ButtonSegment<int>(
+        value: entry.key,
+        label: Text(label),
+        icon: label == 'Aller'
+            ? const Icon(Icons.arrow_forward_rounded)
+            : label == 'Retour'
+                ? const Icon(Icons.arrow_back_rounded)
+                : null,
+      );
+    }).toList(growable: false),
     selected: <int>{_directionIndex},
     onSelectionChanged: (s) { if (s.isNotEmpty) setState(() => _directionIndex = s.first); },
     style: ButtonStyle(
@@ -4743,7 +4853,7 @@ class _PublicLineDetailPageState extends State<PublicLineDetailPage> {
   );
 
   Widget _header(bool dark, Color color, bool connected) => Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: color.withOpacity(0.10), borderRadius: BorderRadius.circular(16), border: Border.all(color: color.withOpacity(0.4))), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-    Row(children: [Icon(connected ? Icons.check_circle : Icons.info_outline, color: connected ? AppColors.success : AppColors.warning, size: 20), const SizedBox(width: 8), Expanded(child: Text(line.mappingStatus.label, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))))]),
+    Row(children: [Icon(connected ? Icons.check_circle : Icons.info_outline, color: connected ? AppColors.success : AppColors.warning, size: 20), const SizedBox(width: 8), Expanded(child: Text(connected ? 'Identité et horaires vérifiés' : line.hasRealSchedule ? 'Flux horaire présent · identité à confirmer' : line.mappingStatus.label, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark))))]),
     const SizedBox(height: 8), Text(line.hasPublishedTerminus ? '${line.origin} ➔ ${line.destination}' : 'Terminus non publiés par la source', style: TextStyle(fontSize: 14, color: AppColors.textPrimary(dark))),
   ]));
 
@@ -4756,7 +4866,15 @@ class _PublicLineDetailPageState extends State<PublicLineDetailPage> {
   }
 
   Widget _stopsSection(bool dark, Color color, PassBiRouteStopSequence? seq) {
-    if (seq == null || seq.isEmpty) return _section('Arrêts', dark, Text(line.hasRealSchedule ? 'Séquence d’arrêts indisponible dans le feed.' : 'Aucun arrêt : la ligne n’est pas raccordée à une route réelle du feed.', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark))));
+    if (seq == null || seq.isEmpty) {
+      return _section('Arrêts', dark, Text(
+        line.hasRealSchedule && !line.hasVerifiedFeedIdentity
+            ? 'Le flux contient des arrêts, mais leur attribution à cette ligne publique n’est pas confirmée.'
+            : line.hasRealSchedule
+                ? 'Séquence d’arrêts indisponible dans le feed.'
+                : 'Aucun arrêt : la ligne n’est pas raccordée à une route réelle du feed.',
+        style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark))));
+    }
     return _section('Arrêts (${seq.stops.length}, ordre stop_sequence)', dark, Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       if (!seq.ordered) Padding(padding: const EdgeInsets.only(bottom: 6), child: Text('Ordre du feed non strictement croissant (artefact de donnée source).', style: TextStyle(fontSize: 11, color: AppColors.warning))),
       ...List<Widget>.generate(seq.stops.length, (i) { final s = seq.stops[i]; return Padding(padding: const EdgeInsets.symmetric(vertical: 3), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -5214,7 +5332,7 @@ class StopCard extends StatelessWidget {
                           : (legacyRemaining ??
                               (serviceNotice ??
                                   (estimatedShort ??
-                                      ReliabilityLabel.scheduleUnavailable))),
+                                      (usesPassBiExclusiveSchedule(stop) ? '' : ReliabilityLabel.scheduleUnavailable)))),
                       style: TextStyle(
                         fontSize: hasWaits || legacyRemaining != null ? 14 : 11,
                         fontWeight: hasWaits || legacyRemaining != null
@@ -5649,7 +5767,10 @@ class _TripsPageState extends State<TripsPage> {
                       child: Padding(
                         padding: EdgeInsets.only(bottom: isLast ? 0 : 16),
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Row(children: [Icon(s.icon, size: 14, color: s.color), const SizedBox(width: 6), Text(stripPassBiFromLabel(s.modeLabel), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: s.color)), const Spacer(), Text(s.departureTime ?? ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))]),
+                          Row(children: [Icon(s.icon, size: 14, color: s.color), const SizedBox(width: 6), Text(stripPassBiFromLabel(s.modeLabel), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: s.color)), const Spacer(), if (s.departureTime != null)
+                            Text(s.departureTime!, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))
+                          else if (!usesPassBiExclusiveModeLabel(s.modeLabel))
+                            Text(ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))]),
                           const SizedBox(height: 4),
                           Text('${s.from} - ${s.to}', style: TextStyle(fontSize: 12, color: AppColors.textPrimary(dark))),
                           const SizedBox(height: 2),
@@ -6754,8 +6875,10 @@ class AssistantReplies {
     }
     final String? notice = serviceNoticeFor(availability, now);
     if (notice != null) return '🚏 ${stop.name} : $notice.';
-    return '🚏 ${stop.name} : ${ReliabilityLabel.scheduleUnavailable} '
-        '(aucun départ programmé connu pour cet arrêt).';
+    return usesPassBiExclusiveSchedule(stop)
+        ? '🚏 ${stop.name} : aucun prochain passage calculable pour cet arrêt.'
+        : '🚏 ${stop.name} : ${ReliabilityLabel.scheduleUnavailable} '
+            '(aucun départ programmé connu pour cet arrêt).';
   }
 }
 
@@ -7176,9 +7299,15 @@ class DetailedRoutePage extends StatelessWidget {
                                       stopId: stop.stopId,
                                       network: route.operator,
                                     );
+                                    final String scheduleLabel =
+                                        ReliabilityLabel.sanitizeScheduleLabel(
+                                            info.label);
+                                    if (!shouldShowScheduleLabelForNetwork(
+                                        route.operator, scheduleLabel)) {
+                                      return const SizedBox.shrink();
+                                    }
                                     return Text(
-                                      ReliabilityLabel.sanitizeScheduleLabel(
-                                          info.label),
+                                      scheduleLabel,
                                       style: TextStyle(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w600,
@@ -7527,7 +7656,7 @@ class SingleStopView extends StatelessWidget {
                                   ? formatWaitingMinutes(ficheWaits)
                                   : (ficheServiceNotice ??
                                       (ficheEstimatedShort ??
-                                          ReliabilityLabel.scheduleUnavailable)),
+                                          (usesPassBiExclusiveSchedule(stop) ? '' : ReliabilityLabel.scheduleUnavailable))),
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,

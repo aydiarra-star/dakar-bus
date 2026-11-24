@@ -29,10 +29,22 @@
 // Usage : node scripts/validate-public-bus-lines.mjs
 import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
+import { loadFeed, routeTermini } from './lib/ddd-aftu-terminus.mjs';
 
 const ROOT = resolve(dirname(new URL(import.meta.url).pathname), '..');
 const REF = JSON.parse(
   readFileSync(resolve(ROOT, 'data/reference/public_bus_lines_dakar.json'), 'utf8'));
+const IDENTITY_PROOFS_PATH = 'data/reference/passbi_route_identity_proofs.json';
+const IDENTITY_PROOFS = JSON.parse(readFileSync(resolve(ROOT, IDENTITY_PROOFS_PATH), 'utf8'));
+const IDENTITY_PROOF_BY_KEY = new Map(
+  IDENTITY_PROOFS.proofs.map((p) => [`${p.operator}:${p.line_number}`, p]));
+const TERMINUS_REF = JSON.parse(readFileSync(
+  resolve(ROOT, 'data/reference/ddd_aftu_poles_terminus.json'), 'utf8'));
+const TERMINUS_FEEDS = {
+  AFTU: loadFeed(resolve(ROOT, 'flutter-src/assets/data/passbi/aftu.json')),
+  DDD: loadFeed(resolve(ROOT, 'flutter-src/assets/data/passbi/ddd.json')),
+};
+function sortedUnique(values) { return [...new Set(values)].sort(); }
 
 function feedEvidence(path, prefix) {
   const feed = JSON.parse(readFileSync(path, 'utf8'));
@@ -94,8 +106,59 @@ for (const [network, feed] of [['AFTU', AFTU], ['DDD', DDD]]) {
     if (!l.line_number) problems.push('line_number absent');
     if (l.operator !== network) problems.push('operator incohérent');
 
+    // L'identité publique ↔ route est une preuve séparée du raccordement horaire.
+    const identityStatus = l.feed_route_identity_status ?? 'UNVERIFIED';
+    const identityProof = IDENTITY_PROOF_BY_KEY.get(`${network}:${l.line_number}`);
+    const expectedProofReference = `${IDENTITY_PROOFS_PATH}#${network}:${l.line_number}`;
+    if (!['VERIFIED', 'UNVERIFIED'].includes(identityStatus)) {
+      problems.push(`feed_route_identity_status invalide : ${identityStatus}`);
+    }
+    if (identityStatus === 'VERIFIED' && !identityProof) {
+      problems.push('identité VERIFIED absente du registre documentaire');
+    }
+    if (identityStatus === 'VERIFIED' && l.feed_route_identity_proof !== expectedProofReference) {
+      problems.push('référence de preuve VERIFIED incorrecte');
+    }
+    if (identityStatus !== 'VERIFIED' && l.feed_route_identity_proof != null) {
+      problems.push('preuve documentaire présente sans statut VERIFIED');
+    }
+    if (identityProof && identityStatus !== 'VERIFIED') {
+      problems.push('preuve du registre non appliquée au référentiel généré');
+    }
+
     // Chaîne dérivée du feed : ce que la ligne DEVRAIT déclarer.
     const routeIds = l.feed_route_ids ?? [];
+    if (identityStatus === 'VERIFIED' && routeIds.length === 0) {
+      problems.push('identité VERIFIED sans route_id associé');
+    }
+    if (identityProof && (routeIds.length !== 1 || routeIds[0] !== identityProof.route_id)) {
+      problems.push(`route_id différent de la preuve documentaire (${identityProof.route_id})`);
+    }
+    if (identityProof) {
+      const feedRoute = TERMINUS_FEEDS[network].routes.find(
+        (r) => r.id === identityProof.route_id);
+      if (!feedRoute || feedRoute.long !== identityProof.feed_route_long_name) {
+        problems.push('route_long_name du feed différent de la preuve documentaire');
+      }
+      const actual = routeTermini(TERMINUS_FEEDS[network], identityProof.route_id);
+      const actualStops = sortedUnique((actual?.directions ?? []).flatMap((d) =>
+        [d.depart, d.arrivee].filter(Boolean).map((stop) => stop.id)));
+      const actualNames = sortedUnique((actual?.directions ?? []).flatMap((d) =>
+        [d.depart, d.arrivee].filter(Boolean).map((stop) => stop.name)));
+      if (JSON.stringify(actualStops) !== JSON.stringify(identityProof.feed_terminal_stop_ids ?? [])) {
+        problems.push('terminus stop_id du feed différents du registre de preuves');
+      }
+      if (JSON.stringify(actualNames) !== JSON.stringify(identityProof.feed_terminal_stop_names ?? [])) {
+        problems.push('noms des terminus du feed différents du registre de preuves');
+      }
+      const auditRoute = TERMINUS_REF[network.toLowerCase()].routes.find(
+        (r) => r.routeId === identityProof.route_id);
+      const auditStops = sortedUnique((auditRoute?.directions ?? []).flatMap((d) =>
+        [d.depart, d.arrivee].filter(Boolean).map((stop) => stop.stopId)));
+      if (!auditRoute || JSON.stringify(auditStops) !== JSON.stringify(identityProof.feed_terminal_stop_ids ?? [])) {
+        problems.push('référentiel terminus et preuve documentaire désynchronisés');
+      }
+    }
     let chainComplete = routeIds.length > 0;
     // Les maillons manquants sont consignés à part : pour une ligne NON
     // raccordée, c'est exactement la cause documentée (`blocking`), pas une
@@ -206,6 +269,15 @@ if (actualTotal !== expectedTotal) {
 // silencieusement. Le nombre de CONNECTED ne doit jamais diminuer sous la
 // référence publiée, et les compteurs doivent rester cohérents.
 const byStatus = (s) => REF.aftu.concat(REF.ddd).filter((l) => l.mapping_status === s).length;
+const identityVerifiedCount = REF.aftu.concat(REF.ddd)
+  .filter((l) => l.feed_route_identity_status === 'VERIFIED').length;
+const identityUnverifiedCount = REF.aftu.concat(REF.ddd).length - identityVerifiedCount;
+if (REF.counts.feed_route_identity_verified !== identityVerifiedCount) {
+  failures.push({ label: 'RÉFÉRENTIEL', problems: ['counts.feed_route_identity_verified incohérent'] });
+}
+if (REF.counts.feed_route_identity_unverified !== identityUnverifiedCount) {
+  failures.push({ label: 'RÉFÉRENTIEL', problems: ['counts.feed_route_identity_unverified incohérent'] });
+}
 if (REF.counts.connected !== byStatus('CONNECTED')) {
   failures.push({ label: 'RÉFÉRENTIEL', problems: ['counts.connected ≠ nombre réel de CONNECTED'] });
 }
@@ -213,7 +285,11 @@ if ((REF.counts.unresolved ?? 0) !== byStatus('BLOCKED') + byStatus('NOT_VERIFIE
   failures.push({ label: 'RÉFÉRENTIEL', problems: ['counts.unresolved ≠ nombre réel de lignes non raccordées'] });
 }
 
-console.log(`Raccordement vérifié : ${linked.length} lignes publiques AFTU/DDD CONNECTED (chaîne + départ exploitable).`);
+const identityVerified = REF.aftu.concat(REF.ddd)
+  .filter((l) => l.feed_route_identity_status === 'VERIFIED').length;
+const identityUnverified = REF.aftu.concat(REF.ddd).length - identityVerified;
+console.log(`Raccordement horaire vérifié : ${linked.length} lignes publiques AFTU/DDD CONNECTED (chaîne + départ exploitable).`);
+console.log(`Identité publique ↔ route PassBi : VERIFIED=${identityVerified} UNVERIFIED=${identityUnverified}.`);
 console.log(`Statuts : CONNECTED=${REF.counts.connected} BLOCKED=${REF.counts.blocked} ` +
   `NOT_VERIFIED=${REF.counts.not_verified} PARTIAL=${REF.counts.partial}`);
 if (unresolvedHonest.length > 0) {

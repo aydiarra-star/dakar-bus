@@ -287,19 +287,17 @@ test('4a. DDD_217 / D217OT : horaire disponible, identité UNKNOWN, libellé hon
   assert.equal(res.status, 'SCHEDULED', 'l identité non confirmée n bloque pas l horaire');
   assert.equal(res.identityStatus, IDENTITY.UNCONFIRMED);
   assert.equal(res.frequencyMinutes, null, 'jamais une fréquence transformée en horaire');
-  assert.match(res.lineLabel, /^Ligne PassBi DDD_217/,
-    'un identifiant PassBi n est jamais présenté comme le numéro public DDD');
-  assert.match(res.lineLabel, /D217OT/, 'le short_name du feed reste visible tel quel');
-  assert.equal(res.lineLabel.startsWith('D217OT'), false);
-  assert.notEqual(res.lineLabel, 'D217OT');
-  assert.match(res.identityNote, /UNCONFIRMED/);
+  assert.equal(res.lineLabel, 'DDD',
+    'sans preuve route ↔ ligne, seul le mode est affiché');
+  assert.match(res.identityNote, /UNVERIFIED/);
 });
 
-test('4b. AFTU_3 : horaire disponible + identité UNKNOWN (séparation stricte)', () => {
+test('4b. AFTU_3 : horaire disponible + identité publique VERIFIED par le registre', () => {
   const res = departureAtPassBiStop(ALL, 'AFTU', 'A_1633', LUNDI_10H, { pbRouteId: 'AFTU_3' });
   assert.equal(res.status, 'SCHEDULED');
-  assert.equal(res.identityStatus, IDENTITY.UNCONFIRMED);
-  assert.match(res.lineLabel, /^Ligne PassBi AFTU_3/);
+  assert.equal(res.identityStatus, IDENTITY.CONFIRMED);
+  assert.equal(res.feedRouteIdentityStatus, 'VERIFIED');
+  assert.equal(res.lineLabel, 'AFTU 3');
 });
 
 test('4c. les horaires proviennent uniquement de vrais trips + stop_times', () => {

@@ -268,18 +268,18 @@ void main() {
       expect(res.errorMessage, isNull);
       expect(res.hasRoutes, isTrue, reason: 'gares présentes dans allStops');
       final PlannedRoute r = res.routes.first;
-      expect(r.status, DataStatus.estimated);
+      expect(r.status, DataStatus.unknown);
       for (final RouteSegment seg in r.segments) {
         expect(seg.departureTime, isNull);
         expect(seg.arrivalTime, isNull);
-        expect(seg.status, DataStatus.estimated);
-        expect(seg.departureInfo?.frequencyMinutes, 10);
+        expect(seg.status, DataStatus.unknown);
+        expect(seg.departureInfo?.frequencyMinutes, isNull);
       }
       final String txt = AssistantReplies.itinerary(r, 'Dakar', 'Rufisque');
-      expect(txt, contains('Passage estimé dans 10 min'));
+      expect(txt, contains('Je ne dispose pas d\'un horaire vérifié pour ce trajet.'));
       expect(txt, isNot(contains('0–10 min')),
           reason: 'aucun intervalle affiché (règle anti-régression)');
-      expect(txt, contains('estimation non garantie'));
+      expect(txt, isNot(contains('estimation non garantie')));
       expect(kHeure.hasMatch(txt), isFalse, reason: txt);
       expect(kTempsReel.hasMatch(txt), isFalse, reason: txt);
       expect(txt, isNot(contains('Direct')));

@@ -172,23 +172,28 @@ class DepartureInfo {
   /// ne publie pas de trip_headsign ; jamais affiché comme destination.
   final String? directionId;
 
-  /// Headign réel si publié, sinon direction_id GTFS réel.
+  /// Headign réel si publié. Sinon, le direction_id est scoped à sa route :
+  /// GTFS ne garantit pas que 0/1 ait le même sens entre deux lignes.
   String? get directionKey => direction?.isNotEmpty == true
       ? direction
-      : (directionId == null ? null : 'GTFS:$directionId');
+      : (directionId?.isEmpty != false
+          ? null
+          : 'GTFS:$routeId:$directionId');
 
-  /// Lot 4.21 §3 — identité publique de la ligne, DISTINCTE de [status].
-  /// `unconfirmed` n'empêche pas un horaire `scheduled` calculable.
+  /// Identité publique de la ligne, DISTINCTE de [status]. Pour AFTU/DDD,
+  /// elle provient du registre indépendant route ↔ ligne ; pour TER/BRT,
+  /// du crosswalk documentaire existant. `unconfirmed` n'empêche jamais un
+  /// horaire `scheduled` calculable.
   final IdentityStatus identityStatus;
 
-  /// Note documentaire d'identité (provenance : crosswalk ou métadonnées
-  /// PassBi). Jamais un nom commercial inventé.
+  /// Note documentaire : preuve indépendante AFTU/DDD ou crosswalk TER/BRT.
+  /// Le statut technique historique du crosswalk ne remplace pas la preuve
+  /// publique AFTU/DDD. Jamais un nom commercial inventé.
   final String? identityNote;
 
-  /// Lot 4.21 §2 — identité d'affichage issue des métadonnées PassBi RÉELLES
-  /// (ex. « Ligne PassBi DDD_217 »). `null` lorsque la ligne affichée reste
-  /// celle du référentiel dakar (TER/BRT/AFTU mappés) : aucun rendu existant
-  /// n'est modifié.
+  /// Identité d'affichage : pour AFTU/DDD, le libellé public n'est renseigné
+  /// que si le catalogue prouve indépendamment le lien route ↔ ligne ; sinon
+  /// le mode seul est affiché. TER/BRT conservent leur crosswalk documentaire.
   final String? lineLabel;
 
   /// Lot 4.21 §15 — raison précise d'un UNKNOWN ([UnresolvedReason]).

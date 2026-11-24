@@ -185,13 +185,17 @@ void main() {
       integrateNetworkDataForTest();
     });
 
-    test('aucun arrêt à fréquence estimée ne calcule de temps restant', () {
-      // À 10:00 heure de Dakar (lundi), les fréquences TER/BRT s'appliquent.
-      final Iterable<Stop> estimes = allStops.where((Stop s) =>
-          s.departureInfoAt(at: kBase).status == ScheduleStatus.estimated);
-      expect(estimes, isNotEmpty,
-          reason: 'les gares TER/BRT portent une fréquence officielle applicable à 10:00');
-      for (final Stop s in estimes) {
+    test('TER/BRT ne retombent pas sur les fréquences legacy', () {
+      final Iterable<Stop> terBrt = allStops.where(
+        (Stop s) => const <String>{'TER', 'BRT'}.contains(s.modeLabel),
+      );
+      expect(terBrt, isNotEmpty);
+      for (final Stop s in terBrt) {
+        expect(
+          s.departureInfoAt(at: kBase).status,
+          isNot(ScheduleStatus.estimated),
+          reason: '${s.name} : le GTFS est exclusif pour ${s.modeLabel}',
+        );
         expect(s.realRemainingMinutes(at: kBase), isNull, reason: s.name);
         expect(s.realRemainingLabel(at: kBase), isNull, reason: s.name);
       }
@@ -234,15 +238,14 @@ void main() {
           reason: 'le temps restant réel doit être affiché en vert');
     });
 
-    testWidgets('une fréquence estimée n\'affiche pas de faux « X min »',
+    testWidgets('un arrêt TER sans départ GTFS affiche indisponible',
         (WidgetTester tester) async {
-      // À l'heure réelle du test, une gare TER peut être hors plage (UNKNOWN).
-      // Le point vérifié est qu'aucun arrêt, quel que soit son état, ne produit
-      // de faux compte à rebours à partir d'une fréquence.
-      final Stop estime = allStops.firstWhere(
-        (Stop s) => s.departureInfoAt(at: kBase).status == ScheduleStatus.estimated,
+      final Stop sansDepart = allStops.firstWhere(
+        (Stop s) => s.modeLabel == 'TER',
       );
-      await monte(tester, StopCard(stop: estime, distanceMeters: 300));
+      expect(sansDepart.departureInfoAt(at: kBase).status,
+          ScheduleStatus.unknown);
+      await monte(tester, StopCard(stop: sansDepart, distanceMeters: 300));
 
       final List<String> textes = tester
           .widgetList<Text>(find.byType(Text))

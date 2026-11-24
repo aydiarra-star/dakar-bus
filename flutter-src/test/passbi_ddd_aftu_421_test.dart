@@ -39,6 +39,7 @@ void main() {
     // aucun arrêt natif.
     app.integrateNetworkDataForTest();
     await app.appDataService.loadPassBiSchedules();
+    await app.appDataService.loadPublicBusLineCatalog();
     expect(app.appDataService.passBiActive, isTrue,
         reason: 'PassBi est la source opérationnelle');
     app.integratePassBiNativeStopsForTest();
@@ -80,6 +81,83 @@ void main() {
 
   // ==================================================================== A
   group('A — DDD : prochain départ PassBi calculable', () {
+    test('direction_id natif conservé et limité à sa route', () {
+      DepartureInfo directionFor(String routeId) => DepartureInfo(
+            status: ScheduleStatus.scheduled,
+            operator: 'AFTU',
+            routeId: routeId,
+            source: null,
+            sourceType: SourceType.publicGtfs,
+            dateSource: null,
+            dateVerified: null,
+            validFrom: null,
+            validTo: null,
+            confidence: 1,
+            frequencyMinutes: null,
+            operatingHours: null,
+            direction: null,
+            directionId: '0',
+          );
+
+      final a = directionFor('AFTU_1');
+      final b = directionFor('AFTU_2');
+      expect(a.directionKey, 'GTFS:AFTU_1:0');
+      expect(b.directionKey, 'GTFS:AFTU_2:0');
+      expect(a.directionKey, isNot(b.directionKey),
+          reason: 'direction_id 0 est relatif à une route, pas au réseau entier');
+    });
+
+    test('le départ natif AFTU conserve le direction_id du trip trouvé', () {
+      final net = app.appDataService.passBiSource.network('AFTU')!;
+      final stopId = firstStopOf('AFTU', 'AFTU_1');
+      final found = app.appDataService.passBiSource.nextNativeDeparture(
+        networkKey: 'AFTU',
+        pbStopId: stopId,
+        onlyRouteId: 'AFTU_1',
+        at: lundi12,
+      );
+      expect(found, isNotNull);
+      final trip = net.trips.firstWhere((t) => t.id == found!.tripId);
+      final info = app.appDataService.passBiDepartureFor(
+        networkKey: 'AFTU',
+        pbStopId: stopId,
+        pbRouteId: 'AFTU_1',
+        at: lundi12,
+      );
+      expect(info.status, ScheduleStatus.scheduled);
+      expect(info.directionId, trip.direction);
+      if (trip.headsign.isNotEmpty) {
+        expect(info.directionKey, trip.headsign);
+      } else if (trip.direction.isNotEmpty) {
+        expect(info.directionKey, 'GTFS:AFTU_1:${trip.direction}');
+      }
+    });
+
+    test('le départ natif DDD conserve le direction_id du trip trouvé', () {
+      final net = app.appDataService.passBiSource.network('DDD')!;
+      final stopId = firstStopOf('DDD', 'DDD_01');
+      final found = app.appDataService.passBiSource.nextNativeDeparture(
+        networkKey: 'DDD',
+        pbStopId: stopId,
+        onlyRouteId: 'DDD_01',
+        at: lundi12,
+      );
+      expect(found, isNotNull);
+      final trip = net.trips.firstWhere((t) => t.id == found!.tripId);
+      final info = app.appDataService.passBiDepartureFor(
+        networkKey: 'DDD',
+        pbStopId: stopId,
+        pbRouteId: 'DDD_01',
+        at: lundi12,
+      );
+      expect(info.status, ScheduleStatus.scheduled);
+      expect(info.directionId, trip.direction);
+      if (trip.headsign.isNotEmpty) {
+        expect(info.directionKey, trip.headsign);
+      } else if (trip.direction.isNotEmpty) {
+        expect(info.directionKey, 'GTFS:DDD_01:${trip.direction}');
+      }
+    });
     test('route DDD_01 à son premier arrêt : SCHEDULED + PUBLIC_GTFS', () {
       final stopId = firstStopOf('DDD', 'DDD_01');
       final info = app.appDataService.passBiDepartureFor(
@@ -96,13 +174,13 @@ void main() {
       expect(info.scheduledTime!.isBefore(lundi12.add(const Duration(hours: 3))),
           isTrue);
       expect(info.estimatedWaitFrom, greaterThanOrEqualTo(0));
-      // Identité publique NON confirmée (§3) : champ DISTINCT du statut horaire.
-      expect(info.identityStatus, IdentityStatus.unconfirmed);
-      expect(info.identityNote, contains('UNCONFIRMED'));
-      // §2 : l'affichage vient des métadonnées réelles du feed. Chantier UI :
-      // la source de données (PassBi) n'est plus nommée dans l'interface.
+      // DDD 1 possède une preuve indépendante dans le catalogue public.
+      // Le statut d'identité reste distinct du statut horaire.
+      expect(info.identityStatus, IdentityStatus.confirmed);
+      expect(info.identityNote, contains('VERIFIED'));
+      // Le libellé public est affiché sans exposer la source technique.
+      expect(info.lineLabel, 'DDD 1');
       expect(info.lineLabel, isNot(contains('PassBi')));
-      expect(info.lineLabel, startsWith('DDD'));
     });
 
     test('audit §1 : 53 routes DDD, 52 avec horaires calculables', () {
@@ -179,7 +257,7 @@ void main() {
 
   // ==================================================================== B
   group('B — AFTU : prochain départ PassBi calculable', () {
-    test('route AFTU_3 : SCHEDULED, identité UNCONFIRMED (verrouillage)', () {
+    test('route AFTU_3 : SCHEDULED, identité VERIFIED par le registre indépendant', () {
       final stopId = firstStopOf('AFTU', 'AFTU_3');
       final info = app.appDataService.passBiDepartureFor(
         networkKey: 'AFTU',
@@ -191,13 +269,11 @@ void main() {
       expect(info.status, ScheduleStatus.scheduled);
       expect(info.routeId, 'AFTU_3');
       expect(info.sourceType, SourceType.publicGtfs);
-      // Suite Lot 4.21 : les anciens mappings TERMINI_MATCH (aftu_8, aftu_11)
-      // sont des HYPOTHÈSES non confirmées — des terminus proches ne
-      // confirment jamais une identité, et deux lignes publiques distinctes ne
-      // fusionnent jamais sur un même identifiant PassBi.
-      expect(info.identityStatus, IdentityStatus.unconfirmed);
-      expect(info.lineLabel, isNot(contains('PassBi')));
-      expect(info.lineLabel, startsWith('AFTU'));
+      // Le crosswalk historique aftu_8/aftu_11 reste non confirmé ; le
+      // registre indépendant prouve séparément que AFTU_3 est la ligne AFTU 3.
+      expect(info.identityStatus, IdentityStatus.confirmed);
+      expect(info.identityNote, contains('VERIFIED'));
+      expect(info.lineLabel, 'AFTU 3');
     });
 
     test('audit §1 : 73 routes AFTU, 71 avec horaires calculables', () {
@@ -612,7 +688,7 @@ void main() {
       expect(app.passBiNativeNetworkKeys(), <String>['DDD', 'AFTU']);
       expect(app.passBiNativeStops.any((s) => s.modeLabel == 'TATA'), isFalse);
       expect(
-        app.passBiNativeStops.any((s) => s.color == app.AppColors.tata),
+        app.passBiNativeStops.any((s) => app.networkKeyForStop(s) == 'TATA'),
         isFalse,
       );
     });
@@ -627,7 +703,7 @@ void main() {
         same(app.allStops),
       );
       final tataStops = app.allStops
-          .where((s) => s.color == app.AppColors.tata)
+          .where((s) => app.networkKeyForStop(s) == 'TATA')
           .take(5)
           .toList();
       expect(tataStops, isNotEmpty,
@@ -711,7 +787,8 @@ void main() {
       final stopId = firstStopOf('DDD', 'DDD_01');
       final info = app.appDataService.passBiDepartureFor(
           networkKey: 'DDD', pbStopId: stopId, pbRouteId: 'DDD_01', at: lundi12);
-      expect(info.identityStatus, IdentityStatus.unconfirmed);
+      expect(info.identityStatus, IdentityStatus.confirmed);
+      expect(info.lineLabel, 'DDD 1');
       expect(info.status, ScheduleStatus.scheduled);
     });
 

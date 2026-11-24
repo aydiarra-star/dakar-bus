@@ -221,11 +221,12 @@ void main() {
       expect(ddd.publicRouteNumber, '80');
       expect(ddd.vehicleType, isNull,
           reason: 'type de véhicule non établi → pas de « Tata » affiché');
-      // Le pipeline d'affichage retombe sur AFTU 80.
+      // Le numéro AFTU 80 existe, mais le route_id AFTU_48 n'a pas de preuve
+      // indépendante de correspondance : le pipeline affiche le mode seul.
       expect(
           ScheduleProvider.identityLabelFor(
-              'AFTU', 'AFTU_80', IdentityStatus.unconfirmed),
-          'AFTU 80');
+              'AFTU', 'AFTU_48', IdentityStatus.unconfirmed),
+          'AFTU');
       // Et jamais « Tata 80 ».
       expect(DocumentedRouteRegistry.confirmedTataLabel('AFTU', '80'), isNull);
     });

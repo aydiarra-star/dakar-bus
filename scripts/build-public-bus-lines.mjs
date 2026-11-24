@@ -22,6 +22,7 @@
 // Usage : node scripts/build-public-bus-lines.mjs
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
+import { loadFeed, routeTermini } from './lib/ddd-aftu-terminus.mjs';
 
 const ROOT = resolve(dirname(new URL(import.meta.url).pathname), '..');
 const CANONICAL = resolve(ROOT, 'docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md');
@@ -29,8 +30,11 @@ const DDD_FEED = resolve(ROOT, 'flutter-src/assets/data/passbi/ddd.json');
 const AFTU_FEED = resolve(ROOT, 'flutter-src/assets/data/passbi/aftu.json');
 const NETWORK = resolve(ROOT, 'flutter-src/assets/data/dakar_network.json');
 
-const VERIFIED_AT = '2026-09-25'; // date de vérification des sources officielles (§M du canonique).
-const GENERATED_AT = '2026-09-30';
+const VERIFIED_AT = '2026-09-25'; // dernière vérification des sources officielles du référentiel canonique (§M).
+const GENERATED_AT = process.env.PUBLIC_BUS_LINES_GENERATED_AT ?? new Date().toISOString().slice(0, 10);
+if (!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(GENERATED_AT)) {
+  throw new Error(`PUBLIC_BUS_LINES_GENERATED_AT invalide : ${GENERATED_AT}`);
+}
 
 const SOURCES = {
   aftu: 'https://aftu-senegal.org/infos-pratiques/',
@@ -38,6 +42,34 @@ const SOURCES = {
   dddItineraries: 'https://demdikk.sn/reseau-urbain-dakar/',
   canonical: 'docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md',
 };
+
+// Registre explicite : aucune identité n'est certifiée par la seule égalité
+// numérique. Chaque preuve exige un route_id exact et une concordance publiée
+// des deux terminus. Les variantes ou contradictions restent UNVERIFIED.
+const IDENTITY_PROOFS_PATH = 'data/reference/passbi_route_identity_proofs.json';
+const IDENTITY_PROOFS = JSON.parse(
+  readFileSync(resolve(ROOT, IDENTITY_PROOFS_PATH), 'utf8'));
+const IDENTITY_PROOF_BY_KEY = new Map(
+  IDENTITY_PROOFS.proofs.map((p) => [`${p.operator}:${p.line_number}`, p]));
+const TERMINUS_FEEDS = {
+  AFTU: loadFeed(AFTU_FEED),
+  DDD: loadFeed(DDD_FEED),
+};
+const sortedUnique = (values) => [...new Set(values)].sort();
+function routeIdentityProof(operator, number, routeIds) {
+  const proof = IDENTITY_PROOF_BY_KEY.get(`${operator}:${number}`);
+  if (!proof || routeIds.length !== 1 || routeIds[0] !== proof.route_id) return null;
+  const feedRoute = TERMINUS_FEEDS[operator].routes.find((r) => r.id === proof.route_id);
+  if (!feedRoute || feedRoute.long !== proof.feed_route_long_name) return null;
+  const actual = routeTermini(TERMINUS_FEEDS[operator], proof.route_id);
+  const actualIds = sortedUnique((actual?.directions ?? []).flatMap((d) =>
+    [d.depart, d.arrivee].filter(Boolean).map((stop) => stop.id)));
+  const actualNames = sortedUnique((actual?.directions ?? []).flatMap((d) =>
+    [d.depart, d.arrivee].filter(Boolean).map((stop) => stop.name)));
+  if (JSON.stringify(actualIds) !== JSON.stringify(proof.feed_terminal_stop_ids ?? [])) return null;
+  if (JSON.stringify(actualNames) !== JSON.stringify(proof.feed_terminal_stop_names ?? [])) return null;
+  return proof;
+}
 
 // ---------------------------------------------------------------------------
 // Parsing du référentiel canonique.
@@ -314,6 +346,7 @@ function endpoints(origin, destination, officialName) {
 
 const aftuLines = aftu.map((l) => {
   const sch = scheduleFor(aftuFeed, l.number);
+  const identityProof = routeIdentityProof('AFTU', l.number, sch.routeIds);
   const { origin, destination } = endpoints(l.origin, l.destination, l.official_name);
   return {
     operator: 'AFTU',
@@ -327,6 +360,10 @@ const aftuLines = aftu.map((l) => {
     route_status: l.route_status,
     stops_status: l.stops_status,
     schedule_status: sch.status,
+    // Statut issu exclusivement du registre de preuves indépendant.
+    feed_route_identity_status: identityProof ? 'VERIFIED' : 'UNVERIFIED',
+    feed_route_identity_proof: identityProof ? `${IDENTITY_PROOFS_PATH}#${identityProof.operator}:${identityProof.line_number}` : null,
+    feed_route_identity_verified_at: identityProof?.verified_at ?? null,
     mapping_status: mappingStatus(sch),
     feed_route_ids: sch.routeIds,
     trip_ids_count: sch.tripIds.length,
@@ -358,6 +395,7 @@ const dddLines = ddd.map((l) => {
         stopSequencePresent: false, stopSequenceStrict: false, complete: false,
         status: 'NO_SCHEDULE' }
     : scheduleFor(dddFeed, l.number);
+  const identityProof = routeIdentityProof('DDD', l.number, sch.routeIds);
   const { origin, destination } = endpoints(l.origin, l.destination, '');
   return {
     operator: 'DDD',
@@ -370,6 +408,11 @@ const dddLines = ddd.map((l) => {
     route_status: l.route_status,
     stops_status: l.stops_status,
     schedule_status: sch.status, // dérivé du feed (raccordement réel)
+    // Le registre n'autorise que les identités et route_id explicitement prouvés.
+    // Les variantes A/B et les routes au numéro nu ambiguës restent UNVERIFIED.
+    feed_route_identity_status: identityProof ? 'VERIFIED' : 'UNVERIFIED',
+    feed_route_identity_proof: identityProof ? `${IDENTITY_PROOFS_PATH}#${identityProof.operator}:${identityProof.line_number}` : null,
+    feed_route_identity_verified_at: identityProof?.verified_at ?? null,
     published_schedule_status: l.schedule_status, // publié (canonique)
     mapping_status: mappingStatus(sch),
     feed_route_ids: sch.routeIds,
@@ -561,7 +604,9 @@ const ref = {
     'exacte et sa preuve de blocage (`blocking`), jamais masqué. `mapping_status` vaut ' +
     'CONNECTED uniquement si la chaîne complète existe ; sinon BLOCKED (route présente, ' +
     'maillon manquant) ou NOT_VERIFIED (aucune route de ce numéro). Aucune ligne n’est ' +
-    'supprimée pour masquer un blocage, aucune identité publique distincte n’est fusionnée.',
+    'supprimée pour masquer un blocage, aucune identité publique distincte n’est fusionnée. ' +
+    '`feed_route_identity_status` est indépendant de `mapping_status` : CONNECTED ' +
+    'ne certifie pas l’identité publique ↔ route ; VERIFIED exige une référence documentaire explicite.',
   sources: SOURCES,
   counts: {
     aftu_official: aftuLines.length,
@@ -573,6 +618,8 @@ const ref = {
     blocked: countStatus('BLOCKED'),
     not_verified: countStatus('NOT_VERIFIED'),
     partial: countStatus('PARTIAL'),
+    feed_route_identity_verified: allPublic.filter((l) => l.feed_route_identity_status === 'VERIFIED').length,
+    feed_route_identity_unverified: allPublic.filter((l) => l.feed_route_identity_status !== 'VERIFIED').length,
     feed_routes_without_public_line:
       dddFeedOrphans.length + aftuFeedOrphans.length,
   },

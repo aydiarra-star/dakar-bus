@@ -17,7 +17,7 @@ import 'package:dakar_bus/services/schedule_provider.dart';
 
 void main() {
   group('DDD — numéro public affiché seulement s\'il est documenté', () {
-    test('DDD 217 → autorisé (demdikk.sn/info-voyageurs)', () {
+    test('DDD 217 existe publiquement, mais route_id seul ne prouve pas le raccordement', () {
       expect(DocumentedRouteRegistry.documentedPublicNumber('DDD', '217'), '217');
       final DocumentedRouteIdentity id =
           DocumentedRouteRegistry.resolveRouteId('DDD', 'DDD_217');
@@ -26,19 +26,25 @@ void main() {
       expect(id.source, DocumentedRouteRegistry.demdikkSource);
       expect(id.sourceType, IdentitySourceType.operatorPublication);
       expect(ScheduleProvider.identityLabelFor(
-          'DDD', 'DDD_217', IdentityStatus.unconfirmed), 'DDD 217');
+          'DDD', 'DDD_217', IdentityStatus.unconfirmed), 'DDD');
+      expect(ScheduleProvider.identityLabelFor(
+          'DDD', 'DDD_217', IdentityStatus.unconfirmed,
+          documentedCatalogLabel: 'DDD 217'), 'DDD 217');
     });
 
     test('DDD 213 → autorisé', () {
       expect(DocumentedRouteRegistry.documentedPublicNumber('DDD', '213'), '213');
       expect(ScheduleProvider.identityLabelFor(
-          'DDD', 'DDD_213', IdentityStatus.unconfirmed), 'DDD 213');
+          'DDD', 'DDD_213', IdentityStatus.unconfirmed), 'DDD');
     });
 
     test('DDD 1 → autorisé', () {
       expect(DocumentedRouteRegistry.documentedPublicNumber('DDD', '1'), '1');
       expect(ScheduleProvider.identityLabelFor(
-          'DDD', 'DDD_01', IdentityStatus.unconfirmed), 'DDD 1');
+          'DDD', 'DDD_01', IdentityStatus.unconfirmed), 'DDD');
+      expect(ScheduleProvider.identityLabelFor(
+          'DDD', 'DDD_01', IdentityStatus.unconfirmed,
+          documentedCatalogLabel: 'DDD 1'), 'DDD 1');
     });
 
     test('DDD <identifiant inconnu> → aucun numéro public inventé', () {
@@ -64,7 +70,10 @@ void main() {
       expect(id.source, DocumentedRouteRegistry.aftuSource);
       expect(id.sourceType, IdentitySourceType.operatorWebsite);
       expect(ScheduleProvider.identityLabelFor(
-          'AFTU', 'AFTU_54', IdentityStatus.unconfirmed), 'AFTU 54');
+          'AFTU', 'AFTU_54', IdentityStatus.unconfirmed), 'AFTU');
+      expect(ScheduleProvider.identityLabelFor(
+          'AFTU', 'AFTU_62', IdentityStatus.unconfirmed,
+          documentedCatalogLabel: 'AFTU 62'), 'AFTU 62');
     });
 
     test('AFTU <identifiant inconnu> → aucun numéro public inventé', () {
@@ -78,6 +87,21 @@ void main() {
             'AFTU',
             reason: 'AFTU_$unknown ne doit produire que le mode');
       }
+    });
+  });
+
+  group('AFTU/DDD — un statut technique ne remplace pas la preuve route ↔ ligne', () {
+    test('même IdentityStatus.confirmed ne suffit pas sans preuve du catalogue', () {
+      expect(
+        ScheduleProvider.identityLabelFor(
+            'DDD', 'DDD_217', IdentityStatus.confirmed),
+        'DDD',
+      );
+      expect(
+        ScheduleProvider.identityLabelFor(
+            'AFTU', 'AFTU_48', IdentityStatus.confirmed),
+        'AFTU',
+      );
     });
   });
 

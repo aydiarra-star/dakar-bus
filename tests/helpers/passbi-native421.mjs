@@ -13,6 +13,15 @@
 // Le moteur Lot 4.19 (tests/helpers/passbi-engine419.mjs) reste la source de
 // vérité pour nextDepartureAbs / planJourneys : il n'est PAS modifié ici.
 import { loadAll, splitComposite, activeServices, AT, fmtSec } from './passbi-engine419.mjs';
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
+const PUBLIC_ROUTE_LABELS = new Map(
+  JSON.parse(readFileSync(resolve(ROOT, 'data/reference/passbi_route_identity_proofs.json'), 'utf8'))
+    .proofs.map((p) => [p.route_id, `${p.operator} ${p.line_number}`]),
+);
 
 export const IDENTITY = { CONFIRMED: 'CONFIRMED', UNCONFIRMED: 'UNCONFIRMED' };
 
@@ -308,7 +317,17 @@ export function nextNativeDeparture(all, networkKey, pbStopId, at, { onlyRouteId
 }
 
 /// §2 — Identité d'affichage (métadonnées PassBi réelles uniquement).
-export function identityLabelFor(networkKey, pbRouteId, identity, shortName = null) {
+export function identityLabelFor(networkKey, pbRouteId, identity, shortName = null, documentedCatalogLabel = null) {
+  // AFTU/DDD : numéro public uniquement si le catalogue fournit une preuve
+  // route_id ↔ ligne indépendante. L'existence du numéro ne suffit pas.
+  if (networkKey === 'AFTU' || networkKey === 'DDD') {
+    if (typeof documentedCatalogLabel === 'string' &&
+        documentedCatalogLabel.startsWith(`${networkKey} `) &&
+        documentedCatalogLabel.slice(networkKey.length + 1).trim()) {
+      return documentedCatalogLabel;
+    }
+    return networkKey;
+  }
   if (identity === IDENTITY.CONFIRMED) {
     return pbRouteId.startsWith(networkKey) ? pbRouteId : `${networkKey} ${pbRouteId}`;
   }
@@ -317,7 +336,7 @@ export function identityLabelFor(networkKey, pbRouteId, identity, shortName = nu
 }
 
 /// Miroir de ScheduleProvider.departureAtPassBiStop.
-export function departureAtPassBiStop(all, networkKey, pbStopId, at, { pbRouteId = null } = {}) {
+export function departureAtPassBiStop(all, networkKey, pbStopId, at, { pbRouteId = null, documentedCatalogLabel = null } = {}) {
   const net = all.networks[networkKey];
   if (!net) {
     return { status: 'UNKNOWN', unresolvedReason: REASON.NETWORK_ABSENT, identityStatus: IDENTITY.UNCONFIRMED };
@@ -328,11 +347,19 @@ export function departureAtPassBiStop(all, networkKey, pbStopId, at, { pbRouteId
 
   if (found === null) {
     const summary = pbRouteId === null ? null : routeSummaries(all, networkKey).find((s) => s.routeId === pbRouteId);
+    const documentedCatalogLabel = pbRouteId === null ? null : PUBLIC_ROUTE_LABELS.get(pbRouteId) ?? null;
+    const rawIdentity = pbRouteId === null ? IDENTITY.UNCONFIRMED : identityStatusOf(all.cw, networkKey, pbRouteId);
+    const displayIdentity = networkKey === 'AFTU' || networkKey === 'DDD'
+      ? (documentedCatalogLabel ? IDENTITY.CONFIRMED : IDENTITY.UNCONFIRMED)
+      : rawIdentity;
     return {
       status: 'UNKNOWN',
       unresolvedReason:
         summary && !summary.scheduleAvailable ? REASON.NO_STOP_TIMES : REASON.NO_DEPARTURE,
-      identityStatus: pbRouteId === null ? IDENTITY.UNCONFIRMED : identityStatusOf(all.cw, networkKey, pbRouteId),
+      identityStatus: displayIdentity,
+      identityNote: documentedCatalogLabel
+        ? `Identité publique VERIFIED par le registre indépendant (${documentedCatalogLabel}).`
+        : 'Identité publique UNVERIFIED.',
       lineLabel: null,
       label: 'Horaire indisponible',
       scheduledTime: null,
@@ -342,6 +369,10 @@ export function departureAtPassBiStop(all, networkKey, pbStopId, at, { pbRouteId
 
   const identity = identityStatusOf(all.cw, networkKey, found.routeId);
   const summary = routeSummaries(all, networkKey).find((s) => s.routeId === found.routeId);
+  const publicLabel = documentedCatalogLabel ?? PUBLIC_ROUTE_LABELS.get(found.routeId) ?? null;
+  const displayIdentity = networkKey === 'AFTU' || networkKey === 'DDD'
+    ? (publicLabel ? IDENTITY.CONFIRMED : IDENTITY.UNCONFIRMED)
+    : identity;
   const waitMinutes = Math.floor((found.sec - minOfDay) / 60);
   const trip = net.trips.find((t) => t[0] === found.tripId);
   return {
@@ -357,12 +388,12 @@ export function departureAtPassBiStop(all, networkKey, pbStopId, at, { pbRouteId
         : `Prochain départ dans ${waitMinutes} min`,
     frequencyMinutes: null,
     sourceType: 'PUBLIC_GTFS',
-    identityStatus: identity,
-    identityNote:
-      identity === IDENTITY.CONFIRMED
-        ? `Identité publique confirmée par le crosswalk (${dakarRouteIdsFor(all.cw, networkKey, found.routeId).join(', ')}).`
-        : 'Identité publique UNCONFIRMED ; horaire PassBi techniquement calculable.',
-    lineLabel: identityLabelFor(networkKey, found.routeId, identity, summary?.shortName ?? null),
+    identityStatus: displayIdentity,
+    identityNote: publicLabel
+      ? `Identité publique vérifiée par le registre indépendant (${publicLabel}).`
+      : 'Identité publique UNVERIFIED ; horaire PassBi techniquement calculable.',
+    feedRouteIdentityStatus: publicLabel ? 'VERIFIED' : 'UNVERIFIED',
+    lineLabel: identityLabelFor(networkKey, found.routeId, displayIdentity, summary?.shortName ?? null, publicLabel),
     tripDirection: trip ? trip[3] || trip[4] || null : null,
   };
 }

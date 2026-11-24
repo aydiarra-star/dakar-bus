@@ -68,11 +68,13 @@ class DataService {
   /// Fiche ligne — séquence d'arrêts ORDONNÉE d'une ligne publique raccordée.
   ///
   /// Lit la route PassBi RÉELLE de la ligne (`feed_route_ids`) et ses
-  /// `stop_times` réels, ordonnés par `stop_sequence`. Retourne `null` si la
-  /// ligne n'est pas raccordée à une route réelle : aucune fiche n'est
-  /// fabriquée pour une ligne BLOCKED / NOT_VERIFIED.
+  /// `stop_times` réels, ordonnés par `stop_sequence`. La fiche publique exige
+  /// DEUX preuves indépendantes : horaires techniques exploitables ET identité
+  /// publique ↔ route PassBi vérifiée avec une référence documentaire.
+  /// L'absence de preuve d'identité ne supprime jamais les horaires natifs du
+  /// feed ; elle interdit seulement de les attribuer à une ligne publique.
   PassBiRouteStopSequence? publicLineStopSequence(PublicBusLine line, {String? directionId}) {
-    if (!line.hasRealSchedule) return null;
+    if (!line.hasRealSchedule || !line.hasVerifiedFeedIdentity) return null;
     final network = line.operator; // DDD | AFTU — clés de feed PassBi
     for (final routeId in line.feedRouteIds) {
       final seq = passBiSource.routeStopSequence(network, routeId, directionId: directionId);
@@ -82,13 +84,14 @@ class DataService {
   }
 
   /// Chargement des horaires PassBi (distinct de loadNetworkData).
-  /// En cas d'échec, l'app reste sur les données legacy — jamais de plantage.
+  /// En cas d'échec, TER/BRT/DDD/AFTU restent sans horaire calculable :
+  /// aucun repli sur les fréquences ou horaires legacy n'est autorisé.
   Future<void> loadPassBiSchedules() async {
     try {
       await passBiSource.loadAll();
     } catch (e) {
       // ignore: avoid_print
-      print('⚠️ PassBi GTFS indisponible (mode legacy) : $e');
+      print('Horaires PassBi non chargés : aucun repli legacy pour TER, BRT, DDD et AFTU. $e');
     }
   }
 
@@ -324,13 +327,34 @@ class DataService {
     DateTime requestedAt, {
     bool isPublicHoliday = false,
     String? operatorName,
-  }) =>
-      _dataProvider.departureInfoForRoute(
-        routeId,
-        requestedAt,
-        isPublicHoliday: isPublicHoliday,
-        operatorName: operatorName,
+  }) {
+    final String id = routeId.toLowerCase();
+    final bool passBiOnly = id.startsWith('ter_') ||
+        id.startsWith('brt_') ||
+        id.startsWith('ddd_') ||
+        id.startsWith('aftu_') ||
+        id.startsWith('line_ter_') ||
+        id.startsWith('line_brt_') ||
+        id.startsWith('line_ddd_') ||
+        id.startsWith('line_aftu_');
+    if (passBiOnly) {
+      // Cette API n'a pas d'identifiant d'arrêt : elle ne peut donc pas
+      // calculer un stop_time GTFS. Surtout, elle ne doit pas contourner
+      // l'exclusivité en réinjectant une fréquence legacy.
+      return DepartureInfo.unknown(
+        operator: operatorName ?? 'Transport',
+        routeId: routeId,
+        requestedAt: requestedAt,
+        unresolvedReason: UnresolvedReason.stopNotMatched,
       );
+    }
+    return _dataProvider.departureInfoForRoute(
+      routeId,
+      requestedAt,
+      isPublicHoliday: isPublicHoliday,
+      operatorName: operatorName,
+    );
+  }
 
   /// Entry point consumed by Stop. Unknown/incomplete identities remain UNKNOWN.
   DepartureInfo departureFor({
