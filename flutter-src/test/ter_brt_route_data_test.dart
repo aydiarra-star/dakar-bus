@@ -162,9 +162,10 @@ void main() {
     });
 
     test('les arrêts partagés conservent toutes leurs appartenances réseau', () {
-      final Stop? colobane = allStops.where((Stop s) => s.stopId == 'stop_colobane').cast<Stop?>().firstWhere((Stop? s) => s != null, orElse: () => null);
-      expect(colobane, isNotNull);
-      expect(colobane!.networkIds, containsAll(<String>{'ter', 'ddd', 'aftu', 'tata'}));
+      final List<Stop> matches = allStops.where((Stop s) => s.stopId == 'stop_colobane').toList();
+      expect(matches, hasLength(1));
+      final Stop colobane = matches.single;
+      expect(colobane.networkIds, containsAll(<String>{'ter', 'ddd', 'aftu', 'tata'}));
       expect(colobane.servesNetwork('ter'), isTrue);
       expect(colobane.servesNetwork('ddd'), isTrue);
       expect(colobane.servesNetwork('aftu'), isTrue);
