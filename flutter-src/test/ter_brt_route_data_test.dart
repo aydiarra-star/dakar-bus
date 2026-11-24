@@ -178,11 +178,16 @@ void main() {
       () {
         final Map<String, Set<String>> expectedByStopId =
             <String, Set<String>>{};
+        final Map<String, Map<String, String>> expectedRoutesByStopId =
+            <String, Map<String, String>>{};
         for (final TransportRoute route in appDataService.routes) {
           for (final String stopId in route.stopIds) {
             expectedByStopId
                 .putIfAbsent(stopId, () => <String>{})
                 .add(route.operatorId);
+            expectedRoutesByStopId
+                .putIfAbsent(stopId, () => <String, String>{})
+                .putIfAbsent(route.operatorId, () => route.id);
           }
         }
 
@@ -199,6 +204,11 @@ void main() {
           final String stopId = stop.stopId!;
           final Set<String> expected = expectedByStopId[stopId]!;
           expect(stop.networkIds, equals(expected), reason: stopId);
+          expect(
+            stop.scheduleRouteIdsByNetwork,
+            equals(expectedRoutesByStopId[stopId]),
+            reason: 'références horaires par réseau : $stopId',
+          );
           for (final String networkId in networkIds) {
             expect(stop.servesNetwork(networkId), expected.contains(networkId),
                 reason: '$stopId / $networkId');
@@ -210,6 +220,37 @@ void main() {
         expect(networkStopsById('ddd'), hasLength(36));
         expect(networkStopsById('aftu'), hasLength(73));
         expect(networkStopsById('tata'), hasLength(23));
+      },
+    );
+
+    test(
+      'un filtre réseau choisit sa propre référence horaire sur un arrêt partagé',
+      () {
+        const String stopId = 'stop_colobane';
+        final Stop shared = allStops.singleWhere((Stop s) => s.stopId == stopId);
+        for (final String networkId in const <String>[
+          'ter',
+          'ddd',
+          'aftu',
+          'tata',
+        ]) {
+          final TransportRoute route = appDataService.routes.firstWhere(
+            (TransportRoute r) =>
+                r.operatorId == networkId && r.stopIds.contains(stopId),
+          );
+          final String filter = networkId == 'tata'
+              ? 'TATA'
+              : networkId.toUpperCase();
+          final List<Stop> filtered = explorerBaseStopsForFilter(
+            selectedFilter: filter,
+            favoriteStopNames: const <String>{},
+            source: <Stop>[shared],
+          );
+          expect(filtered, hasLength(1));
+          expect(filtered.single.scheduleRouteId, route.id, reason: networkId);
+          expect(filtered.single.modeLabel.toLowerCase(), networkId,
+              reason: networkId);
+        }
       },
     );
 
@@ -682,6 +723,52 @@ void main() {
 
   // ==================================================================
   group('§8 — la polyligne reste cohérente avec les stations officielles', () {
+    test(
+      'le calage géométrique ne traverse jamais la frontière entre réseaux',
+      () {
+        const LatLng p1 = LatLng(14.6800, -17.4400);
+        const LatLng p2 = LatLng(14.6900, -17.4300);
+        const LatLng p3 = LatLng(14.7000, -17.4200);
+        const LatLng p4 = LatLng(14.7100, -17.4100);
+        const TransitRoute shortAftu = TransitRoute(
+          name: 'AFTU court',
+          code: 'AFTU court',
+          type: 'AFTU',
+          color: AppColors.primary,
+          points: <LatLng>[p1, p4],
+        );
+        const TransitRoute longTata = TransitRoute(
+          name: 'Tata long',
+          code: 'Tata long',
+          type: 'Tata',
+          color: AppColors.primary,
+          points: <LatLng>[p1, p2, p3, p4],
+        );
+        expect(
+          explorerRenderedRoutePoints(shortAftu, <TransitRoute>[
+            shortAftu,
+            longTata,
+          ]),
+          orderedEquals(shortAftu.points),
+        );
+
+        const TransitRoute longAftu = TransitRoute(
+          name: 'AFTU long',
+          code: 'AFTU long',
+          type: 'AFTU',
+          color: AppColors.primary,
+          points: <LatLng>[p1, p2, p3, p4],
+        );
+        expect(
+          explorerRenderedRoutePoints(shortAftu, <TransitRoute>[
+            shortAftu,
+            longAftu,
+          ]),
+          orderedEquals(longAftu.points),
+        );
+      },
+    );
+
     test('un seul tracé TER sur la carte, de 13 points', () {
       final List<TransitRoute> ter =
           demoRoutes.where((TransitRoute r) => r.code == 'TER').toList();
