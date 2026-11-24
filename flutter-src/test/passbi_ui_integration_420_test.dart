@@ -29,6 +29,7 @@ void main() {
   setUpAll(() async {
     await app.appDataService.loadNetworkData();
     await app.appDataService.loadPassBiSchedules();
+    await app.appDataService.loadPublicBusLineCatalog();
     expect(app.appDataService.passBiActive, isTrue,
         reason: 'PassBi doit être actif : c''est la source opérationnelle');
     expect(app.appDataService.routes, isNotEmpty);
