@@ -225,7 +225,7 @@ void main() {
       // indépendante de correspondance : le pipeline affiche le mode seul.
       expect(
           ScheduleProvider.identityLabelFor(
-              'AFTU', 'AFTU_80', IdentityStatus.unconfirmed),
+              'AFTU', 'AFTU_48', IdentityStatus.unconfirmed),
           'AFTU');
       // Et jamais « Tata 80 ».
       expect(DocumentedRouteRegistry.confirmedTataLabel('AFTU', '80'), isNull);
