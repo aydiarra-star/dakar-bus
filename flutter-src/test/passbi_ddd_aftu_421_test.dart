@@ -626,10 +626,11 @@ void main() {
         ),
         same(app.allStops),
       );
-      final tataStops = app.allStops
-          .where((s) => s.servesNetwork('tata'))
-          .take(5)
-          .toList();
+      final tataStops = app.explorerBaseStopsForFilter(
+        selectedFilter: 'TATA',
+        favoriteStopNames: const <String>{},
+        source: app.allStops,
+      ).take(5).toList();
       expect(tataStops, isNotEmpty,
           reason: 'les arrêts des lignes TATA du référentiel dakar sont '
               'affichés (aucun n\'est retiré par le lot)');
