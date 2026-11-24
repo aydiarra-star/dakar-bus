@@ -426,6 +426,16 @@ void main() {
       );
     });
 
+    test('la recherche ne transmet un route_id qu’avec une identité vérifiée', () {
+      final entries = NetworkSearchCatalogBuilder.fromPublicLines(
+          app.appDataService.publicBusLineCatalog.publicLines);
+      NetworkSearchEntry line(String label) => entries.singleWhere(
+          (e) => e.kind == NetworkSearchKind.line && e.label == label);
+      expect(line('AFTU 62').routeId, 'AFTU_62');
+      expect(line('AFTU 46').routeId, isNull);
+      expect(line('DDD 502').routeId, isNull);
+    });
+
     test('une ligne vérifiée expose ses vrais arrêts PassBi', () {
       final PublicBusLine line = app.appDataService.publicBusLineCatalog.publicLines
           .singleWhere((l) => l.publicLabel == 'AFTU 62');
