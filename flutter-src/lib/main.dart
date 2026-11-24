@@ -3726,7 +3726,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
   bool _searchFocused = false;
   final TextEditingController _searchCtrl = TextEditingController();
 
-  List<Polyline> _dynamicPolylines = [];
+  List<({String networkId, Polyline polyline})> _dynamicPolylines = [];
   bool _isLoadingRoutes = true;
 
   /// Zoom courant de la carte, suivi via `MapOptions.onPositionChanged`
@@ -3772,7 +3772,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
 
   Future<void> _loadDynamicRoutes() async {
     // ✅ Fluidité : charge uniquement TER/BRT (dédié) au démarrage — instantané, pas d'OSRM
-    final List<Polyline> loaded = [];
+    final List<({String networkId, Polyline polyline})> loaded = [];
     final initialRoutes = demoRoutes.where((r) => r.isDedicated).toList();
     for (final route in initialRoutes) {
       // ✅ RENDU ANTI-DOUBLE-LIGNE (CAS A) — géométrie éventuellement calée
@@ -3787,13 +3787,13 @@ class _ExplorerPageState extends State<ExplorerPage> {
           .where((pt) => DakarBounds.isValid(pt))
           .toList();
       if (points.length >= 2) {
-        loaded.add(Polyline(
+        loaded.add((networkId: route.operatorId.toLowerCase(), polyline: Polyline(
           points: points,
           color: route.color,
           strokeWidth: 5.5,
           borderColor: Colors.white,
           borderStrokeWidth: 2,
-        ));
+        )));
       }
     }
     if (mounted) setState(() { _dynamicPolylines = loaded; _isLoadingRoutes = false; });
@@ -3804,7 +3804,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
   Future<void> _lazyLoadRemainingRoutes() async {
     // Ne charge les autres tracés que si besoin et de manière non bloquante
     await Future.delayed(const Duration(milliseconds: 800));
-    final List<Polyline> extra = [];
+    final List<({String networkId, Polyline polyline})> extra = [];
     final remaining = demoRoutes.where((r) => !r.isDedicated).take(20).toList(); // limite à 20 pour ne pas surcharger
     for (final route in remaining) {
       if (route.points.length < 2) continue;
@@ -3827,7 +3827,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
       } catch (_) {}
       if (fullRoutePoints.isEmpty) fullRoutePoints = route.points.where((pt) => DakarBounds.isValid(pt)).toList();
       if (fullRoutePoints.length >= 2) {
-        extra.add(Polyline(
+        extra.add((networkId: route.operatorId.toLowerCase(), polyline: Polyline(
           points: fullRoutePoints,
           color: route.color,
           strokeWidth: 4.5,
@@ -3835,7 +3835,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
           //    visuelle des réseaux superposés (rendu seul).
           borderColor: Colors.white,
           borderStrokeWidth: 2,
-        ));
+        )));
       }
       // Petite pause pour ne pas saturer
       await Future.delayed(const Duration(milliseconds: 50));
@@ -4045,14 +4045,21 @@ class _ExplorerPageState extends State<ExplorerPage> {
   Widget build(BuildContext context) {
     final dark = globalState.darkMode;
     final stops = _filteredStops;
-    // ✅ Filtre les tracés par mobilité pour éviter le spaghetti orange : n'affiche que la couleur sélectionnée
-    final Color? filterColor = _selectedFilter == 'Tous' ? null : _colorFor(_selectedFilter);
+    // Le filtrage des tracés repose sur l'identité de l'exploitant, jamais sur
+    // la couleur : plusieurs réseaux partagent volontairement une même teinte.
+    final String? filterNetworkId = switch (_selectedFilter) {
+      'TER' => 'ter',
+      'BRT' => 'brt',
+      'DDD' => 'ddd',
+      'AFTU' => 'aftu',
+      'TATA' => 'tata',
+      _ => null,
+    };
     final basePolylines = _dynamicPolylines.isNotEmpty
         ? _dynamicPolylines
         : demoRoutes
-            .map((r) => Polyline(
-                  // Même géométrie de rendu que `_loadDynamicRoutes` (CAS A)
-                  // pour un état de chargement cohérent.
+            .map((r) => (networkId: r.operatorId.toLowerCase(), polyline: Polyline(
+                  // Même géométrie de rendu que `_loadDynamicRoutes` (CAS A).
                   points: explorerRenderedRoutePoints(r, demoRoutes)
                       .where((pt) => DakarBounds.isValid(pt))
                       .toList(),
@@ -4060,11 +4067,15 @@ class _ExplorerPageState extends State<ExplorerPage> {
                   strokeWidth: 5.0,
                   borderColor: Colors.white,
                   borderStrokeWidth: 2,
-                ))
+                )))
             .toList();
-    final activePolylines = filterColor == null
-        ? basePolylines.where((p) => p.color == AppColors.ter || p.color == AppColors.brt).toList() // Tous : seulement TER/BRT (tracés dédiés, pas le spaghetti)
-        : basePolylines.where((p) => p.color == filterColor).toList();
+    final activePolylines = (_selectedFilter == 'Tous'
+            ? basePolylines.where((p) => p.networkId == 'ter' || p.networkId == 'brt')
+            : filterNetworkId == null
+                ? const <({String networkId, Polyline polyline})>[]
+                : basePolylines.where((p) => p.networkId == filterNetworkId))
+        .map((entry) => entry.polyline)
+        .toList();
     final mapStops = _filteredStops; // ✅ Toujours filtré à proximité (30 max — Groupe 4), pas allStops
     // ✅ CORRECTIF ARRÊTS TER/BRT — garantit sur la carte les gares/stations
     //    officielles des réseaux affichés (même prédicat que `activePolylines`
@@ -4072,8 +4083,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
     //    déduplication documentés sur [explorerMapMarkerStops].
     final mapMarkerStops = explorerMapMarkerStops(
       proximityStops: mapStops,
-      terDisplayed: filterColor == null || filterColor == AppColors.ter,
-      brtDisplayed: filterColor == null || filterColor == AppColors.brt,
+      terDisplayed: _selectedFilter == 'Tous' || _selectedFilter == 'TER',
+      brtDisplayed: _selectedFilter == 'Tous' || _selectedFilter == 'BRT',
     );
     // ✅ DIAGNOSTIC RUNTIME (correctif TER/BRT) — une ligne par reconstruction :
     //    compte réel de ce qui est transmis au MarkerLayer de CETTE carte,
