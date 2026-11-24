@@ -188,10 +188,9 @@ class DepartureInfo {
   /// PassBi). Jamais un nom commercial inventé.
   final String? identityNote;
 
-  /// Lot 4.21 §2 — identité d'affichage issue des métadonnées PassBi RÉELLES
-  /// (ex. « Ligne PassBi DDD_217 »). `null` lorsque la ligne affichée reste
-  /// celle du référentiel dakar (TER/BRT/AFTU mappés) : aucun rendu existant
-  /// n'est modifié.
+  /// Identité d'affichage : pour AFTU/DDD, le libellé public n'est renseigné
+  /// que si le catalogue prouve indépendamment le lien route ↔ ligne ; sinon
+  /// le mode seul est affiché. TER/BRT conservent leur crosswalk documentaire.
   final String? lineLabel;
 
   /// Lot 4.21 §15 — raison précise d'un UNKNOWN ([UnresolvedReason]).
