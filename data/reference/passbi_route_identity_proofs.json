@@ -3,8 +3,8 @@
   "verified_at": "2026-11-24",
   "policy": "VERIFIED uniquement si le numéro public, la publication officielle et les deux terminus observés dans le feed concordent. Une égalité de numéro seule ne suffit pas. Les contradictions, variantes A/B et terminus ambigus restent UNVERIFIED.",
   "counts": {
-    "verified": 46,
-    "unverified_public_lines": 74
+    "verified": 48,
+    "unverified_public_lines": 72
   },
   "proofs": [
     {
@@ -249,6 +249,26 @@
     },
     {
       "operator": "AFTU",
+      "line_number": "42",
+      "route_id": "AFTU_42",
+      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-42/",
+      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Gadaye ↔ Ouakam Baye",
+      "basis": "L’itinéraire officiel AFTU 42 relie Gadaye à Ouakam Baye ; les stop_times du feed terminent au terminus partagé 30/49 de Gadaye et devant le terminus 42/44 du Marché Jeudi à Ouakam Baye.",
+      "verified_at": "2026-11-24",
+      "feed_route_long_name": "AFTU_42_Gadaye_Ouakam",
+      "feed_terminal_stop_ids": [
+        "A_1746",
+        "A_453"
+      ],
+      "feed_terminal_stop_names": [
+        "Devant Terminus 42 Et 44 Marché Jeudi",
+        "Terminus 30 49"
+      ]
+    },
+    {
+      "operator": "AFTU",
       "line_number": "44",
       "route_id": "AFTU_44",
       "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-44/",
@@ -411,6 +431,26 @@
       "feed_terminal_stop_names": [
         "Ouakam Terminus 67",
         "Terminus 67"
+      ]
+    },
+    {
+      "operator": "AFTU",
+      "line_number": "70",
+      "route_id": "AFTU_70",
+      "official_reference": "https://aftu-senegal.org/map/dakar-urbain-ligne-70/",
+      "catalog_reference": "https://aftu-senegal.org/infos-pratiques/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Daroukhane (Keur Serigne Assane) ↔ Jaxaay 2",
+      "basis": "L’itinéraire officiel AFTU 70 relie Daroukhane Keur Serigne Assane à Jaxaay 2 ; les stop_times du feed terminent à Serigne Assane et au terminus Jaxaay 2 Pénitence. Le long_name PassBi conserve Diaxaye comme ancien libellé de destination.",
+      "verified_at": "2026-11-24",
+      "feed_route_long_name": "AFTU_70_darouhane_diaxaye",
+      "feed_terminal_stop_ids": [
+        "A_414",
+        "A_527"
+      ],
+      "feed_terminal_stop_names": [
+        "Jaxaay 2 En Face Cabinet Médical Matlaboul Chifa I",
+        "Serigne Assane Terminus 36 46 70"
       ]
     },
     {
