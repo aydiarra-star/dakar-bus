@@ -13,6 +13,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
+import { loadFeed, routeTermini } from '../scripts/lib/ddd-aftu-terminus.mjs';
 
 const ROOT = resolve(dirname(new URL(import.meta.url).pathname), '..');
 const REF = JSON.parse(
@@ -26,6 +27,13 @@ const IDENTITY_PROOFS = JSON.parse(
   readFileSync(resolve(ROOT, IDENTITY_PROOFS_PATH), 'utf8'));
 const IDENTITY_PROOF_BY_KEY = new Map(
   IDENTITY_PROOFS.proofs.map((p) => [`${p.operator}:${p.line_number}`, p]));
+const TERMINI_REF = JSON.parse(readFileSync(
+  resolve(ROOT, 'data/reference/ddd_aftu_poles_terminus.json'), 'utf8'));
+const TERMINI_FEEDS = {
+  AFTU: loadFeed(resolve(ROOT, 'flutter-src/assets/data/passbi/aftu.json')),
+  DDD: loadFeed(resolve(ROOT, 'flutter-src/assets/data/passbi/ddd.json')),
+};
+const sortedUnique = (values) => [...new Set(values)].sort();
 
 function feedRouteIds(path) {
   const feed = JSON.parse(readFileSync(path, 'utf8'));
@@ -86,6 +94,28 @@ test('la preuve d’identité publique ↔ route reste indépendante des horaire
       assert.equal(l.schedule_status, 'SCHEDULE_AVAILABLE');
       assert.ok(l.stop_times_count > 0);
     }
+  }
+});
+
+test('chaque identité VERIFIED correspond aux terminus réels du feed', () => {
+  for (const proof of IDENTITY_PROOFS.proofs) {
+    const feed = TERMINI_FEEDS[proof.operator];
+    const actual = routeTermini(feed, proof.route_id);
+    assert.ok(actual, `${proof.route_id} absent du feed`);
+    const ids = sortedUnique(actual.directions.flatMap((d) =>
+      [d.depart, d.arrivee].filter(Boolean).map((stop) => stop.id)));
+    const names = sortedUnique(actual.directions.flatMap((d) =>
+      [d.depart, d.arrivee].filter(Boolean).map((stop) => stop.name)));
+    assert.deepEqual(ids, proof.feed_terminal_stop_ids, proof.route_id);
+    assert.deepEqual(names, proof.feed_terminal_stop_names, proof.route_id);
+    const audit = TERMINI_REF[proof.operator.toLowerCase()].routes
+      .find((r) => r.routeId === proof.route_id);
+    assert.ok(audit, `${proof.route_id} absent de l'audit terminus`);
+    const auditIds = sortedUnique(audit.directions.flatMap((d) =>
+      [d.depart, d.arrivee].filter(Boolean).map((stop) => stop.stopId)));
+    assert.deepEqual(auditIds, proof.feed_terminal_stop_ids, proof.route_id);
+    assert.ok(proof.official_reference.startsWith('https://'));
+    assert.ok(proof.basis.length > 20);
   }
 });
 
