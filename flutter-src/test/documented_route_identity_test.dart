@@ -99,7 +99,7 @@ void main() {
       );
       expect(
         ScheduleProvider.identityLabelFor(
-            'AFTU', 'AFTU_54', IdentityStatus.confirmed),
+            'AFTU', 'AFTU_48', IdentityStatus.confirmed),
         'AFTU',
       );
     });
