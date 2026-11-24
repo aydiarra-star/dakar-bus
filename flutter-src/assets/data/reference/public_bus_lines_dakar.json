@@ -20,8 +20,8 @@
     "not_verified": 14,
     "partial": 0,
     "feed_routes_without_public_line": 20,
-    "feed_route_identity_verified": 20,
-    "feed_route_identity_unverified": 100
+    "feed_route_identity_verified": 46,
+    "feed_route_identity_unverified": 74
   },
   "unresolved_public_lines": [
     {
@@ -650,8 +650,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:30"
     },
     {
       "operator": "AFTU",
@@ -728,8 +728,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:32"
     },
     {
       "operator": "AFTU",
@@ -767,8 +767,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:33"
     },
     {
       "operator": "AFTU",
@@ -806,8 +806,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:34"
     },
     {
       "operator": "AFTU",
@@ -845,8 +845,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:35"
     },
     {
       "operator": "AFTU",
@@ -923,8 +923,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:37"
     },
     {
       "operator": "AFTU",
@@ -1001,8 +1001,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:39"
     },
     {
       "operator": "AFTU",
@@ -1040,8 +1040,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:40"
     },
     {
       "operator": "AFTU",
@@ -1196,8 +1196,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:44"
     },
     {
       "operator": "AFTU",
@@ -1274,8 +1274,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:46"
     },
     {
       "operator": "AFTU",
@@ -1403,8 +1403,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:49"
     },
     {
       "operator": "AFTU",
@@ -1481,8 +1481,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:51"
     },
     {
       "operator": "AFTU",
@@ -1614,8 +1614,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:54"
     },
     {
       "operator": "AFTU",
@@ -1848,8 +1848,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:60"
     },
     {
       "operator": "AFTU",
@@ -2121,8 +2121,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:67"
     },
     {
       "operator": "AFTU",
@@ -2277,8 +2277,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:71"
     },
     {
       "operator": "AFTU",
@@ -2355,8 +2355,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:73"
     },
     {
       "operator": "AFTU",
@@ -2433,8 +2433,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:75"
     },
     {
       "operator": "AFTU",
@@ -2472,8 +2472,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:76"
     },
     {
       "operator": "AFTU",
@@ -2550,8 +2550,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:78"
     },
     {
       "operator": "AFTU",
@@ -2628,8 +2628,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:80"
     },
     {
       "operator": "AFTU",
@@ -2706,8 +2706,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:82"
     },
     {
       "operator": "AFTU",
@@ -2745,8 +2745,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "PARTIAL",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:83"
     },
     {
       "operator": "AFTU",
@@ -2784,8 +2784,8 @@
       "source": "https://aftu-senegal.org/infos-pratiques/",
       "verified_at": "2026-09-25",
       "canonical_status": "UNVERIFIED",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#AFTU:84"
     },
     {
       "operator": "AFTU",
@@ -3810,8 +3810,8 @@
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
       "canonical_status": "CONFIRMED",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#DDD:121"
     },
     {
       "operator": "DDD",
@@ -5006,8 +5006,8 @@
       "itinerary_source": "https://demdikk.sn/reseau-urbain-dakar/",
       "verified_at": "2026-09-25",
       "canonical_status": "CONFIRMED",
-      "feed_route_identity_status": "UNVERIFIED",
-      "feed_route_identity_proof": null
+      "feed_route_identity_status": "VERIFIED",
+      "feed_route_identity_proof": "data/reference/passbi_route_identity_proofs.json#DDD:234"
     },
     {
       "operator": "DDD",
