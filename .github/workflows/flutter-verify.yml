@@ -37,6 +37,8 @@ on:
       - arena/01a0e53c-dakar-bus
       # Suite Lot 4.21 — verrouillage identité / horaire / correspondances.
       - arena/01a0e820-dakar-bus
+      # Diagnostic des identifiants réseau et arrêts partagés.
+      - fix/network-identity-and-shared-stops
   workflow_dispatch:
 
 permissions:
