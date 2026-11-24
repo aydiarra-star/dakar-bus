@@ -457,13 +457,13 @@ class ScheduleProvider {
   /// d'une identité PUBLIQUE DOCUMENTÉE. Le nom de la source de données
   /// (PassBi) n'apparaît jamais.
   ///
-  ///  * identité publique confirmée par le référentiel documenté
-  ///    ([RouteMapping.isMapped], ex. « BRT B1 ») → cette identité ;
-  ///  * libellé public DOCUMENTÉ par le catalogue ([documentedCatalogLabel],
-  ///    ex. « DDD 311 », « AFTU 3 ») → ce libellé ;
-  ///  * numéro public DOCUMENTÉ (DDD/AFTU, via [DocumentedRouteRegistry]) →
-  ///    « DDD 217 », « AFTU 54 » ;
+  ///  * pour AFTU/DDD, seul le libellé du catalogue adossé à une preuve
+  ///    indépendante route ↔ ligne ([documentedCatalogLabel]) autorise le numéro ;
+  ///  * pour TER/BRT, le crosswalk documentaire existant reste la référence ;
   ///  * sinon → le MODE du réseau seul (« DDD », « AFTU »), sans numéro.
+  ///
+  /// Le fait qu'un numéro AFTU/DDD existe dans le catalogue officiel ne prouve
+  /// pas qu'un route_id PassBi précis représente cette ligne.
   ///
   /// Un identifiant interne (`DDD_217`, `tata_218`) n'est JAMAIS présenté comme
   /// un numéro public : il est confronté au référentiel documenté, et sans
@@ -471,11 +471,9 @@ class ScheduleProvider {
   /// origine/destination déduite du numéro, aucune identité fabriquée.
   ///
   /// [documentedCatalogLabel] (optionnel) permet à l'appelant de fournir le
-  /// libellé public raccordé au `route_id` de feed par le catalogue des lignes
-  /// publiques (`PublicBusLineCatalog`). C'est une PREUVE documentaire plus
-  /// complète que le seul numéro final du `route_id` : elle rattrape les lignes
-  /// dont le `route_id` porte une variante (« DDD_15 » = « DDD 15 ») que le
-  /// registre à numéro final ne saurait résoudre. Le libellé fourni est validé
+  /// libellé public raccordé au `route_id` par le registre de preuves explicites
+  /// (`PublicBusLineCatalog`). Il est le SEUL chemin qui autorise un numéro
+  /// AFTU/DDD dans l'affichage natif. Le numéro extrait de `route_id` ne suffit pas. Le libellé fourni est validé
   /// (mode + numéro) avant usage : un libellé qui ne porte pas le mode attendu
   /// est ignoré.
   static String identityLabelFor(
@@ -485,6 +483,18 @@ class ScheduleProvider {
     String? shortName,
     String? documentedCatalogLabel,
   }) {
+    // AFTU/DDD : ne jamais transformer le numéro final du route_id en numéro
+    // public. Seul le catalogue, filtré par feed_route_identity_status=VERIFIED,
+    // peut fournir le libellé. Cette règle prime même si un autre statut
+    // technique prétend confirmer le route_id.
+    if (networkKey == 'DDD' || networkKey == 'AFTU') {
+      if (documentedCatalogLabel == null) return networkKey;
+      final String label = documentedCatalogLabel.trim();
+      return label.startsWith('$networkKey ') &&
+              label.substring(networkKey.length + 1).trim().isNotEmpty
+          ? label
+          : networkKey;
+    }
     if (identity == IdentityStatus.confirmed) {
       return pbRouteId.startsWith(networkKey) ? pbRouteId : '$networkKey $pbRouteId';
     }
