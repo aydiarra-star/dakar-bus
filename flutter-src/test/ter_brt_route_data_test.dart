@@ -174,73 +174,77 @@ void main() {
     });
 
     test(
-        'toutes les appartenances réseau correspondent aux operator_id du JSON',
-        () {
-      final Map<String, Set<String>> expectedByStopId = <String, Set<String>>{};
-      for (final TransportRoute route in appDataService.routes) {
-        for (final String stopId in route.stopIds) {
-          expectedByStopId
-              .putIfAbsent(stopId, () => <String>{})
-              .add(route.operatorId);
+      'toutes les appartenances réseau correspondent aux operator_id du JSON',
+      () {
+        final Map<String, Set<String>> expectedByStopId =
+            <String, Set<String>>{};
+        for (final TransportRoute route in appDataService.routes) {
+          for (final String stopId in route.stopIds) {
+            expectedByStopId
+                .putIfAbsent(stopId, () => <String>{})
+                .add(route.operatorId);
+          }
         }
-      }
 
-      expect(expectedByStopId.length, appDataService.stops.length);
-      expect(allStops.length, appDataService.stops.length);
-      const List<String> networkIds = <String>[
-        'ter',
-        'brt',
-        'ddd',
-        'aftu',
-        'tata',
-      ];
-      for (final Stop stop in allStops) {
-        final String stopId = stop.stopId!;
-        final Set<String> expected = expectedByStopId[stopId]!;
-        expect(stop.networkIds, equals(expected), reason: stopId);
-        for (final String networkId in networkIds) {
-          expect(stop.servesNetwork(networkId), expected.contains(networkId),
-              reason: '$stopId / $networkId');
+        expect(expectedByStopId.length, appDataService.stops.length);
+        expect(allStops.length, appDataService.stops.length);
+        const List<String> networkIds = <String>[
+          'ter',
+          'brt',
+          'ddd',
+          'aftu',
+          'tata',
+        ];
+        for (final Stop stop in allStops) {
+          final String stopId = stop.stopId!;
+          final Set<String> expected = expectedByStopId[stopId]!;
+          expect(stop.networkIds, equals(expected), reason: stopId);
+          for (final String networkId in networkIds) {
+            expect(stop.servesNetwork(networkId), expected.contains(networkId),
+                reason: '$stopId / $networkId');
+          }
         }
-      }
 
-      expect(networkStopsById('ter'), hasLength(13));
-      expect(networkStopsById('brt'), hasLength(23));
-      expect(networkStopsById('ddd'), hasLength(36));
-      expect(networkStopsById('aftu'), hasLength(73));
-      expect(networkStopsById('tata'), hasLength(23));
-    });
+        expect(networkStopsById('ter'), hasLength(13));
+        expect(networkStopsById('brt'), hasLength(23));
+        expect(networkStopsById('ddd'), hasLength(36));
+        expect(networkStopsById('aftu'), hasLength(73));
+        expect(networkStopsById('tata'), hasLength(23));
+      },
+    );
 
     test(
-        'une couleur partagée ne suffit pas à identifier un arrêt ancien', () {
-      final Stop marche = Stop(
-        name: 'Déplacement à pied',
-        direction: 'Marche',
-        distanceMeters: 0,
-        departureMinutesFromMidnight: const <int>[],
-        icon: Icons.directions_walk,
-        color: AppColors.primary,
-        location: const LatLng(14.6800, -17.4400),
-        modeLabel: 'Marche',
-      );
-      for (final String networkId
-          in const <String>['ter', 'brt', 'ddd', 'aftu', 'tata']) {
-        expect(marche.servesNetwork(networkId), isFalse, reason: networkId);
-      }
+      'une couleur partagée ne suffit pas à identifier un arrêt ancien',
+      () {
+        final Stop marche = Stop(
+          name: 'Déplacement à pied',
+          direction: 'Marche',
+          distanceMeters: 0,
+          departureMinutesFromMidnight: const <int>[],
+          icon: Icons.directions_walk,
+          color: AppColors.primary,
+          location: const LatLng(14.6800, -17.4400),
+          modeLabel: 'Marche',
+        );
+        for (final String networkId
+            in const <String>['ter', 'brt', 'ddd', 'aftu', 'tata']) {
+          expect(marche.servesNetwork(networkId), isFalse, reason: networkId);
+        }
 
-      final Stop ancienTer = Stop(
-        name: 'Ancienne gare TER',
-        direction: 'Aller',
-        distanceMeters: 0,
-        departureMinutesFromMidnight: const <int>[],
-        icon: Icons.train,
-        color: AppColors.ter,
-        location: const LatLng(14.6800, -17.4400),
-        modeLabel: 'TER',
-      );
-      expect(ancienTer.servesNetwork('ter'), isTrue);
-      expect(ancienTer.servesNetwork('brt'), isFalse);
-    });
+        final Stop ancienTer = Stop(
+          name: 'Ancienne gare TER',
+          direction: 'Aller',
+          distanceMeters: 0,
+          departureMinutesFromMidnight: const <int>[],
+          icon: Icons.train,
+          color: AppColors.ter,
+          location: const LatLng(14.6800, -17.4400),
+          modeLabel: 'TER',
+        );
+        expect(ancienTer.servesNetwork('ter'), isTrue);
+        expect(ancienTer.servesNetwork('brt'), isFalse);
+      },
+    );
 
     test('BRT : Explorer conserve tous ses points existants', () {
       final List<Stop> points = networkStopsById('brt');
