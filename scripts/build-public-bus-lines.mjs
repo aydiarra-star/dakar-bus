@@ -57,7 +57,7 @@ function routeIdentityProof(operator, number, routeIds) {
   const proof = IDENTITY_PROOF_BY_KEY.get(`${operator}:${number}`);
   if (!proof || routeIds.length !== 1 || routeIds[0] !== proof.route_id) return null;
   const feedRoute = TERMINUS_FEEDS[operator].routes.find((r) => r.id === proof.route_id);
-  if (!feedRoute || feedRoute.longName !== proof.feed_route_long_name) return null;
+  if (!feedRoute || feedRoute.long !== proof.feed_route_long_name) return null;
   const actual = routeTermini(TERMINUS_FEEDS[operator], proof.route_id);
   const actualIds = sortedUnique((actual?.directions ?? []).flatMap((d) =>
     [d.depart, d.arrivee].filter(Boolean).map((stop) => stop.id)));
