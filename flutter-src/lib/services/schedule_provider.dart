@@ -258,6 +258,10 @@ class ScheduleProvider {
       final String? documentedCatalogLabel = pbRouteId == null
           ? null
           : documentedCatalogLabelForFeedRouteId(pbRouteId);
+      // Pour AFTU/DDD, l'identité publique vient exclusivement de la preuve
+      // indépendante du catalogue. Le statut du crosswalk historique reste
+      // consultable via PassBiSource, mais ne peut ni certifier ni déclasser
+      // cette preuve publique.
       final bool publicBusNetwork = networkKey == 'AFTU' || networkKey == 'DDD';
       final IdentityStatus rawIdentity = pbRouteId == null
           ? IdentityStatus.unconfirmed
@@ -309,6 +313,9 @@ class ScheduleProvider {
         passBi.identityStatusOf(networkKey, routeId);
     final String? documentedCatalogLabel =
         documentedCatalogLabelForFeedRouteId(routeId);
+    // Le statut exposé par DepartureInfo est l'identité publique : pour
+    // AFTU/DDD, seule la preuve feed_route_identity_status VERIFIED du
+    // catalogue l'autorise. Le crosswalk technique historique reste séparé.
     final bool publicBusNetwork = networkKey == 'AFTU' || networkKey == 'DDD';
     final IdentityStatus displayIdentity = publicBusNetwork
         ? (documentedCatalogLabel == null
