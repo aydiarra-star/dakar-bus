@@ -176,7 +176,7 @@ class DepartureInfo {
   /// GTFS ne garantit pas que 0/1 ait le même sens entre deux lignes.
   String? get directionKey => direction?.isNotEmpty == true
       ? direction
-      : (directionId == null || directionId.isEmpty
+      : (directionId?.isEmpty != false
           ? null
           : 'GTFS:$routeId:$directionId');
 
