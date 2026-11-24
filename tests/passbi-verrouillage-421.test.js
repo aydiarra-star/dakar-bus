@@ -296,7 +296,7 @@ test('4b. AFTU_3 : horaire disponible + identité UNKNOWN (séparation stricte)'
   const res = departureAtPassBiStop(ALL, 'AFTU', 'A_1633', LUNDI_10H, { pbRouteId: 'AFTU_3' });
   assert.equal(res.status, 'SCHEDULED');
   assert.equal(res.identityStatus, IDENTITY.UNCONFIRMED);
-  assert.equal(res.lineLabel, 'AFTU');
+  assert.equal(res.lineLabel, 'AFTU 3');
 });
 
 test('4c. les horaires proviennent uniquement de vrais trips + stop_times', () => {
