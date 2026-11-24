@@ -171,6 +171,26 @@ void main() {
         expect(app.usesPassBiExclusiveModeLabel(label), isTrue,
             reason: '$label doit masquer le texte d’horaire indisponible');
       }
+      expect(
+        app.shouldShowScheduleLabelForNetwork(
+            'BRT L1', app.ReliabilityLabel.scheduleUnavailable),
+        isFalse,
+      );
+      expect(
+        app.shouldShowScheduleLabelForNetwork(
+            'Dakar Dem Dikk', app.ReliabilityLabel.scheduleUnavailable),
+        isFalse,
+      );
+      expect(
+        app.shouldShowScheduleLabelForNetwork(
+            'TATA', app.ReliabilityLabel.scheduleUnavailable),
+        isTrue,
+      );
+      expect(
+        app.shouldShowScheduleLabelForNetwork(
+            'TER', 'Prochain départ dans 5 min'),
+        isTrue,
+      );
       expect(app.usesPassBiExclusiveModeLabel('TATA'), isFalse);
       expect(app.usesPassBiExclusiveModeLabel('Marche'), isFalse);
     });
