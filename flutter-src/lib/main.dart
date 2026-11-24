@@ -1563,7 +1563,7 @@ List<Stop> explorerMapMarkerStops({
 /// Base de la liste Explorer pour un filtre donné (chips « Tous », « ⭐
 /// Favoris », TER, BRT, DDD, TATA, AFTU) — **indépendante de tout GPS**.
 ///
-/// Même sélection que `_filteredStops` avant extraction : filtrage par couleur
+/// Même sélection que `_filteredStops` avant extraction : filtrage par identité
 /// réseau ou par favoris sur la liste source ([allStops] en production). Aucune
 /// distance n'est calculée ici ; l'ordre/proximité est appliqué ensuite par
 /// [explorerVisibleStops].
@@ -1973,7 +1973,7 @@ void _integrateNetworkData() {
             networkId,
           };
           allStops[existingIndex] = existing.copyWith(
-            stopId: busStop.id,
+            stopId: existing.stopId ?? busStop.id,
             scheduleRouteId: existing.scheduleRouteId ?? route.id,
             networkIds: memberships.toList()..sort(),
           );
