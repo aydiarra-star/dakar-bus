@@ -513,7 +513,7 @@ Pour ces lignes, les identités et terminus publiés sur la page officielle « I
 
 ### Identités qui restent non vérifiées
 
-- **74 lignes publiques** restent `UNVERIFIED` : 43 AFTU et 31 DDD.
+- **72 lignes publiques** restent `UNVERIFIED` : 41 AFTU et 31 DDD.
 - Les AFTU dont les terminus du feed divergent de la liste officielle, les pages AFTU contradictoires, les lignes sans stop_times et les lignes sans preuve suffisante restent non attribuées.
 - DDD 15, 16, 501, 502, 503, 504 et les variantes A/B restent non vérifiés lorsque les terminus sont contradictoires, ambigus ou non distingués par le feed.
 - Le fait qu'un numéro soit officiellement publié ne suffit pas à certifier le `route_id` correspondant.
@@ -529,7 +529,7 @@ Pour ces lignes, les identités et terminus publiés sur la page officielle « I
 
 ### Résultat de cette passe
 
-- 46 identités publiques ↔ route PassBi vérifiées (29 AFTU + 17 DDD).
+- 48 identités publiques ↔ route PassBi vérifiées (31 AFTU + 17 DDD).
 - 74 identités conservées comme non vérifiées.
 - AFTU 28, 42, 48, 58 et 66 restent non vérifiées faute de terminus explicites concordants. Aucune permutation de numéros, aucun transfert d'horaire et aucune fusion A/B.
 - TER/BRT inchangés ; TATA reste exclu du catalogue public.
