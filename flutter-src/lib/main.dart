@@ -1707,7 +1707,9 @@ List<LatLng> explorerRenderedRoutePoints(
   List<int>? bestIndices;
   for (final TransitRoute other in universe) {
     if (other.code == route.code) continue;
-    if (other.color != route.color) continue;
+    // La palette réseau est unifiée ; le type métier, pas la couleur, isole
+    // le corridor d'un opérateur des tracés des autres réseaux.
+    if (other.type != route.type) continue;
     if (other.points.length <= route.points.length) continue;
     final List<int>? indices =
         _explorerSubsequenceIndices(route.points, other.points);
@@ -1746,13 +1748,12 @@ bool _explorerSamePoint(LatLng a, LatLng b) =>
 /// réseau TER ou BRT (tracés dédiés de la vue « Tous ») ou point
 /// d'articulation (terminus / correspondance) quel que soit le réseau.
 ///
-/// Dérivé uniquement des champs existants ([Stop.color], [Stop.stopType]) :
-/// aucun champ ajouté, aucun inventaire de « principaux » codé en dur, aucun
-/// arrêt retiré de la donnée.
+/// Dérivé des appartenances réseau ([Stop.networkIds]) et du rôle physique :
+/// la couleur unifiée ne sert jamais à identifier un opérateur.
 @visibleForTesting
 bool explorerStopIsStructuring(Stop s) =>
-    s.color == AppColors.ter ||
-    s.color == AppColors.brt ||
+    s.servesNetwork('ter') ||
+    s.servesNetwork('brt') ||
     s.stopType == StopType.terminus ||
     s.stopType == StopType.correspondence;
 
