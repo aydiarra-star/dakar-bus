@@ -331,7 +331,7 @@ String publicDirectionLabel({
   required String destination,
 }) {
   String normalize(String value) =>
-      value.trim().toLowerCase().replaceAll(RegExp(r'\\s+'), ' ');
+      value.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
   final first = normalize(firstStopName);
   final last = normalize(lastStopName);
   final from = normalize(origin);
