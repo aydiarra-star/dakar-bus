@@ -76,6 +76,29 @@ void main() {
     });
   });
 
+  group('AFTU — routes présentes mais sans horaires exploitables', () {
+    test('AFTU 47 et 52 restent bloquées sans faux horaires', () {
+      final List<PublicBusLine> aftu =
+          app.appDataService.publicBusLineCatalog.reference!.aftu;
+      const Map<String, String> expectedReasons = <String, String>{
+        '47': 'FEED_ROUTE_WITHOUT_TRIP',
+        '52': 'FEED_ROUTE_WITHOUT_STOP_TIME',
+      };
+      for (final entry in expectedReasons.entries) {
+        final PublicBusLine line =
+            aftu.singleWhere((l) => l.lineNumber == entry.key);
+        expect(line.mappingStatus, LineMappingStatus.blocked);
+        expect(line.feedRouteIds, <String>['AFTU_${entry.key}']);
+        expect(line.scheduleStatus, 'NO_SCHEDULE');
+        expect(line.hasRealSchedule, isFalse);
+        expect(line.stopTimesCount, 0);
+        expect(line.servedStopCount, 0);
+        expect(line.blocking, isNotNull);
+        expect(line.blocking!.reason, entry.value);
+      }
+    });
+  });
+
   group('Référentiel public — lignes DDD', () {
     test('les lignes publiques DDD sont présentes et numérotées', () {
       final List<PublicBusLine> ddd =
