@@ -200,12 +200,11 @@ void main() {
         IdentityStatus.unconfirmed,
         shortName: 'D217OT',
       );
-      // Chantier identité : le numéro n'est affiché QUE s'il est établi par une
-      // source documentée (demdikk.sn). « 217 » EST documenté → « DDD 217 ».
-      // Le short_name technique (D217OT) et l'identifiant interne (DDD_217) ne
-      // sont jamais présentés comme le numéro public.
+      // La publication DDD prouve que la ligne 217 existe, mais pas que
+      // DDD_217 est cette ligne. Sans preuve route ↔ ligne, afficher le mode.
+      // Le short_name technique et le route_id ne deviennent jamais un numéro.
       expect(label, isNot(contains('PassBi')));
-      expect(label, 'DDD 217');
+      expect(label, 'DDD');
       expect(label, isNot(contains('D217OT')));
       expect(label, isNot(contains('DDD_217')));
       expect(DocumentedRouteRegistry.dddPublicNumbers.contains('217'), isTrue);
