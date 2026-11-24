@@ -503,7 +503,7 @@ La preuve indépendante est maintenant conservée dans `data/reference/passbi_ro
 
 ### Identités vérifiées
 
-**AFTU — 8 lignes :** 2, 3, 5, 25, 28, 42, 62 et 66.
+**AFTU — 7 lignes :** 2, 3, 5, 25, 28, 42 et 62.
 
 Pour 2, 3, 5, 25, 28, 42, 62 et 66, les pages d'itinéraire AFTU consultées le 24 novembre 2026 confirment les parcours/terminus correspondant aux métadonnées et terminus observés dans le feed. Les URL individuelles sont enregistrées dans le registre de preuves.
 
@@ -513,7 +513,7 @@ Pour ces lignes, les identités et terminus publiés sur la page officielle « I
 
 ### Identités qui restent non vérifiées
 
-- **95 lignes publiques** restent `UNVERIFIED` : 64 AFTU et 31 DDD.
+- **96 lignes publiques** restent `UNVERIFIED` : 65 AFTU et 31 DDD.
 - Les AFTU dont les terminus du feed divergent de la liste officielle, les pages AFTU contradictoires, les lignes sans stop_times et les lignes sans preuve suffisante restent non attribuées.
 - DDD 15, 16, 501, 502, 503, 504 et les variantes A/B restent non vérifiés lorsque les terminus sont contradictoires, ambigus ou non distingués par le feed.
 - Le fait qu'un numéro soit officiellement publié ne suffit pas à certifier le `route_id` correspondant.
@@ -529,9 +529,9 @@ Pour ces lignes, les identités et terminus publiés sur la page officielle « I
 
 ### Résultat de cette passe
 
-- 25 identités publiques ↔ route PassBi vérifiées (8 AFTU + 17 DDD).
+- 24 identités publiques ↔ route PassBi vérifiées (7 AFTU + 17 DDD).
 - 95 identités conservées comme non vérifiées.
-- Aucune permutation de numéros, aucun transfert d'horaire et aucune fusion A/B.
+- AFTU 66 reste non vérifiée : le terminus PassBi « Terminus 66 et 79 » ne nomme pas explicitement Gorom 1 malgré l'itinéraire officiel. Aucune permutation de numéros, aucun transfert d'horaire et aucune fusion A/B.
 - TER/BRT inchangés ; TATA reste exclu du catalogue public.
 - Aucune modification de l'application publiée, aucune fusion et aucun déploiement.
 
