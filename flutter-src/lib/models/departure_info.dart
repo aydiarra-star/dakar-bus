@@ -172,10 +172,13 @@ class DepartureInfo {
   /// ne publie pas de trip_headsign ; jamais affiché comme destination.
   final String? directionId;
 
-  /// Headign réel si publié, sinon direction_id GTFS réel.
+  /// Headign réel si publié. Sinon, le direction_id est scoped à sa route :
+  /// GTFS ne garantit pas que 0/1 ait le même sens entre deux lignes.
   String? get directionKey => direction?.isNotEmpty == true
       ? direction
-      : (directionId == null ? null : 'GTFS:$directionId');
+      : (directionId == null || directionId.isEmpty
+          ? null
+          : 'GTFS:$routeId:$directionId');
 
   /// Lot 4.21 §3 — identité publique de la ligne, DISTINCTE de [status].
   /// `unconfirmed` n'empêche pas un horaire `scheduled` calculable.
