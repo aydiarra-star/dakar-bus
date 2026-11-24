@@ -4866,13 +4866,15 @@ class _PublicLineDetailPageState extends State<PublicLineDetailPage> {
   }
 
   Widget _stopsSection(bool dark, Color color, PassBiRouteStopSequence? seq) {
-    if (seq == null || seq.isEmpty) return _section('Arrêts', dark, Text(
-      line.hasRealSchedule && !line.hasVerifiedFeedIdentity
-          ? 'Le flux contient des arrêts, mais leur attribution à cette ligne publique n’est pas confirmée.'
-          : line.hasRealSchedule
-              ? 'Séquence d’arrêts indisponible dans le feed.'
-              : 'Aucun arrêt : la ligne n’est pas raccordée à une route réelle du feed.',
-      style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark))));
+    if (seq == null || seq.isEmpty) {
+      return _section('Arrêts', dark, Text(
+        line.hasRealSchedule && !line.hasVerifiedFeedIdentity
+            ? 'Le flux contient des arrêts, mais leur attribution à cette ligne publique n’est pas confirmée.'
+            : line.hasRealSchedule
+                ? 'Séquence d’arrêts indisponible dans le feed.'
+                : 'Aucun arrêt : la ligne n’est pas raccordée à une route réelle du feed.',
+        style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark))));
+    }
     return _section('Arrêts (${seq.stops.length}, ordre stop_sequence)', dark, Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       if (!seq.ordered) Padding(padding: const EdgeInsets.only(bottom: 6), child: Text('Ordre du feed non strictement croissant (artefact de donnée source).', style: TextStyle(fontSize: 11, color: AppColors.warning))),
       ...List<Widget>.generate(seq.stops.length, (i) { final s = seq.stops[i]; return Padding(padding: const EdgeInsets.symmetric(vertical: 3), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
