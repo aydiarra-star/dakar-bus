@@ -80,6 +80,57 @@ void main() {
 
   // ==================================================================== A
   group('A — DDD : prochain départ PassBi calculable', () {
+    test('direction_id natif conservé et limité à sa route', () {
+      DepartureInfo directionFor(String routeId) => DepartureInfo(
+            status: ScheduleStatus.scheduled,
+            operator: 'AFTU',
+            routeId: routeId,
+            source: null,
+            sourceType: SourceType.publicGtfs,
+            dateSource: null,
+            dateVerified: null,
+            validFrom: null,
+            validTo: null,
+            confidence: 1,
+            frequencyMinutes: null,
+            operatingHours: null,
+            direction: null,
+            directionId: '0',
+          );
+
+      final a = directionFor('AFTU_1');
+      final b = directionFor('AFTU_2');
+      expect(a.directionKey, 'GTFS:AFTU_1:0');
+      expect(b.directionKey, 'GTFS:AFTU_2:0');
+      expect(a.directionKey, isNot(b.directionKey),
+          reason: 'direction_id 0 est relatif à une route, pas au réseau entier');
+    });
+
+    test('le départ natif DDD conserve le direction_id du trip trouvé', () {
+      final net = app.appDataService.passBiSource.network('DDD')!;
+      final stopId = firstStopOf('DDD', 'DDD_01');
+      final found = app.appDataService.passBiSource.nextNativeDeparture(
+        networkKey: 'DDD',
+        pbStopId: stopId,
+        onlyRouteId: 'DDD_01',
+        at: lundi12,
+      );
+      expect(found, isNotNull);
+      final trip = net.trips.firstWhere((t) => t.id == found!.tripId);
+      final info = app.appDataService.passBiDepartureFor(
+        networkKey: 'DDD',
+        pbStopId: stopId,
+        pbRouteId: 'DDD_01',
+        at: lundi12,
+      );
+      expect(info.status, ScheduleStatus.scheduled);
+      expect(info.directionId, trip.direction);
+      if (trip.headsign.isNotEmpty) {
+        expect(info.directionKey, trip.headsign);
+      } else if (trip.direction.isNotEmpty) {
+        expect(info.directionKey, 'GTFS:DDD_01:${trip.direction}');
+      }
+    });
     test('route DDD_01 à son premier arrêt : SCHEDULED + PUBLIC_GTFS', () {
       final stopId = firstStopOf('DDD', 'DDD_01');
       final info = app.appDataService.passBiDepartureFor(
