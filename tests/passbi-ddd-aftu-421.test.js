@@ -116,7 +116,7 @@ test('B. AFTU — prochain départ PassBi réellement calculable (SCHEDULED)', (
   // Verrouillage : l'horaire est calculable alors que l'identité publique
   // reste NON confirmée (aftu_8/aftu_11 ne fusionnent jamais sur AFTU_3).
   assert.equal(res.identityStatus, IDENTITY.UNCONFIRMED);
-  assert.equal(res.lineLabel, 'AFTU');
+  assert.equal(res.lineLabel, 'AFTU 3');
 });
 
 test('B bis. AFTU — 71 des 73 routes du feed ont des horaires calculables', () => {
