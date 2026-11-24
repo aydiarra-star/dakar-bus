@@ -135,6 +135,11 @@ for (const [network, feed] of [['AFTU', AFTU], ['DDD', DDD]]) {
       problems.push(`route_id différent de la preuve documentaire (${identityProof.route_id})`);
     }
     if (identityProof) {
+      const feedRoute = TERMINUS_FEEDS[network].routes.find(
+        (r) => r.id === identityProof.route_id);
+      if (!feedRoute || feedRoute.longName !== identityProof.feed_route_long_name) {
+        problems.push('route_long_name du feed différent de la preuve documentaire');
+      }
       const actual = routeTermini(TERMINUS_FEEDS[network], identityProof.route_id);
       const actualStops = sortedUnique((actual?.directions ?? []).flatMap((d) =>
         [d.depart, d.arrivee].filter(Boolean).map((stop) => stop.id)));
