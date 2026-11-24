@@ -78,7 +78,7 @@ test('chaque ligne publique porte un numéro et un libellé officiels', () => {
 test('la preuve d’identité publique ↔ route reste indépendante des horaires', () => {
   assert.equal(REF.counts.feed_route_identity_verified, IDENTITY_PROOFS.proofs.length);
   assert.equal(REF.counts.feed_route_identity_unverified, ALL.length - IDENTITY_PROOFS.proofs.length);
-  assert.equal(IDENTITY_PROOFS.proofs.length, 20);
+  assert.equal(IDENTITY_PROOFS.proofs.length, 46);
   for (const l of ALL) {
     const proof = IDENTITY_PROOF_BY_KEY.get(`${l.operator}:${l.line_number}`);
     if (proof) {
