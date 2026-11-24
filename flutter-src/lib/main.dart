@@ -4736,7 +4736,32 @@ class _PublicLineDetailPageState extends State<PublicLineDetailPage> {
     return out.where((d) => seen.add('${d.routeId}|${d.scheduledTime?.toIso8601String()}')).take(3).toList();
   }
 
-  String _directionLabel() => _directionIndex == 0 ? 'Aller' : 'Retour';
+  String _directionLabelFor(String directionId) {
+    final sequence = appDataService.publicLineStopSequence(
+      line,
+      directionId: directionId,
+    );
+    if (sequence == null || sequence.stops.isEmpty) {
+      return publicDirectionLabel(
+        directionId: directionId,
+        firstStopName: '',
+        lastStopName: '',
+        origin: line.origin,
+        destination: line.destination,
+      );
+    }
+    return publicDirectionLabel(
+      directionId: directionId,
+      firstStopName: sequence.stops.first.name,
+      lastStopName: sequence.stops.last.name,
+      origin: line.origin,
+      destination: line.destination,
+    );
+  }
+
+  String _directionLabel() => _selectedDirection == null
+      ? 'Sens non renseigné'
+      : _directionLabelFor(_selectedDirection!);
   String _timeLabel(DateTime value) => '${value.toUtc().hour.toString().padLeft(2, '0')}:${value.toUtc().minute.toString().padLeft(2, '0')}';
 
   @override
@@ -4783,10 +4808,18 @@ class _PublicLineDetailPageState extends State<PublicLineDetailPage> {
   }
 
   Widget _directionSwitcher(bool dark) => SegmentedButton<int>(
-    segments: const [
-      ButtonSegment<int>(value: 0, label: Text('Aller'), icon: Icon(Icons.arrow_forward_rounded)),
-      ButtonSegment<int>(value: 1, label: Text('Retour'), icon: Icon(Icons.arrow_back_rounded)),
-    ],
+    segments: _directions.asMap().entries.map((entry) {
+      final label = _directionLabelFor(entry.value);
+      return ButtonSegment<int>(
+        value: entry.key,
+        label: Text(label),
+        icon: label == 'Aller'
+            ? const Icon(Icons.arrow_forward_rounded)
+            : label == 'Retour'
+                ? const Icon(Icons.arrow_back_rounded)
+                : null,
+      );
+    }).toList(growable: false),
     selected: <int>{_directionIndex},
     onSelectionChanged: (s) { if (s.isNotEmpty) setState(() => _directionIndex = s.first); },
     style: ButtonStyle(
