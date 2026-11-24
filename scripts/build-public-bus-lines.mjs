@@ -22,6 +22,7 @@
 // Usage : node scripts/build-public-bus-lines.mjs
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
+import { loadFeed, routeTermini } from './lib/ddd-aftu-terminus.mjs';
 
 const ROOT = resolve(dirname(new URL(import.meta.url).pathname), '..');
 const CANONICAL = resolve(ROOT, 'docs/REFERENTIEL_CANONIQUE_AFTU_TATA_DDD_2026-09-25.md');
@@ -47,9 +48,21 @@ const IDENTITY_PROOFS = JSON.parse(
   readFileSync(resolve(ROOT, IDENTITY_PROOFS_PATH), 'utf8'));
 const IDENTITY_PROOF_BY_KEY = new Map(
   IDENTITY_PROOFS.proofs.map((p) => [`${p.operator}:${p.line_number}`, p]));
+const TERMINUS_FEEDS = {
+  AFTU: loadFeed(AFTU_FEED),
+  DDD: loadFeed(DDD_FEED),
+};
+const sortedUnique = (values) => [...new Set(values)].sort();
 function routeIdentityProof(operator, number, routeIds) {
   const proof = IDENTITY_PROOF_BY_KEY.get(`${operator}:${number}`);
   if (!proof || routeIds.length !== 1 || routeIds[0] !== proof.route_id) return null;
+  const actual = routeTermini(TERMINUS_FEEDS[operator], proof.route_id);
+  const actualIds = sortedUnique((actual?.directions ?? []).flatMap((d) =>
+    [d.depart, d.arrivee].filter(Boolean).map((stop) => stop.id)));
+  const actualNames = sortedUnique((actual?.directions ?? []).flatMap((d) =>
+    [d.depart, d.arrivee].filter(Boolean).map((stop) => stop.name)));
+  if (JSON.stringify(actualIds) !== JSON.stringify(proof.feed_terminal_stop_ids ?? [])) return null;
+  if (JSON.stringify(actualNames) !== JSON.stringify(proof.feed_terminal_stop_names ?? [])) return null;
   return `${IDENTITY_PROOFS_PATH}#${operator}:${number}`;
 }
 
