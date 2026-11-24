@@ -268,27 +268,34 @@ void tapChip(WidgetTester tester, String label) {
 /// `Opacity` (densité au zoom) → `Transform` (échelle) → `GestureDetector`
 /// (interaction, inchangée) → `Container` (couleur réseau, inchangée).
 /// Le parcours descend jusqu'au `GestureDetector` sans en supposer la place.
-int transmittedByColor(MarkerLayer layer, Color color) =>
-    layer.markers.where((Marker m) {
-      // `Transform.child` est nullable dans Flutter : parcours en Widget?.
-      Widget? w = m.child;
-      while (w is Opacity || w is Transform) {
-        w = w is Opacity ? w.child : (w as Transform).child;
+bool _markerHasNetwork(Widget widget, String networkId) {
+  if (widget is! Container || widget.key is! ValueKey<String>) return false;
+  final String value = (widget.key as ValueKey<String>).value;
+  if (!value.startsWith('network-stop:')) return false;
+  final String memberships = value.split(':').last;
+  return memberships.split(',').contains(networkId);
+}
+
+/// Marqueurs transmis et rendus, identifiés par l'appartenance métier,
+/// indépendamment de leur couleur graphique commune.
+int transmittedByNetwork(MarkerLayer layer, String networkId) =>
+    layer.markers.where((Marker marker) {
+      Widget? widget = marker.child;
+      while (widget is Opacity || widget is Transform) {
+        widget = widget is Opacity ? widget.child : (widget as Transform).child;
       }
-      final Container c = (w as GestureDetector).child as Container;
-      return (c.decoration as BoxDecoration).color == color;
+      final Widget? child = widget is GestureDetector ? widget.child : null;
+      return child is Container && _markerHasNetwork(child, networkId);
     }).length;
 
-/// Marqueurs RENDUS dans l'arbre de la carte, par couleur (disques
-/// `BoxDecoration(shape: circle, color: …)` instanciés sous le `FlutterMap`).
-int renderedByColor(WidgetTester tester, Color color) => find
+int renderedByNetwork(WidgetTester tester, String networkId) => find
     .descendant(
       of: find.byType(FlutterMap),
-      matching: find.byWidgetPredicate((Widget w) =>
-          w is Container &&
-          w.decoration is BoxDecoration &&
-          (w.decoration as BoxDecoration).shape == BoxShape.circle &&
-          (w.decoration as BoxDecoration).color == color),
+      matching: find.byWidgetPredicate((Widget widget) =>
+          widget is Container &&
+          widget.decoration is BoxDecoration &&
+          (widget.decoration as BoxDecoration).shape == BoxShape.circle &&
+          _markerHasNetwork(widget, networkId)),
     )
     .evaluate()
     .length;
@@ -319,14 +326,14 @@ void main() {
     expect(map.children.whereType<MarkerLayer>().length, 1,
         reason: 'sans GPS, une seule couche marqueurs (les arrêts)');
 
-    debugPrint('[RENDER-TEST][CAS A] transmis: ter=${transmittedByColor(stops, AppColors.ter)} '
-        'brt=${transmittedByColor(stops, AppColors.brt)} total=${stops.markers.length} | '
-        'rendus: ter=${renderedByColor(tester, AppColors.ter)} '
-        'brt=${renderedByColor(tester, AppColors.brt)} total=${renderedTotal(tester)}');
+    debugPrint('[RENDER-TEST][CAS A] transmis: ter=${transmittedByNetwork(stops, 'ter')} '
+        'brt=${transmittedByNetwork(stops, 'brt')} total=${stops.markers.length} | '
+        'rendus: ter=${renderedByNetwork(tester, 'ter')} '
+        'brt=${renderedByNetwork(tester, 'brt')} total=${renderedTotal(tester)}');
 
-    expect(transmittedByColor(stops, AppColors.ter), 13,
+    expect(transmittedByNetwork(stops, 'ter'), 13,
         reason: '13 gares TER officielles transmises au MarkerLayer');
-    expect(transmittedByColor(stops, AppColors.brt), 23,
+    expect(transmittedByNetwork(stops, 'brt'), 23,
         reason: '23 stations BRT officielles transmises au MarkerLayer');
     // 56 = 36 officiels TER+BRT + 20 arrêts de proximité des autres réseaux.
     //
@@ -352,9 +359,9 @@ void main() {
         reason: '36 officiels TER+BRT + 20 arrêts de proximité des autres '
             'réseaux (flux « à proximité » inchangé, sans point de démo)');
 
-    expect(renderedByColor(tester, AppColors.ter), 13,
+    expect(renderedByNetwork(tester, 'ter'), 13,
         reason: '13 marqueurs TER instanciés dans la carte (viewport initial)');
-    expect(renderedByColor(tester, AppColors.brt), 23,
+    expect(renderedByNetwork(tester, 'brt'), 23,
         reason: '23 marqueurs BRT instanciés dans la carte (viewport initial)');
     expect(renderedTotal(tester), inInclusiveRange(36, 56),
         reason: 'au moins les 36 officiels ; le reste selon le culling du '
@@ -370,16 +377,16 @@ void main() {
     );
 
     final (FlutterMap _, MarkerLayer stops) = renderedMapAndStopsLayer(tester);
-    debugPrint('[RENDER-TEST][CAS B] transmis: ter=${transmittedByColor(stops, AppColors.ter)} '
-        'brt=${transmittedByColor(stops, AppColors.brt)} total=${stops.markers.length} | '
-        'rendus: ter=${renderedByColor(tester, AppColors.ter)} '
-        'brt=${renderedByColor(tester, AppColors.brt)} total=${renderedTotal(tester)}');
+    debugPrint('[RENDER-TEST][CAS B] transmis: ter=${transmittedByNetwork(stops, 'ter')} '
+        'brt=${transmittedByNetwork(stops, 'brt')} total=${stops.markers.length} | '
+        'rendus: ter=${renderedByNetwork(tester, 'ter')} '
+        'brt=${renderedByNetwork(tester, 'brt')} total=${renderedTotal(tester)}');
 
-    expect(transmittedByColor(stops, AppColors.ter), 13);
-    expect(transmittedByColor(stops, AppColors.brt), 0);
-    expect(renderedByColor(tester, AppColors.ter), 13,
+    expect(transmittedByNetwork(stops, 'ter'), 13);
+    expect(transmittedByNetwork(stops, 'brt'), 0);
+    expect(renderedByNetwork(tester, 'ter'), 13,
         reason: '13 marqueurs TER rendus sur la carte');
-    expect(renderedByColor(tester, AppColors.brt), 0);
+    expect(renderedByNetwork(tester, 'brt'), 0);
     expect(renderedTotal(tester), 13,
         reason: 'rien d\'autre que les 13 gares officielles sur la carte');
   });
@@ -393,16 +400,16 @@ void main() {
     );
 
     final (FlutterMap _, MarkerLayer stops) = renderedMapAndStopsLayer(tester);
-    debugPrint('[RENDER-TEST][CAS C] transmis: ter=${transmittedByColor(stops, AppColors.ter)} '
-        'brt=${transmittedByColor(stops, AppColors.brt)} total=${stops.markers.length} | '
-        'rendus: ter=${renderedByColor(tester, AppColors.ter)} '
-        'brt=${renderedByColor(tester, AppColors.brt)} total=${renderedTotal(tester)}');
+    debugPrint('[RENDER-TEST][CAS C] transmis: ter=${transmittedByNetwork(stops, 'ter')} '
+        'brt=${transmittedByNetwork(stops, 'brt')} total=${stops.markers.length} | '
+        'rendus: ter=${renderedByNetwork(tester, 'ter')} '
+        'brt=${renderedByNetwork(tester, 'brt')} total=${renderedTotal(tester)}');
 
-    expect(transmittedByColor(stops, AppColors.brt), 23);
-    expect(transmittedByColor(stops, AppColors.ter), 0);
-    expect(renderedByColor(tester, AppColors.brt), 23,
+    expect(transmittedByNetwork(stops, 'brt'), 23);
+    expect(transmittedByNetwork(stops, 'ter'), 0);
+    expect(renderedByNetwork(tester, 'brt'), 23,
         reason: '23 marqueurs BRT rendus sur la carte');
-    expect(renderedByColor(tester, AppColors.ter), 0);
+    expect(renderedByNetwork(tester, 'ter'), 0);
     expect(renderedTotal(tester), 23,
         reason: 'rien d\'autre que les 23 stations officielles sur la carte');
   });
@@ -421,23 +428,23 @@ void main() {
     final (FlutterMap map, MarkerLayer stops) = renderedMapAndStopsLayer(tester);
     expect(map.children.whereType<MarkerLayer>().length, 2,
         reason: 'avec GPS : couche arrêts + couche position utilisateur');
-    debugPrint('[RENDER-TEST][CAS D] transmis: ter=${transmittedByColor(stops, AppColors.ter)} '
-        'brt=${transmittedByColor(stops, AppColors.brt)} total=${stops.markers.length} | '
-        'rendus: ter=${renderedByColor(tester, AppColors.ter)} '
-        'brt=${renderedByColor(tester, AppColors.brt)} total=${renderedTotal(tester)}');
+    debugPrint('[RENDER-TEST][CAS D] transmis: ter=${transmittedByNetwork(stops, 'ter')} '
+        'brt=${transmittedByNetwork(stops, 'brt')} total=${stops.markers.length} | '
+        'rendus: ter=${renderedByNetwork(tester, 'ter')} '
+        'brt=${renderedByNetwork(tester, 'brt')} total=${renderedTotal(tester)}');
 
-    expect(transmittedByColor(stops, AppColors.ter), 13,
+    expect(transmittedByNetwork(stops, 'ter'), 13,
         reason: 'le GPS ne retire aucune gare de la couche — garantie '
             'explorerMapMarkerStops, hors plafond de proximité');
-    expect(transmittedByColor(stops, AppColors.brt), 23);
+    expect(transmittedByNetwork(stops, 'brt'), 23);
     expect(stops.markers.length, 56,
         reason: '36 officiels + 20 arrêts de proximité (voir CAS A)');
 
     // Le marqueur GPS partage désormais exactement l'identité Dakar #00B140,
     // identique à BRT : le comptage par couleur inclut donc 23 BRT + 1 GPS.
-    expect(renderedByColor(tester, AppColors.brt), 24,
+    expect(renderedByNetwork(tester, 'brt'), 24,
         reason: '23 stations BRT + 1 marqueur GPS, tous en Dakar Green #00B140');
-    expect(renderedByColor(tester, AppColors.ter), inInclusiveRange(12, 13),
+    expect(renderedByNetwork(tester, 'ter'), inInclusiveRange(12, 13),
         reason: 'les gares TER rendues avec GPS actif — Diamniadio, la plus '
             'orientée, peut sortir de la fenêtre (culling flutter_map, la '
             'caméra est centrée sur l\'utilisateur) ; elle reste transmise');
@@ -482,9 +489,9 @@ void main() {
         reason: 'bandeau « Vous êtes hors de la zone de couverture Dakar Bus »');
 
     // 3) L'exploration des réseaux reste complète (TER + BRT garantis).
-    expect(transmittedByColor(stops, AppColors.ter), 13,
+    expect(transmittedByNetwork(stops, 'ter'), 13,
         reason: '13 gares TER consultables depuis la France');
-    expect(transmittedByColor(stops, AppColors.brt), 23,
+    expect(transmittedByNetwork(stops, 'brt'), 23,
         reason: '23 stations BRT consultables depuis la France');
     expect(stops.markers.length, 56,
         reason: 'mêmes 56 marqueurs que l\'ouverture sans GPS (CAS A)');
@@ -528,8 +535,8 @@ void main() {
     expect(find.text('Permission GPS refusée.'), findsOneWidget,
         reason: 'bandeau d\'erreur GPS existant visible');
 
-    expect(transmittedByColor(stops, AppColors.ter), 13);
-    expect(transmittedByColor(stops, AppColors.brt), 23);
+    expect(transmittedByNetwork(stops, 'ter'), 13);
+    expect(transmittedByNetwork(stops, 'brt'), 23);
     expect(stops.markers.length, 56,
         reason: 'consultation complète sans GPS réel (voir CAS A)');
     expect(renderedTotal(tester), greaterThanOrEqualTo(35),
@@ -549,9 +556,9 @@ void main() {
     );
 
     final (FlutterMap _, MarkerLayer stops) = renderedMapAndStopsLayer(tester);
-    expect(transmittedByColor(stops, AppColors.ter), 13,
+    expect(transmittedByNetwork(stops, 'ter'), 13,
         reason: 'filtre TER consultable hors zone comme en zone');
-    expect(transmittedByColor(stops, AppColors.brt), 0);
-    expect(renderedByColor(tester, AppColors.ter), 13);
+    expect(transmittedByNetwork(stops, 'brt'), 0);
+    expect(renderedByNetwork(tester, 'ter'), 13);
   });
 }
