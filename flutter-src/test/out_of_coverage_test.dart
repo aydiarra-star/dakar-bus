@@ -319,15 +319,14 @@ void main() {
 
   group('Exploration — filtres Tous, Favoris, TER, BRT, DDD, TATA, AFTU', () {
     final source = <Stop>[
-      _stop('ter_1', const LatLng(14.6800, -17.4400, networkId: 'ter'), color: AppColors.ter),
-      _stop('ter_2', const LatLng(14.7000, -17.4300, networkId: 'ter'), color: AppColors.ter),
-      _stop('brt_1', const LatLng(14.7100, -17.4500, networkId: 'brt'), color: AppColors.brt),
-      _stop('brt_2', const LatLng(14.7200, -17.4400, networkId: 'brt'), color: AppColors.brt),
-      _stop('ddd_1', const LatLng(14.7300, -17.4200, networkId: 'ddd'), color: AppColors.ddd),
-      _stop('tata_1', const LatLng(14.7400, -17.4100, networkId: 'tata'), color: AppColors.tata),
-      _stop('aftu_1', const LatLng(14.7500, -17.4000, networkId: 'aftu'), color: AppColors.aftu),
-      _stop('fav_ddd', const LatLng(14.7600, -17.3900, networkId: 'ddd'),
-          color: AppColors.ddd),
+      _stop('ter_1', const LatLng(14.6800, -17.4400), networkId: 'ter'),
+      _stop('ter_2', const LatLng(14.7000, -17.4300), networkId: 'ter'),
+      _stop('brt_1', const LatLng(14.7100, -17.4500), networkId: 'brt'),
+      _stop('brt_2', const LatLng(14.7200, -17.4400), networkId: 'brt'),
+      _stop('ddd_1', const LatLng(14.7300, -17.4200), networkId: 'ddd'),
+      _stop('tata_1', const LatLng(14.7400, -17.4100), networkId: 'tata'),
+      _stop('aftu_1', const LatLng(14.7500, -17.4000), networkId: 'aftu'),
+      _stop('fav_ddd', const LatLng(14.7600, -17.3900), networkId: 'ddd'),
     ];
     const favorites = {'fav_ddd', 'brt_1'};
 
