@@ -413,7 +413,7 @@ void main() {
 
     test('un raccordement horaire non prouvé ne reçoit aucun libellé public', () {
       expect(
-        app.appDataService.publicBusLineCatalog.publicLabelForFeedRouteId('AFTU_46'),
+        app.appDataService.publicBusLineCatalog.publicLabelForFeedRouteId('AFTU_48'),
         isNull,
       );
       expect(
@@ -432,7 +432,8 @@ void main() {
       NetworkSearchEntry line(String label) => entries.singleWhere(
           (e) => e.kind == NetworkSearchKind.line && e.label == label);
       expect(line('AFTU 62').routeId, 'AFTU_62');
-      expect(line('AFTU 46').routeId, isNull);
+      expect(line('AFTU 46').routeId, 'AFTU_46');
+      expect(line('AFTU 48').routeId, isNull);
       expect(line('DDD 502').routeId, isNull);
     });
 
@@ -462,10 +463,10 @@ void main() {
 
     test('quatre identités ambiguës gardent leurs horaires sans attribution publique', () {
       const cases = <(String, String, String)>[
-        ('AFTU 28', 'AFTU', 'AFTU_28'),
-        ('AFTU 42', 'AFTU', 'AFTU_42'),
-        ('DDD 121', 'DDD', 'DDD_121'),
-        ('DDD 234', 'DDD', 'DDD_234'),
+        ('AFTU 48', 'AFTU', 'AFTU_48'),
+        ('AFTU 58', 'AFTU', 'AFTU_58'),
+        ('AFTU 66', 'AFTU', 'AFTU_66'),
+        ('DDD 502', 'DDD', 'DDD_502'),
       ];
       final entries = NetworkSearchCatalogBuilder.fromPublicLines(
           app.appDataService.publicBusLineCatalog.publicLines);
