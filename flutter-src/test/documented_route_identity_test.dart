@@ -90,6 +90,21 @@ void main() {
     });
   });
 
+  group('AFTU/DDD — un statut technique ne remplace pas la preuve route ↔ ligne', () {
+    test('même IdentityStatus.confirmed ne suffit pas sans preuve du catalogue', () {
+      expect(
+        ScheduleProvider.identityLabelFor(
+            'DDD', 'DDD_217', IdentityStatus.confirmed),
+        'DDD',
+      );
+      expect(
+        ScheduleProvider.identityLabelFor(
+            'AFTU', 'AFTU_54', IdentityStatus.confirmed),
+        'AFTU',
+      );
+    });
+  });
+
   group('TATA — type de véhicule, jamais une ligne inventée', () {
     test('aucune ligne n\'est documentée comme minibus Tata (preuve absente)', () {
       // Aucune source admissible (CETUD/AFTU/PassBi/Bus Bii) n\'établit qu\'une
