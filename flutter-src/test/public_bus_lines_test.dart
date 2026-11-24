@@ -331,4 +331,52 @@ void main() {
       }
     });
   });
+
+  group('Sens des lignes publiques — aucun aller/retour déduit du chiffre', () {
+    test('les terminus exacts du trip déterminent aller et retour', () {
+      expect(
+        publicDirectionLabel(
+          directionId: '0',
+          firstStopName: 'Petersen',
+          lastStopName: 'Rufisque',
+          origin: 'Petersen',
+          destination: 'Rufisque',
+        ),
+        'Aller',
+      );
+      expect(
+        publicDirectionLabel(
+          directionId: '1',
+          firstStopName: 'Rufisque',
+          lastStopName: 'Petersen',
+          origin: 'Petersen',
+          destination: 'Rufisque',
+        ),
+        'Retour',
+      );
+    });
+
+    test('un direction_id sans preuve d’orientation reste un sens neutre', () {
+      expect(
+        publicDirectionLabel(
+          directionId: '0',
+          firstStopName: 'Gare A',
+          lastStopName: 'Gare B',
+          origin: 'Petersen',
+          destination: 'Rufisque',
+        ),
+        'Sens 0',
+      );
+      expect(
+        publicDirectionLabel(
+          directionId: '1',
+          firstStopName: 'Gare B',
+          lastStopName: 'Gare A',
+          origin: 'NON PUBLIÉE',
+          destination: 'NON PUBLIÉE',
+        ),
+        'Sens 1',
+      );
+    });
+  });
 }
