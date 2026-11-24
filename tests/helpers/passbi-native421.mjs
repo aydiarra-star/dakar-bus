@@ -13,6 +13,15 @@
 // Le moteur Lot 4.19 (tests/helpers/passbi-engine419.mjs) reste la source de
 // vérité pour nextDepartureAbs / planJourneys : il n'est PAS modifié ici.
 import { loadAll, splitComposite, activeServices, AT, fmtSec } from './passbi-engine419.mjs';
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
+const PUBLIC_ROUTE_LABELS = new Map(
+  JSON.parse(readFileSync(resolve(ROOT, 'data/reference/passbi_route_identity_proofs.json'), 'utf8'))
+    .proofs.map((p) => [p.route_id, `${p.operator} ${p.line_number}`]),
+);
 
 export const IDENTITY = { CONFIRMED: 'CONFIRMED', UNCONFIRMED: 'UNCONFIRMED' };
 
@@ -352,6 +361,7 @@ export function departureAtPassBiStop(all, networkKey, pbStopId, at, { pbRouteId
 
   const identity = identityStatusOf(all.cw, networkKey, found.routeId);
   const summary = routeSummaries(all, networkKey).find((s) => s.routeId === found.routeId);
+  const publicLabel = documentedCatalogLabel ?? PUBLIC_ROUTE_LABELS.get(found.routeId) ?? null;
   const waitMinutes = Math.floor((found.sec - minOfDay) / 60);
   const trip = net.trips.find((t) => t[0] === found.tripId);
   return {
@@ -368,11 +378,11 @@ export function departureAtPassBiStop(all, networkKey, pbStopId, at, { pbRouteId
     frequencyMinutes: null,
     sourceType: 'PUBLIC_GTFS',
     identityStatus: identity,
-    identityNote:
-      identity === IDENTITY.CONFIRMED
-        ? `Identité publique confirmée par le crosswalk (${dakarRouteIdsFor(all.cw, networkKey, found.routeId).join(', ')}).`
-        : 'Identité publique UNCONFIRMED ; horaire PassBi techniquement calculable.',
-    lineLabel: identityLabelFor(networkKey, found.routeId, identity, summary?.shortName ?? null),
+    identityNote: publicLabel
+      ? `Identité publique vérifiée par le registre indépendant (${publicLabel}).`
+      : 'Identité publique UNVERIFIED ; horaire PassBi techniquement calculable.',
+    feedRouteIdentityStatus: publicLabel ? 'VERIFIED' : 'UNVERIFIED',
+    lineLabel: identityLabelFor(networkKey, found.routeId, identity, summary?.shortName ?? null, publicLabel),
     tripDirection: trip ? trip[3] || trip[4] || null : null,
   };
 }
