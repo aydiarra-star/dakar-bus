@@ -377,12 +377,12 @@ export function departureAtPassBiStop(all, networkKey, pbStopId, at, { pbRouteId
         : `Prochain départ dans ${waitMinutes} min`,
     frequencyMinutes: null,
     sourceType: 'PUBLIC_GTFS',
-    identityStatus: identity,
+    identityStatus: displayIdentity,
     identityNote: publicLabel
       ? `Identité publique vérifiée par le registre indépendant (${publicLabel}).`
       : 'Identité publique UNVERIFIED ; horaire PassBi techniquement calculable.',
     feedRouteIdentityStatus: publicLabel ? 'VERIFIED' : 'UNVERIFIED',
-    lineLabel: identityLabelFor(networkKey, found.routeId, identity, summary?.shortName ?? null, publicLabel),
+    lineLabel: identityLabelFor(networkKey, found.routeId, displayIdentity, summary?.shortName ?? null, publicLabel),
     tripDirection: trip ? trip[3] || trip[4] || null : null,
   };
 }
