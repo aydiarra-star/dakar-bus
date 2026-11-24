@@ -370,6 +370,9 @@ export function departureAtPassBiStop(all, networkKey, pbStopId, at, { pbRouteId
   const identity = identityStatusOf(all.cw, networkKey, found.routeId);
   const summary = routeSummaries(all, networkKey).find((s) => s.routeId === found.routeId);
   const publicLabel = documentedCatalogLabel ?? PUBLIC_ROUTE_LABELS.get(found.routeId) ?? null;
+  const displayIdentity = networkKey === 'AFTU' || networkKey === 'DDD'
+    ? (publicLabel ? IDENTITY.CONFIRMED : IDENTITY.UNCONFIRMED)
+    : identity;
   const waitMinutes = Math.floor((found.sec - minOfDay) / 60);
   const trip = net.trips.find((t) => t[0] === found.tripId);
   return {
