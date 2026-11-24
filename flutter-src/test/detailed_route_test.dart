@@ -273,8 +273,9 @@ void main() {
           AppColors.ter);
       expect(attendre(DetailedRoute.fromOperator('brt'), 'BRT').color,
           AppColors.brt);
-      // Les constantes de l'interface coïncident avec les colorHex du JSON.
-      expect(AppColors.ter, const Color(0xFF8B4513));
+      // La palette est volontairement unifiée : chaque réseau utilise le
+      // vert Dakar historique pour ses marqueurs et ses tracés.
+      expect(AppColors.ter, const Color(0xFF00B140));
       expect(AppColors.brt, const Color(0xFF00B140));
     });
   });
