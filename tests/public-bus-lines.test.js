@@ -188,6 +188,28 @@ test('aucune route du feed ne reste orpheline sans être documentée (audit §9)
       REF.feed_routes_without_public_line.AFTU.length);
 });
 
+test('les 19 routes DDD et la route AFTU sans identité publique restent orphelines', () => {
+  // Baseline du feed : ces route_id existent, mais aucune identité publique
+  // canonique ne permet de les rattacher à une ligne numérotée.
+  const expectedDdd = [
+    'DDD_102', 'DDD_103', 'DDD_105', 'DDD_111', 'DDD_16',
+    'DDD_210', 'DDD_223', 'DDD_231', 'DDD_301', 'DDD_305',
+    'DDD_308', 'DDD_315', 'DDD_323', 'DDD_401', 'DDD_402',
+    'DDD_403', 'DDD_404', 'DDD_405', 'DDD_504',
+  ];
+  const expectedAftu = ['AFTU_90'];
+  assert.deepEqual(REF.feed_routes_without_public_line.DDD, expectedDdd);
+  assert.deepEqual(REF.feed_routes_without_public_line.AFTU, expectedAftu);
+  const linked = new Set(ALL.flatMap((line) => line.feed_route_ids));
+  for (const routeId of [...expectedDdd, ...expectedAftu]) {
+    assert.ok(DDD_ROUTES.has(routeId) || AFTU_ROUTES.has(routeId),
+      `${routeId} doit réellement exister dans son feed`);
+    assert.equal(linked.has(routeId), false,
+      `${routeId} ne doit pas être rattachée sans identité publique vérifiée`);
+  }
+  assert.equal(REF.counts.feed_routes_without_public_line, 20);
+});
+
 test('aucune ligne publique sans source ni date de vérification', () => {
   for (const l of [...REF.aftu, ...REF.ddd]) {
     assert.ok(l.source.startsWith('http'), `source manquante : ${l.public_label}`);
