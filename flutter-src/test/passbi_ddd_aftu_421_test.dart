@@ -786,7 +786,8 @@ void main() {
       final stopId = firstStopOf('DDD', 'DDD_01');
       final info = app.appDataService.passBiDepartureFor(
           networkKey: 'DDD', pbStopId: stopId, pbRouteId: 'DDD_01', at: lundi12);
-      expect(info.identityStatus, IdentityStatus.unconfirmed);
+      expect(info.identityStatus, IdentityStatus.confirmed);
+      expect(info.lineLabel, 'DDD 1');
       expect(info.status, ScheduleStatus.scheduled);
     });
 
