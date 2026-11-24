@@ -314,3 +314,69 @@ Le guide JOJ apporte une corroboration indépendante pour certains noms techniqu
 
 ### Décision
 Cette triangulation est ajoutée comme preuve d'audit, pas comme correction de données. Aucun fichier GTFS/PassBi, horaire, arrêt, sens, fréquence, référentiel public, code applicatif ou interface n'est modifié par cette section.
+
+
+## 12. Contrôle des noms de routes AFTU dans le flux PassBi — 24 novembre 2026
+
+Le contrôle précédent comparait le catalogue AFTU public au référentiel canonique. Le présent contrôle ajoute une troisième colonne : le nom technique des routes du flux PassBi, tel qu'il est consigné dans l'inventaire de feed `docs/INTEGRATION_PASSBI_DDD_AFTU_TATA_4_21_2026-09-28.md`.
+
+| ID de route PassBi | Nom technique du feed | Ligne publique AFTU actuelle portant le même numéro | Observation |
+|---|---|---|---|
+| AFTU_46 | Guédiawaye – Lat Dior | 46 : Lat Dior – Almadies | Terminus différents ; le guide JOJ mentionne Guédiawaye – Lat Dior, sans établir une correspondance permanente |
+| AFTU_47 | Lat Dior – Almadies | 47 : Cité Serigne Mansour – Lat Dior | Identité différente ; aucun trip exploitable dans le feed |
+| AFTU_48 | Lat Dior – Rufisque | 48 : Gadaye – Ngor | Identité différente |
+| AFTU_49 | Gadaye – Ngor | 49 : Petersen – Malika Cimetière | Identité différente |
+| AFTU_50 | Malika – Petersen | 50 : Jaxaay – Baux Maraîchers | Identité différente ; le référentiel canonique de septembre décrit encore Petersen – Malika Cimetière |
+| AFTU_51 | Baux Maraîchers – Jaxaay | 51 : Bountou Pikine – Keur Massar | Identité différente |
+| AFTU_52 | Baux Maraîchers – Jaxaay | 52 : Keur Massar – Sébikotane | Identité différente ; 190 trips mais aucun stop_time exploitable |
+| AFTU_53 | Keur Massar – Sébikotane | 53 : Keur Massar (Cité MTOA) – UCAD | Identité différente |
+| AFTU_54 | MTOA – UCAD | 54 : Rufisque Sonadis – Petersen | Identité différente |
+| AFTU_55 | Petersen – Rufisque | 55 : Jaxaay 2 – Petersen | Le guide JOJ et le référentiel antérieur décrivent le corridor Rufisque – Petersen, mais la page AFTU actuelle publie une autre identité sous le numéro 55 |
+| AFTU_56 | Jaxaay – Petersen | 56 : Liberté 6 – Rufisque | Identité différente |
+| AFTU_57 | Liberté 5 – Rufisque Gouye Mouride | 57 : Sahm – Comico | Identité différente |
+| AFTU_58 | Comico – Sahm | 58 : Diamalaye – Cité Gendarmerie | Identité différente ; le référentiel de septembre associait encore le numéro 58 à Sahm – Comico |
+| AFTU_59 | Cité Gendarmerie – Diamalaye | 59 : Colobane – Bargny | Identité différente |
+| AFTU_60 | Bargny – Colobane | 60 : Almadies – Keur Massar | Identité différente |
+| AFTU_61 | Keur Massar – Mamelles | 61 : Arrêt Chérif – Penc Mi | Identité différente |
+| AFTU_62 | Gueule Tapée – Youssou Mbergane | 62 : Camp Marchand Rufisque – Stade LSS | Identité différente |
+| AFTU_63 | Stade de l'Amitié – Rufisque | 63 : Guédiawaye – Rufisque | Identité différente |
+| AFTU_64 | Diamniadio – Guédiawaye | 64 : Colobane – Jaxaay | Identité différente |
+| AFTU_65 | Colobane – Kounoune | 65 : Yoff – Gorom 1 | Identité différente |
+| AFTU_66 | Gorom – Yoff | 66 : Ouakam – Thiawlène | Identité différente |
+| AFTU_67 | Ouakam – Thiawlène | 67 : Yeumbeul – Sébikotane | Identité différente |
+| AFTU_68 | Sébikotane – Tally Diallo | 68 : Diamalaye – Tivaouane Peul | Identité différente |
+| AFTU_69 | Diamalaye – Namora | 69 : Daroukhane – Jaxaay 2 | Identité différente |
+| AFTU_70 | Daroukhane – Diaxaye | 70 : Keur Massar – Claudel | Identité différente |
+| AFTU_71 | Claudel – Keur Massar | 71 : Guédiawaye – Kounoune | Identité différente |
+| AFTU_72 | Kounoune – Guédiawaye | 72 : Lac Rose – Poste Thiaroye | Identité différente |
+| AFTU_73 | Lac Rose – Poste Thiaroye | 73 : Bargny – Tivaouane Peul | Identité différente |
+| AFTU_74 | Bargny – Socabec | 74 : Malika – Gare routière Colobane | Identité différente |
+| AFTU_75 | Colobane – Malika | 75 : Sipres – Cité Assurance | Identité différente |
+| AFTU_76 | Assurance – Sipress | 76 : Rufisque – Liberté 5 | Identité différente |
+| AFTU_77 | Cité Tacco – Liberté 5 | 77 : Diamaguène – Liberté 5 | Identité différente |
+| AFTU_78 | Diamaguène – Liberté 5 | 78 : Sangalkam – Cambérène | Identité différente |
+| AFTU_79 | Cambérène 2 – Gorom | 79 : Diamalaye – Darou Thioub | Identité différente |
+| AFTU_80 | Darou Thioub – Diamalaye | 80 : Baux Maraîchers – Tivaouane Peul | Identité différente |
+| AFTU_81 | Baux Maraîchers – Tawfekh | 81 : Lat Dior – Comico Yeumbeul | Identité différente |
+| AFTU_82 | Cité Comico – Lat Dior | 82 : Rufisque Arafat – Zone de Captage | Le guide JOJ mentionne Comico Yeumbeul – Lat Dior ; le référentiel de septembre associait ce corridor au numéro 82 |
+| AFTU_83 | Arafat – Zone de Captage | 83 : UCAD – Jaxaay | Identité différente |
+| AFTU_84 | Jaxaay – UCAD | 84 : Banoba – Liberté 5 | Identité différente |
+| AFTU_85 | Lac Rose – Liberté 5 | 85 : Tournalou Boune – Toubab Dialaw | Identité différente |
+| AFTU_86 | Thiaroye – Toubab Dialaw | 86 : Bambilor – Mosquée Massalikou Djinane | Identité différente |
+| AFTU_87 | Bambilor / Comico – Massalikou | 87 : MTOA – Liberté 5 | Identité différente |
+| AFTU_88 | Keur Massar – Liberté 5 | 88 : Bargny – Croisement Niague | Identité différente |
+| AFTU_89 | Bargny – Tawfekh | 89 : APIX – Dougar | Identité différente |
+
+### Lecture et limites
+Cette comparaison révèle une divergence étendue entre les noms de routes du feed et les identités publiques portant les mêmes numéros. Plusieurs noms techniques semblent correspondre à des identités publiées sous un autre numéro, mais cette ressemblance ne constitue pas une table de correspondance vérifiée. Les orientations peuvent aussi être inversées dans les libellés, et certains noms de terminus sont abrégés.
+
+La page AFTU, le référentiel canonique de septembre, le guide événementiel JOJ et les noms techniques PassBi ne sont donc pas interchangeables. Une hypothèse de décalage numérique, même si elle semble expliquer plusieurs lignes consécutives, ne doit pas être appliquée automatiquement : elle pourrait déplacer des horaires vers une mauvaise identité publique.
+
+### Décision opérationnelle
+1. Le générateur actuel utilise toujours le numéro identique pour choisir la route PassBi AFTU. Cela établit une chaîne technique de données, pas une identité d'itinéraire démontrée.
+2. Ne pas permuter les numéros, les terminus ou les horaires sur la base de cette comparaison.
+3. Ne pas supprimer les horaires du flux ni les remplacer par des fréquences estimées : les données PassBi restent la source horaire exclusive décidée pour ce chantier.
+4. Avant de déclarer le raccordement identité ↔ route validé, obtenir une table de correspondance datée et explicite de l'opérateur/CETUD, ou un fichier de feed dont les identifiants et métadonnées permettent une preuve univoque.
+5. La présente section est une pièce d'audit uniquement. Aucun code, asset JSON, horaire, arrêt, sens, fréquence ou élément d'interface n'est modifié.
+
+**Point de vigilance majeur :** tant que cette correspondance n'est pas établie, le statut technique `CONNECTED` signifie seulement que la route choisie contient une chaîne exploitable de trips, directions, arrêts et stop_times. Il ne doit pas être interprété comme une certification de l'identité de la ligne publique.
