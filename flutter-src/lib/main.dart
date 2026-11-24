@@ -334,7 +334,7 @@ class OppositeStopService {
 //         affiche « Horaire indisponible » (voir [ReliabilityLabel]).
 
 // ============================================================
-// PALETTE OFFICIELLE DAKAR GREEN #00B140 & THEME MANAGER
+// PALETTE DAKAR / WHATSAPP & THEME MANAGER
 // ============================================================
 class AppColors {
   static const primary = Color(0xFF00B140);
@@ -346,9 +346,9 @@ class AppColors {
   static const beanGreen = Color(0xFF25D366);
   static const beanGreenLight = Color(0xFFE5F9EC);
 
-  // Identité visuelle unique : tous les réseaux restent dans le vert Dakar Bus.
-  // La distinction métier repose sur les libellés/icônes, jamais sur une
-  // palette concurrente. Les couleurs warning/error restent sémantiques.
+  // Couleurs historiques des réseaux : TER conserve son brun ; BRT, DDD,
+  // AFTU et TATA conservent le vert Dakar. La couleur n'est jamais une identité
+  // métier : les filtres s'appuient sur networkIds. Warning/error restent sémantiques.
   static const ter = Color(0xFF8B4513);
   static const brt = primary;
   static const aftu = primary;
@@ -364,16 +364,14 @@ class AppColors {
   // ────────────────────────────────────────────────────────────
   // RÔLES DE COULEUR VERTE (identité Dakar Bus)
   //
-  // Le vert est l'accent principal : actions, sélections actives, marqueurs,
-  // prochains passages disponibles, badges de statut positifs. Les ALIAS
-  // ci-dessous ne créent AUCUNE nouvelle teinte : ils nomment les rôles à
-  // partir des teintes déjà verrouillées par les tests (`beanGreen`, `primary`),
-  // ce qui rend l'usage du vert explicite et cohérent dans toute l'UI.
+  // Le vert WhatsApp est l'accent des actions et des sélections. Le vert Dakar
+  // historique reste réservé au GPS et aux réseaux qui l'utilisent ; le TER
+  // conserve son brun. Les alias ci-dessous ne créent AUCUNE nouvelle teinte.
   //
   //  * [accent]        — vert d'action principal (boutons, onglet actif,
   //                      sélection). Teinte haricot documentée.
-  //  * [accentStrong]  — vert historique, réservé à la carte/GPS et aux
-  //                      palettes de réseau (contraste fort sur tuiles).
+  //  * [accentStrong]  — vert Dakar historique pour le GPS et les marqueurs
+  //                      BRT/DDD/AFTU/TATA ; le TER garde son brun historique.
   //  * [accentSurface] — surface de confirmation très claire (fonds de badge).
   // ────────────────────────────────────────────────────────────
   static const accent = beanGreen;
@@ -1062,18 +1060,13 @@ class Stop {
 
   bool servesNetwork(String networkId) {
     final String id = networkId.trim().toLowerCase();
-    if (networkIds.isNotEmpty) return networkIds.contains(id);
-    final String label = modeLabel.trim().toLowerCase();
-    if (label == id || (id == 'tata' && label == 'tata')) return true;
-    if (const <String>{'ter','brt','ddd','aftu','tata'}.contains(label)) return false;
-    switch (id) {
-      case 'ter': return color == AppColors.ter;
-      case 'brt': return color == AppColors.brt;
-      case 'ddd': return color == AppColors.ddd;
-      case 'aftu': return color == AppColors.aftu;
-      case 'tata': return color == AppColors.tata;
-      default: return false;
+    if (!const <String>{'ter', 'brt', 'ddd', 'aftu', 'tata'}.contains(id)) {
+      return false;
     }
+    if (networkIds.isNotEmpty) return networkIds.contains(id);
+    // Compatibilité des anciens arrêts : seul leur libellé explicite fait foi.
+    // Une couleur partagée ne permet jamais de déduire leur réseau.
+    return modeLabel.trim().toLowerCase() == id;
   }
 
   DepartureInfo get departureInfo => departureInfoAt();
@@ -1486,21 +1479,8 @@ final List<Stop> allStops = [...terStations, ...brtStations]
 // dans un itinéraire officiel au seul motif qu'il apparaît sur la carte (§1).
 // ============================================================
 
-/// `<MODE>_NETWORK_POINTS` — points du réseau affichables dans Explorer.
-///
-/// Explorer peut afficher **davantage** de points que l'itinéraire officiel ne
-/// compte de stations (§6). Cette liste n'est donc jamais réduite pour
-/// correspondre à un itinéraire, et le compteur Explorer n'est jamais ajusté
-/// artificiellement.
-///
-/// Le prédicat reproduit à l'identique celui, existant, de `_filteredStops` :
-/// le mode y est porté par la couleur (`AppColors.ter`, `AppColors.brt`, …).
-/// Aucun filtre, aucune couleur et aucun calcul de proximité n'est modifié
-/// (§1, §10).
-List<Stop> networkPoints(Color modeColor) =>
-    allStops.where((Stop s) => s.color == modeColor).toList();
-
-/// Sélectionne un réseau par son identifiant métier, jamais par sa teinte UI.
+/// Sélectionne les arrêts d'un réseau par appartenance métier explicite.
+/// Les couleurs sont réservées à la présentation et ne servent jamais de clé.
 @visibleForTesting
 List<Stop> networkStopsById(String networkId, {List<Stop>? source}) =>
     (source ?? allStops).where((Stop s) => s.servesNetwork(networkId)).toList();
