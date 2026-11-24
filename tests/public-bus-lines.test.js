@@ -125,7 +125,7 @@ test('chaque identité VERIFIED correspond aux terminus réels du feed', () => {
     const feed = TERMINI_FEEDS[proof.operator];
     const feedRoute = feed.routes.find((r) => r.id === proof.route_id);
     assert.ok(feedRoute, `${proof.route_id} absent du feed`);
-    assert.equal(feedRoute.longName, proof.feed_route_long_name, proof.route_id);
+    assert.equal(feedRoute.long, proof.feed_route_long_name, proof.route_id);
     const actual = routeTermini(feed, proof.route_id);
     assert.ok(actual, `${proof.route_id} absent du feed`);
     const ids = sortedUnique(actual.directions.flatMap((d) =>
