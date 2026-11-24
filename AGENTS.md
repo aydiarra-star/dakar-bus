@@ -209,5 +209,5 @@ Mission UI/UX **sans aucune modification de données ni de règle métier**.
   et `ReliabilityLabel`. L'UI ne doit jamais fabriquer « X min » - seule la
   mise en forme (couleur/taille) est modifiable.
 
-Validation : `flutter analyze` + `flutter test` (849) + `npm test` (136) +
-`flutter build web --release` doivent rester verts après toute retouche UI.
+Validation : `flutter analyze` + la suite complète `flutter test` + `npm test`
++ `flutter build web --release` doivent rester verts après toute retouche UI.
