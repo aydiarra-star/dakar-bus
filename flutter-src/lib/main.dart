@@ -1371,7 +1371,11 @@ bool usesPassBiExclusiveModeLabel(String modeLabel) {
     'TERDAKAR',
     'SUNUBRT',
     'DAKARDEMDIKK',
-  }.contains(network);
+  }.contains(network) ||
+      network.startsWith('TER') ||
+      network.startsWith('BRT') ||
+      network.startsWith('DDD') ||
+      network.startsWith('AFTU');
 }
 
 bool usesPassBiExclusiveSchedule(Stop stop) {
