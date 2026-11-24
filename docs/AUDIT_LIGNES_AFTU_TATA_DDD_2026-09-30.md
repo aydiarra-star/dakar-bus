@@ -491,3 +491,48 @@ Aucune permutation de numéro, aucun transfert d'horaire et aucune modification 
 - Contrôler visuellement qu'un horaire PassBi reste calculable sous son réseau technique, sans être attribué à tort à une ligne publique non vérifiée.
 
 Cette passe modifie le schéma, le garde-fou de libellé et l'accès aux fiches publiques d'arrêts. Elle ne fusionne pas la PR, ne déploie pas l'application et ne publie aucune nouvelle version.
+
+
+## 16. Première vague de correspondances identité ↔ route prouvées — 24 novembre 2026
+
+La preuve indépendante est maintenant conservée dans `data/reference/passbi_route_identity_proofs.json`. Le générateur ne certifie une identité que si :
+1. le numéro public apparaît dans la publication officielle de l'opérateur ;
+2. l'itinéraire officiel et les deux terminus observés dans l'audit du feed concordent ;
+3. le `route_id` du feed correspond exactement à celui enregistré dans la preuve ;
+4. la référence documentaire est conservée dans `feed_route_identity_proof`.
+
+### Identités vérifiées
+
+**AFTU — 8 lignes :** 2, 3, 5, 25, 28, 42, 62 et 66.
+
+Pour 2, 3, 5, 25, 28, 42, 62 et 66, les pages d'itinéraire AFTU consultées le 24 novembre 2026 confirment les parcours/terminus correspondant aux métadonnées et terminus observés dans le feed. Les URL individuelles sont enregistrées dans le registre de preuves.
+
+**DDD — 17 lignes :** 1, 2, 4, 5, 6, 8, 9, 10, 11, 12, 13, 121, 208, 227, 232, 233 et 234.
+
+Pour ces lignes, les identités et terminus publiés sur la page officielle « Info voyageurs » concordent avec les terminus relevés dans l'audit du feed. Les variantes DDD 15A/15B, 16A/16B, 502A/502B et 503A/503B ne sont pas incluses.
+
+### Identités qui restent non vérifiées
+
+- **95 lignes publiques** restent `UNVERIFIED` : 64 AFTU et 31 DDD.
+- Les AFTU dont les terminus du feed divergent de la liste officielle, les pages AFTU contradictoires, les lignes sans stop_times et les lignes sans preuve suffisante restent non attribuées.
+- DDD 15, 16, 501, 502, 503, 504 et les variantes A/B restent non vérifiés lorsque les terminus sont contradictoires, ambigus ou non distingués par le feed.
+- Le fait qu'un numéro soit officiellement publié ne suffit pas à certifier le `route_id` correspondant.
+
+### Garde-fous ajoutés
+
+- Le générateur lit le registre explicite ; il n'infère jamais `VERIFIED` par égalité numérique.
+- Le validateur contrôle le registre, le `route_id` exact, la référence de preuve et les compteurs.
+- Flutter n'affiche un numéro AFTU/DDD dans les départs natifs que si le catalogue a validé cette preuve.
+- La recherche peut toujours retrouver les 120 identités publiques, mais ne transmet un `route_id` au moteur de trajet que pour une identité vérifiée.
+- La fiche publique d'arrêts exige à la fois `hasRealSchedule` et `hasVerifiedFeedIdentity`.
+- Les trips, directions, stop_times et calculs horaires natifs des feeds ne sont ni supprimés ni réécrits.
+
+### Résultat de cette passe
+
+- 25 identités publiques ↔ route PassBi vérifiées (8 AFTU + 17 DDD).
+- 95 identités conservées comme non vérifiées.
+- Aucune permutation de numéros, aucun transfert d'horaire et aucune fusion A/B.
+- TER/BRT inchangés ; TATA reste exclu du catalogue public.
+- Aucune modification de l'application publiée, aucune fusion et aucun déploiement.
+
+La validation automatisée doit encore être relancée sur le dernier commit, puis la compilation Flutter doit réussir avant de considérer cette étape technique comme validée.
