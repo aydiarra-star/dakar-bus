@@ -39,6 +39,7 @@ void main() {
     // aucun arrêt natif.
     app.integrateNetworkDataForTest();
     await app.appDataService.loadPassBiSchedules();
+    await app.appDataService.loadPublicBusLineCatalog();
     expect(app.appDataService.passBiActive, isTrue,
         reason: 'PassBi est la source opérationnelle');
     app.integratePassBiNativeStopsForTest();
