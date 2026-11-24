@@ -180,12 +180,15 @@ class DepartureInfo {
           ? null
           : 'GTFS:$routeId:$directionId');
 
-  /// Lot 4.21 §3 — identité publique de la ligne, DISTINCTE de [status].
-  /// `unconfirmed` n'empêche pas un horaire `scheduled` calculable.
+  /// Identité publique de la ligne, DISTINCTE de [status]. Pour AFTU/DDD,
+  /// elle provient du registre indépendant route ↔ ligne ; pour TER/BRT,
+  /// du crosswalk documentaire existant. `unconfirmed` n'empêche jamais un
+  /// horaire `scheduled` calculable.
   final IdentityStatus identityStatus;
 
-  /// Note documentaire d'identité (provenance : crosswalk ou métadonnées
-  /// PassBi). Jamais un nom commercial inventé.
+  /// Note documentaire : preuve indépendante AFTU/DDD ou crosswalk TER/BRT.
+  /// Le statut technique historique du crosswalk ne remplace pas la preuve
+  /// publique AFTU/DDD. Jamais un nom commercial inventé.
   final String? identityNote;
 
   /// Identité d'affichage : pour AFTU/DDD, le libellé public n'est renseigné
