@@ -1360,14 +1360,31 @@ class Stop {
 /// Les quatre réseaux couverts utilisent exclusivement les horaires GTFS.
 /// Sans stop_time calculable, l'interface reste neutre : aucune heure n'est
 /// fabriquée et le libellé « Horaire indisponible » n'est pas affiché.
+bool usesPassBiExclusiveModeLabel(String modeLabel) {
+  final String network =
+      modeLabel.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
+  return const <String>{
+    'TER',
+    'BRT',
+    'DDD',
+    'AFTU',
+    'TERDAKAR',
+    'SUNUBRT',
+    'DAKARDEMDIKK',
+  }.contains(network);
+}
+
 bool usesPassBiExclusiveSchedule(Stop stop) {
-  final String network = stop.modeLabel.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
   final String routeId = (stop.scheduleRouteId ?? '').toLowerCase();
-  return const <String>{'TER', 'BRT', 'DDD', 'AFTU', 'TERDAKAR', 'SUNUBRT', 'DAKARDEMDIKK'}.contains(network) ||
-      routeId.startsWith('ter_') || routeId.startsWith('brt_') ||
-      routeId.startsWith('ddd_') || routeId.startsWith('aftu_') ||
-      routeId.startsWith('line_ter_') || routeId.startsWith('line_brt_') ||
-      routeId.startsWith('line_ddd_') || routeId.startsWith('line_aftu_');
+  return usesPassBiExclusiveModeLabel(stop.modeLabel) ||
+      routeId.startsWith('ter_') ||
+      routeId.startsWith('brt_') ||
+      routeId.startsWith('ddd_') ||
+      routeId.startsWith('aftu_') ||
+      routeId.startsWith('line_ter_') ||
+      routeId.startsWith('line_brt_') ||
+      routeId.startsWith('line_ddd_') ||
+      routeId.startsWith('line_aftu_');
 }
 
 enum DataStatus { scheduled, live, unknown, estimated }
@@ -5677,7 +5694,10 @@ class _TripsPageState extends State<TripsPage> {
                       child: Padding(
                         padding: EdgeInsets.only(bottom: isLast ? 0 : 16),
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Row(children: [Icon(s.icon, size: 14, color: s.color), const SizedBox(width: 6), Text(stripPassBiFromLabel(s.modeLabel), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: s.color)), const Spacer(), Text(s.departureTime ?? ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))]),
+                          Row(children: [Icon(s.icon, size: 14, color: s.color), const SizedBox(width: 6), Text(stripPassBiFromLabel(s.modeLabel), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: s.color)), const Spacer(), if (s.departureTime != null)
+                            Text(s.departureTime!, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))
+                          else if (!usesPassBiExclusiveModeLabel(s.modeLabel))
+                            Text(ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))]),
                           const SizedBox(height: 4),
                           Text('${s.from} - ${s.to}', style: TextStyle(fontSize: 12, color: AppColors.textPrimary(dark))),
                           const SizedBox(height: 2),
