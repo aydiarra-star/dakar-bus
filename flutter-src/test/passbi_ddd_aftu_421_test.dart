@@ -106,6 +106,32 @@ void main() {
           reason: 'direction_id 0 est relatif à une route, pas au réseau entier');
     });
 
+    test('le départ natif AFTU conserve le direction_id du trip trouvé', () {
+      final net = app.appDataService.passBiSource.network('AFTU')!;
+      final stopId = firstStopOf('AFTU', 'AFTU_1');
+      final found = app.appDataService.passBiSource.nextNativeDeparture(
+        networkKey: 'AFTU',
+        pbStopId: stopId,
+        onlyRouteId: 'AFTU_1',
+        at: lundi12,
+      );
+      expect(found, isNotNull);
+      final trip = net.trips.firstWhere((t) => t.id == found!.tripId);
+      final info = app.appDataService.passBiDepartureFor(
+        networkKey: 'AFTU',
+        pbStopId: stopId,
+        pbRouteId: 'AFTU_1',
+        at: lundi12,
+      );
+      expect(info.status, ScheduleStatus.scheduled);
+      expect(info.directionId, trip.direction);
+      if (trip.headsign.isNotEmpty) {
+        expect(info.directionKey, trip.headsign);
+      } else if (trip.direction.isNotEmpty) {
+        expect(info.directionKey, 'GTFS:AFTU_1:${trip.direction}');
+      }
+    });
+
     test('le départ natif DDD conserve le direction_id du trip trouvé', () {
       final net = app.appDataService.passBiSource.network('DDD')!;
       final stopId = firstStopOf('DDD', 'DDD_01');
