@@ -424,3 +424,35 @@ Cette évolution ne doit ni modifier les feeds, ni changer les horaires, ni réi
 ### 13.5 Décision de cette passe
 
 Audit et diagnostic uniquement. Aucun changement du générateur, du validateur, des tests, des JSON, des horaires, des arrêts ou de l'interface dans cette passe. La correction de schéma est isolée comme chantier suivant afin de ne pas confondre une amélioration de traçabilité avec une modification du service affiché.
+
+
+## 14. Consommateurs Flutter du raccordement — risque d'étiquetage public — 24 novembre 2026
+
+### 14.1 Chaîne de consommation vérifiée
+
+L'inspection de `flutter-src/lib/services/public_bus_line_catalog.dart`, `flutter-src/lib/services/schedule_provider.dart` et `flutter-src/lib/services/data_service.dart` établit le chemin suivant :
+
+- `PublicBusLineCatalog.publicLabelForFeedRouteId(routeId)` renvoie le libellé public dès que le `route_id` figure dans `PublicBusLine.feedRouteIds` ;
+- `ScheduleProvider.documentedCatalogLabelForFeedRouteId(routeId)` transmet ce libellé au chemin natif PassBi ;
+- `departureAtPassBiStop()` utilise ce libellé pour construire `lineLabel` ;
+- `DataService.publicLineStopSequence()` autorise la fiche d'arrêts dès que `PublicBusLine.hasRealSchedule` est vrai.
+
+Le garde-fou actuel est donc le raccordement technique `mapping_status = CONNECTED`, pas une preuve indépendante de correspondance entre l'identité publique et la route PassBi.
+
+### 14.2 Conséquence
+
+Pour une ligne AFTU dont le numéro du feed correspond au numéro public mais dont les terminus/identités divergent, le catalogue peut fournir un libellé public au chemin natif. Les horaires et arrêts restent des données réellement présentes dans le feed, mais leur attribution à ce libellé public n'est pas démontrée. Le risque concerne donc l'étiquette et la fiche de ligne, pas l'authenticité des `stop_times` eux-mêmes.
+
+Les variantes DDD lettrées déjà non raccordées restent protégées : elles ne figurent pas dans `feedRouteIds`. Les routes DDD au numéro nu 15/502/503 demeurent toutefois à traiter séparément des variantes officielles lettrées.
+
+### 14.3 Correction proposée et limites
+
+Ajouter au référentiel un champ indépendant, par exemple `feed_route_identity_status`, avec des valeurs explicites `VERIFIED` / `UNVERIFIED` et une référence de preuve lorsque la correspondance est établie. Ce champ ne doit jamais être calculé depuis le seul numéro, le `route_id`, les horaires présents ou la proximité des terminus.
+
+Les consommateurs de libellés publics et de fiches publiques devront exiger cette preuve indépendante. En revanche, la disponibilité horaire technique doit rester séparée : le nouveau statut ne doit ni supprimer les trips/stop_times du feed, ni changer les horaires natifs réellement calculables, ni réintroduire les fréquences de secours.
+
+Aucune correspondance AFTU ne peut être marquée `VERIFIED` sur la seule base des comparaisons actuelles : la table officielle de correspondance reste à obtenir. Pour DDD, les routes nues ambiguës 15/502/503 ne peuvent pas certifier les variantes A/B.
+
+### 14.4 Décision de cette passe
+
+Constat de consommation et de risque ajouté à l'audit. Aucun changement de code, de JSON, de libellé, de fiche, d'horaire, d'arrêt ou d'interface n'est effectué dans cette passe : la correction doit être implémentée avec tests ciblés et contrôle de régression Flutter, car elle peut modifier les libellés publics visibles. Aucun déploiement ni fusion.
