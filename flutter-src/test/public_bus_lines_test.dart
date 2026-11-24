@@ -109,6 +109,42 @@ void main() {
       }
     });
 
+    test('les identités DDD confirmées le 24 novembre restent distinctes et non fusionnées', () {
+      // Vérification officielle des identités publiques : cela ne prouve pas
+      // leur correspondance avec un route_id PassBi. Les variantes A/B restent
+      // séparées et sans horaire tant que le feed ne distingue pas ces services.
+      const Map<String, List<String>> expected = <String, List<String>>{
+        '502A': <String>['COLOBANE', 'UCAD'],
+        '502B': <String>['COLOBANE', 'ABASS NDAO'],
+        '503A': <String>['COLOBANE', 'MOLE 8'],
+        '503B': <String>['COLOBANE', 'HYDROCARBURE'],
+        '504A': <String>['GARE DIAMNIADIO', 'SPHERE MINISTERIEL'],
+        '504B': <String>['SEBIKOTANE', 'GARE DIAMNIADIO'],
+        '15A': <String>['RUFISQUE', 'PALAIS 1'],
+        '15B': <String>['RUFISQUE', 'PALAIS 1'],
+        '16A': <String>['MALIKA', 'PALAIS 1'],
+        '16B': <String>['MALIKA', 'PALAIS 1'],
+        '327': <String>['KEUR MASSAR', 'TERMINUS PARCELLES'],
+        'TO1': <String>['TAF TAF OUAKAM (TO1) : OUAKAM', 'PALAIS 2'],
+      };
+      final List<PublicBusLine> ddd =
+          app.appDataService.publicBusLineCatalog.reference!.ddd;
+      for (final entry in expected.entries) {
+        final PublicBusLine line =
+            ddd.singleWhere((l) => l.lineNumber == entry.key);
+        expect(line.identityStatus, 'CONFIRMED',
+            reason: '${line.publicLabel} : identité officielle perdue');
+        expect(line.origin, entry.value[0],
+            reason: '${line.publicLabel} : origine officielle modifiée');
+        expect(line.destination, entry.value[1],
+            reason: '${line.publicLabel} : destination officielle modifiée');
+        expect(line.mappingStatus, isNot(LineMappingStatus.connected),
+            reason: '${line.publicLabel} : raccordement sans preuve PassBi');
+        expect(line.feedRouteIds, isEmpty);
+        expect(line.hasRealSchedule, isFalse);
+      }
+    });
+
     test('les quatre routes DDD mono-directionnelles ne gagnent pas un sens fictif',
         () {
       // Baseline issue des trips du feed : ces routes ne publient chacune
