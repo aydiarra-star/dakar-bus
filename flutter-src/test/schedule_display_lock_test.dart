@@ -156,7 +156,15 @@ void main() {
   // ------------------------------------------------------------------
   group('3 bis — identité des réseaux à horaires PassBi exclusifs', () {
     test('reconnaît les libellés réseau sans exposer la source', () {
-      for (final String label in <String>['TER', 'BRT', 'DDD', 'AFTU']) {
+      for (final String label in <String>[
+        'TER',
+        'BRT',
+        'BRT L1',
+        'DDD',
+        'DDD 2',
+        'AFTU',
+        'AFTU 5',
+      ]) {
         expect(app.usesPassBiExclusiveModeLabel(label), isTrue,
             reason: '$label doit masquer le texte d’horaire indisponible');
       }
