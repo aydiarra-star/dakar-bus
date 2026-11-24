@@ -1055,6 +1055,27 @@ class Stop {
   /// d'identité publique. `null` pour tous les arrêts du référentiel dakar.
   final String? passBiStopKey;
 
+  /// Identifiants des réseaux qui desservent cet arrêt dans le référentiel.
+  /// Indépendants des couleurs de présentation, qui peuvent être communes.
+  /// Vide pour les anciens arrêts de démonstration (compatibilité historique).
+  final Set<String> networkIds;
+
+  bool servesNetwork(String networkId) {
+    final String id = networkId.trim().toLowerCase();
+    if (networkIds.isNotEmpty) return networkIds.contains(id);
+    final String label = modeLabel.trim().toLowerCase();
+    if (label == id || (id == 'tata' && label == 'tata')) return true;
+    if (const <String>{'ter','brt','ddd','aftu','tata'}.contains(label)) return false;
+    switch (id) {
+      case 'ter': return color == AppColors.ter;
+      case 'brt': return color == AppColors.brt;
+      case 'ddd': return color == AppColors.ddd;
+      case 'aftu': return color == AppColors.aftu;
+      case 'tata': return color == AppColors.tata;
+      default: return false;
+    }
+  }
+
   DepartureInfo get departureInfo => departureInfoAt();
 
   DepartureInfo departureInfoAt({
@@ -1235,6 +1256,7 @@ class Stop {
     DataStatus status = DataStatus.scheduled,
     this.source = DataSourceInfo.demo, this.stopType = StopType.departure,
     this.stopId, this.scheduleRouteId, this.passBiStopKey,
+    this.networkIds = const <String>{},
   }) : _legacyStatus = status;
 
   Stop copyWith({
@@ -1242,7 +1264,7 @@ class Stop {
     List<int>? departureMinutesFromMidnight, IconData? icon, Color? color,
     LatLng? location, DataStatus? status, String? modeLabel,
     DataSourceInfo? source, StopType? stopType, String? stopId,
-    String? scheduleRouteId, String? passBiStopKey,
+    String? scheduleRouteId, String? passBiStopKey, Set<String>? networkIds,
   }) => Stop(
     name: name ?? this.name,
     direction: direction ?? this.direction,
@@ -1258,6 +1280,7 @@ class Stop {
     stopId: stopId ?? this.stopId,
     scheduleRouteId: scheduleRouteId ?? this.scheduleRouteId,
     passBiStopKey: passBiStopKey ?? this.passBiStopKey,
+    networkIds: networkIds ?? this.networkIds,
   );
 
   // AUDIT DONNÉES 2026-09-24 — horaires.
@@ -1477,6 +1500,11 @@ final List<Stop> allStops = [...terStations, ...brtStations]
 List<Stop> networkPoints(Color modeColor) =>
     allStops.where((Stop s) => s.color == modeColor).toList();
 
+/// Sélectionne un réseau par son identifiant métier, jamais par sa teinte UI.
+@visibleForTesting
+List<Stop> networkStopsById(String networkId, {List<Stop>? source}) =>
+    (source ?? allStops).where((Stop s) => s.servesNetwork(networkId)).toList();
+
 /// Arrêts à dessiner sur la **couche marqueurs** de la carte Explorer.
 ///
 /// CORRECTIF ARRÊTS TER/BRT (carte principale) — cause du défaut : la couche
@@ -1518,8 +1546,8 @@ List<Stop> explorerMapMarkerStops({
           .where((Stop s) =>
               s.stopId != null &&
               DakarBounds.isValid(s.location) &&
-              ((terDisplayed && s.color == AppColors.ter) ||
-                  (brtDisplayed && s.color == AppColors.brt)))
+              ((terDisplayed && s.servesNetwork('ter')) ||
+                  (brtDisplayed && s.servesNetwork('brt'))))
           .toList()
       : const <Stop>[];
   if (official.isEmpty) return List<Stop>.of(proximityStops);
@@ -1527,16 +1555,16 @@ List<Stop> explorerMapMarkerStops({
       '${s.name}_${s.location.latitude}_${s.location.longitude}';
   final Set<String> officialKeys = official.map(keyOf).toSet();
   final bool hasOfficialTer =
-      official.any((Stop s) => s.color == AppColors.ter);
+      official.any((Stop s) => s.servesNetwork('ter'));
   final bool hasOfficialBrt =
-      official.any((Stop s) => s.color == AppColors.brt);
+      official.any((Stop s) => s.servesNetwork('brt'));
   return <Stop>[
     ...official,
     ...proximityStops.where((Stop s) =>
         !officialKeys.contains(keyOf(s)) &&
         !(s.stopId == null &&
-            ((s.color == AppColors.ter && hasOfficialTer) ||
-                (s.color == AppColors.brt && hasOfficialBrt)))),
+            ((s.servesNetwork('ter') && hasOfficialTer) ||
+                (s.servesNetwork('brt') && hasOfficialBrt)))),
   ];
 }
 
@@ -1564,15 +1592,15 @@ List<Stop> explorerBaseStopsForFilter({
   }
   switch (selectedFilter) {
     case 'TER':
-      return source.where((Stop s) => s.color == AppColors.ter).toList();
+      return source.where((Stop s) => s.servesNetwork('ter')).toList();
     case 'BRT':
-      return source.where((Stop s) => s.color == AppColors.brt).toList();
+      return source.where((Stop s) => s.servesNetwork('brt')).toList();
     case 'DDD':
-      return source.where((Stop s) => s.color == AppColors.ddd).toList();
+      return source.where((Stop s) => s.servesNetwork('ddd')).toList();
     case 'TATA':
-      return source.where((Stop s) => s.color == AppColors.tata).toList();
+      return source.where((Stop s) => s.servesNetwork('tata')).toList();
     case 'AFTU':
-      return source.where((Stop s) => s.color == AppColors.aftu).toList();
+      return source.where((Stop s) => s.servesNetwork('aftu')).toList();
     default:
       return List<Stop>.of(source);
   }
@@ -1860,7 +1888,11 @@ void _integrateNetworkData() {
   if (appDataService.stops.isEmpty || appDataService.routes.isEmpty) return;
 
   // Evite les doublons par nom+location
-  final existingKeys = allStops.map((s) => '${s.name}_${s.location.latitude}_${s.location.longitude}').toSet();
+  final Map<String, int> existingIndices = <String, int>{};
+  for (int i = 0; i < allStops.length; i++) {
+    final Stop stop = allStops[i];
+    existingIndices['${stop.name}_${stop.location.latitude}_${stop.location.longitude}'] = i;
+  }
   int addedStops = 0;
 
   // Helper : map operatorId → couleur / icône / label / source
@@ -1942,7 +1974,16 @@ void _integrateNetworkData() {
           .combine(<ProvenanceStatus>[route.provenance.status, busStop.provenance.status]));
       final source = confirmed ? sourceForOperator(route.operatorId) : DataSourceInfo.unverified;
       final key = '${busStop.name}_${busStop.latitude}_${busStop.longitude}';
-      if (existingKeys.contains(key)) continue;
+      final int? existingIndex = existingIndices[key];
+      if (existingIndex != null) {
+        final Stop existing = allStops[existingIndex];
+        final Set<String> memberships = <String>{...existing.networkIds, route.operatorId.toLowerCase()};
+        allStops[existingIndex] = existing.copyWith(
+          stopId: existing.stopId ?? busStop.id,
+          networkIds: memberships,
+        );
+        continue;
+      }
 
       // Horaires : AUCUN. Le JSON n'en fournit pas (schedule_status UNKNOWN) ;
       // l'ancien générateur TER/BRT a été supprimé (audit 2026-09-24).
@@ -1964,9 +2005,10 @@ void _integrateNetworkData() {
         source: source,
         stopType: aggregatedRoles[busStop.id] ??
             stopTypeForIndex(i, stopIds.length),
+        networkIds: <String>{route.operatorId.toLowerCase()},
       );
       allStops.add(stop);
-      existingKeys.add(key);
+      existingIndices[key] = allStops.length - 1;
       addedStops++;
     }
 
@@ -1998,7 +2040,7 @@ void _integrateNetworkData() {
   // --- Ajoute les arrêts orphelins (présents dans stops mais jamais dans routes) ---
   for (final bs in appDataService.stops) {
     final key = '${bs.name}_${bs.latitude}_${bs.longitude}';
-    if (existingKeys.contains(key)) continue;
+    if (existingIndices.containsKey(key)) continue;
     if (!DakarBounds.isValid(LatLng(bs.latitude, bs.longitude))) continue;
     // Détermine le label/ couleur par défaut : AFTU si non trouvé
     const label = 'AFTU';
@@ -2019,7 +2061,7 @@ void _integrateNetworkData() {
       stopType: StopType.boarding,
     );
     allStops.add(stop);
-    existingKeys.add(key);
+    existingIndices[key] = allStops.length - 1;
     addedStops++;
   }
 
