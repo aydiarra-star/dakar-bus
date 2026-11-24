@@ -16,7 +16,15 @@
       "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
       "feed_terminals": "Parcelles Assainies ↔ Petersen",
       "basis": "L’itinéraire officiel AFTU ligne 2 part des Parcelles Assainies et termine à Petersen ; les deux extrémités correspondent à la route PassBi AFTU_2.",
-      "verified_at": "2026-11-24"
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "A_1558",
+        "A_1633"
+      ],
+      "feed_terminal_stop_names": [
+        "Petersen 1",
+        "Terminus Parcelles Assainies"
+      ]
     },
     {
       "operator": "AFTU",
@@ -27,7 +35,15 @@
       "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
       "feed_terminals": "Yoff ↔ Petersen",
       "basis": "L’itinéraire officiel AFTU ligne 3 relie Yoff-Village à Petersen ; la route PassBi AFTU_3 porte les mêmes extrémités.",
-      "verified_at": "2026-11-24"
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "A_1250",
+        "A_1633"
+      ],
+      "feed_terminal_stop_names": [
+        "Petersen 1",
+        "Yoff"
+      ]
     },
     {
       "operator": "AFTU",
@@ -38,7 +54,15 @@
       "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
       "feed_terminals": "Parcelles Assainies ↔ Petersen",
       "basis": "L’itinéraire officiel AFTU ligne 5 relie les Parcelles Assainies à Petersen ; concordance des extrémités de AFTU_5.",
-      "verified_at": "2026-11-24"
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "A_1558",
+        "A_1633"
+      ],
+      "feed_terminal_stop_names": [
+        "Petersen 1",
+        "Terminus Parcelles Assainies"
+      ]
     },
     {
       "operator": "AFTU",
@@ -49,7 +73,15 @@
       "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
       "feed_terminals": "Parcelles Assainies ↔ Petersen",
       "basis": "L’itinéraire officiel AFTU ligne 25 relie les Parcelles Assainies à Petersen ; concordance des extrémités de AFTU_25.",
-      "verified_at": "2026-11-24"
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "A_1558",
+        "A_1633"
+      ],
+      "feed_terminal_stop_names": [
+        "Petersen 1",
+        "Terminus Parcelles Assainies"
+      ]
     },
     {
       "operator": "AFTU",
@@ -60,7 +92,15 @@
       "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
       "feed_terminals": "Hamo V/VI ↔ Petersen",
       "basis": "L’itinéraire officiel AFTU ligne 28 relie Hamo V/VI à Petersen ; concordance des extrémités de AFTU_28 (Hamo VI dans le feed).",
-      "verified_at": "2026-11-24"
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "A_1559",
+        "A_1562"
+      ],
+      "feed_terminal_stop_names": [
+        "Petersen 2",
+        "Terminus 28"
+      ]
     },
     {
       "operator": "AFTU",
@@ -71,7 +111,15 @@
       "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
       "feed_terminals": "Gadaye ↔ Ouakam Baye",
       "basis": "L’itinéraire officiel AFTU ligne 42 relie Gadaye à Ouakam Baye ; concordance des extrémités de AFTU_42.",
-      "verified_at": "2026-11-24"
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "A_1746",
+        "A_453"
+      ],
+      "feed_terminal_stop_names": [
+        "Devant Terminus 42 Et 44 Marché Jeudi",
+        "Terminus 30 49"
+      ]
     },
     {
       "operator": "AFTU",
@@ -82,7 +130,19 @@
       "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
       "feed_terminals": "Arrêt Chérif (Rufisque) ↔ Penc Mi (Gueule Tapée)",
       "basis": "L’itinéraire officiel AFTU ligne 62 et les extrémités PassBi AFTU_62 concordent sur Arrêt Chérif et Penc Mi.",
-      "verified_at": "2026-11-24"
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "A_146",
+        "A_1730",
+        "A_876",
+        "A_877"
+      ],
+      "feed_terminal_stop_names": [
+        "Arrêt Chérif (Rufisque Nord)",
+        "Gueule Tapée Rue Gt-49",
+        "Penc-Mi Boulevard Gueule Tapée",
+        "Terminus 62 (Rufisque Nord)"
+      ]
     },
     {
       "operator": "AFTU",
@@ -93,7 +153,15 @@
       "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
       "feed_terminals": "Yoff ↔ Gorom 1",
       "basis": "L’itinéraire officiel AFTU ligne 66 relie Yoff à Gorom 1 ; le nom de route PassBi AFTU_66 porte Gorom-Yoff et son terminus de feed est celui de la ligne 66.",
-      "verified_at": "2026-11-24"
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "A_1250",
+        "A_352"
+      ],
+      "feed_terminal_stop_names": [
+        "Terminus 66 Et 79",
+        "Yoff"
+      ]
     },
     {
       "operator": "DDD",
@@ -104,7 +172,15 @@
       "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
       "feed_terminals": "Parcelles Assainies ↔ Place Leclerc",
       "basis": "La publication DDD ligne 1 et les terminus du feed DDD_01 concordent : Parcelles Assainies et Leclerc.",
-      "verified_at": "2026-11-24"
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "D_140",
+        "D_805"
+      ],
+      "feed_terminal_stop_names": [
+        "Terminus Leclerc",
+        "Terminus Parcelles Assaines"
+      ]
     },
     {
       "operator": "DDD",
@@ -115,7 +191,15 @@
       "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
       "feed_terminals": "Daroukhane ↔ Place Leclerc",
       "basis": "La publication DDD ligne 2 et les terminus du feed DDD_02 concordent : Daroukhane et Leclerc.",
-      "verified_at": "2026-11-24"
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "D_1056",
+        "D_140"
+      ],
+      "feed_terminal_stop_names": [
+        "Terminus Daroukhane",
+        "Terminus Leclerc"
+      ]
     },
     {
       "operator": "DDD",
@@ -126,7 +210,15 @@
       "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
       "feed_terminals": "Liberté 5 ↔ Place Leclerc",
       "basis": "La publication DDD ligne 4 et les terminus du feed DDD_04 concordent : Liberté 5 et Leclerc.",
-      "verified_at": "2026-11-24"
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "D_140",
+        "D_713"
+      ],
+      "feed_terminal_stop_names": [
+        "Terminus Leclerc",
+        "Terminus Liberté 5"
+      ]
     },
     {
       "operator": "DDD",
@@ -137,7 +229,15 @@
       "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
       "feed_terminals": "Guédiawaye ↔ Palais 1",
       "basis": "La publication DDD ligne 5 et les terminus du feed DDD_05 concordent : Guédiawaye et Palais 1.",
-      "verified_at": "2026-11-24"
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "D_1082",
+        "D_709"
+      ],
+      "feed_terminal_stop_names": [
+        "Terminus Guédiawayee",
+        "Terminus Palais 1"
+      ]
     },
     {
       "operator": "DDD",
@@ -148,7 +248,15 @@
       "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
       "feed_terminals": "Cambérène 2 ↔ Palais 2",
       "basis": "La publication DDD ligne 6 et les terminus du feed DDD_06 concordent : Cambérène 2 et Palais 2.",
-      "verified_at": "2026-11-24"
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "D_1227",
+        "D_708"
+      ],
+      "feed_terminal_stop_names": [
+        "Terminus Canberene 2",
+        "Terminus Palais 2"
+      ]
     },
     {
       "operator": "DDD",
@@ -159,7 +267,15 @@
       "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
       "feed_terminals": "Aéroport LSS ↔ Palais 2",
       "basis": "La publication DDD ligne 8 et les terminus du feed DDD_08 concordent : Aéroport LSS et Palais 2.",
-      "verified_at": "2026-11-24"
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "D_1229",
+        "D_708"
+      ],
+      "feed_terminal_stop_names": [
+        "AéRoport LéOpold SéDar Senghor",
+        "Terminus Palais 2"
+      ]
     },
     {
       "operator": "DDD",
@@ -170,7 +286,15 @@
       "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
       "feed_terminals": "Liberté 6 ↔ Palais 2",
       "basis": "La publication DDD ligne 9 et les terminus du feed DDD_09 concordent : Liberté 6 et Palais 2.",
-      "verified_at": "2026-11-24"
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "D_450",
+        "D_708"
+      ],
+      "feed_terminal_stop_names": [
+        "Terminus 9 Liberté 6",
+        "Terminus Palais 2"
+      ]
     },
     {
       "operator": "DDD",
@@ -181,7 +305,15 @@
       "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
       "feed_terminals": "Liberté 5 ↔ Palais 2",
       "basis": "La publication DDD ligne 10 et les terminus du feed DDD_10 concordent : Liberté 5 et Palais 2.",
-      "verified_at": "2026-11-24"
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "D_708",
+        "D_713"
+      ],
+      "feed_terminal_stop_names": [
+        "Terminus Liberté 5",
+        "Terminus Palais 2"
+      ]
     },
     {
       "operator": "DDD",
@@ -192,7 +324,15 @@
       "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
       "feed_terminals": "Keur Massar ↔ Lat Dior",
       "basis": "La publication DDD ligne 11 et les terminus du feed DDD_11 concordent : Keur Massar et Lat Dior.",
-      "verified_at": "2026-11-24"
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "D_1266",
+        "D_989"
+      ],
+      "feed_terminal_stop_names": [
+        "Lat-Dior",
+        "Terminus Keur Massar"
+      ]
     },
     {
       "operator": "DDD",
@@ -203,7 +343,15 @@
       "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
       "feed_terminals": "Guédiawaye ↔ Palais 1",
       "basis": "La publication DDD ligne 12 et les terminus du feed DDD_12 concordent : Guédiawaye et Palais 1.",
-      "verified_at": "2026-11-24"
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "D_1082",
+        "D_709"
+      ],
+      "feed_terminal_stop_names": [
+        "Terminus Guédiawayee",
+        "Terminus Palais 1"
+      ]
     },
     {
       "operator": "DDD",
@@ -214,7 +362,15 @@
       "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
       "feed_terminals": "Liberté 5 ↔ Palais 2",
       "basis": "La publication DDD ligne 13 et les terminus du feed DDD_13 concordent : Liberté 5 et Palais 2.",
-      "verified_at": "2026-11-24"
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "D_708",
+        "D_713"
+      ],
+      "feed_terminal_stop_names": [
+        "Terminus Liberté 5",
+        "Terminus Palais 2"
+      ]
     },
     {
       "operator": "DDD",
@@ -225,7 +381,15 @@
       "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
       "feed_terminals": "SCAT Urbam ↔ Leclerc",
       "basis": "La publication DDD ligne 121 et les terminus du feed DDD_121 concordent : SCAT Urbam et Leclerc.",
-      "verified_at": "2026-11-24"
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "D_1264",
+        "D_140"
+      ],
+      "feed_terminal_stop_names": [
+        "Terminus 121",
+        "Terminus Leclerc"
+      ]
     },
     {
       "operator": "DDD",
@@ -236,7 +400,15 @@
       "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
       "feed_terminals": "Bayakh ↔ Rufisque",
       "basis": "La publication DDD ligne 208 et les terminus du feed DDD_208 concordent : Bayakh et Rufisque.",
-      "verified_at": "2026-11-24"
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "D_1265",
+        "D_961"
+      ],
+      "feed_terminal_stop_names": [
+        "Bayakh",
+        "Terminus Rufisque P15"
+      ]
     },
     {
       "operator": "DDD",
@@ -247,7 +419,15 @@
       "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
       "feed_terminals": "Keur Massar ↔ Parcelles Assainies",
       "basis": "La publication DDD ligne 227 et les terminus du feed DDD_227 concordent : Keur Massar et Parcelles Assainies.",
-      "verified_at": "2026-11-24"
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "D_805",
+        "D_989"
+      ],
+      "feed_terminal_stop_names": [
+        "Terminus Keur Massar",
+        "Terminus Parcelles Assaines"
+      ]
     },
     {
       "operator": "DDD",
@@ -258,7 +438,15 @@
       "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
       "feed_terminals": "Baux Maraîchers ↔ Aéroport LSS",
       "basis": "La publication DDD ligne 232 et les terminus du feed DDD_232 concordent : Baux Maraîchers et Aéroport LSS.",
-      "verified_at": "2026-11-24"
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "D_1229",
+        "D_1254"
+      ],
+      "feed_terminal_stop_names": [
+        "AéRoport LéOpold SéDar Senghor",
+        "Gare Des Baux MaraichéRs"
+      ]
     },
     {
       "operator": "DDD",
@@ -269,7 +457,15 @@
       "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
       "feed_terminals": "Baux Maraîchers ↔ Palais 1",
       "basis": "La publication DDD ligne 233 et les terminus du feed DDD_233 concordent : Baux Maraîchers et Palais 1.",
-      "verified_at": "2026-11-24"
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "D_1254",
+        "D_709"
+      ],
+      "feed_terminal_stop_names": [
+        "Gare Des Baux MaraichéRs",
+        "Terminus Palais 1"
+      ]
     },
     {
       "operator": "DDD",
@@ -280,7 +476,15 @@
       "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
       "feed_terminals": "Jaxaay ↔ Place Leclerc",
       "basis": "La publication DDD ligne 234 et les terminus du feed DDD_234 concordent : Jaxaay et Leclerc.",
-      "verified_at": "2026-11-24"
+      "verified_at": "2026-11-24",
+      "feed_terminal_stop_ids": [
+        "D_1181",
+        "D_140"
+      ],
+      "feed_terminal_stop_names": [
+        "Terminus La LinguèRe",
+        "Terminus Leclerc"
+      ]
     }
   ]
 }
