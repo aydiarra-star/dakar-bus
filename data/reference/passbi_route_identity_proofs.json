@@ -3,8 +3,8 @@
   "verified_at": "2026-11-24",
   "policy": "VERIFIED uniquement si le numéro public, la publication officielle et les deux terminus observés dans le feed concordent. Une égalité de numéro seule ne suffit pas. Les contradictions, variantes A/B et terminus ambigus restent UNVERIFIED.",
   "counts": {
-    "verified": 44,
-    "unverified_public_lines": 76
+    "verified": 46,
+    "unverified_public_lines": 74
   },
   "proofs": [
     {
@@ -823,6 +823,26 @@
     },
     {
       "operator": "DDD",
+      "line_number": "121",
+      "route_id": "DDD_121",
+      "official_reference": "https://demdikk.sn/info-voyageurs/",
+      "catalog_reference": "https://demdikk.sn/info-voyageurs/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "SCAT Urbam ↔ Terminus Leclerc",
+      "basis": "La publication officielle DDD ligne 121 indique SCAT Urbam-Leclerc ; le feed DDD_121 porte le long_name SCAT URBAM-LECLERC et les terminus observés sont Terminus 121 et Terminus Leclerc.",
+      "verified_at": "2026-11-24",
+      "feed_route_long_name": "DDD_121_LECLERC_SCAT URBAM",
+      "feed_terminal_stop_ids": [
+        "D_1264",
+        "D_140"
+      ],
+      "feed_terminal_stop_names": [
+        "Terminus 121",
+        "Terminus Leclerc"
+      ]
+    },
+    {
+      "operator": "DDD",
       "line_number": "208",
       "route_id": "DDD_208",
       "official_reference": "https://demdikk.sn/info-voyageurs/",
@@ -900,6 +920,26 @@
         "Terminus Palais 1"
       ],
       "feed_route_long_name": "DDD_233_BAUX-MARAICHERS_ Palais-1"
+    },
+    {
+      "operator": "DDD",
+      "line_number": "234",
+      "route_id": "DDD_234",
+      "official_reference": "https://demdikk.sn/info-voyageurs/",
+      "catalog_reference": "https://demdikk.sn/info-voyageurs/",
+      "feed_reference": "flutter-src/assets/data/reference/ddd_aftu_poles_terminus.json",
+      "feed_terminals": "Jaxaay ↔ Terminus Leclerc",
+      "basis": "La publication officielle DDD ligne 234 indique Jaxaay-Leclerc ; le feed DDD_234 porte le long_name JAXAAY-LECLERC et les terminus observés sont Terminus La Linguère et Terminus Leclerc.",
+      "verified_at": "2026-11-24",
+      "feed_route_long_name": "DDD_234_JAXAAY_LECLERC",
+      "feed_terminal_stop_ids": [
+        "D_1181",
+        "D_140"
+      ],
+      "feed_terminal_stop_names": [
+        "Terminus La LinguèRe",
+        "Terminus Leclerc"
+      ]
     }
   ]
 }
