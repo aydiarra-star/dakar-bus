@@ -164,6 +164,9 @@ void main() {
         'DDD 2',
         'AFTU',
         'AFTU 5',
+        'TER Dakar',
+        'Dakar Dem Dikk',
+        'Sunu BRT',
       ]) {
         expect(app.usesPassBiExclusiveModeLabel(label), isTrue,
             reason: '$label doit masquer le texte d’horaire indisponible');
