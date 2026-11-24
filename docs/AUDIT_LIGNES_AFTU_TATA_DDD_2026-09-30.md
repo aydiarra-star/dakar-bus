@@ -503,9 +503,9 @@ La preuve indépendante est maintenant conservée dans `data/reference/passbi_ro
 
 ### Identités vérifiées
 
-**AFTU — 29 lignes :** 2, 3, 5, 25, 30, 32, 33, 34, 35, 37, 39, 40, 44, 46, 49, 51, 54, 60, 62, 67, 71, 73, 75, 76, 78, 80, 82, 83 et 84.
+**AFTU — 31 lignes :** 2, 3, 5, 25, 30, 32, 33, 34, 35, 37, 39, 40, 42, 44, 46, 49, 51, 54, 60, 62, 67, 70, 71, 73, 75, 76, 78, 80, 82, 83 et 84.
 
-Les pages officielles AFTU consultées le 24 novembre 2026 confirment les itinéraires de ces lignes. Chaque preuve conserve le `route_id`, le `route_long_name` exact, les `stop_id` et noms de terminus observés, ainsi que l'URL officielle. Les lignes 28, 42, 48, 58 et 66 restent non vérifiées lorsque les terminus sont génériques, contradictoires ou ambigus.
+Les pages officielles AFTU consultées le 24 novembre 2026 confirment les itinéraires de ces lignes. Chaque preuve conserve le `route_id`, le `route_long_name` exact, les `stop_id` et noms de terminus observés, ainsi que l'URL officielle. Les lignes 28, 48, 58 et 66 restent non vérifiées lorsque les terminus sont génériques, contradictoires ou ambigus. Les lignes 42 (Gadaye ↔ Ouakam Baye) et 70 (Daroukhane Keur Serigne Assane ↔ Jaxaay 2) ont été ajoutées après concordance des itinéraires officiels avec les terminus partagés ou nommés du feed.
 
 **DDD — 17 lignes :** 1, 2, 4, 5, 6, 8, 9, 10, 11, 12, 13, 121, 208, 227, 232, 233 et 234.
 
@@ -531,7 +531,7 @@ Pour ces lignes, les identités et terminus publiés sur la page officielle « I
 
 - 48 identités publiques ↔ route PassBi vérifiées (31 AFTU + 17 DDD).
 - 74 identités conservées comme non vérifiées.
-- AFTU 28, 42, 48, 58 et 66 restent non vérifiées faute de terminus explicites concordants. Aucune permutation de numéros, aucun transfert d'horaire et aucune fusion A/B.
+- AFTU 28, 48, 58 et 66 restent non vérifiées faute de terminus explicites concordants. Aucune permutation de numéros, aucun transfert d'horaire et aucune fusion A/B.
 - TER/BRT inchangés ; TATA reste exclu du catalogue public.
 - Aucune modification de l'application publiée, aucune fusion et aucun déploiement.
 
