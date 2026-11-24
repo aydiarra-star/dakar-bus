@@ -4060,7 +4060,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                 ))
             .toList();
     final activePolylines = filterColor == null
-        ? basePolylines.where((p) => p.color == AppColors.ter || p.color == AppColors.brt).toList() // Tous : seulement TER/BRT (tracés dédiés, pas le spaghetti)
+        ? basePolylines.where((p) => p.isDedicated).toList() // Tous : seulement TER/BRT par identité métier
         : basePolylines.where((p) => p.color == filterColor).toList();
     final mapStops = _filteredStops; // ✅ Toujours filtré à proximité (30 max — Groupe 4), pas allStops
     // ✅ CORRECTIF ARRÊTS TER/BRT — garantit sur la carte les gares/stations
@@ -4076,7 +4076,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
     //    compte réel de ce qui est transmis au MarkerLayer de CETTE carte,
     //    après le seul filtrage résiduel (DakarBounds) ci-dessous.
     final markerStops = mapMarkerStops.where((s) => DakarBounds.isValid(s.location)).toList();
-    debugPrint('[EXPLORER][MARKERS] transmis au MarkerLayer: total=${markerStops.length} TER=${markerStops.where((s) => s.color == AppColors.ter).length} BRT=${markerStops.where((s) => s.color == AppColors.brt).length} | allStops=${allStops.length} proximité=${mapStops.length} | filtre=$_selectedFilter gps=${widget.gpsState} rayon=${GpsResolver.nearbyRadiusMeters}m limite=${GpsResolver.nearbyLimit}');
+    debugPrint('[EXPLORER][MARKERS] transmis au MarkerLayer: total=${markerStops.length} TER=${markerStops.where((s) => s.servesNetwork('ter')).length} BRT=${markerStops.where((s) => s.servesNetwork('brt')).length} | allStops=${allStops.length} proximité=${mapStops.length} | filtre=$_selectedFilter gps=${widget.gpsState} rayon=${GpsResolver.nearbyRadiusMeters}m limite=${GpsResolver.nearbyLimit}');
 
     return AnimatedBuilder(
       animation: globalState,
