@@ -4205,6 +4205,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                                       child: GestureDetector(
                                         onTap: () { _centerOnStop(s); Navigator.push(context, MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: s))); },
                                         child: Container(
+                                          key: ValueKey<String>('network-stop:${s.stopId ?? s.name}:${s.networkIds.join(',')}'),
                                           decoration: BoxDecoration(
                                             color: s.color, shape: BoxShape.circle,
                                             border: Border.all(color: Colors.white, width: 2),
