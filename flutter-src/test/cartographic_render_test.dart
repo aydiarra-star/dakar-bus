@@ -520,30 +520,32 @@ void main() {
       final List<Polyline> polylines =
           map.children.whereType<PolylineLayer>().single.polylines;
 
-      final List<Polyline> greens = polylines
-          .where((Polyline p) => p.color == AppColors.brt)
+      // Les couleurs sont volontairement unifiées : retrouver chaque ligne
+      // par sa géométrie de référence, jamais par sa couleur.
+      final TransitRoute b1 = demoRoutes.firstWhere((r) => r.code == 'BRT B1');
+      final TransitRoute ter = demoRoutes.firstWhere((r) => r.code == 'TER');
+      final List<Polyline> brtLines = polylines
+          .where((Polyline p) => _samePolylinePoints(p.points, b1.points))
           .toList();
-      expect(greens.length, 2,
-          reason: 'BRT B1 et BRT B2 sont toujours toutes les deux rendues '
-              '(aucune ligne officielle supprimée)');
-      for (final Polyline g in greens) {
-        expect(g.points.length, 23,
-            reason: 'les deux cordes vertes suivent le sous-tracé de B1 : '
-                'superposition parfaite, plus de double ligne');
-        expect(g.borderColor, Colors.white,
-            reason: 'liserre blanche de séparation des superpositions');
-        expect(g.borderStrokeWidth, 2);
+      expect(brtLines.length, 2,
+          reason: 'BRT B1 et B2 partagent le même corridor de 23 stations');
+      for (final Polyline line in brtLines) {
+        expect(line.points.length, 23);
+        expect(line.color, AppColors.primary,
+            reason: 'tous les tracés utilisent le vert Dakar historique');
+        expect(line.borderColor, Colors.white);
+        expect(line.borderStrokeWidth, 2);
       }
-      expect(_samePolylinePoints(greens[0].points, greens[1].points), isTrue,
-          reason: 'géométries vertes identiques → une seule ligne perçue');
+      expect(_samePolylinePoints(brtLines[0].points, brtLines[1].points), isTrue,
+          reason: 'les deux tracés BRT sont superposés exactement');
 
-      final List<Polyline> ters = polylines
-          .where((Polyline p) => p.color == AppColors.ter)
+      final List<Polyline> terLines = polylines
+          .where((Polyline p) => _samePolylinePoints(p.points, ter.points))
           .toList();
-      expect(ters.length, 1, reason: 'un seul tracé TER (aucun doublon)');
-      expect(ters.single.points.length, 13,
-          reason: 'les 13 gares officielles, invariants');
-      expect(ters.single.borderColor, Colors.white);
+      expect(terLines.length, 1, reason: 'un seul tracé TER (aucun doublon)');
+      expect(terLines.single.points.length, 13);
+      expect(terLines.single.color, AppColors.primary);
+      expect(terLines.single.borderColor, Colors.white);
     });
   });
 
@@ -686,11 +688,15 @@ void main() {
 
       // Les gares/stations officielles structurantes restent pleinement
       // visibles à l'aperçu (priorité TER/BRT).
-      final Marker terMarker = stops.markers.firstWhere(
-          (Marker m) => _markerColor(m) == AppColors.ter);
+      Marker markerForNetwork(String network) => stops.markers.firstWhere(
+          (Marker marker) => allStops.any((Stop stop) =>
+              stop.stopId != null &&
+              stop.servesNetwork(network) &&
+              stop.location.latitude == marker.point.latitude &&
+              stop.location.longitude == marker.point.longitude));
+      final Marker terMarker = markerForNetwork('ter');
+      final Marker brtMarker = markerForNetwork('brt');
       expect(_markerOpacity(terMarker), 1.0);
-      final Marker brtMarker = stops.markers.firstWhere(
-          (Marker m) => _markerColor(m) == AppColors.brt);
       expect(_markerOpacity(brtMarker), 1.0);
     });
 
