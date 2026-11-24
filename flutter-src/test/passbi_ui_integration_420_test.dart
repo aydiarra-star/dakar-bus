@@ -271,9 +271,9 @@ void main() {
       );
       expectHonest(natif);
       expect(natif.status, ScheduleStatus.scheduled);
-      expect(natif.identityStatus, IdentityStatus.unconfirmed);
-      expect(natif.lineLabel, isNot(contains('PassBi')));
-      expect(natif.lineLabel, startsWith('AFTU'));
+      expect(natif.identityStatus, IdentityStatus.confirmed);
+      expect(natif.identityNote, contains('VERIFIED'));
+      expect(natif.lineLabel, 'AFTU 3');
     });
 
     test('aftu_12 non mappé sans fréquence → UNKNOWN (jamais inventé)', () {
