@@ -173,7 +173,9 @@ void main() {
       expect(colobane.servesNetwork('brt'), isFalse);
     });
 
-    test('toutes les appartenances réseau correspondent aux operator_id du JSON', () {
+    test(
+        'toutes les appartenances réseau correspondent aux operator_id du JSON',
+        () {
       final Map<String, Set<String>> expectedByStopId = <String, Set<String>>{};
       for (final TransportRoute route in appDataService.routes) {
         for (final String stopId in route.stopIds) {
@@ -185,7 +187,13 @@ void main() {
 
       expect(expectedByStopId.length, appDataService.stops.length);
       expect(allStops.length, appDataService.stops.length);
-      const List<String> networkIds = <String>['ter', 'brt', 'ddd', 'aftu', 'tata'];
+      const List<String> networkIds = <String>[
+        'ter',
+        'brt',
+        'ddd',
+        'aftu',
+        'tata',
+      ];
       for (final Stop stop in allStops) {
         final String stopId = stop.stopId!;
         final Set<String> expected = expectedByStopId[stopId]!;
@@ -203,7 +211,8 @@ void main() {
       expect(networkStopsById('tata'), hasLength(23));
     });
 
-    test('une couleur partagée ne suffit pas à identifier un arrêt ancien', () {
+    test(
+        'une couleur partagée ne suffit pas à identifier un arrêt ancien', () {
       final Stop marche = Stop(
         name: 'Déplacement à pied',
         direction: 'Marche',
@@ -214,7 +223,8 @@ void main() {
         location: const LatLng(14.6800, -17.4400),
         modeLabel: 'Marche',
       );
-      for (final String networkId in const <String>['ter', 'brt', 'ddd', 'aftu', 'tata']) {
+      for (final String networkId
+          in const <String>['ter', 'brt', 'ddd', 'aftu', 'tata']) {
         expect(marche.servesNetwork(networkId), isFalse, reason: networkId);
       }
 
