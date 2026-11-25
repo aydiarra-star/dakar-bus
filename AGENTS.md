@@ -179,21 +179,21 @@ Mission UI/UX **sans aucune modification de données ni de règle métier**.
 **Identité UI 2026 validée** : le vert WhatsApp `#25D366` est la couleur d'action de l'interface. Le vert Dakar historique `#00B140` reste réservé aux marqueurs/GPS et aux couleurs propres aux réseaux TER/BRT/DDD/TATA/AFTU, qui restent inchangées.
 
 - **Palette verrouillée par les tests** : ne jamais changer les hex de
-  `AppColors.ter` (#8B4513), `brt` (#00B140), `beanGreen` (#25D366),
+  `AppColors.ter` (#8B4513), `networkGreen` / `brt` (#00B140), `primary` / `beanGreen` (#25D366),
   `beanGreenLight` (#E5F9EC), `success`, `warning`, ni les littéraux testés
   (`0xFF00B140` dans `explorer_prochains_passages_test.dart`,
   `service_end_resume_timezone_test.dart`).
 - **Rôles verts (alias, aucune nouvelle teinte)** dans `AppColors` :
   - `accent` = `beanGreen` (#25D366) -> vert d'ACTION (AppBar, boutons, onglet actif,
     sélection, icônes d'action, puces non-réseau).
-  - `accentStrong` = `primary` (#00B140) -> marqueur GPS et marqueurs
+  - `accentStrong` = `networkGreen` (#00B140) -> marqueur GPS et marqueurs
     BRT/DDD/AFTU/TATA. Le TER conserve son brun historique (#8B4513).
-    `explorer_marker_render_test.dart` exige que le marqueur GPS soit
-    `AppColors.primary`.
+    `explorer_marker_render_test.dart` vérifie le GPS séparément de la couleur
+    principale de l'interface (`AppColors.primary` = #25D366).
   - `accentSurface` = `beanGreenLight`.
 - **Profondeur / rayons** : `AppColors.radiusCard/radiusField/radiusPill`,
   `cardShadow(dark)`, `softShadow(dark)` - constantes de présentation.
-- **Thème** : `_buildTheme(dark)` (Material 3, seed = `accent`) - AppBar,
+- **Thème** : `_buildTheme(dark)` (Material 3, ColorScheme explicite, sans seed) - AppBar,
   NavigationBar, Filled/Elevated buttons, InputDecoration, SnackBar. Un seul
   point de vérité de style ; les écrans n'ont pas à re-spécifier le vert d'action.
 - **Marqueurs carte** : rester des `Container` avec `BoxDecoration(shape:
