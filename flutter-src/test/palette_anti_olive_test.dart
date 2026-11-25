@@ -76,4 +76,19 @@ void main() {
     expect(app.AppColors.success, app.AppColors.beanGreen);
     expect(app.AppColors.accent, app.AppColors.beanGreen);
   });
+
+  test('Trajet guard: navigation selection is a solid WhatsApp-green tab', () {
+    final String source = File('lib/main.dart').readAsStringSync();
+    expect(source, contains('indicatorColor: AppColors.beanGreen,'));
+    expect(source, contains('selectedIcon: Icon(Icons.alt_route_rounded, color: Colors.white)'));
+    expect(source, contains('? Colors.white\n                : AppColors.textSecondary(dark)'));
+  });
+
+  test('Trajet guard: search fields and displayed departure times use WhatsApp green', () {
+    final String source = File('lib/main.dart').readAsStringSync();
+    expect(source, contains("_buildInputField(controller: _fromCtrl, label: 'Départ', icon: Icons.my_location, color: AppColors.beanGreen, dark: dark)"));
+    expect(source, contains("_buildInputField(controller: _toCtrl, label: 'Destination', icon: Icons.location_on, color: AppColors.beanGreen, dark: dark)"));
+    expect(source, contains('Icon(Icons.access_time, size: 12, color: AppColors.beanGreen)'));
+    expect(source, contains('color: AppColors.beanGreen))]),'));
+  });
 }
