@@ -7549,7 +7549,7 @@ class SingleStopView extends StatelessWidget {
                         ),
                       ),
                       IconButton(
-                        icon: Icon(isFav ? Icons.star : Icons.star_border, color: isFav ? AppColors.primary : Colors.grey),
+                        icon: Icon(isFav ? Icons.star : Icons.star_border, color: isFav ? AppColors.beanGreen : Colors.grey),
                         onPressed: () => globalState.toggleFavorite(stop.name),
                         tooltip: 'Favori',
                       ),
