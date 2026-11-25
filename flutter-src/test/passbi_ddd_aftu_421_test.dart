@@ -141,7 +141,9 @@ void main() {
       final natifs = ddd.where((s) => s.passBiStopKey != null).toList();
       expect(natifs, isNotEmpty,
           reason: 'le filtre DDD doit exposer les arrêts PassBi DDD réels');
-      expect(ddd.every((s) => s.color == app.AppColors.ddd), isTrue);
+      // Shared stops retain their original network color (for example TER brown);
+      // only native PassBi DDD stops are required to use the DDD presentation color.
+      expect(natifs.every((s) => s.color == app.AppColors.ddd), isTrue);
       // Un de ces arrêts calcule un vrai prochain départ.
       final avecDepart = natifs
           .map((s) => s.departureInfoAt(at: lundi12))
@@ -227,7 +229,9 @@ void main() {
       );
       final natifs = aftu.where((s) => s.passBiStopKey != null).toList();
       expect(natifs, isNotEmpty);
-      expect(aftu.every((s) => s.color == app.AppColors.aftu), isTrue);
+      // Shared stops retain their original network color; native AFTU stops
+      // keep the AFTU presentation color.
+      expect(natifs.every((s) => s.color == app.AppColors.aftu), isTrue);
     });
 
     test('arrêt natif : nom et coordonnées viennent du feed (§2)', () {
@@ -612,7 +616,7 @@ void main() {
       expect(app.passBiNativeNetworkKeys(), <String>['DDD', 'AFTU']);
       expect(app.passBiNativeStops.any((s) => s.modeLabel == 'TATA'), isFalse);
       expect(
-        app.passBiNativeStops.any((s) => s.color == app.AppColors.tata),
+        app.passBiNativeStops.any((s) => s.servesNetwork('tata')),
         isFalse,
       );
     });
@@ -626,17 +630,25 @@ void main() {
         ),
         same(app.allStops),
       );
-      final tataStops = app.allStops
-          .where((s) => s.color == app.AppColors.tata)
-          .take(5)
-          .toList();
+      final tataStops = app.explorerBaseStopsForFilter(
+        selectedFilter: 'TATA',
+        favoriteStopNames: const <String>{},
+        source: app.allStops,
+      );
       expect(tataStops, isNotEmpty,
           reason: 'les arrêts des lignes TATA du référentiel dakar sont '
               'affichés (aucun n\'est retiré par le lot)');
       for (final s in tataStops) {
+        expect(s.modeLabel, 'Tata', reason: s.name);
+        final linkedRoutes = app.appDataService.routes
+            .where((route) => route.id == s.scheduleRouteId)
+            .toList();
+        expect(linkedRoutes, hasLength(1), reason: s.name);
+        expect(linkedRoutes.single.operatorId, 'tata', reason: s.name);
+
         final info = s.departureInfoAt(at: lundi12);
         expect(info.status, ScheduleStatus.unknown, reason: s.name);
-        expect(info.label, 'Horaire indisponible');
+        expect(info.label, 'Horaire indisponible', reason: s.name);
       }
     });
   });

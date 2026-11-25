@@ -37,7 +37,7 @@ const LatLng _paris = LatLng(48.8566, 2.3522);
 /// Position réelle simulée à Dakar (gare TER) — en zone de service.
 const LatLng _dakarUser = LatLng(14.67599, -17.43352);
 
-Stop _stop(String name, LatLng at, {Color? color, double distanceMeters = 500}) =>
+Stop _stop(String name, LatLng at, {Color? color, String? networkId, double distanceMeters = 500}) =>
     Stop(
       name: name,
       direction: 'Aller',
@@ -46,7 +46,8 @@ Stop _stop(String name, LatLng at, {Color? color, double distanceMeters = 500}) 
       icon: Icons.directions_bus,
       color: color ?? AppColors.brt,
       location: at,
-      modeLabel: 'BRT',
+      modeLabel: networkId?.toUpperCase() ?? 'BRT',
+      networkIds: networkId == null ? const <String>{} : <String>{networkId},
     );
 
 /// Retire les commentaires d'un fichier source (chaînes conservées) — même
@@ -318,15 +319,14 @@ void main() {
 
   group('Exploration — filtres Tous, Favoris, TER, BRT, DDD, TATA, AFTU', () {
     final source = <Stop>[
-      _stop('ter_1', const LatLng(14.6800, -17.4400), color: AppColors.ter),
-      _stop('ter_2', const LatLng(14.7000, -17.4300), color: AppColors.ter),
-      _stop('brt_1', const LatLng(14.7100, -17.4500), color: AppColors.brt),
-      _stop('brt_2', const LatLng(14.7200, -17.4400), color: AppColors.brt),
-      _stop('ddd_1', const LatLng(14.7300, -17.4200), color: AppColors.ddd),
-      _stop('tata_1', const LatLng(14.7400, -17.4100), color: AppColors.tata),
-      _stop('aftu_1', const LatLng(14.7500, -17.4000), color: AppColors.aftu),
-      _stop('fav_ddd', const LatLng(14.7600, -17.3900),
-          color: AppColors.ddd),
+      _stop('ter_1', const LatLng(14.6800, -17.4400), networkId: 'ter'),
+      _stop('ter_2', const LatLng(14.7000, -17.4300), networkId: 'ter'),
+      _stop('brt_1', const LatLng(14.7100, -17.4500), networkId: 'brt'),
+      _stop('brt_2', const LatLng(14.7200, -17.4400), networkId: 'brt'),
+      _stop('ddd_1', const LatLng(14.7300, -17.4200), networkId: 'ddd'),
+      _stop('tata_1', const LatLng(14.7400, -17.4100), networkId: 'tata'),
+      _stop('aftu_1', const LatLng(14.7500, -17.4000), networkId: 'aftu'),
+      _stop('fav_ddd', const LatLng(14.7600, -17.3900), networkId: 'ddd'),
     ];
     const favorites = {'fav_ddd', 'brt_1'};
 
@@ -346,34 +346,34 @@ void main() {
       expect(r.map((s) => s.name).toSet(), <String>{'fav_ddd', 'brt_1'});
     });
 
-    test('TER → uniquement la couleur TER', () {
+    test('TER → uniquement le réseau TER', () {
       final r = filter('TER');
       expect(r, hasLength(2));
-      expect(r.every((s) => s.color == AppColors.ter), isTrue);
+      expect(r.every((s) => s.servesNetwork('ter')), isTrue);
     });
 
-    test('BRT → uniquement la couleur BRT', () {
+    test('BRT → uniquement le réseau BRT', () {
       final r = filter('BRT');
       expect(r, hasLength(2));
-      expect(r.every((s) => s.color == AppColors.brt), isTrue);
+      expect(r.every((s) => s.servesNetwork('brt')), isTrue);
     });
 
-    test('DDD → uniquement la couleur DDD', () {
+    test('DDD → uniquement le réseau DDD', () {
       final r = filter('DDD');
       expect(r, hasLength(2));
-      expect(r.every((s) => s.color == AppColors.ddd), isTrue);
+      expect(r.every((s) => s.servesNetwork('ddd')), isTrue);
     });
 
-    test('TATA → uniquement la couleur TATA', () {
+    test('TATA → uniquement le réseau TATA', () {
       final r = filter('TATA');
       expect(r, hasLength(1));
-      expect(r.every((s) => s.color == AppColors.tata), isTrue);
+      expect(r.every((s) => s.servesNetwork('tata')), isTrue);
     });
 
-    test('AFTU → uniquement la couleur AFTU', () {
+    test('AFTU → uniquement le réseau AFTU', () {
       final r = filter('AFTU');
       expect(r, hasLength(1));
-      expect(r.every((s) => s.color == AppColors.aftu), isTrue);
+      expect(r.every((s) => s.servesNetwork('aftu')), isTrue);
     });
 
     test('chaque filtre est consultable depuis la France comme sans GPS', () {

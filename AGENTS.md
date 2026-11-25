@@ -176,19 +176,20 @@ npm run validate:data
 
 Mission UI/UX **sans aucune modification de données ni de règle métier**.
 
-**Identité UI 2026 validée** : le vert pur Dakar `#00B140` est la couleur principale de l'interface. Les couleurs propres aux réseaux TER/BRT/DDD/TATA/AFTU restent inchangées.
+**Identité UI 2026 validée** : le vert WhatsApp `#25D366` est la couleur d'action de l'interface. Le vert Dakar historique `#00B140` reste réservé aux marqueurs/GPS et aux couleurs propres aux réseaux TER/BRT/DDD/TATA/AFTU, qui restent inchangées.
 
 - **Palette verrouillée par les tests** : ne jamais changer les hex de
-  `AppColors.ter` (#8B4513), `brt` (#00B140), `beanGreen` (#00B140),
-  `beanGreenLight` (#DDF5E7), `success`, `warning`, ni les littéraux testés
+  `AppColors.ter` (#8B4513), `brt` (#00B140), `beanGreen` (#25D366),
+  `beanGreenLight` (#E5F9EC), `success`, `warning`, ni les littéraux testés
   (`0xFF00B140` dans `explorer_prochains_passages_test.dart`,
   `service_end_resume_timezone_test.dart`).
 - **Rôles verts (alias, aucune nouvelle teinte)** dans `AppColors` :
-  - `accent` = `beanGreen` -> vert d'ACTION (AppBar, boutons, onglet actif,
+  - `accent` = `beanGreen` (#25D366) -> vert d'ACTION (AppBar, boutons, onglet actif,
     sélection, icônes d'action, puces non-réseau).
-  - `accentStrong` = `primary` (#00B140) -> **réservé** au marqueur GPS et aux
-    palettes de réseau. `explorer_marker_render_test.dart` exige que le marqueur
-    de position utilisateur soit `AppColors.primary`.
+  - `accentStrong` = `primary` (#00B140) -> marqueur GPS et marqueurs
+    BRT/DDD/AFTU/TATA. Le TER conserve son brun historique (#8B4513).
+    `explorer_marker_render_test.dart` exige que le marqueur GPS soit
+    `AppColors.primary`.
   - `accentSurface` = `beanGreenLight`.
 - **Profondeur / rayons** : `AppColors.radiusCard/radiusField/radiusPill`,
   `cardShadow(dark)`, `softShadow(dark)` - constantes de présentation.
@@ -196,8 +197,16 @@ Mission UI/UX **sans aucune modification de données ni de règle métier**.
   NavigationBar, Filled/Elevated buttons, InputDecoration, SnackBar. Un seul
   point de vérité de style ; les écrans n'ont pas à re-spécifier le vert d'action.
 - **Marqueurs carte** : rester des `Container` avec `BoxDecoration(shape:
-  circle, color: <couleur réseau>)` (les tests comptent par couleur via ce type).
-  Ne pas changer la couleur ni la forme ; seule la profondeur (ombre) peut varier.
+  circle, color: <couleur réseau>)`. Les couleurs sont uniquement visuelles :
+  l'identité est portée par `Stop.networkIds` et la clé de test
+  `network-stop:...`, jamais par la couleur. Ne pas changer la couleur ni la
+  forme ; seule la profondeur (ombre) peut varier.
+- **Arrêts partagés** : `Stop.scheduleRouteIdsByNetwork` conserve une référence
+  de ligne par réseau. Tout filtre réseau doit sélectionner ensemble le bon
+  `modeLabel` et le bon `scheduleRouteId` via
+  `explorerBaseStopsForFilter` ; ne jamais réutiliser la ligne du premier
+  opérateur rencontré. Le calage des tracés compare `TransitRoute.type`, pas
+  leur couleur.
 - **Viewport carte** : la carte garde toute la largeur (marge verticale seule).
   Un rétrécissement latéral évince des gares par culling flutter_map
   (`explorer_marker_render_test.dart` CAS D exige >= 12 gares TER rendues).
@@ -206,5 +215,5 @@ Mission UI/UX **sans aucune modification de données ni de règle métier**.
   et `ReliabilityLabel`. L'UI ne doit jamais fabriquer « X min » - seule la
   mise en forme (couleur/taille) est modifiable.
 
-Validation : `flutter analyze` + `flutter test` (849) + `npm test` (136) +
-`flutter build web --release` doivent rester verts après toute retouche UI.
+Validation : `flutter analyze` + la suite complète `flutter test` + `npm test`
++ `flutter build web --release` doivent rester verts après toute retouche UI.

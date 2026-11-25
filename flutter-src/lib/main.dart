@@ -334,26 +334,23 @@ class OppositeStopService {
 //         affiche « Horaire indisponible » (voir [ReliabilityLabel]).
 
 // ============================================================
-// PALETTE OFFICIELLE DAKAR GREEN #00B140 & THEME MANAGER
+// PALETTE DAKAR / WHATSAPP & THEME MANAGER
 // ============================================================
 class AppColors {
   static const primary = Color(0xFF00B140);
   static const primaryDark = Color(0xFF008A32);
 
-  /// Vert haricot clair — teinte unifiée de l'interface (boutons principaux,
-  /// indicateurs, éléments de navigation, mise en avant des départs au statut
-  /// positif). Identité Dakar verte pure (#00B140) : contraste ≈ 3,6:1
-  /// en texte blanc et ≈ 5,8:1 en texte noir, équilibré pour les deux fonds.
-  ///
-  /// [primary] (le vert historique) est conservé pour la carte, le GPS et la
-  /// palette des réseaux.
-  static const beanGreen = primary;
-  static const beanGreenLight = Color(0xFFDDF5E7);
+  /// Vert WhatsApp — teinte d'action de l'interface (boutons, onglets,
+  /// sélections et éléments interactifs). Le vert Dakar historique [primary]
+  /// reste réservé au GPS et aux marqueurs BRT/DDD/AFTU/TATA ; le TER garde
+  /// son brun historique.
+  static const beanGreen = Color(0xFF25D366);
+  static const beanGreenLight = Color(0xFFE5F9EC);
 
-  // Identité visuelle unique : tous les réseaux restent dans le vert Dakar Bus.
-  // La distinction métier repose sur les libellés/icônes, jamais sur une
-  // palette concurrente. Les couleurs warning/error restent sémantiques.
-  static const ter = primary;
+  // Couleurs historiques des réseaux : TER conserve son brun ; BRT, DDD,
+  // AFTU et TATA conservent le vert Dakar. La couleur n'est jamais une identité
+  // métier : les filtres s'appuient sur networkIds. Warning/error restent sémantiques.
+  static const ter = Color(0xFF8B4513);
   static const brt = primary;
   static const aftu = primary;
   static const tata = primary;
@@ -368,16 +365,14 @@ class AppColors {
   // ────────────────────────────────────────────────────────────
   // RÔLES DE COULEUR VERTE (identité Dakar Bus)
   //
-  // Le vert est l'accent principal : actions, sélections actives, marqueurs,
-  // prochains passages disponibles, badges de statut positifs. Les ALIAS
-  // ci-dessous ne créent AUCUNE nouvelle teinte : ils nomment les rôles à
-  // partir des teintes déjà verrouillées par les tests (`beanGreen`, `primary`),
-  // ce qui rend l'usage du vert explicite et cohérent dans toute l'UI.
+  // Le vert WhatsApp est l'accent des actions et des sélections. Le vert Dakar
+  // historique reste réservé au GPS et aux réseaux qui l'utilisent ; le TER
+  // conserve son brun. Les alias ci-dessous ne créent AUCUNE nouvelle teinte.
   //
   //  * [accent]        — vert d'action principal (boutons, onglet actif,
   //                      sélection). Teinte haricot documentée.
-  //  * [accentStrong]  — vert historique, réservé à la carte/GPS et aux
-  //                      palettes de réseau (contraste fort sur tuiles).
+  //  * [accentStrong]  — vert Dakar historique pour le GPS et les marqueurs
+  //                      BRT/DDD/AFTU/TATA ; le TER garde son brun historique.
   //  * [accentSurface] — surface de confirmation très claire (fonds de badge).
   // ────────────────────────────────────────────────────────────
   static const accent = beanGreen;
@@ -1048,9 +1043,13 @@ class Stop {
   /// appel existant n'est cassé.
   final String? stopId;
 
-  /// Ligne officiellement liée à cet arrêt. Une fréquence ne devient jamais
-  /// un élément de [departureMinutesFromMidnight] : elle reste dans le provider.
+  /// Ligne par défaut liée à cet arrêt. Une fréquence ne devient jamais un
+  /// élément de [departureMinutesFromMidnight] : elle reste dans le provider.
   final String? scheduleRouteId;
+
+  /// Référence de ligne propre à chaque réseau desservant un arrêt partagé.
+  /// Évite qu'un arrêt commun TER/TATA réutilise l'horaire de sa première ligne.
+  final Map<String, String> scheduleRouteIdsByNetwork;
 
   /// Lot 4.21 §2 — Clé composite PassBi (« DDD:D_217 ») d'un arrêt NATIF du
   /// référentiel PassBi. Non nul uniquement pour les arrêts issus des feeds
@@ -1058,6 +1057,22 @@ class Stop {
   /// sur les lignes qui les desservent réellement, sans aucun mapping
   /// d'identité publique. `null` pour tous les arrêts du référentiel dakar.
   final String? passBiStopKey;
+
+  /// Identifiants des réseaux qui desservent cet arrêt dans le référentiel.
+  /// Indépendants des couleurs de présentation, qui peuvent être communes.
+  /// Vide pour les anciens arrêts de démonstration (compatibilité historique).
+  final Set<String> networkIds;
+
+  bool servesNetwork(String networkId) {
+    final String id = networkId.trim().toLowerCase();
+    if (!const <String>{'ter', 'brt', 'ddd', 'aftu', 'tata'}.contains(id)) {
+      return false;
+    }
+    if (networkIds.isNotEmpty) return networkIds.contains(id);
+    // Compatibilité des anciens arrêts : seul leur libellé explicite fait foi.
+    // Une couleur partagée ne permet jamais de déduire leur réseau.
+    return modeLabel.trim().toLowerCase() == id;
+  }
 
   DepartureInfo get departureInfo => departureInfoAt();
 
@@ -1239,6 +1254,8 @@ class Stop {
     DataStatus status = DataStatus.scheduled,
     this.source = DataSourceInfo.demo, this.stopType = StopType.departure,
     this.stopId, this.scheduleRouteId, this.passBiStopKey,
+    this.networkIds = const <String>{},
+    this.scheduleRouteIdsByNetwork = const <String, String>{},
   }) : _legacyStatus = status;
 
   Stop copyWith({
@@ -1246,7 +1263,8 @@ class Stop {
     List<int>? departureMinutesFromMidnight, IconData? icon, Color? color,
     LatLng? location, DataStatus? status, String? modeLabel,
     DataSourceInfo? source, StopType? stopType, String? stopId,
-    String? scheduleRouteId, String? passBiStopKey,
+    String? scheduleRouteId, String? passBiStopKey, Set<String>? networkIds,
+    Map<String, String>? scheduleRouteIdsByNetwork,
   }) => Stop(
     name: name ?? this.name,
     direction: direction ?? this.direction,
@@ -1255,13 +1273,17 @@ class Stop {
     icon: icon ?? this.icon,
     color: color ?? this.color,
     location: location ?? this.location,
-    status: status ?? this.status,
+    // Cloner un arrêt ne doit pas recalculer son statut horaire sur l'instant.
+    status: status ?? _legacyStatus,
     modeLabel: modeLabel ?? this.modeLabel,
     source: source ?? this.source,
     stopType: stopType ?? this.stopType,
     stopId: stopId ?? this.stopId,
     scheduleRouteId: scheduleRouteId ?? this.scheduleRouteId,
     passBiStopKey: passBiStopKey ?? this.passBiStopKey,
+    networkIds: networkIds ?? this.networkIds,
+    scheduleRouteIdsByNetwork:
+        scheduleRouteIdsByNetwork ?? this.scheduleRouteIdsByNetwork,
   );
 
   // AUDIT DONNÉES 2026-09-24 — horaires.
@@ -1467,19 +1489,11 @@ final List<Stop> allStops = [...terStations, ...brtStations]
 // dans un itinéraire officiel au seul motif qu'il apparaît sur la carte (§1).
 // ============================================================
 
-/// `<MODE>_NETWORK_POINTS` — points du réseau affichables dans Explorer.
-///
-/// Explorer peut afficher **davantage** de points que l'itinéraire officiel ne
-/// compte de stations (§6). Cette liste n'est donc jamais réduite pour
-/// correspondre à un itinéraire, et le compteur Explorer n'est jamais ajusté
-/// artificiellement.
-///
-/// Le prédicat reproduit à l'identique celui, existant, de `_filteredStops` :
-/// le mode y est porté par la couleur (`AppColors.ter`, `AppColors.brt`, …).
-/// Aucun filtre, aucune couleur et aucun calcul de proximité n'est modifié
-/// (§1, §10).
-List<Stop> networkPoints(Color modeColor) =>
-    allStops.where((Stop s) => s.color == modeColor).toList();
+/// Sélectionne les arrêts d'un réseau par appartenance métier explicite.
+/// Les couleurs sont réservées à la présentation et ne servent jamais de clé.
+@visibleForTesting
+List<Stop> networkStopsById(String networkId, {List<Stop>? source}) =>
+    (source ?? allStops).where((Stop s) => s.servesNetwork(networkId)).toList();
 
 /// Arrêts à dessiner sur la **couche marqueurs** de la carte Explorer.
 ///
@@ -1522,8 +1536,8 @@ List<Stop> explorerMapMarkerStops({
           .where((Stop s) =>
               s.stopId != null &&
               DakarBounds.isValid(s.location) &&
-              ((terDisplayed && s.color == AppColors.ter) ||
-                  (brtDisplayed && s.color == AppColors.brt)))
+              ((terDisplayed && s.servesNetwork('ter')) ||
+                  (brtDisplayed && s.servesNetwork('brt'))))
           .toList()
       : const <Stop>[];
   if (official.isEmpty) return List<Stop>.of(proximityStops);
@@ -1531,16 +1545,16 @@ List<Stop> explorerMapMarkerStops({
       '${s.name}_${s.location.latitude}_${s.location.longitude}';
   final Set<String> officialKeys = official.map(keyOf).toSet();
   final bool hasOfficialTer =
-      official.any((Stop s) => s.color == AppColors.ter);
+      official.any((Stop s) => s.servesNetwork('ter'));
   final bool hasOfficialBrt =
-      official.any((Stop s) => s.color == AppColors.brt);
+      official.any((Stop s) => s.servesNetwork('brt'));
   return <Stop>[
     ...official,
     ...proximityStops.where((Stop s) =>
         !officialKeys.contains(keyOf(s)) &&
         !(s.stopId == null &&
-            ((s.color == AppColors.ter && hasOfficialTer) ||
-                (s.color == AppColors.brt && hasOfficialBrt)))),
+            ((s.servesNetwork('ter') && hasOfficialTer) ||
+                (s.servesNetwork('brt') && hasOfficialBrt)))),
   ];
 }
 
@@ -1551,7 +1565,7 @@ List<Stop> explorerMapMarkerStops({
 /// Base de la liste Explorer pour un filtre donné (chips « Tous », « ⭐
 /// Favoris », TER, BRT, DDD, TATA, AFTU) — **indépendante de tout GPS**.
 ///
-/// Même sélection que `_filteredStops` avant extraction : filtrage par couleur
+/// Même sélection que `_filteredStops` avant extraction : filtrage par identité
 /// réseau ou par favoris sur la liste source ([allStops] en production). Aucune
 /// distance n'est calculée ici ; l'ordre/proximité est appliqué ensuite par
 /// [explorerVisibleStops].
@@ -1566,17 +1580,25 @@ List<Stop> explorerBaseStopsForFilter({
         .where((Stop s) => favoriteStopNames.contains(s.name))
         .toList();
   }
+  List<Stop> forNetwork(String networkId) => source
+      .where((Stop s) => s.servesNetwork(networkId))
+      .map((Stop s) => s.copyWith(
+            modeLabel: networkId == 'tata' ? 'Tata' : networkId.toUpperCase(),
+            scheduleRouteId:
+                s.scheduleRouteIdsByNetwork[networkId] ?? s.scheduleRouteId,
+          ))
+      .toList();
   switch (selectedFilter) {
     case 'TER':
-      return source.where((Stop s) => s.color == AppColors.ter).toList();
+      return forNetwork('ter');
     case 'BRT':
-      return source.where((Stop s) => s.color == AppColors.brt).toList();
+      return forNetwork('brt');
     case 'DDD':
-      return source.where((Stop s) => s.color == AppColors.ddd).toList();
+      return forNetwork('ddd');
     case 'TATA':
-      return source.where((Stop s) => s.color == AppColors.tata).toList();
+      return forNetwork('tata');
     case 'AFTU':
-      return source.where((Stop s) => s.color == AppColors.aftu).toList();
+      return forNetwork('aftu');
     default:
       return List<Stop>.of(source);
   }
@@ -1695,7 +1717,9 @@ List<LatLng> explorerRenderedRoutePoints(
   List<int>? bestIndices;
   for (final TransitRoute other in universe) {
     if (other.code == route.code) continue;
-    if (other.color != route.color) continue;
+    // Les couleurs sont partagées ; seul le type métier autorise un
+    // rattachement géométrique entre deux tracés.
+    if (other.type != route.type) continue;
     if (other.points.length <= route.points.length) continue;
     final List<int>? indices =
         _explorerSubsequenceIndices(route.points, other.points);
@@ -1739,8 +1763,8 @@ bool _explorerSamePoint(LatLng a, LatLng b) =>
 /// arrêt retiré de la donnée.
 @visibleForTesting
 bool explorerStopIsStructuring(Stop s) =>
-    s.color == AppColors.ter ||
-    s.color == AppColors.brt ||
+    s.servesNetwork('ter') ||
+    s.servesNetwork('brt') ||
     s.stopType == StopType.terminus ||
     s.stopType == StopType.correspondence;
 
@@ -1864,7 +1888,11 @@ void _integrateNetworkData() {
   if (appDataService.stops.isEmpty || appDataService.routes.isEmpty) return;
 
   // Evite les doublons par nom+location
-  final existingKeys = allStops.map((s) => '${s.name}_${s.location.latitude}_${s.location.longitude}').toSet();
+  final Map<String, int> existingIndices = <String, int>{};
+  for (int i = 0; i < allStops.length; i++) {
+    final Stop stop = allStops[i];
+    existingIndices['${stop.name}_${stop.location.latitude}_${stop.location.longitude}'] = i;
+  }
   int addedStops = 0;
 
   // Helper : map operatorId → couleur / icône / label / source
@@ -1946,7 +1974,30 @@ void _integrateNetworkData() {
           .combine(<ProvenanceStatus>[route.provenance.status, busStop.provenance.status]));
       final source = confirmed ? sourceForOperator(route.operatorId) : DataSourceInfo.unverified;
       final key = '${busStop.name}_${busStop.latitude}_${busStop.longitude}';
-      if (existingKeys.contains(key)) continue;
+      final String networkId = route.operatorId.trim().toLowerCase();
+      final int? existingIndex = existingIndices[key];
+      if (existingIndex != null) {
+        final Stop existing = allStops[existingIndex];
+        final Set<String> memberships = <String>{...existing.networkIds};
+        if (existing.networkIds.isEmpty) {
+          final String legacyId = existing.modeLabel.trim().toLowerCase();
+          if (const <String>{'ter', 'brt', 'ddd', 'aftu', 'tata'}
+              .contains(legacyId)) {
+            memberships.add(legacyId);
+          }
+        }
+        memberships.add(networkId);
+        final Map<String, String> routeIdsByNetwork =
+            Map<String, String>.of(existing.scheduleRouteIdsByNetwork);
+        routeIdsByNetwork.putIfAbsent(networkId, () => route.id);
+        allStops[existingIndex] = existing.copyWith(
+          stopId: existing.stopId ?? busStop.id,
+          scheduleRouteId: existing.scheduleRouteId ?? route.id,
+          networkIds: memberships,
+          scheduleRouteIdsByNetwork: routeIdsByNetwork,
+        );
+        continue;
+      }
 
       // Horaires : AUCUN. Le JSON n'en fournit pas (schedule_status UNKNOWN) ;
       // l'ancien générateur TER/BRT a été supprimé (audit 2026-09-24).
@@ -1968,9 +2019,11 @@ void _integrateNetworkData() {
         source: source,
         stopType: aggregatedRoles[busStop.id] ??
             stopTypeForIndex(i, stopIds.length),
+        networkIds: <String>{networkId},
+        scheduleRouteIdsByNetwork: <String, String>{networkId: route.id},
       );
       allStops.add(stop);
-      existingKeys.add(key);
+      existingIndices[key] = allStops.length - 1;
       addedStops++;
     }
 
@@ -2002,7 +2055,7 @@ void _integrateNetworkData() {
   // --- Ajoute les arrêts orphelins (présents dans stops mais jamais dans routes) ---
   for (final bs in appDataService.stops) {
     final key = '${bs.name}_${bs.latitude}_${bs.longitude}';
-    if (existingKeys.contains(key)) continue;
+    if (existingIndices.containsKey(key)) continue;
     if (!DakarBounds.isValid(LatLng(bs.latitude, bs.longitude))) continue;
     // Détermine le label/ couleur par défaut : AFTU si non trouvé
     const label = 'AFTU';
@@ -2021,9 +2074,10 @@ void _integrateNetworkData() {
       modeLabel: label,
       source: source,
       stopType: StopType.boarding,
+      networkIds: const <String>{'aftu'},
     );
     allStops.add(stop);
-    existingKeys.add(key);
+    existingIndices[key] = allStops.length - 1;
     addedStops++;
   }
 
@@ -3688,7 +3742,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
   bool _searchFocused = false;
   final TextEditingController _searchCtrl = TextEditingController();
 
-  List<Polyline> _dynamicPolylines = [];
+  List<({String networkId, Polyline polyline})> _dynamicPolylines = [];
   bool _isLoadingRoutes = true;
 
   /// Zoom courant de la carte, suivi via `MapOptions.onPositionChanged`
@@ -3734,7 +3788,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
 
   Future<void> _loadDynamicRoutes() async {
     // ✅ Fluidité : charge uniquement TER/BRT (dédié) au démarrage — instantané, pas d'OSRM
-    final List<Polyline> loaded = [];
+    final List<({String networkId, Polyline polyline})> loaded = [];
     final initialRoutes = demoRoutes.where((r) => r.isDedicated).toList();
     for (final route in initialRoutes) {
       // ✅ RENDU ANTI-DOUBLE-LIGNE (CAS A) — géométrie éventuellement calée
@@ -3749,13 +3803,13 @@ class _ExplorerPageState extends State<ExplorerPage> {
           .where((pt) => DakarBounds.isValid(pt))
           .toList();
       if (points.length >= 2) {
-        loaded.add(Polyline(
+        loaded.add((networkId: route.type.toLowerCase(), polyline: Polyline(
           points: points,
           color: route.color,
           strokeWidth: 5.5,
           borderColor: Colors.white,
           borderStrokeWidth: 2,
-        ));
+        )));
       }
     }
     if (mounted) setState(() { _dynamicPolylines = loaded; _isLoadingRoutes = false; });
@@ -3766,7 +3820,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
   Future<void> _lazyLoadRemainingRoutes() async {
     // Ne charge les autres tracés que si besoin et de manière non bloquante
     await Future.delayed(const Duration(milliseconds: 800));
-    final List<Polyline> extra = [];
+    final List<({String networkId, Polyline polyline})> extra = [];
     final remaining = demoRoutes.where((r) => !r.isDedicated).take(20).toList(); // limite à 20 pour ne pas surcharger
     for (final route in remaining) {
       if (route.points.length < 2) continue;
@@ -3789,7 +3843,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
       } catch (_) {}
       if (fullRoutePoints.isEmpty) fullRoutePoints = route.points.where((pt) => DakarBounds.isValid(pt)).toList();
       if (fullRoutePoints.length >= 2) {
-        extra.add(Polyline(
+        extra.add((networkId: route.type.toLowerCase(), polyline: Polyline(
           points: fullRoutePoints,
           color: route.color,
           strokeWidth: 4.5,
@@ -3797,7 +3851,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
           //    visuelle des réseaux superposés (rendu seul).
           borderColor: Colors.white,
           borderStrokeWidth: 2,
-        ));
+        )));
       }
       // Petite pause pour ne pas saturer
       await Future.delayed(const Duration(milliseconds: 50));
@@ -4007,14 +4061,21 @@ class _ExplorerPageState extends State<ExplorerPage> {
   Widget build(BuildContext context) {
     final dark = globalState.darkMode;
     final stops = _filteredStops;
-    // ✅ Filtre les tracés par mobilité pour éviter le spaghetti orange : n'affiche que la couleur sélectionnée
-    final Color? filterColor = _selectedFilter == 'Tous' ? null : _colorFor(_selectedFilter);
+    // Le filtrage des tracés repose sur l'identité de l'exploitant, jamais sur
+    // la couleur : plusieurs réseaux partagent volontairement une même teinte.
+    final String? filterNetworkId = switch (_selectedFilter) {
+      'TER' => 'ter',
+      'BRT' => 'brt',
+      'DDD' => 'ddd',
+      'AFTU' => 'aftu',
+      'TATA' => 'tata',
+      _ => null,
+    };
     final basePolylines = _dynamicPolylines.isNotEmpty
         ? _dynamicPolylines
         : demoRoutes
-            .map((r) => Polyline(
-                  // Même géométrie de rendu que `_loadDynamicRoutes` (CAS A)
-                  // pour un état de chargement cohérent.
+            .map((r) => (networkId: r.type.toLowerCase(), polyline: Polyline(
+                  // Même géométrie de rendu que `_loadDynamicRoutes` (CAS A).
                   points: explorerRenderedRoutePoints(r, demoRoutes)
                       .where((pt) => DakarBounds.isValid(pt))
                       .toList(),
@@ -4022,11 +4083,15 @@ class _ExplorerPageState extends State<ExplorerPage> {
                   strokeWidth: 5.0,
                   borderColor: Colors.white,
                   borderStrokeWidth: 2,
-                ))
+                )))
             .toList();
-    final activePolylines = filterColor == null
-        ? basePolylines.where((p) => p.color == AppColors.ter || p.color == AppColors.brt).toList() // Tous : seulement TER/BRT (tracés dédiés, pas le spaghetti)
-        : basePolylines.where((p) => p.color == filterColor).toList();
+    final activePolylines = (_selectedFilter == 'Tous'
+            ? basePolylines.where((p) => p.networkId == 'ter' || p.networkId == 'brt')
+            : filterNetworkId == null
+                ? const <({String networkId, Polyline polyline})>[]
+                : basePolylines.where((p) => p.networkId == filterNetworkId))
+        .map((entry) => entry.polyline)
+        .toList();
     final mapStops = _filteredStops; // ✅ Toujours filtré à proximité (30 max — Groupe 4), pas allStops
     // ✅ CORRECTIF ARRÊTS TER/BRT — garantit sur la carte les gares/stations
     //    officielles des réseaux affichés (même prédicat que `activePolylines`
@@ -4034,14 +4099,14 @@ class _ExplorerPageState extends State<ExplorerPage> {
     //    déduplication documentés sur [explorerMapMarkerStops].
     final mapMarkerStops = explorerMapMarkerStops(
       proximityStops: mapStops,
-      terDisplayed: filterColor == null || filterColor == AppColors.ter,
-      brtDisplayed: filterColor == null || filterColor == AppColors.brt,
+      terDisplayed: _selectedFilter == 'Tous' || _selectedFilter == 'TER',
+      brtDisplayed: _selectedFilter == 'Tous' || _selectedFilter == 'BRT',
     );
     // ✅ DIAGNOSTIC RUNTIME (correctif TER/BRT) — une ligne par reconstruction :
     //    compte réel de ce qui est transmis au MarkerLayer de CETTE carte,
     //    après le seul filtrage résiduel (DakarBounds) ci-dessous.
     final markerStops = mapMarkerStops.where((s) => DakarBounds.isValid(s.location)).toList();
-    debugPrint('[EXPLORER][MARKERS] transmis au MarkerLayer: total=${markerStops.length} TER=${markerStops.where((s) => s.color == AppColors.ter).length} BRT=${markerStops.where((s) => s.color == AppColors.brt).length} | allStops=${allStops.length} proximité=${mapStops.length} | filtre=$_selectedFilter gps=${widget.gpsState} rayon=${GpsResolver.nearbyRadiusMeters}m limite=${GpsResolver.nearbyLimit}');
+    debugPrint('[EXPLORER][MARKERS] transmis au MarkerLayer: total=${markerStops.length} TER=${markerStops.where((s) => s.servesNetwork('ter')).length} BRT=${markerStops.where((s) => s.servesNetwork('brt')).length} | allStops=${allStops.length} proximité=${mapStops.length} | filtre=$_selectedFilter gps=${widget.gpsState} rayon=${GpsResolver.nearbyRadiusMeters}m limite=${GpsResolver.nearbyLimit}');
 
     return AnimatedBuilder(
       animation: globalState,
@@ -4167,6 +4232,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                                       child: GestureDetector(
                                         onTap: () { _centerOnStop(s); Navigator.push(context, MaterialPageRoute(builder: (_) => DualStopDetailPage(stop: s))); },
                                         child: Container(
+                                          key: ValueKey<String>('network-stop:${s.stopId ?? s.name}:${s.networkIds.join(',')}'),
                                           decoration: BoxDecoration(
                                             color: s.color, shape: BoxShape.circle,
                                             border: Border.all(color: Colors.white, width: 2),
@@ -5222,7 +5288,7 @@ class StopCard extends StatelessWidget {
                             : FontWeight.bold,
                         letterSpacing: hasWaits || legacyRemaining != null ? 0.2 : 0,
                         color: hasWaits || legacyRemaining != null
-                            ? AppColors.success
+                            ? AppColors.beanGreen
                             : AppColors.textSecondary(dark),
                       ),
                     ),

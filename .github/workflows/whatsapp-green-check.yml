@@ -1,0 +1,38 @@
+name: WhatsApp green focused validation
+
+on:
+  pull_request:
+    paths:
+      - 'flutter-src/lib/main.dart'
+      - 'flutter-src/test/palette_anti_olive_test.dart'
+      - '.github/workflows/whatsapp-green-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  palette-and-countdown:
+    name: Palette and countdown checks (Flutter 3.24.5)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: flutter-src
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Flutter 3.24.5
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          channel: stable
+          cache: true
+      - name: Resolve dependencies
+        run: flutter pub get
+      - name: Analyze
+        run: flutter analyze
+      - name: Validate WhatsApp palette and transport network colors
+        run: flutter test --reporter expanded test/palette_anti_olive_test.dart
+      - name: Build web for GitHub Pages
+        run: flutter build web --release --base-href /dakar-bus/
