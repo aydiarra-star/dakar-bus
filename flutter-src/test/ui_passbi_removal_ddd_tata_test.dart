@@ -322,8 +322,8 @@ void main() {
           .split('\n')
           .where((String l) => !l.trimLeft().startsWith('//'))
           .join('\n');
-      // Navigation principale : icônes sélectionnées en vert haricot.
-      expect(code.contains('selectedIcon: Icon(Icons.explore_rounded, color: AppColors.beanGreen)'),
+      // Navigation principale : l'indicateur est vert WhatsApp et l'icône sélectionnée blanche pour le contraste.
+      expect(code.contains('selectedIcon: Icon(Icons.explore_rounded, color: Colors.white)'),
           isTrue);
       expect(code.contains('indicatorColor: AppColors.beanGreen'), isTrue);
       // Au moins un bouton principal (Assistant IA / Trajets / Signaler).
