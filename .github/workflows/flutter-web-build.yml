@@ -143,12 +143,8 @@ jobs:
           test -s "$tmp/pubspec.lock"
           cp "$tmp/pubspec.lock" "${RUNNER_TEMP}/j9-logs/pubspec.lock"
           echo "Lockfile généré dans un projet temporaire : $(wc -l < "$tmp/pubspec.lock") lignes."
-          if ! cmp -s "$tmp/pubspec.lock" pubspec.lock; then
-            echo "::error file=flutter-src/pubspec.lock::Le lockfile régénéré ne correspond pas au lockfile commité."
-            diff -u pubspec.lock "$tmp/pubspec.lock" || true
-            exit 1
-          fi
-          echo "OK — génération initiale reproduite à l'identique."
+          echo "OK — première résolution réussie et pubspec.lock généré."
+          echo "Le lockfile généré est conservé comme artefact de diagnostic ; le projet réel est contrôlé séparément avec --enforce-lockfile."
 
       - name: flutter pub get (installation verrouillée du projet)
         run: flutter pub get --enforce-lockfile 2>&1 | tee "${RUNNER_TEMP}/j9-logs/pub-get.txt"
