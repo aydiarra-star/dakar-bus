@@ -99,13 +99,21 @@ void main() {
     expect(source, contains('color: AppColors.beanGreen))]),'));
   });
 
+  test('release identity is bumped to force installed PWA refresh', () {
+    final String pubspec = File('pubspec.yaml').readAsStringSync();
+    final String webIndex = File('web/index.html').readAsStringSync();
+    expect(pubspec, contains('version: 9.3.3+18'));
+    expect(webIndex, contains('content="#25D366"'));
+    expect(webIndex, contains('20261125-whatsapp-green-05'));
+  });
+
   test('web shell uses the generated Flutter bootstrap and refreshes its cache key', () {
     final String source = File('web/index.html').readAsStringSync();
     expect(
       source,
-      contains('flutter_bootstrap.js?v=20261125-whatsapp-green-04'),
+      contains('flutter_bootstrap.js?v=20261125-whatsapp-green-05'),
     );
-    expect(source, contains('manifest.json?v=20261125-whatsapp-green-04'));
+    expect(source, contains('manifest.json?v=20261125-whatsapp-green-05'));
     expect(source, contains('content="#25D366"'));
     expect(source, isNot(contains('flutter.js?v=')));
     expect(source, isNot(contains('_flutter.loader.loadEntrypoint')));
