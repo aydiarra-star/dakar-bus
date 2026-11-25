@@ -101,25 +101,29 @@ void main() {
 
   test('stop detail navigation action uses WhatsApp green, not network identity color', () {
     final String source = File('lib/main.dart').readAsStringSync();
+    const marker = "label: const Text('Voir la ligne complète & stations'";
+    final int start = source.indexOf(marker);
+    expect(start, isNonNegative, reason: 'Le bouton de détail doit rester présent.');
+    final String action = source.substring(start, (start + 700).clamp(0, source.length));
+    expect(
+      action,
+      contains('backgroundColor: AppColors.primary,'),
+      reason: 'Le bouton est une action générale : vert WhatsApp obligatoire.',
+    );
+    expect(
+      action,
+      isNot(contains('backgroundColor: stop.color')),
+      reason: 'La couleur du réseau ne doit pas teinter un bouton d’action général.',
+    );
     expect(
       source,
-      contains('backgroundColor: AppColors.primary,'),
-      reason: 'Le bouton « Voir la ligne complète & stations » est une action générale.',
+      contains('decoration: BoxDecoration(color: stop.color, shape: BoxShape.circle'),
+      reason: 'La pastille d’arrêt conserve la couleur identitaire du réseau.',
     );
     expect(
       source,
       contains('stop.color.withOpacity(0.3)'),
       reason: 'La bordure de la fiche conserve la couleur identitaire du réseau.',
-    );
-    expect(
-      source,
-      contains('decoration: BoxDecoration(color: stop.color, shape: BoxShape.circle'),
-      reason: 'La pastille de l’arrêt conserve la couleur identitaire du réseau.',
-    );
-    expect(
-      source,
-      isNot(contains('backgroundColor: stop.color,')),
-      reason: 'Une couleur de réseau ne doit pas teinter un bouton d’action général.',
     );
   });
 
