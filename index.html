@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Dakar Bus - TER • BRT • DDD • AFTU • Tata (76 lignes • 42 arrêts)</title>
 <meta name="description" content="Dakar Bus - Réseau multimodal Dakar : TER (13 gares, Dakar ↔ Diamniadio), BRT SunuBRT (23 stations, Petersen ↔ Guédiawaye), DDD, AFTU, Tata. Planificateur d'itinéraires, carte, assistant IA. Horaires indisponibles sans source planifiée documentée.">
-<meta name="theme-color" content="#00B140">
+<meta name="theme-color" content="#25D366">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dakar Bus">
@@ -23,7 +23,7 @@ tailwind.config = {
     extend: {
       fontFamily: { outfit: ['Outfit','sans-serif'], display: ['Space Grotesk','sans-serif'] },
       colors: {
-        dakar: { DEFAULT: '#00B140', light: '#E6F7ED', dark: '#008A33', 50: '#E6F7ED', 100: '#C2EAD0', 500: '#00B140', 600: '#009138', 700: '#007A2F' }
+        dakar: { DEFAULT: '#25D366', light: '#E5F9EC', dark: '#008A33', 50: '#E5F9EC', 100: '#B7EFCB', 500: '#25D366', 600: '#1FAF54', 700: '#1FAF54' }
       }
     }
   }
@@ -39,25 +39,25 @@ tailwind.config = {
 button, a, [role="button"], input[type="checkbox"], .cursor-pointer { cursor: pointer; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-.tab-active { background: #00B140; color: white !important; box-shadow: 0 8px 20px rgba(0,177,64,0.25); border-color: #00B140 !important; }
-.filter-active { background: #E6F7ED; color: #007A2F; border-color: #00B140 !important; font-weight: 700; border-width: 2px !important; }
-.bottom-nav-active { background: #E6F7ED; color: #00B140; }
-.bottom-nav-active svg, .bottom-nav-active span { color: #00B140; }
+.tab-active { background: #25D366; color: white !important; box-shadow: 0 8px 20px rgba(0,177,64,0.25); border-color: #25D366 !important; }
+.filter-active { background: #E5F9EC; color: #1FAF54; border-color: #25D366 !important; font-weight: 700; border-width: 2px !important; }
+.bottom-nav-active { background: #E5F9EC; color: #25D366; }
+.bottom-nav-active svg, .bottom-nav-active span { color: #25D366; }
 .live-pulse::before { content:''; position:absolute; inset:-4px; border-radius:9999px; background: currentColor; opacity:0.2; animation: liveDot 1.5s infinite; }
 @keyframes liveDot { 0%,100% { transform: scale(1); opacity:1 } 50% { transform: scale(1.4); opacity:0.6 } }
 .stop-pin{display:flex;align-items:center;justify-content:center;border-radius:9999px;border:2px solid #fff;color:#fff;font-weight:800;line-height:1;box-shadow:0 2px 6px rgba(15,23,42,.35);font-variant-numeric:tabular-nums}
-.stop-pin.ter{width:26px;height:26px;background:#00B140;font-size:11px}
+.stop-pin.ter{width:26px;height:26px;background:#8B4513;font-size:11px}
 .stop-pin.brt{width:22px;height:22px;background:#00B140;font-size:10px}
 .stop-pin.bus{width:16px;height:16px;background:#3B82F6;font-size:8px}
 .vehicle-pin{display:flex;align-items:center;justify-content:center;width:30px;height:22px;border-radius:11px;border:2px solid #fff;font-size:12px;box-shadow:0 3px 10px rgba(15,23,42,.35);animation:vehPulse 2.2s ease-in-out infinite}
-.vehicle-pin.ter{background:#008A32}
+.vehicle-pin.ter{background:#8B4513}
 .vehicle-pin.brt{background:#008A33}
 .vehicle-pin.ddd{background:#2563EB}
 @keyframes vehPulse { 0%,100% { transform: scale(1) } 50% { transform: scale(1.08) } }
-#map-layers input{accent-color:#00B140}
+#map-layers input{accent-color:#25D366}
 .line-row{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;border:1px solid #E2E8F0;background:#fff}
 .line-row .lg-num{width:28px;height:28px;border-radius:9999px;background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex:0 0 auto}
-.line-row.ter .lg-num{background:#00B140}
+.line-row.ter .lg-num{background:#8B4513}
 .line-row.brt .lg-num{background:#00B140}
 </style>
 </head>
@@ -66,10 +66,10 @@ button, a, [role="button"], input[type="checkbox"], .cursor-pointer { cursor: po
 <header class="sticky top-0 z-[1000] bg-white/90 dark:bg-zinc-900/90 glass border-b border-slate-200/60 dark:border-zinc-800">
   <div class="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8 h-[68px] flex items-center justify-between">
     <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-[12px] bg-[#00B140] flex items-center justify-center font-display font-bold text-white text-[20px]">D</div>
+      <div class="w-10 h-10 rounded-[12px] bg-[#25D366] flex items-center justify-center font-display font-bold text-white text-[20px]">D</div>
       <div>
         <div class="font-display font-bold text-[18px] leading-none">DAKAR<span class="font-light"> BUS</span></div>
-        <div class="text-[11px] tracking-[0.12em] text-slate-500 font-medium -mt-0.5 flex items-center gap-1.5"><span class="relative w-2 h-2 rounded-full bg-[#00B140] inline-block"><span class="absolute inset-0 rounded-full bg-[#00B140] live-pulse"></span></span> TER • BRT • DDD • AFTU • Tata • PWA</div>
+        <div class="text-[11px] tracking-[0.12em] text-slate-500 font-medium -mt-0.5 flex items-center gap-1.5"><span class="relative w-2 h-2 rounded-full bg-[#25D366] inline-block"><span class="absolute inset-0 rounded-full bg-[#25D366] live-pulse"></span></span> TER • BRT • DDD • AFTU • Tata • PWA</div>
       </div>
     </div>
     <nav class="hidden lg:flex items-center gap-1.5 p-1 rounded-full bg-slate-100 dark:bg-zinc-800">
@@ -77,19 +77,19 @@ button, a, [role="button"], input[type="checkbox"], .cursor-pointer { cursor: po
       <button data-tab="trajets" class="tab-btn px-5 py-2 rounded-full text-[14px] font-medium">Trajets</button>
       <button data-tab="arrets" class="tab-btn px-5 py-2 rounded-full text-[14px] font-medium">Arrêts</button>
       <button data-tab="transports" class="tab-btn px-5 py-2 rounded-full text-[14px] font-medium">Transports</button>
-      <button data-tab="alertes" class="tab-btn px-5 py-2 rounded-full text-[14px] font-medium relative">Alertes <span id="alert-count" class="ml-1.5 bg-[#00B140] text-white text-[10px] px-1.5 py-0.5 rounded-full">3</span></button>
+      <button data-tab="alertes" class="tab-btn px-5 py-2 rounded-full text-[14px] font-medium relative">Alertes <span id="alert-count" class="ml-1.5 bg-[#25D366] text-white text-[10px] px-1.5 py-0.5 rounded-full">3</span></button>
     </nav>
     <div class="flex items-center gap-2">
-      <div id="pwa-status" class="hidden md:flex items-center gap-1.5 px-2.5 h-7 rounded-full bg-[#00B140] text-white text-[11px] font-medium"><span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>Dakar Bus PWA</div>
-      <div id="gtfs-status" class="hidden md:flex items-center gap-1.5 px-2.5 h-7 rounded-full bg-[#E6F7ED] border border-[#C2EAD0] text-[#007A2F] text-[11px] font-medium">● Données planifiées (GTFS)</div>
-      <button id="gps-live-btn" class="hidden md:flex items-center gap-2 px-4 h-9 rounded-full bg-white border border-[#C2EAD0] text-[#00B140] text-[13px] font-semibold hover:bg-[#E6F7ED] transition"><span class="w-2 h-2 rounded-full bg-[#00B140] animate-pulse"></span> GPS</button>
+      <div id="pwa-status" class="hidden md:flex items-center gap-1.5 px-2.5 h-7 rounded-full bg-[#25D366] text-white text-[11px] font-medium"><span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>Dakar Bus PWA</div>
+      <div id="gtfs-status" class="hidden md:flex items-center gap-1.5 px-2.5 h-7 rounded-full bg-[#E5F9EC] border border-[#B7EFCB] text-[#1FAF54] text-[11px] font-medium">● Données planifiées (GTFS)</div>
+      <button id="gps-live-btn" class="hidden md:flex items-center gap-2 px-4 h-9 rounded-full bg-white border border-[#B7EFCB] text-[#25D366] text-[13px] font-semibold hover:bg-[#E5F9EC] transition"><span class="w-2 h-2 rounded-full bg-[#25D366] animate-pulse"></span> GPS</button>
       <button id="theme-toggle" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-zinc-800 flex items-center justify-center">🌙</button>
       <button id="mobile-menu" class="lg:hidden w-9 h-9 rounded-full bg-[#0f172a] dark:bg-white text-white dark:text-black flex items-center justify-center">☰</button>
     </div>
   </div>
   <div id="mobile-nav" class="lg:hidden hidden border-t border-slate-100 dark:border-zinc-800 px-3 py-3 bg-white/95 dark:bg-zinc-900/95">
     <div class="flex gap-2 overflow-x-auto scrollbar-hide">
-      <button data-tab="explorer" class="tab-btn whitespace-nowrap px-4 py-2 rounded-full bg-[#00B140] text-white text-[14px] border border-[#00B140]">Explorer</button>
+      <button data-tab="explorer" class="tab-btn whitespace-nowrap px-4 py-2 rounded-full bg-[#25D366] text-white text-[14px] border border-[#25D366]">Explorer</button>
       <button data-tab="trajets" class="tab-btn whitespace-nowrap px-4 py-2 rounded-full bg-slate-100 dark:bg-zinc-800 text-[14px] border">Trajets</button>
       <button data-tab="arrets" class="tab-btn whitespace-nowrap px-4 py-2 rounded-full bg-slate-100 dark:bg-zinc-800 text-[14px] border">Arrêts</button>
       <button data-tab="transports" class="tab-btn whitespace-nowrap px-4 py-2 rounded-full bg-slate-100 dark:bg-zinc-800 text-[14px] border">Transports</button>
@@ -100,7 +100,7 @@ button, a, [role="button"], input[type="checkbox"], .cursor-pointer { cursor: po
 
 <div class="max-w-[1440px] mx-auto mt-3 mx-4 md:mx-6 lg:mx-8">
   <div id="fix-banner" class="bg-[#0f172a] text-white rounded-[16px] px-4 py-3 flex items-start gap-3 text-[13px] leading-snug">
-    <span class="text-[#00B140] mt-0.5">✓</span>
+    <span class="text-[#25D366] mt-0.5">✓</span>
     <div><b>Dakar Bus - Réseau officiel corrigé :</b> 13 gares TER (Dakar ↔ Diamniadio) + 23 stations SunuBRT (PEM Petersen ↔ PEM Guédiawaye) strictement alignées sur leurs tracés réels + 6 pôles bus = <b>42 arrêts</b>. Tracés CETUD/SETER validés. <span id="sw-status" class="opacity-70">PWA prêt</span> <button onclick="this.parentElement.parentElement.remove()" class="ml-2 underline opacity-70">Fermer</button></div>
   </div>
 </div>
@@ -116,7 +116,7 @@ button, a, [role="button"], input[type="checkbox"], .cursor-pointer { cursor: po
           <div id="map-layers" class="absolute top-3 left-3 z-[400] w-[218px] rounded-2xl bg-white/95 dark:bg-zinc-900/95 backdrop-blur shadow-lg border border-slate-200 dark:border-zinc-700 text-[12px]">
             <button id="map-layers-toggle" class="w-full h-9 px-3 flex items-center justify-between gap-2 font-bold rounded-2xl">
               <span class="flex items-center gap-1.5">🧭 Calques réseau
-                <span id="map-layers-count" class="px-2 py-0.5 rounded-full bg-[#E6F7ED] text-[#007A2F] font-bold text-[11px]">42</span>
+                <span id="map-layers-count" class="px-2 py-0.5 rounded-full bg-[#E5F9EC] text-[#1FAF54] font-bold text-[11px]">42</span>
               </span>
               <span id="map-layers-caret">▾</span>
             </button>
@@ -125,7 +125,7 @@ button, a, [role="button"], input[type="checkbox"], .cursor-pointer { cursor: po
                 <span class="flex items-center gap-1.5"><input type="checkbox" data-layer="ter" checked> 🚆 TER — gares</span><b class="text-emerald-700" data-count-ter>13</b>
               </label>
               <label class="flex items-center justify-between gap-2 cursor-pointer">
-                <span class="flex items-center gap-1.5"><input type="checkbox" data-layer="brt" checked> 🚌 SunuBRT — stations</span><b class="text-[#007A2F]" data-count-brt>23</b>
+                <span class="flex items-center gap-1.5"><input type="checkbox" data-layer="brt" checked> 🚌 SunuBRT — stations</span><b class="text-[#1FAF54]" data-count-brt>23</b>
               </label>
               <label class="flex items-center justify-between gap-2 cursor-pointer">
                 <span class="flex items-center gap-1.5"><input type="checkbox" data-layer="bus" checked> 🚏 Bus — pôles</span><b class="text-blue-700" data-count-bus>6</b>
@@ -134,8 +134,8 @@ button, a, [role="button"], input[type="checkbox"], .cursor-pointer { cursor: po
                 <span class="flex items-center gap-1.5"><input type="checkbox" data-layer="vehicles"> 🚍 Flotte (position temps réel indisponible)</span><b class="text-slate-500" data-count-vehicles>0</b>
               </label>
               <div class="flex gap-1.5 pt-1">
-                <button id="map-detail-ter" class="flex-1 h-7 rounded-full bg-[#ECFDF5] text-[#008A32] border border-[#A7F3D0] font-bold">🚆 1→13</button>
-                <button id="map-detail-brt" class="flex-1 h-7 rounded-full bg-[#E6F7ED] text-[#007A2F] border border-[#C2EAD0] font-bold">🚌 1→23</button>
+                <button id="map-detail-ter" class="flex-1 h-7 rounded-full bg-[#E5F9EC] text-[#008A32] border border-[#B7EFCB] font-bold">🚆 1→13</button>
+                <button id="map-detail-brt" class="flex-1 h-7 rounded-full bg-[#E5F9EC] text-[#1FAF54] border border-[#B7EFCB] font-bold">🚌 1→23</button>
               </div>
             </div>
           </div>
@@ -144,17 +144,17 @@ button, a, [role="button"], input[type="checkbox"], .cursor-pointer { cursor: po
             42 arrêts affichés
           </div>
           <div class="absolute top-3 right-3 z-[400]">
-            <button id="reduce-map" class="px-4 h-9 rounded-full bg-white shadow-md border border-slate-200 text-[#00B140] text-[13px] font-bold flex items-center gap-1.5">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00B140" stroke-width="2.5"><path d="M18 15l-6-6-6 6"/></svg> Réduire
+            <button id="reduce-map" class="px-4 h-9 rounded-full bg-white shadow-md border border-slate-200 text-[#25D366] text-[13px] font-bold flex items-center gap-1.5">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#25D366" stroke-width="2.5"><path d="M18 15l-6-6-6 6"/></svg> Réduire
             </button>
           </div>
           <div class="absolute bottom-4 left-4 z-[400]">
-            <button id="activate-gps-map" class="px-4 h-10 rounded-full bg-white shadow-lg border border-[#C2EAD0] text-[#00B140] text-[13px] font-bold flex items-center gap-2 hover:bg-[#E6F7ED]">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00B140" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg> Activer GPS
+            <button id="activate-gps-map" class="px-4 h-10 rounded-full bg-white shadow-lg border border-[#B7EFCB] text-[#25D366] text-[13px] font-bold flex items-center gap-2 hover:bg-[#E5F9EC]">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#25D366" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg> Activer GPS
             </button>
           </div>
           <div class="absolute bottom-4 right-4 z-[400]">
-            <button id="assistant-ia-btn" class="px-5 h-11 rounded-full bg-[#00B140] shadow-lg text-white text-[13px] font-bold flex items-center gap-2 hover:bg-[#009138] border border-[#00B140]">
+            <button id="assistant-ia-btn" class="px-5 h-11 rounded-full bg-[#25D366] shadow-lg text-white text-[13px] font-bold flex items-center gap-2 hover:bg-[#1FAF54] border border-[#25D366]">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 0L13.5 8.5L22 10L13.5 11.5L12 20L10.5 11.5L2 10L10.5 8.5L12 0Z"/></svg> Assistant IA
             </button>
           </div>
@@ -163,8 +163,8 @@ button, a, [role="button"], input[type="checkbox"], .cursor-pointer { cursor: po
       </div>
 
       <div class="px-1 py-3 flex items-center gap-3">
-        <div class="w-[52px] h-[52px] rounded-[14px] bg-[#E6F7ED] flex items-center justify-center">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="#00B140"><path d="M6 4a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h1v2a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-2h4v2a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-2h1a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H6Zm0 2h12v8H6V6Zm2 9a1 1 0 1 1 0 2 1 1 0 0 1 0-2Zm8 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2Z"/></svg>
+        <div class="w-[52px] h-[52px] rounded-[14px] bg-[#E5F9EC] flex items-center justify-center">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="#25D366"><path d="M6 4a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h1v2a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-2h4v2a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-2h1a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H6Zm0 2h12v8H6V6Zm2 9a1 1 0 1 1 0 2 1 1 0 0 1 0-2Zm8 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2Z"/></svg>
         </div>
         <div>
           <div class="font-bold text-[22px] leading-tight">Dakar Bus</div>
@@ -173,10 +173,10 @@ button, a, [role="button"], input[type="checkbox"], .cursor-pointer { cursor: po
       </div>
 
       <div class="relative">
-        <div class="absolute left-4 top-1/2 -translate-y-1/2 text-[#00B140]">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00B140" stroke-width="2.2"><circle cx="11" cy="11" r="6"/><path d="M21 21l-4.3-4.3"/></svg>
+        <div class="absolute left-4 top-1/2 -translate-y-1/2 text-[#25D366]">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#25D366" stroke-width="2.2"><circle cx="11" cy="11" r="6"/><path d="M21 21l-4.3-4.3"/></svg>
         </div>
-        <input id="explorer-search" class="w-full h-[56px] pl-12 pr-4 rounded-[16px] bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#00B140] text-[15px]" placeholder="Où voulez-vous aller ? (ex: Colobane, Yoff...)">
+        <input id="explorer-search" class="w-full h-[56px] pl-12 pr-4 rounded-[16px] bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#25D366] text-[15px]" placeholder="Où voulez-vous aller ? (ex: Colobane, Yoff...)">
       </div>
 
       <div class="flex gap-2 overflow-x-auto scrollbar-hide py-1">
@@ -193,8 +193,8 @@ button, a, [role="button"], input[type="checkbox"], .cursor-pointer { cursor: po
         <span class="font-bold text-[18px]" id="arrets-count">42 arrêts</span>
         <span class="opacity-70 text-[13px]" id="network-summary">13 gares TER + 23 stations SunuBRT + 6 pôles bus • cliquez sur un arrêt pour le localiser</span>
         <span class="flex gap-1.5">
-          <button id="btn-detail-ter" class="px-3 h-7 rounded-full bg-[#ECFDF5] text-[#008A32] border border-[#A7F3D0] text-[12px] font-bold">🚆 Voir les 13 gares</button>
-          <button id="btn-detail-brt" class="px-3 h-7 rounded-full bg-[#E6F7ED] text-[#007A2F] border border-[#C2EAD0] text-[12px] font-bold">🚌 Voir les 23 stations</button>
+          <button id="btn-detail-ter" class="px-3 h-7 rounded-full bg-[#E5F9EC] text-[#008A32] border border-[#B7EFCB] text-[12px] font-bold">🚆 Voir les 13 gares</button>
+          <button id="btn-detail-brt" class="px-3 h-7 rounded-full bg-[#E5F9EC] text-[#1FAF54] border border-[#B7EFCB] text-[12px] font-bold">🚌 Voir les 23 stations</button>
         </span>
       </div>
 
@@ -211,8 +211,8 @@ button, a, [role="button"], input[type="checkbox"], .cursor-pointer { cursor: po
           <div class="relative">
             <label class="absolute -top-2.5 left-4 px-2 bg-white dark:bg-zinc-900 text-[13px] text-slate-600 dark:text-zinc-400 font-medium z-10">Départ</label>
             <div class="flex items-center gap-3 h-[56px] px-4 rounded-[14px] border-[1.5px] border-slate-900 dark:border-zinc-600 bg-white dark:bg-zinc-900">
-              <div class="w-7 h-7 rounded-full bg-[#E6F7ED] flex items-center justify-center shrink-0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="#00B140" stroke-width="2.5"/><circle cx="12" cy="12" r="8" stroke="#00B140" stroke-width="1.8"/><circle cx="12" cy="12" r="1" fill="#00B140"/></svg>
+              <div class="w-7 h-7 rounded-full bg-[#E5F9EC] flex items-center justify-center shrink-0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="#25D366" stroke-width="2.5"/><circle cx="12" cy="12" r="8" stroke="#25D366" stroke-width="1.8"/><circle cx="12" cy="12" r="1" fill="#25D366"/></svg>
               </div>
               <input id="from-input" value="Parcelles Assainies" class="flex-1 bg-transparent outline-none text-[16px] font-medium text-slate-900 dark:text-white" placeholder="Parcelles Assainies">
             </div>
@@ -228,15 +228,15 @@ button, a, [role="button"], input[type="checkbox"], .cursor-pointer { cursor: po
               <button id="swap-route" class="w-8 h-8 rounded-full bg-white border shadow-sm flex items-center justify-center text-slate-500 hover:bg-slate-50">⇅</button>
             </div>
           </div>
-          <button id="search-itinerary" class="w-full h-[52px] rounded-[14px] bg-[#00B140] hover:bg-[#009138] text-white font-bold text-[16px] shadow-sm transition">Rechercher mon itinéraire</button>
+          <button id="search-itinerary" class="w-full h-[52px] rounded-[14px] bg-[#25D366] hover:bg-[#1FAF54] text-white font-bold text-[16px] shadow-sm transition">Rechercher mon itinéraire</button>
         </div>
       </div>
       <div class="px-1">
         <h3 class="font-bold text-[18px] leading-tight">Suggestions populaires (TER, BRT, DDD, TATA)</h3>
         <div class="mt-3 flex flex-wrap gap-2.5">
-          <button class="suggestion-pill px-4 py-2.5 rounded-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 text-[14px] font-medium shadow-sm hover:border-[#00B140] hover:text-[#00B140] transition" data-from="Dakar" data-to="Diamniadio">Dakar - Diamniadio (TER)</button>
-          <button class="suggestion-pill px-4 py-2.5 rounded-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 text-[14px] font-medium shadow-sm hover:border-[#00B140] hover:text-[#00B140] transition" data-from="Guédiawaye" data-to="Petersen">Guédiawaye - Petersen (BRT)</button>
-          <button class="suggestion-pill px-4 py-2.5 rounded-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 text-[14px] font-medium shadow-sm hover:border-[#00B140] hover:text-[#00B140] transition" data-from="Colobane" data-to="Yoff">Colobane - Yoff (DDD Ligne 1)</button>
+          <button class="suggestion-pill px-4 py-2.5 rounded-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 text-[14px] font-medium shadow-sm hover:border-[#25D366] hover:text-[#25D366] transition" data-from="Dakar" data-to="Diamniadio">Dakar - Diamniadio (TER)</button>
+          <button class="suggestion-pill px-4 py-2.5 rounded-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 text-[14px] font-medium shadow-sm hover:border-[#25D366] hover:text-[#25D366] transition" data-from="Guédiawaye" data-to="Petersen">Guédiawaye - Petersen (BRT)</button>
+          <button class="suggestion-pill px-4 py-2.5 rounded-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 text-[14px] font-medium shadow-sm hover:border-[#25D366] hover:text-[#25D366] transition" data-from="Colobane" data-to="Yoff">Colobane - Yoff (DDD Ligne 1)</button>
         </div>
       </div>
       <div id="route-results" class="space-y-3 px-1"></div>
@@ -247,7 +247,7 @@ button, a, [role="button"], input[type="checkbox"], .cursor-pointer { cursor: po
       <div class="rounded-[24px] bg-white dark:bg-zinc-900 border p-5 md:p-6">
         <div class="flex flex-wrap gap-3 items-center justify-between mb-5">
           <h2 class="font-display text-[24px] font-bold"><span id="arrets-count-2">42 arrêts</span> <span class="text-[13px] font-normal text-slate-500">réseau Dakar Bus officiel</span></h2>
-          <input id="arret-search" placeholder="Rechercher arrêt..." class="h-10 px-4 rounded-full bg-slate-100 text-[13px] w-[220px] focus:outline-none border focus:border-[#00B140]">
+          <input id="arret-search" placeholder="Rechercher arrêt..." class="h-10 px-4 rounded-full bg-slate-100 text-[13px] w-[220px] focus:outline-none border focus:border-[#25D366]">
         </div>
         <div id="arrets-list-2" class="grid md:grid-cols-2 gap-3"></div>
       </div>
@@ -257,7 +257,7 @@ button, a, [role="button"], input[type="checkbox"], .cursor-pointer { cursor: po
       <div class="grid md:grid-cols-3 gap-4">
         <div class="md:col-span-3 rounded-[24px] bg-white border p-6 flex flex-wrap items-center justify-between gap-4">
           <div><h2 class="font-display text-[22px] font-bold">Dakar Bus — Réseau planifié</h2><p class="text-[13px] text-slate-500"><span data-count-ter>13</span> gares TER • <span data-count-brt>23</span> stations SunuBRT • <span data-count-bus>6</span> pôles bus • <span id="lines-count">76</span> lignes GTFS</p></div>
-          <div class="flex gap-2"><span class="px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 text-[12px] font-bold">Position temps réel indisponible</span><button id="toggle-vehicles" class="px-4 h-9 rounded-full bg-[#00B140] text-white text-[12px] font-bold">Afficher sur carte</button></div>
+          <div class="flex gap-2"><span class="px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 text-[12px] font-bold">Position temps réel indisponible</span><button id="toggle-vehicles" class="px-4 h-9 rounded-full bg-[#25D366] text-white text-[12px] font-bold">Afficher sur carte</button></div>
         </div>
         <div id="transport-cards" class="md:col-span-3 grid md:grid-cols-3 gap-4"></div>
       </div>
@@ -266,8 +266,8 @@ button, a, [role="button"], input[type="checkbox"], .cursor-pointer { cursor: po
     <section id="tab-alertes" class="tab-content hidden">
       <div class="rounded-[24px] bg-white border p-5 md:p-6">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
-          <h2 class="font-display text-[24px] font-bold flex items-center gap-3">Alertes Dakar Bus <span class="w-2 h-2 rounded-full bg-[#00B140] animate-pulse"></span> <span class="text-[11px] px-2.5 py-1 rounded-full bg-slate-200 text-slate-700 font-bold">Aucune source temps réel</span></h2>
-          <div class="flex items-center gap-2 text-[12px]"><button id="enable-push" class="px-4 h-9 rounded-full bg-[#00B140] text-white font-bold">🔔 Push</button><button id="clear-alerts" class="px-4 h-9 rounded-full bg-white border">Effacer</button></div>
+          <h2 class="font-display text-[24px] font-bold flex items-center gap-3">Alertes Dakar Bus <span class="w-2 h-2 rounded-full bg-[#25D366] animate-pulse"></span> <span class="text-[11px] px-2.5 py-1 rounded-full bg-slate-200 text-slate-700 font-bold">Aucune source temps réel</span></h2>
+          <div class="flex items-center gap-2 text-[12px]"><button id="enable-push" class="px-4 h-9 rounded-full bg-[#25D366] text-white font-bold">🔔 Push</button><button id="clear-alerts" class="px-4 h-9 rounded-full bg-white border">Effacer</button></div>
         </div>
         <div id="alerts-feed" class="space-y-3"></div>
       </div>
@@ -286,7 +286,7 @@ button, a, [role="button"], input[type="checkbox"], .cursor-pointer { cursor: po
           <li>Arrêts les plus proches (horaire indisponible sans données planifiées)</li>
           <li>Trajets optimisés Dakar Bus</li>
         </ul>
-        <button id="activate-gps" class="mt-4 w-full h-11 rounded-full bg-[#00B140] text-white font-bold text-[14px]">📡 Activer GPS</button>
+        <button id="activate-gps" class="mt-4 w-full h-11 rounded-full bg-[#25D366] text-white font-bold text-[14px]">📡 Activer GPS</button>
         <div id="gps-coords" class="mt-3 text-[11px] font-mono opacity-50 hidden"></div>
       </div>
     </div>
@@ -300,14 +300,14 @@ button, a, [role="button"], input[type="checkbox"], .cursor-pointer { cursor: po
 <footer class="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8 pb-[100px] lg:pb-8 mt-8">
   <div class="rounded-[20px] bg-white border p-6 flex flex-wrap gap-6 justify-between items-center">
     <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-[12px] bg-[#00B140] text-white flex items-center justify-center font-bold">D</div>
+      <div class="w-10 h-10 rounded-[12px] bg-[#25D366] text-white flex items-center justify-center font-bold">D</div>
       <div>
         <div class="font-bold text-[14px]">DAKAR BUS • TER • BRT • DDD • AFTU • Tata</div>
         <div class="text-[11px] opacity-60"><span data-count-ter>13</span> gares TER • <span data-count-brt>23</span> stations SunuBRT • <span data-count-bus>6</span> pôles bus • <span data-count-total>42 arrêts</span> • <span id="lines-count-2">76</span> lignes • PWA • aydiarra-star.github.io/dakar-bus</div>
       </div>
     </div>
     <div class="flex flex-wrap gap-2 text-[12px]">
-      <a href="mailto:contact@dakarbus.sn" class="px-4 h-9 rounded-full bg-[#00B140] text-white flex items-center gap-2 font-bold">✉️ contact@dakarbus.sn</a>
+      <a href="mailto:contact@dakarbus.sn" class="px-4 h-9 rounded-full bg-[#25D366] text-white flex items-center gap-2 font-bold">✉️ contact@dakarbus.sn</a>
       <a href="https://github.com/aydiarra-star/dakar-bus" target="_blank" class="px-4 h-9 rounded-full bg-white border flex items-center gap-2">GitHub</a>
     </div>
   </div>
@@ -641,7 +641,7 @@ let stopMarkers=[];
 const DAKAR_CENTER=[14.7167,-17.4677];
 
 const NETWORKS = {
-  TER: { key:'TER', label:'TER Dakar ↔ Diamniadio', emoji:'🚆', color:'#00B140', plural:'gares', kind:'gare' },
+  TER: { key:'TER', label:'TER Dakar ↔ Diamniadio', emoji:'🚆', color:'#8B4513', plural:'gares', kind:'gare' },
   BRT: { key:'BRT', label:'SunuBRT — Ligne B1 omnibus', emoji:'🚌', color:'#00B140', plural:'stations', kind:'station' },
   BUS: { key:'BUS', label:'Pôles bus Dakar (DDD / AFTU)', emoji:'🚏', color:'#3B82F6', plural:'pôles bus', kind:'pôle' }
 };
@@ -809,7 +809,7 @@ window.openLineDetail = function(net){
         <div class="font-bold text-[14px] truncate">${s.name}</div>
         <div class="text-[11px] text-slate-500">${s.dir || ''}</div>
       </div>
-      <span class="text-[11px] font-bold ${net === 'TER' ? 'text-emerald-700' : 'text-[#007A2F]'}">${i+1}/${list.length}</span>
+      <span class="text-[11px] font-bold ${net === 'TER' ? 'text-emerald-700' : 'text-[#1FAF54]'}">${i+1}/${list.length}</span>
     </div>`).join('');
   document.getElementById('line-modal-foot').textContent = net === 'TER' ? 'Source : SETER / CETUD — 13 gares officielles Phase 1 Dakar↔Diamniadio (36 km)' : 'Source : CETUD / SunuBRT — 23 stations officielles B1 omnibus (18,3 km) PEM Petersen ↔ PEM Guédiawaye';
   modal.classList.remove('hidden');
@@ -833,19 +833,19 @@ function initMap(){
   brtGroup = L.layerGroup().addTo(map);
   busGroup = L.layerGroup().addTo(map);
 
-  brtCasing = L.polyline(BRT_SHAPE, { color: '#007A2F', weight: 8, opacity: 0.35, lineCap: 'round', lineJoin: 'round' }).addTo(map);
+  brtCasing = L.polyline(BRT_SHAPE, { color: '#1FAF54', weight: 8, opacity: 0.35, lineCap: 'round', lineJoin: 'round' }).addTo(map);
   brtPolyline = L.polyline(BRT_SHAPE, { color: '#00B140', weight: 4.5, opacity: 0.95, lineCap: 'round', lineJoin: 'round' }).addTo(map);
   window.brtPolyline = brtPolyline;
 
-  terCasing = L.polyline(TER_SHAPE, { color: '#008A32', weight: 7, opacity: 0.35, lineCap: 'round', lineJoin: 'round' }).addTo(map);
-  terPolyline = L.polyline(TER_SHAPE, { color: '#00B140', weight: 4, opacity: 0.95, dashArray: '8, 6', lineCap: 'round', lineJoin: 'round' }).addTo(map);
+  terCasing = L.polyline(TER_SHAPE, { color: '#8B4513', weight: 7, opacity: 0.35, lineCap: 'round', lineJoin: 'round' }).addTo(map);
+  terPolyline = L.polyline(TER_SHAPE, { color: '#8B4513', weight: 4, opacity: 0.95, dashArray: '8, 6', lineCap: 'round', lineJoin: 'round' }).addTo(map);
   window.terPolyline = terPolyline;
 
   // INTÉGRITÉ — aucune source temps réel (GTFS-RT / SAE) n'est connectée :
   // aucun vehicule simule n'est cree, une position LIVE serait inventee.
   const fleetRoutes = [
     { name: 'BRT 01', color: '#00B140', coords: BRT_SHAPE },
-    { name: 'TER', color: '#00B140', coords: TER_SHAPE },
+    { name: 'TER', color: '#8B4513', coords: TER_SHAPE },
     { name: 'DDD 10', color: '#3B82F6', coords: DDD_SHAPE }
   ];
   window.fleetRoutes = fleetRoutes;
@@ -937,8 +937,8 @@ function renderArrets(){
     const isBRT = net === 'BRT';
     const total = isTER?13:isBRT?23:6;
     return `
-    <div onclick="window.focusStop(${a.lat}, ${a.lng}, '${a.name.replace(/'/g, "\\'")}')" class="rounded-[20px] bg-white dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800 p-4 flex gap-4 shadow-sm cursor-pointer hover:border-[#00B140]">
-      <div class="w-12 h-12 rounded-full ${isTER ? 'bg-emerald-600' : isBRT ? 'bg-[#00B140]' : 'bg-blue-600'} flex items-center justify-center text-white font-bold shrink-0">${isTER ? '🚆' : isBRT ? '🚌' : '🚏'}</div>
+    <div onclick="window.focusStop(${a.lat}, ${a.lng}, '${a.name.replace(/'/g, "\\'")}')" class="rounded-[20px] bg-white dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800 p-4 flex gap-4 shadow-sm cursor-pointer hover:border-[#25D366]">
+      <div class="w-12 h-12 rounded-full ${isTER ? 'bg-emerald-600' : isBRT ? 'bg-[#25D366]' : 'bg-blue-600'} flex items-center justify-center text-white font-bold shrink-0">${isTER ? '🚆' : isBRT ? '🚌' : '🚏'}</div>
       <div class="flex-1 min-w-0">
         <div class="font-bold text-[15px] truncate">${a.name} <span class="text-[11px] font-bold opacity-60">#${a.seq}/${total}</span></div>
         <div class="text-[12px] text-slate-500 truncate">${a.dir || ''} • horaire indisponible</div>
