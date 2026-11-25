@@ -3112,7 +3112,7 @@ ThemeData _buildTheme(bool dark) {
               primaryContainer: AppColors.accent,
               onPrimaryContainer: Colors.white,
               primaryFixed: AppColors.accent,
-              primaryFixedDim: AppColors.primaryDark,
+              primaryFixedDim: AppColors.beanGreen,
               onPrimaryFixed: Colors.white,
               onPrimaryFixedVariant: Colors.white,
               secondary: AppColors.accent,
@@ -3120,7 +3120,7 @@ ThemeData _buildTheme(bool dark) {
               secondaryContainer: AppColors.accent,
               onSecondaryContainer: Colors.white,
               secondaryFixed: AppColors.accent,
-              secondaryFixedDim: AppColors.primaryDark,
+              secondaryFixedDim: AppColors.beanGreen,
               onSecondaryFixed: Colors.white,
               onSecondaryFixedVariant: Colors.white,
               tertiary: AppColors.accent,
@@ -3128,7 +3128,7 @@ ThemeData _buildTheme(bool dark) {
               tertiaryContainer: AppColors.accent,
               onTertiaryContainer: Colors.white,
               tertiaryFixed: AppColors.accent,
-              tertiaryFixedDim: AppColors.primaryDark,
+              tertiaryFixedDim: AppColors.beanGreen,
               onTertiaryFixed: Colors.white,
               onTertiaryFixedVariant: Colors.white,
               error: const Color(0xFFB3261E),
@@ -3160,7 +3160,7 @@ ThemeData _buildTheme(bool dark) {
               primaryContainer: AppColors.accent,
               onPrimaryContainer: Colors.white,
               primaryFixed: AppColors.accent,
-              primaryFixedDim: AppColors.primaryDark,
+              primaryFixedDim: AppColors.beanGreen,
               onPrimaryFixed: Colors.white,
               onPrimaryFixedVariant: Colors.white,
               secondary: AppColors.accent,
@@ -3168,7 +3168,7 @@ ThemeData _buildTheme(bool dark) {
               secondaryContainer: AppColors.accent,
               onSecondaryContainer: Colors.white,
               secondaryFixed: AppColors.accent,
-              secondaryFixedDim: AppColors.primaryDark,
+              secondaryFixedDim: AppColors.beanGreen,
               onSecondaryFixed: Colors.white,
               onSecondaryFixedVariant: Colors.white,
               tertiary: AppColors.accent,
@@ -3176,7 +3176,7 @@ ThemeData _buildTheme(bool dark) {
               tertiaryContainer: AppColors.accent,
               onTertiaryContainer: Colors.white,
               tertiaryFixed: AppColors.accent,
-              tertiaryFixedDim: AppColors.primaryDark,
+              tertiaryFixedDim: AppColors.beanGreen,
               onTertiaryFixed: Colors.white,
               onTertiaryFixedVariant: Colors.white,
               error: const Color(0xFFB3261E),
@@ -4582,7 +4582,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
 
   Color _colorFor(String label) {
     switch (label) {
-      case '⭐ Favoris': return AppColors.primary;
+      case '⭐ Favoris': return AppColors.beanGreen;
       case 'TER': return AppColors.ter;
       case 'BRT': return AppColors.brt;
       case 'DDD': return AppColors.ddd;
@@ -4762,7 +4762,7 @@ class _PublicLineDetailPageState extends State<PublicLineDetailPage> {
       final hasTwoDirections = _directions.length >= 2;
       return Scaffold(
         backgroundColor: AppColors.background(dark),
-        appBar: AppBar(backgroundColor: AppColors.primary, foregroundColor: Colors.white, title: Text(line.publicLabel, style: const TextStyle(fontSize: 16))),
+        appBar: AppBar(backgroundColor: AppColors.beanGreen, foregroundColor: Colors.white, title: Text(line.publicLabel, style: const TextStyle(fontSize: 16))),
         body: ListView(padding: const EdgeInsets.all(16), children: [
           _header(dark, color, line.hasRealSchedule),
           if (hasTwoDirections) ...[const SizedBox(height: 12), _directionSwitcher(dark)],
@@ -4773,7 +4773,7 @@ class _PublicLineDetailPageState extends State<PublicLineDetailPage> {
             const SizedBox(height: 5),
             if (departures.isEmpty) Text('Horaire indisponible pour ce sens à cet arrêt.', style: TextStyle(fontSize: 12, color: AppColors.textSecondary(dark)))
             else ...departures.map((d) => Padding(padding: const EdgeInsets.symmetric(vertical: 3), child: Row(children: [
-              Icon(Icons.schedule_rounded, size: 17, color: AppColors.primary), const SizedBox(width: 7),
+              Icon(Icons.schedule_rounded, size: 17, color: AppColors.beanGreen), const SizedBox(width: 7),
               Text(d.scheduledTime == null ? 'Horaire indisponible' : 'Départ programmé · ${_timeLabel(d.scheduledTime!)}', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary(dark)))
             ])))
           ])),
@@ -4804,7 +4804,7 @@ class _PublicLineDetailPageState extends State<PublicLineDetailPage> {
     onSelectionChanged: (s) { if (s.isNotEmpty) setState(() => _directionIndex = s.first); },
     style: ButtonStyle(
       foregroundColor: WidgetStateProperty.resolveWith((states) => states.contains(WidgetState.selected) ? Colors.white : AppColors.textPrimary(dark)),
-      backgroundColor: WidgetStateProperty.resolveWith((states) => states.contains(WidgetState.selected) ? AppColors.primary : AppColors.surface(dark)),
+      backgroundColor: WidgetStateProperty.resolveWith((states) => states.contains(WidgetState.selected) ? AppColors.beanGreen : AppColors.surface(dark)),
     ),
   );
 
@@ -5254,7 +5254,7 @@ class StopCard extends StatelessWidget {
               title: Row(
                 children: [
                   Expanded(child: Text(header, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))),
-                  if (isFav) const Padding(padding: EdgeInsets.only(right: 6), child: Icon(Icons.star, size: 16, color: AppColors.primary)),
+                  if (isFav) const Padding(padding: EdgeInsets.only(right: 6), child: Icon(Icons.star, size: 16, color: AppColors.beanGreen)),
                   // Un arrêt natif PassBi (DDD/AFTU) n'a AUCUN rôle d'arrêt
                   // documenté : son `stopType` est un défaut technique
                   // (« INTERM. »), jamais un fait de réseau. Le badge n'est donc
@@ -5316,7 +5316,7 @@ class StopCard extends StatelessWidget {
     Color color; String label;
     switch (type) {
       case StopType.arrival: color = AppColors.warning; label = 'ARRIVÉE'; break;
-      case StopType.departure: color = AppColors.primary; label = 'DÉPART'; break;
+      case StopType.departure: color = AppColors.beanGreen; label = 'DÉPART'; break;
       case StopType.boarding: color = AppColors.brt; label = 'EMBARQ.'; break;
       case StopType.terminus: color = AppColors.ter; label = 'TERMINUS'; break;
       case StopType.correspondence: color = AppColors.tata; label = 'CORRESP.'; break;
@@ -5875,12 +5875,12 @@ class AlertsPage extends StatelessWidget {
                         width: 42,
                         height: 42,
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.09),
+                          color: AppColors.beanGreen.withOpacity(0.09),
                           borderRadius: BorderRadius.circular(13),
                         ),
                         child: const Icon(
                           Icons.people_alt_outlined,
-                          color: AppColors.primary,
+                          color: AppColors.beanGreen,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -5920,7 +5920,7 @@ class AlertsPage extends StatelessWidget {
                         icon: const Icon(
                           Icons.arrow_forward_ios_rounded,
                           size: 16,
-                          color: AppColors.primary,
+                          color: AppColors.beanGreen,
                         ),
                       ),
                     ],
@@ -6241,7 +6241,7 @@ class SettingsPage extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () => Navigator.pop(context),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
+                    backgroundColor: AppColors.beanGreen,
                     foregroundColor: Colors.white,
                     minimumSize: const Size(double.infinity, 48),
                     elevation: 0,
@@ -6274,7 +6274,7 @@ class SettingsPage extends StatelessWidget {
               fontSize: 12,
               fontWeight: FontWeight.w800,
               letterSpacing: 0.7,
-              color: AppColors.primary,
+              color: AppColors.beanGreen,
             ),
           ),
           const SizedBox(height: 3),
@@ -6319,13 +6319,13 @@ class SettingsPage extends StatelessWidget {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: (accent ? AppColors.primary : AppColors.textSecondary(dark))
+          color: (accent ? AppColors.beanGreen : AppColors.textSecondary(dark))
               .withOpacity(0.09),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Icon(
           icon,
-          color: accent ? AppColors.primary : AppColors.textSecondary(dark),
+          color: accent ? AppColors.beanGreen : AppColors.textSecondary(dark),
           size: 21,
         ),
       ),
@@ -6374,8 +6374,8 @@ class SettingsPage extends StatelessWidget {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        AppColors.primary,
-                        AppColors.primaryDark,
+                        AppColors.beanGreen,
+                        AppColors.beanGreen,
                       ],
                     ),
                     borderRadius: BorderRadius.circular(24),
@@ -6440,12 +6440,12 @@ class SettingsPage extends StatelessWidget {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.09),
+                          color: AppColors.beanGreen.withOpacity(0.09),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Icon(
                           Icons.notifications_outlined,
-                          color: AppColors.primary,
+                          color: AppColors.beanGreen,
                         ),
                       ),
                       title: Text(
@@ -6463,7 +6463,7 @@ class SettingsPage extends StatelessWidget {
                         ),
                       ),
                       value: true,
-                      activeColor: AppColors.primary,
+                      activeColor: AppColors.beanGreen,
                       onChanged: (_) {},
                     ),
                     Divider(height: 1, color: AppColors.divider(dark)),
@@ -6474,12 +6474,12 @@ class SettingsPage extends StatelessWidget {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.09),
+                          color: AppColors.beanGreen.withOpacity(0.09),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Icon(
                           Icons.dark_mode_outlined,
-                          color: AppColors.primary,
+                          color: AppColors.beanGreen,
                         ),
                       ),
                       title: Text(
@@ -6497,7 +6497,7 @@ class SettingsPage extends StatelessWidget {
                         ),
                       ),
                       value: dark,
-                      activeColor: AppColors.primary,
+                      activeColor: AppColors.beanGreen,
                       onChanged: (value) => globalState.toggleDarkMode(value),
                     ),
                   ],
@@ -7549,7 +7549,7 @@ class SingleStopView extends StatelessWidget {
                         ),
                       ),
                       IconButton(
-                        icon: Icon(isFav ? Icons.star : Icons.star_border, color: isFav ? AppColors.primary : Colors.grey),
+                        icon: Icon(isFav ? Icons.star : Icons.star_border, color: isFav ? AppColors.beanGreen : Colors.grey),
                         onPressed: () => globalState.toggleFavorite(stop.name),
                         tooltip: 'Favori',
                       ),
