@@ -337,24 +337,25 @@ class OppositeStopService {
 // PALETTE DAKAR / WHATSAPP & THEME MANAGER
 // ============================================================
 class AppColors {
-  static const primary = Color(0xFF00B140);
-  static const primaryDark = Color(0xFF008A32);
+  /// Couleur principale de l'interface : vert WhatsApp, sans exception.
+  static const primary = Color(0xFF25D366);
+  static const primaryDark = Color(0xFF1FAF54);
 
-  /// Vert WhatsApp — teinte d'action de l'interface (boutons, onglets,
-  /// sélections et éléments interactifs). Le vert Dakar historique [primary]
-  /// reste réservé au GPS et aux marqueurs BRT/DDD/AFTU/TATA ; le TER garde
-  /// son brun historique.
+  /// Vert WhatsApp — actions, onglets, sélections et éléments interactifs.
   static const beanGreen = Color(0xFF25D366);
   static const beanGreenLight = Color(0xFFE5F9EC);
 
+  /// Vert Dakar historique, strictement réservé au GPS et à l'identité BRT,
+  /// DDD, AFTU et TATA. Il ne doit jamais servir d'accent général d'interface.
+  static const networkGreen = Color(0xFF00B140);
+
   // Couleurs historiques des réseaux : TER conserve son brun ; BRT, DDD,
-  // AFTU et TATA conservent le vert Dakar. La couleur n'est jamais une identité
-  // métier : les filtres s'appuient sur networkIds. Warning/error restent sémantiques.
+  // AFTU et TATA conservent le vert Dakar. Les filtres s'appuient sur networkIds.
   static const ter = Color(0xFF8B4513);
-  static const brt = primary;
-  static const aftu = primary;
-  static const tata = primary;
-  static const ddd = primary;
+  static const brt = networkGreen;
+  static const aftu = networkGreen;
+  static const tata = networkGreen;
+  static const ddd = networkGreen;
 
   static Color background(bool dark) => dark ? const Color(0xFF0A0A0B) : const Color(0xFFFAFAFA);
   static Color surface(bool dark) => dark ? const Color(0xFF1E1E1E) : const Color(0xFFFFFFFF);
@@ -4282,7 +4283,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                                     .toList(),
                               ),
                             if (widget.userPosition != null && PositionValidity.isPlausible(widget.userPosition!))
-                              MarkerLayer(markers: [Marker(point: widget.userPosition!, width: 22, height: 22, child: Container(decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 3), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 4)])))]),
+                              MarkerLayer(markers: [Marker(point: widget.userPosition!, width: 22, height: 22, child: Container(decoration: BoxDecoration(color: AppColors.networkGreen, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 3), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 4)])))]),
                           ],
                         ),
                       ),
