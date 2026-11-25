@@ -4,7 +4,7 @@
   "description": "Réseau multimodal Dakar - TER, BRT, DDD, AFTU, Tata - 40 lignes, 40 arrêts",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#00B140",
-  "theme_color": "#00B140",
+  "background_color": "#25D366",
+  "theme_color": "#25D366",
   "icons": []
 }
