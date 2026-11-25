@@ -89,6 +89,6 @@ void main() {
     expect(source, contains("_buildInputField(controller: _fromCtrl, label: 'Départ', icon: Icons.my_location, color: AppColors.beanGreen, dark: dark)"));
     expect(source, contains("_buildInputField(controller: _toCtrl, label: 'Destination', icon: Icons.location_on, color: AppColors.beanGreen, dark: dark)"));
     expect(source, contains('Icon(Icons.access_time, size: 12, color: AppColors.beanGreen)'));
-    expect(source, contains('color: AppColors.beanGreen))]));
+    expect(source, contains('color: AppColors.beanGreen))]),'));
   });
 }
