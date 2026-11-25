@@ -7631,8 +7631,11 @@ class SingleStopView extends StatelessWidget {
                   : () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedRoutePage(route: routeDetails))),
               icon: const Icon(Icons.map_outlined, size: 18),
               label: const Text('Voir la ligne complète & stations', style: TextStyle(fontWeight: FontWeight.bold)),
+              // Action générale de navigation : elle reprend le vert WhatsApp
+              // du thème. `stop.color` reste réservé à l'identité du réseau
+              // (pastille, en-tête et libellé de ligne), jamais aux actions UI.
               style: ElevatedButton.styleFrom(
-                backgroundColor: stop.color,
+                backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
                 minimumSize: const Size(double.infinity, 48),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

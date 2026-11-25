@@ -99,6 +99,35 @@ void main() {
     expect(source, contains('color: AppColors.beanGreen))]),'));
   });
 
+  test('stop detail navigation action uses WhatsApp green, not network identity color', () {
+    final String source = File('lib/main.dart').readAsStringSync();
+    const marker = "label: const Text('Voir la ligne complète & stations'";
+    final int start = source.indexOf(marker);
+    expect(start, isNonNegative, reason: 'Le bouton de détail doit rester présent.');
+    final int end = start + 700 < source.length ? start + 700 : source.length;
+    final String action = source.substring(start, end);
+    expect(
+      action,
+      contains('backgroundColor: AppColors.primary,'),
+      reason: 'Le bouton est une action générale : vert WhatsApp obligatoire.',
+    );
+    expect(
+      action,
+      isNot(contains('backgroundColor: stop.color')),
+      reason: 'La couleur du réseau ne doit pas teinter un bouton d’action général.',
+    );
+    expect(
+      source,
+      contains('decoration: BoxDecoration(color: stop.color, shape: BoxShape.circle'),
+      reason: 'La pastille d’arrêt conserve la couleur identitaire du réseau.',
+    );
+    expect(
+      source,
+      contains('stop.color.withOpacity(0.3)'),
+      reason: 'La bordure de la fiche conserve la couleur identitaire du réseau.',
+    );
+  });
+
   test('release identity is bumped to force installed PWA refresh', () {
     final String pubspec = File('pubspec.yaml').readAsStringSync();
     final String webIndex = File('web/index.html').readAsStringSync();
