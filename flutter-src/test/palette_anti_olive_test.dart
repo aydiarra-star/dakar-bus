@@ -61,6 +61,21 @@ void main() {
     }
   });
 
+  test('legacy web shell uses WhatsApp green for every general UI action', () {
+    final String legacy = File('../index.html').readAsStringSync();
+    expect(legacy, contains("dakar: { DEFAULT: '#25D366', light: '#E5F9EC'"));
+    expect(legacy, contains('.tab-active { background: #25D366'));
+    expect(legacy, contains('.filter-active { background: #E5F9EC; color: #1FAF54'));
+    expect(legacy, contains('.bottom-nav-active { background: #E5F9EC; color: #25D366'));
+    expect(legacy, contains('id="assistant-ia-btn"'));
+    expect(legacy, contains('id="search-itinerary"'));
+    expect(legacy, contains("TER: { key:'TER', label:'TER Dakar ↔ Diamniadio', emoji:'🚆', color:'#8B4513'"));
+    expect(legacy, contains("BRT: { key:'BRT', label:'SunuBRT — Ligne B1 omnibus', emoji:'🚌', color:'#00B140'"));
+    expect(legacy, isNot(contains('.tab-active { background: #00B140')));
+    expect(legacy, isNot(contains('id="assistant-ia-btn" class="px-5 h-11 rounded-full bg-[#00B140]')));
+    expect(legacy, isNot(contains('id="search-itinerary" class="w-full h-[52px] rounded-[14px] bg-[#00B140]')));
+  });
+
   test('palette guard: WhatsApp is the only general UI primary', () {
     expect(app.AppColors.primary.value, 0xFF25D366);
     expect(app.AppColors.accent, app.AppColors.primary);
