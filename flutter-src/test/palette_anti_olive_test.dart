@@ -61,14 +61,21 @@ void main() {
     }
   });
 
-  test('palette guard: transport networks retain their designated colors', () {
-    expect(app.AppColors.primary.value, 0xFF00B140);
-    // TER keeps its documented historic brown; the other networks keep Dakar green.
+  test('palette guard: WhatsApp is the only general UI primary', () {
+    expect(app.AppColors.primary.value, 0xFF25D366);
+    expect(app.AppColors.accent, app.AppColors.primary);
+    expect(app.AppColors.beanGreenLight.value, 0xFFE5F9EC);
+  });
+
+  test('palette guard: transport identities keep their separate historic colors', () {
+    expect(app.AppColors.networkGreen.value, 0xFF00B140);
     expect(app.AppColors.ter.value, 0xFF8B4513);
-    expect(app.AppColors.brt, app.AppColors.primary);
-    expect(app.AppColors.ddd, app.AppColors.primary);
-    expect(app.AppColors.aftu, app.AppColors.primary);
-    expect(app.AppColors.tata, app.AppColors.primary);
+    expect(app.AppColors.brt, app.AppColors.networkGreen);
+    expect(app.AppColors.ddd, app.AppColors.networkGreen);
+    expect(app.AppColors.aftu, app.AppColors.networkGreen);
+    expect(app.AppColors.tata, app.AppColors.networkGreen);
+    final String source = File('lib/main.dart').readAsStringSync();
+    expect(source, contains('color: AppColors.networkGreen, shape: BoxShape.circle'));
   });
 
   test('palette guard: countdown and action green are exactly WhatsApp green', () {
