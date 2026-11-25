@@ -104,7 +104,8 @@ void main() {
     const marker = "label: const Text('Voir la ligne complète & stations'";
     final int start = source.indexOf(marker);
     expect(start, isNonNegative, reason: 'Le bouton de détail doit rester présent.');
-    final String action = source.substring(start, (start + 700).clamp(0, source.length));
+    final int end = start + 700 < source.length ? start + 700 : source.length;
+    final String action = source.substring(start, end);
     expect(
       action,
       contains('backgroundColor: AppColors.primary,'),
