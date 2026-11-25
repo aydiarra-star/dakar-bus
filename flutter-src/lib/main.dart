@@ -3222,7 +3222,7 @@ ThemeData _buildTheme(bool dark) {
       backgroundColor: AppColors.surface(dark),
       surfaceTintColor: Colors.transparent,
       shadowColor: Colors.black.withOpacity(dark ? 0.28 : 0.06),
-      indicatorColor: AppColors.accent,
+      indicatorColor: AppColors.beanGreen,
       elevation: 0,
       height: 72,
       labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
@@ -3233,13 +3233,13 @@ ThemeData _buildTheme(bool dark) {
             fontWeight:
                 s.contains(WidgetState.selected) ? FontWeight.w700 : FontWeight.w500,
             color: s.contains(WidgetState.selected)
-                ? AppColors.accent
+                ? Colors.white
                 : AppColors.textSecondary(dark),
           )),
       iconTheme: WidgetStateProperty.resolveWith((Set<WidgetState> s) => IconThemeData(
           size: s.contains(WidgetState.selected) ? 25 : 23,
           color: s.contains(WidgetState.selected)
-              ? AppColors.accent
+              ? Colors.white
               : AppColors.textSecondary(dark))),
     ),
     cardTheme: CardTheme(
@@ -3691,29 +3691,29 @@ class _MainShellState extends State<MainShell> {
             selectedIndex: _currentIndex,
             onDestinationSelected: (i) => setState(() => _currentIndex = i),
             backgroundColor: AppColors.surface(dark),
-            indicatorColor: AppColors.beanGreen.withOpacity(0.18),
+            indicatorColor: AppColors.beanGreen,
             labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
             height: 72,
             elevation: 0,
             destinations: const [
               NavigationDestination(
                 icon: Icon(Icons.explore_outlined),
-                selectedIcon: Icon(Icons.explore_rounded, color: AppColors.beanGreen),
+                selectedIcon: Icon(Icons.explore_rounded, color: Colors.white),
                 label: 'Explorer',
               ),
               NavigationDestination(
                 icon: Icon(Icons.alt_route_outlined),
-                selectedIcon: Icon(Icons.alt_route_rounded, color: AppColors.beanGreen),
+                selectedIcon: Icon(Icons.alt_route_rounded, color: Colors.white),
                 label: 'Trajet',
               ),
               NavigationDestination(
                 icon: Icon(Icons.notifications_outlined),
-                selectedIcon: Icon(Icons.notifications_rounded, color: AppColors.beanGreen),
+                selectedIcon: Icon(Icons.notifications_rounded, color: Colors.white),
                 label: 'Alertes',
               ),
               NavigationDestination(
                 icon: Icon(Icons.tune_outlined),
-                selectedIcon: Icon(Icons.tune_rounded, color: AppColors.beanGreen),
+                selectedIcon: Icon(Icons.tune_rounded, color: Colors.white),
                 label: 'Paramètres',
               ),
             ],
@@ -5434,9 +5434,9 @@ class _TripsPageState extends State<TripsPage> {
                   decoration: BoxDecoration(color: AppColors.surface(dark), borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, 4))]),
                   child: Column(
                     children: [
-                      _buildInputField(controller: _fromCtrl, label: 'Départ', icon: Icons.my_location, color: AppColors.accent, dark: dark),
+                      _buildInputField(controller: _fromCtrl, label: 'Départ', icon: Icons.my_location, color: AppColors.beanGreen, dark: dark),
                       const SizedBox(height: 12),
-                      _buildInputField(controller: _toCtrl, label: 'Destination', icon: Icons.location_on, color: AppColors.ter, dark: dark),
+                      _buildInputField(controller: _toCtrl, label: 'Destination', icon: Icons.location_on, color: AppColors.beanGreen, dark: dark),
                       const SizedBox(height: 20),
                       ElevatedButton(
                         onPressed: _loading ? null : _search,
@@ -5715,7 +5715,7 @@ class _TripsPageState extends State<TripsPage> {
                       child: Padding(
                         padding: EdgeInsets.only(bottom: isLast ? 0 : 16),
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Row(children: [Icon(s.icon, size: 14, color: s.color), const SizedBox(width: 6), Text(stripPassBiFromLabel(s.modeLabel), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: s.color)), const Spacer(), Text(s.departureTime ?? ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary(dark)))]),
+                          Row(children: [Icon(s.icon, size: 14, color: s.color), const SizedBox(width: 6), Text(stripPassBiFromLabel(s.modeLabel), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: s.color)), const Spacer(), Text(s.departureTime ?? ReliabilityLabel.scheduleUnavailable, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.beanGreen))]),
                           const SizedBox(height: 4),
                           Text('${s.from} - ${s.to}', style: TextStyle(fontSize: 12, color: AppColors.textPrimary(dark))),
                           const SizedBox(height: 2),
@@ -7226,7 +7226,7 @@ class DetailedRoutePage extends StatelessWidget {
                                 ]),
                                 const SizedBox(height: 4),
                                 Row(children: [
-                                  Icon(Icons.access_time, size: 12, color: route.color),
+                                  Icon(Icons.access_time, size: 12, color: AppColors.beanGreen),
                                   const SizedBox(width: 4),
                                   // Audit 2026-09-24 — AVANT : « Heure : ~N min » (N = rang × 3,
                                   // hypothèse non sourcée) lu comme une heure. Puis repli fixe
