@@ -7,7 +7,8 @@ import 'package:dakar_bus/main.dart' as app;
 void main() {
   test('palette guard: legacy olive/mustard variants are absent from runtime UI sources', () {
     final runtimeDir = Directory('lib');
-    expect(runtimeDir.existsSync(), isTrue, reason: 'Le dossier lib du package Flutter doit exister.');
+    expect(runtimeDir.existsSync(), isTrue,
+        reason: 'Le dossier lib du package Flutter doit exister.');
 
     const forbidden = <String>[
       'ColorScheme.fromSeed',
