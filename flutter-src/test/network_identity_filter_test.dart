@@ -4,7 +4,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:dakar_bus/main.dart';
 
 void main() {
-  Stop fixture(String name, String mode, List<String> networks) => Stop(
+  Stop fixture(String name, String mode, Set<String> networks) => Stop(
         name: name,
         direction: 'Dir. Dakar',
         distanceMeters: 0,
@@ -18,10 +18,10 @@ void main() {
 
   test('les couleurs identiques ne mélangent pas les filtres réseau', () {
     final List<Stop> source = <Stop>[
-      fixture('Gare TER', 'TER', const <String>['ter']),
-      fixture('Station BRT', 'BRT', const <String>['brt']),
-      fixture('Arrêt DDD', 'DDD', const <String>['ddd']),
-      fixture('Pôle TER/BRT', 'TER', const <String>['ter', 'brt']),
+      fixture('Gare TER', 'TER', const <String>{'ter'}),
+      fixture('Station BRT', 'BRT', const <String>{'brt'}),
+      fixture('Arrêt DDD', 'DDD', const <String>{'ddd'}),
+      fixture('Pôle TER/BRT', 'TER', const <String>{'ter', 'brt'}),
     ];
 
     expect(source.every((Stop s) => s.color == AppColors.primary), isTrue);
@@ -52,8 +52,8 @@ void main() {
   });
 
   test('un arrêt partagé conserve toutes ses appartenances réseau', () {
-    final Stop shared = fixture('Pôle', 'TER', const <String>['ter'])
-        .copyWith(networkIds: const <String>['brt', 'ter']);
+    final Stop shared = fixture('Pôle', 'TER', const <String>{'ter'})
+        .copyWith(networkIds: const <String>{'brt', 'ter'});
 
     expect(shared.servesNetwork('ter'), isTrue);
     expect(shared.servesNetwork('brt'), isTrue);
@@ -61,7 +61,7 @@ void main() {
   });
 
   test('les arrêts historiques sans identifiants gardent le repli modeLabel', () {
-    final Stop legacy = fixture('Ancienne gare', 'TER', const <String>[]);
+    final Stop legacy = fixture('Ancienne gare', 'TER', const <String>{});
     expect(legacy.servesNetwork('ter'), isTrue);
     expect(legacy.servesNetwork('brt'), isFalse);
   });
@@ -77,7 +77,7 @@ void main() {
       location: const LatLng(14.7, -17.4),
       modeLabel: 'TER',
       scheduleRouteId: 'ter_route',
-      networkIds: const <String>['ter', 'tata'],
+      networkIds: const <String>{'ter', 'tata'},
       scheduleRouteIdsByNetwork: const <String, String>{
         'ter': 'ter_route',
         'tata': 'tata_route',
