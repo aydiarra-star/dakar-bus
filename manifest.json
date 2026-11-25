@@ -5,7 +5,7 @@
   "start_url": "/dakar-bus/?source=pwa",
   "display": "standalone",
   "background_color": "#f6f7f5",
-  "theme_color": "#00B140",
+  "theme_color": "#25D366",
   "orientation": "portrait-primary",
   "scope": "/dakar-bus/",
   "lang": "fr",
@@ -15,13 +15,13 @@
   ],
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2300B140'/><text x='50%' y='58%' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-weight='800' font-size='42' fill='white'>D</text></svg>",
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2325D366'/><text x='50%' y='58%' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-weight='800' font-size='42' fill='white'>D</text></svg>",
       "sizes": "192x192",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     },
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2300B140'/><text x='50%' y='58%' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-weight='800' font-size='42' fill='white'>D</text></svg>",
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2325D366'/><text x='50%' y='58%' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-weight='800' font-size='42' fill='white'>D</text></svg>",
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
