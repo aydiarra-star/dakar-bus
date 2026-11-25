@@ -91,4 +91,16 @@ void main() {
     expect(source, contains('Icon(Icons.access_time, size: 12, color: AppColors.beanGreen)'));
     expect(source, contains('color: AppColors.beanGreen))]),'));
   });
+
+  test('web shell uses the generated Flutter bootstrap and refreshes its cache key', () {
+    final String source = File('web/index.html').readAsStringSync();
+    expect(
+      source,
+      contains('flutter_bootstrap.js?v=20261125-whatsapp-green-04'),
+    );
+    expect(source, contains('manifest.json?v=20261125-whatsapp-green-04'));
+    expect(source, contains('content="#25D366"'));
+    expect(source, isNot(contains('flutter.js?v=')));
+    expect(source, isNot(contains('_flutter.loader.loadEntrypoint')));
+  });
 }
