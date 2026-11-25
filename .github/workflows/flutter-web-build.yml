@@ -1,7 +1,7 @@
 name: Flutter web build (J9)
 
 # POST-MERGE GATE: every change reaching main must pass the full reproducible Flutter validation chain before release-ready status.
-# PALETTE GATE: the deployed runtime must keep Dakar Green #00B140 and neutral surfaces.
+# PALETTE GATE: general UI uses WhatsApp green #25D366; #00B140 is reserved for network identity/GPS.
 
 # ============================================================================
 # J9 — CHAÎNE DE BUILD REPRODUCTIBLE DE DAKAR BUS (projet officiel : Flutter,
