@@ -3,7 +3,7 @@ const MANIFEST = 'flutter-app-manifest';
 const TEMP = 'flutter-temp-cache';
 const CACHE_NAME = 'flutter-app-cache';
 
-const RESOURCES = {"version.json": "c49e63445b887ecb291742eb2c26ae38",
+const RESOURCES = {"version.json": "baa55b942abad23268b2ad0d4116337c",
 "assets/shaders/ink_sparkle.frag": "ecc85a2e95f5e9f53123dcaf8cb9b6ce",
 "assets/assets/data/reference/public_bus_lines_dakar.json": "dec91b9fe490610a4050802439d09aa3",
 "assets/assets/data/reference/ddd_aftu_poles_terminus.json": "0c4695ed2c730913c634f9ed2b25dfa4",
@@ -23,9 +23,9 @@ const RESOURCES = {"version.json": "c49e63445b887ecb291742eb2c26ae38",
 "assets/AssetManifest.json": "533610c144de6d5e7c1dae8fd4db7a1d",
 "flutter.js": "f393d3c16b631f36852323de8e583132",
 "main.dart.js": "7109275505e6e231ea40ae5c020c9a4b",
-"index.html": "e5573afc01a412734653f6b8d30d0777",
-"/": "e5573afc01a412734653f6b8d30d0777",
-"flutter_bootstrap.js": "0e0f25f88b1002c6f74e22ece94b2cdd",
+"index.html": "6ae1b9ada7437dfcd7298be2c0d852e1",
+"/": "6ae1b9ada7437dfcd7298be2c0d852e1",
+"flutter_bootstrap.js": "931d910f51d5b077d9e194ef115c75e8",
 "canvaskit/skwasm.worker.js": "89990e8c92bcb123999aa81f7e203b1c",
 "canvaskit/canvaskit.js.symbols": "48c83a2ce573d9692e8d970e288d75f7",
 "canvaskit/canvaskit.wasm": "1f237a213d7370cf95f443d896176460",
