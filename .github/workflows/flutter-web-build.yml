@@ -120,28 +120,34 @@ jobs:
           echo "app_version=${full}" >> "$GITHUB_OUTPUT"
           echo "Version applicative (pubspec.yaml) : ${full}"
 
-      - name: État du lockfile
+      - name: Vérifier la présence du lockfile de référence
         id: lockfile
         run: |
-          if [ -f pubspec.lock ]; then
-            echo "present=true" >> "$GITHUB_OUTPUT"
-            echo "pubspec.lock commité : la résolution des dépendances est imposée (--enforce-lockfile)."
-          else
-            echo "present=false" >> "$GITHUB_OUTPUT"
-            echo "::warning file=flutter-src/pubspec.yaml::pubspec.lock ABSENT — ce build n'est pas encore reproductible. Le lockfile généré par ce run est publié dans l'artefact « pubspec.lock » : à vérifier puis à commiter dans flutter-src/ après validation."
+          if [ ! -s pubspec.lock ]; then
+            echo "::error file=flutter-src/pubspec.lock::pubspec.lock absent ou vide : le build reproductible est bloqué."
+            exit 1
           fi
+          echo "present=true" >> "$GITHUB_OUTPUT"
+          echo "Lockfile commité présent : $(wc -l < pubspec.lock) lignes."
 
-      - name: flutter pub get (lockfile imposé)
-        if: steps.lockfile.outputs.present == 'true'
-        run: flutter pub get --enforce-lockfile 2>&1 | tee "${RUNNER_TEMP}/j9-logs/pub-get.txt"
-
-      - name: flutter pub get (première exécution — génère pubspec.lock)
-        if: steps.lockfile.outputs.present != 'true'
+      - name: flutter pub get (première exécution isolée — génération du lockfile)
         run: |
-          flutter pub get 2>&1 | tee "${RUNNER_TEMP}/j9-logs/pub-get.txt"
-          echo "----- pubspec.lock généré par Flutter ${FLUTTER_VERSION} -----"
-          cat pubspec.lock
-          cp pubspec.lock "${RUNNER_TEMP}/j9-logs/pubspec.lock"
+          set -euo pipefail
+          tmp="$(mktemp -d)"
+          trap 'rm -rf "$tmp"' EXIT
+          cp pubspec.yaml "$tmp/pubspec.yaml"
+          (
+            cd "$tmp"
+            flutter pub get 2>&1 | tee "${RUNNER_TEMP}/j9-logs/pub-get-first-run.txt"
+          )
+          test -s "$tmp/pubspec.lock"
+          cp "$tmp/pubspec.lock" "${RUNNER_TEMP}/j9-logs/pubspec.lock"
+          echo "Lockfile généré dans un projet temporaire : $(wc -l < "$tmp/pubspec.lock") lignes."
+          echo "OK — première résolution réussie et pubspec.lock généré."
+          echo "Le lockfile généré est conservé comme artefact de diagnostic ; le projet réel est contrôlé séparément avec --enforce-lockfile."
+
+      - name: flutter pub get (installation verrouillée du projet)
+        run: flutter pub get --enforce-lockfile 2>&1 | tee "${RUNNER_TEMP}/j9-logs/pub-get.txt"
 
       - name: flutter analyze
         run: flutter analyze 2>&1 | tee "${RUNNER_TEMP}/j9-logs/analyze.txt"
@@ -274,12 +280,12 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Artefact — pubspec.lock généré (à commiter après validation)
-        if: steps.lockfile.outputs.present != 'true'
+      - name: Artefact — pubspec.lock régénéré et comparé
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: pubspec.lock
-          path: flutter-src/pubspec.lock
+          name: pubspec-lock-verification
+          path: ${{ runner.temp }}/j9-logs/pubspec.lock
           if-no-files-found: error
           retention-days: 30
 
